@@ -1,11 +1,11 @@
 /** Package-owned relational checks for Agent Teams durable records. */
 
-import type { Context } from '@hydra/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
-import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Session, SessionEvent } from '@hydra1902/harness-session'
 import { applyTeamEvent, foldTeam, isTeamEvent } from './fold.ts'
 
-const PACKAGE_NAME = '@hydra/harness-experimental-agent-team'
+const PACKAGE_NAME = '@hydra1902/harness-experimental-agent-team'
 
 /** Cordis companion plugin name. */
 export const name = 'team-invariant'

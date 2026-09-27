@@ -1,7 +1,7 @@
 /**
  * User-declared hook records: one settings-backed registry that mounts every
- * enabled record on its dialect's bridge (`@hydra/harness-hooks-claude-code` or
- * `@hydra/harness-hooks-codex`) and unmounts it when the record is disabled,
+ * enabled record on its dialect's bridge (`@hydra1902/harness-hooks-claude-code` or
+ * `@hydra1902/harness-hooks-codex`) and unmounts it when the record is disabled,
  * redefined, or removed. The stored document (`hooks.records` in the harness
  * settings file) is the only source of truth, so a hook added from a
  * configuration surface survives a restart and one added by hand-editing that
@@ -10,31 +10,31 @@
  * A record either points at an existing hook document (`configPath`) or carries
  * its definitions inline. Inline definitions are materialized under the harness
  * home, because both bridges read one file path at load.
- * @module @hydra/harness-hooks-registry
+ * @module @hydra1902/harness-hooks-registry
  */
 
 import { mkdir, readFile, rm } from 'node:fs/promises'
 import { isAbsolute, join } from 'node:path'
-import { Service, type Context, type Fiber } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { writeFileAtomic } from '@hydra/harness-atomic-write'
-import { resolveHydraHome } from '@hydra/harness-home-paths'
-import { settingsNamespace, type SettingsScope } from '@hydra/harness-settings'
+import { Service, type Context, type Fiber } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { writeFileAtomic } from '@hydra1902/harness-atomic-write'
+import { resolveHydraHome } from '@hydra1902/harness-home-paths'
+import { settingsNamespace, type SettingsScope } from '@hydra1902/harness-settings'
 import {
   apply as applyClaudeCodeHooks, inject as claudeCodeInject,
-} from '@hydra/harness-hooks-claude-code'
-import { apply as applyCodexHooks, inject as codexInject } from '@hydra/harness-hooks-codex'
-import { parseClaudeCodeConfig } from '@hydra/harness-hooks-claude-code/config'
-import { parseCodexConfig } from '@hydra/harness-hooks-codex/config'
+} from '@hydra1902/harness-hooks-claude-code'
+import { apply as applyCodexHooks, inject as codexInject } from '@hydra1902/harness-hooks-codex'
+import { parseClaudeCodeConfig } from '@hydra1902/harness-hooks-claude-code/config'
+import { parseCodexConfig } from '@hydra1902/harness-hooks-codex/config'
 import type {
   HookDialect, HookRecordDefinitionRequest, HookRecordEnablementRequest, HookRecordSnapshot,
   HookRecordStatus, HookRecordView, HookSourceKind,
 } from './types.ts'
-import type { JsonValue } from '@hydra/harness-session/types'
+import type { JsonValue } from '@hydra1902/harness-session/types'
 
 export type * from './types.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     /** User-declared hook records and their live bridge mounts. */
     hookRecords: HookRecordRegistry

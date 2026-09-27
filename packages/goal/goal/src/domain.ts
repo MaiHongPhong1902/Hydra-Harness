@@ -2,12 +2,12 @@
  * Host-side vocabulary of the goal domain: live views, durable change
  * payloads, message attribution, replay folds, and the scoped `goal/changed`
  * event. Kept separate from ./types.ts (the pure client-safe outlet) because
- * these declarations pull @hydra/harness-agent, @hydra/harness-llm, and cordis into the program —
+ * these declarations pull @hydra1902/harness-agent, @hydra1902/harness-llm, and cordis into the program —
  * the one-program-per-side layout forbids that on client aggregates.
- * @module @hydra/harness-goal
+ * @module @hydra1902/harness-goal
  */
 
-import type { Agent } from '@hydra/harness-agent'
+import type { Agent } from '@hydra1902/harness-agent'
 import type { GoalId, GoalRef, GoalSnapshot, GoalView } from './types.ts'
 
 /** Goal state-changing verbs recorded in the durable source change. */
@@ -52,13 +52,13 @@ export interface GoalMessageSource {
   readonly round: number
 }
 
-declare module '@hydra/harness-llm' {
+declare module '@hydra1902/harness-llm' {
   interface MessageSourceMap {
     goal: GoalMessageSource
   }
 }
 
-declare module '@hydra/harness-session/types' {
+declare module '@hydra1902/harness-session/types' {
   interface SessionEventMap {
     /**
      * Complete post-mutation goal state or clear tombstone.
@@ -101,16 +101,16 @@ export type GoalErrorCode =
   | 'GOAL_INVALID_EDIT'
   | 'GOAL_INVALID_TRANSITION'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Events {
     /**
      * Goal mutation accepted by one live agent. The matching `goal/change`
      * session event has already committed. Listener failures are contained.
-     * Scope-filtered dispatch (`@hydra/harness-scope`): agent-scoped listeners receive only that agent.
+     * Scope-filtered dispatch (`@hydra1902/harness-scope`): agent-scoped listeners receive only that agent.
      * @param payload.agent - agent whose session owns the goal.
      * @param payload.change - fresh current projection or clear tombstone.
      * @mode emit
      */
-    'goal/changed'(this: import('@hydra/harness-scope').Scoped<Agent>, payload: { agent: Agent; change: GoalChanged }): void
+    'goal/changed'(this: import('@hydra1902/harness-scope').Scoped<Agent>, payload: { agent: Agent; change: GoalChanged }): void
   }
 }

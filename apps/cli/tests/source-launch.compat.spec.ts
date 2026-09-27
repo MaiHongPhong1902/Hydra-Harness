@@ -39,7 +39,7 @@ describe('hydra SOURCE launcher (node --import tsx/esm)', () => {
     }
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toContain('requires an interactive terminal')
-    expect(result.stderr).toContain('npx @hydra/harness web')
+    expect(result.stderr).toContain('npx @hydra1902/harness web')
     expect(result.stdout).toBe('')
   }, 30_000)
 })

@@ -1,5 +1,5 @@
-import { composeError, Context } from '@hydra/cordis'
-import { isNonNullable, type Dict } from '@hydra/cosmokit'
+import { composeError, Context } from '@hydra1902/cordis'
+import { isNonNullable, type Dict } from '@hydra1902/cosmokit'
 import { Entry, type EntryOptions } from './entry.ts'
 import { EntryGroup } from './group.ts'
 

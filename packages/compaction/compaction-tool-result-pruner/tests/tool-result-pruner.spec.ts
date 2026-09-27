@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { CallId , createMessage, createToolResultMessage } from '@hydra/harness-llm'
-import type { ContentBlock } from '@hydra/harness-llm'
+import { Context } from '@hydra1902/cordis'
+import { CallId , createMessage, createToolResultMessage } from '@hydra1902/harness-llm'
+import type { ContentBlock } from '@hydra1902/harness-llm'
 import SessionStore, {
   Session,
   SessionId,
-} from '@hydra/harness-session'
-import type { SurfaceEvent } from '@hydra/harness-session'
-import * as SessionInvariant from '@hydra/harness-session/invariant'
-import InvariantRegistry from '@hydra/harness-invariants'
-import TokenMeter from '@hydra/harness-token-meter'
+} from '@hydra1902/harness-session'
+import type { SurfaceEvent } from '@hydra1902/harness-session'
+import * as SessionInvariant from '@hydra1902/harness-session/invariant'
+import InvariantRegistry from '@hydra1902/harness-invariants'
+import TokenMeter from '@hydra1902/harness-token-meter'
 import ToolResultPruner, {
   codePointLength,
   DEFAULTS,
   PRUNE_MARKER,
   resolveConfig,
-} from '@hydra/harness-compaction-tool-result-pruner'
-import type { ToolResultPruneConfig } from '@hydra/harness-compaction-tool-result-pruner'
+} from '@hydra1902/harness-compaction-tool-result-pruner'
+import type { ToolResultPruneConfig } from '@hydra1902/harness-compaction-tool-result-pruner'
 
 const MODEL = 'test-model'
 const SMALL: ToolResultPruneConfig = {

@@ -2,24 +2,24 @@ import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include from '@hydra/cordis-plugin-include'
-import LlmRuntime from '@hydra/harness-llm'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime from '@hydra/harness-tools'
-import AgentRegistry, { assembleContextFor, type Agent } from '@hydra/harness-agent'
-import AgentLoop from '@hydra/harness-agent-loop'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include from '@hydra1902/cordis-plugin-include'
+import LlmRuntime from '@hydra1902/harness-llm'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime from '@hydra1902/harness-tools'
+import AgentRegistry, { assembleContextFor, type Agent } from '@hydra1902/harness-agent'
+import AgentLoop from '@hydra1902/harness-agent-loop'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AgentPresets, {
   COMPOSITION_FILE, leakedServices, livePresetMounts, mountPreset, PresetMountError, serviceForAgent,
-} from '@hydra/harness-agent-presets'
-import type { Config } from '@hydra/harness-agent-presets'
-import type {} from '@hydra/harness-agent-presets/types'
-import { bindScopeParent, createScope, scopeOf } from '@hydra/harness-scope'
+} from '@hydra1902/harness-agent-presets'
+import type { Config } from '@hydra1902/harness-agent-presets'
+import type {} from '@hydra1902/harness-agent-presets/types'
+import { bindScopeParent, createScope, scopeOf } from '@hydra1902/harness-scope'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     /** Published by the `isolated` fixture preset behind an entry-local realm. */
     fixtureIsolatedSvc: { label: string }

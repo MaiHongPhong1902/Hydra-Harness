@@ -7,11 +7,11 @@
  * `cordis.snapshot.yml` so a stray key cannot trigger a model call. EOF disposes
  * and flushes snapshot runs; the calling automation owns process lifetime. Stdout is
  * reserved for JSON-RPC, so diagnostics go only to stderr.
- * @module @hydra/harness-acp-demo/bin
+ * @module @hydra1902/harness-acp-demo/bin
  */
 
 import { parseArgs } from 'node:util'
-import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@hydra/harness-app-boot'
+import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@hydra1902/harness-app-boot'
 
 const NAME = 'hydra-acp-demo'
 

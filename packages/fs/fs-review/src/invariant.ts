@@ -1,6 +1,6 @@
 /** Review storage validates ownership and hashes at its durable parser. @module */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
 /** Companion plugin identity. */
 export const name = 'fs-review-invariant'
@@ -17,4 +17,4 @@ const install: InvariantInstaller = () => {}
  * @returns registration disposer.
  */
 export const apply = (ctx: Context): Promise<() => void> =>
-  Promise.resolve(ctx.invariants.register('@hydra/harness-fs-review', install))
+  Promise.resolve(ctx.invariants.register('@hydra1902/harness-fs-review', install))

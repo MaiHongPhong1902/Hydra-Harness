@@ -3,7 +3,7 @@
  * {@link ../index.ts | CodeRuntime} and what it gets back. Pure types — no
  * runtime code lives here.
  *
- * @module @hydra/harness-code-runtime/src/types
+ * @module @hydra1902/harness-code-runtime/src/types
  */
 
 /**

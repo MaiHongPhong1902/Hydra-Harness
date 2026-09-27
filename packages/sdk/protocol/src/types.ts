@@ -2,15 +2,15 @@
  * Named wire types for the Hydra harness SDK runtime protocol: the three
  * request/result pairs and the four server-to-client notification payloads
  * exchanged over the newline-delimited JSON-RPC stdio transport. The server
- * plugin (`@hydra/harness-sdk-jsonrpc-server`) and SDK clients share these shapes;
+ * plugin (`@hydra1902/harness-sdk-jsonrpc-server`) and SDK clients share these shapes;
  * `serverInfo.name` stays the wire-stable `hydra-harness-sdk-runtime`.
  *
- * @module @hydra/harness-sdk-protocol/types
+ * @module @hydra1902/harness-sdk-protocol/types
  */
 
-import type { ContentBlock } from '@hydra/harness-llm'
-import type { SessionEvent } from '@hydra/harness-session'
-import type { SubagentStopReason } from '@hydra/harness-subagent'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { SessionEvent } from '@hydra1902/harness-session'
+import type { SubagentStopReason } from '@hydra1902/harness-subagent'
 
 /** Parameters for the process-wide SDK handshake. */
 export interface InitializeParams {

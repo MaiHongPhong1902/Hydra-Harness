@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import InvariantRegistry from '@hydra/harness-invariants'
-import type { DomainChanged } from '@hydra/harness-storage-domain'
+import { Context } from '@hydra1902/cordis'
+import InvariantRegistry from '@hydra1902/harness-invariants'
+import type { DomainChanged } from '@hydra1902/harness-storage-domain'
 import * as WorkspaceInvariant from '../src/invariant.ts'
 import { WorkspaceId } from '../src/index.ts'
 

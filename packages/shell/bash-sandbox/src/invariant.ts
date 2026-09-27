@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-bash-sandbox`.
- * @module @hydra/harness-bash-sandbox/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-bash-sandbox`.
+ * @module @hydra1902/harness-bash-sandbox/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-bash-sandbox'
+const PACKAGE_NAME = '@hydra1902/harness-bash-sandbox'
 
 /** Cordis companion plugin name. */
 export const name = 'bash-sandbox-invariant'

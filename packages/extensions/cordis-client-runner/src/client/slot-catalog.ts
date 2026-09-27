@@ -10,7 +10,7 @@
  * mounted for the seat to exist. Data only — this module is the one legitimate
  * meeting point of the two planes, so it carries strings, never client imports.
  *
- * @module @hydra/harness-cordis-client-runner/client/slot-catalog
+ * @module @hydra1902/harness-cordis-client-runner/client/slot-catalog
  */
 
 /* jscpd:ignore-start */

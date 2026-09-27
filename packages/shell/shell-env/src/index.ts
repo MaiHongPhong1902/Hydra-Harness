@@ -1,22 +1,22 @@
 /**
  * Tool-independent shell environment plugin: owns the `ctx.shellEnv` registry of
  * trusted, per-execution `HYDRA_*` variables consumed by the model-facing shell
- * tools (`@hydra/harness-tool-bash`, `@hydra/harness-tool-pwsh`). Built-in shell facts are owned by
+ * tools (`@hydra1902/harness-tool-bash`, `@hydra1902/harness-tool-pwsh`). Built-in shell facts are owned by
  * the registry itself while plugins can register additional, enumerable facts
  * with effect-scoped disposal.
  *
- * @module @hydra/harness-shell-env
+ * @module @hydra1902/harness-shell-env
  */
 
-import { Service, type Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { HYDRA_ENV_PREFIX } from '@hydra/harness-shell'
-import type { HydraEnvironment, HydraEnvironmentKey } from '@hydra/harness-shell'
-import { HYDRA_HOME_ENV, resolveHydraHome } from '@hydra/harness-home-paths'
-import type { ToolExecution } from '@hydra/harness-tools'
-import type {} from '@hydra/harness-session-persistence'
+import { Service, type Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { HYDRA_ENV_PREFIX } from '@hydra1902/harness-shell'
+import type { HydraEnvironment, HydraEnvironmentKey } from '@hydra1902/harness-shell'
+import { HYDRA_HOME_ENV, resolveHydraHome } from '@hydra1902/harness-home-paths'
+import type { ToolExecution } from '@hydra1902/harness-tools'
+import type {} from '@hydra1902/harness-session-persistence'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     shellEnv: ShellEnvRegistry
   }

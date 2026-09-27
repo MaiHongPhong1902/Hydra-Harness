@@ -1,12 +1,12 @@
 {
-  "name": "@hydra/harness-session-persistence-jsonl",
+  "name": "@hydra1902/harness-session-persistence-jsonl",
   "description": "JSONL durable session persistence backend for the Hydra harness",
   "hydra": {
     "plugin": {
       "application": "Save conversation history as JSONL so sessions can be reopened after restarting Hydra."
     }
   },
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -37,19 +37,19 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-persistence": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-persistence": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
     "koffi": "^3.1.0",
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-persistence": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-persistence": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

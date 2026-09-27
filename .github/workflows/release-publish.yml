@@ -61,9 +61,6 @@ jobs:
       - name: Build
         run: pnpm run build:official
 
-      - name: Pack release tarballs
-        run: pnpm run release:pack --family hydra --out dist/npm
-
       # The harness packages declare the vendored framework as a peer, and this
       # verification must not depend on the registry already carrying matching
       # versions — one pull request may bump both families before either
@@ -71,6 +68,9 @@ jobs:
       # is published.
       - name: Pack the vendored framework for verification
         run: pnpm run release:pack --family vendor --out dist/npm-vendor
+
+      - name: Pack release tarballs
+        run: pnpm run release:pack --family hydra --out dist/npm --vendor dist/npm-vendor
 
       # hydra-sandbox-local declares the Landlock entry as a runtime dependency, so
       # the verification needs its tarball. Its platform packages stay out: they
@@ -130,3 +130,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm run release:publish --family hydra --from dist/npm
+
+      # The entry tarball is self-contained, so bare npm installs must resolve
+      # the current CLI even while the release family is still a prerelease.
+      - name: Promote CLI for bare installs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cli_version=$(node -p "require('./apps/cli/package.json').version")
+          npm dist-tag add "@hydra1902/harness@$cli_version" latest

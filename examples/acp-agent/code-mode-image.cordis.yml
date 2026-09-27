@@ -2,12 +2,12 @@
 # store so a nested read_image result can cross the generic rich-result bridge.
 # The live config selects the shipped vision route for manual use.
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: acp-agent
-        name: '@hydra/harness-acp-demo'
+        name: '@hydra1902/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash-vision-exp
@@ -23,6 +23,6 @@
             Verify your work by running the code or tests. Keep answers brief and factual.
       - insert:
           - id: attachment-local
-            name: '@hydra/harness-attachment-local'
+            name: '@hydra1902/harness-attachment-local'
           - id: code-runtime
-            name: '@hydra/harness-code-runtime-worker-thread'
+            name: '@hydra1902/harness-code-runtime-worker-thread'

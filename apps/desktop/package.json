@@ -1,6 +1,6 @@
 {
-  "name": "@hydra/harness-desktop",
-  "version": "0.1.1-rc.1",
+  "name": "@hydra1902/harness-desktop",
+  "version": "0.1.1-rc.3",
   "description": "Windows-first Electron shell for the existing Hydra Web renderer and controlled browser",
   "publishConfig": {
     "access": "public"
@@ -22,10 +22,10 @@
     "smoke": "electron . --smoke"
   },
   "dependencies": {
-    "@hydra/harness": "workspace:^",
-    "@hydra/harness-atomic-write": "workspace:^",
-    "@hydra/harness-browser-electron": "workspace:^",
-    "@hydra/harness-subprocess": "workspace:^",
+    "@hydra1902/harness": "workspace:^",
+    "@hydra1902/harness-atomic-write": "workspace:^",
+    "@hydra1902/harness-browser-electron": "workspace:^",
+    "@hydra1902/harness-subprocess": "workspace:^",
     "node-pty": "1.2.0-beta.15",
     "prettier": "^3.9.5"
   },

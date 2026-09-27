@@ -1,6 +1,6 @@
-import { Context, Exporter, Formatter, Logger, Message } from '@hydra/cordis'
-import { Time } from '@hydra/cosmokit'
-import z from '@hydra/schemastery'
+import { Context, Exporter, Formatter, Logger, Message } from '@hydra1902/cordis'
+import { Time } from '@hydra1902/cosmokit'
+import z from '@hydra1902/schemastery'
 
 /** Terminal color support level compatible with supports-color. */
 export type ColorSupportLevel = 0 | 1 | 2 | 3

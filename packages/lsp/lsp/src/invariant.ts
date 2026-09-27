@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-lsp`.
- * @module @hydra/harness-lsp/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-lsp`.
+ * @module @hydra1902/harness-lsp/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-lsp'
+const PACKAGE_NAME = '@hydra1902/harness-lsp'
 
 /** Cordis companion plugin name. */
 export const name = 'lsp-invariant'

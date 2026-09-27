@@ -13,11 +13,11 @@
  */
 
 import { useEffect, useState } from 'react'
-import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
-import { IconAgentPresetOutline16, IconChevronDownOutline14, Menu } from '@hydra/harness-client-ui-primitives'
+import type { SnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import { IconAgentPresetOutline16, IconChevronDownOutline14, Menu } from '@hydra1902/harness-client-ui-primitives'
 // Type-only: pulls the ui-conversation SlotMap merge (the hero seat).
-import type {} from '@hydra/harness-client-ui-conversation/client'
+import type {} from '@hydra1902/harness-client-ui-conversation/client'
 import type { AgentPresetSeatState } from './seat-store.ts'
 import { presetDisplayText } from './locales.ts'
 import css from './AgentPresetSeat.module.css'

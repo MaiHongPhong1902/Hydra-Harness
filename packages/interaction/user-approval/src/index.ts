@@ -1,20 +1,20 @@
 /**
  * Service Definition for the approval capability seam, covering requests, cancellation, audit, and per-session policy. Missing
  * answerers fail closed; grants apply only to the requested action.
- * @module @hydra/harness-user-approval
+ * @module @hydra1902/harness-user-approval
  */
 
 import { randomUUID } from 'node:crypto'
-import { Context, Service } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type { Agent } from '@hydra/harness-agent'
-import { createUserMessage, type CallId } from '@hydra/harness-llm'
-import { scopeTarget } from '@hydra/harness-scope'
-import type { Scoped } from '@hydra/harness-scope'
-import type { Session, SessionEvent } from '@hydra/harness-session'
-import type {} from '@hydra/harness-system-prompt'
+import { Context, Service } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type { Agent } from '@hydra1902/harness-agent'
+import { createUserMessage, type CallId } from '@hydra1902/harness-llm'
+import { scopeTarget } from '@hydra1902/harness-scope'
+import type { Scoped } from '@hydra1902/harness-scope'
+import type { Session, SessionEvent } from '@hydra1902/harness-session'
+import type {} from '@hydra1902/harness-system-prompt'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     approval: ApprovalService
   }
@@ -23,7 +23,7 @@ declare module '@hydra/cordis' {
     /**
      * Ask composed answerers for one decision. Return an outcome to claim the
      * request or call `next()`; failure yields the fail-closed default.
-     * Scope-filtered dispatch (`@hydra/harness-scope`): agent-scoped listeners receive only that agent.
+     * Scope-filtered dispatch (`@hydra1902/harness-scope`): agent-scoped listeners receive only that agent.
      * @param req - the pending decision (agent, tool identity, reason, signal).
      * @mode waterfall
      */
@@ -31,7 +31,7 @@ declare module '@hydra/cordis' {
   }
 }
 
-declare module '@hydra/harness-session/types' {
+declare module '@hydra1902/harness-session/types' {
   interface SessionEventMap {
     /**
      * An approval question was put to the answerer chain — log-only audit

@@ -1,19 +1,19 @@
 # Page-memory composition: the real embedded Browser and its model-facing
 # tools, plus verified task guidance scoped to this session's workspace.
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - insert:
           - id: browser-electron
-            name: '@hydra/harness-browser-electron'
+            name: '@hydra1902/harness-browser-electron'
             config:
               show: false
           - id: tool-browser
-            name: '@hydra/harness-tool-browser'
+            name: '@hydra1902/harness-tool-browser'
           - id: page-memory
-            name: '@hydra/harness-page-memory'
+            name: '@hydra1902/harness-page-memory'
             config:
               workspaceDir: !!js process.cwd()
               role: order-operator

@@ -7,11 +7,11 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime from '@hydra/harness-tools'
-import FileSettingsProvider from '@hydra/harness-settings-file'
-import { SettingsConflictError } from '@hydra/harness-settings'
+import { Context } from '@hydra1902/cordis'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime from '@hydra1902/harness-tools'
+import FileSettingsProvider from '@hydra1902/harness-settings-file'
+import { SettingsConflictError } from '@hydra1902/harness-settings'
 
 const { mockConnect, mockClose, mockListTools, MockClient } = vi.hoisted(() => {
   const mockConnect = vi.fn<() => Promise<void>>()
@@ -35,8 +35,8 @@ vi.mock('@modelcontextprotocol/sdk/client/index.js', () => ({ Client: MockClient
 vi.mock('@modelcontextprotocol/sdk/client/stdio.js', () => ({ StdioClientTransport: vi.fn() }))
 vi.mock('@modelcontextprotocol/sdk/client/streamableHttp.js', () => ({ StreamableHTTPClientTransport: vi.fn() }))
 
-import McpServerRegistry, { MCP_SERVERS_SETTINGS_NAMESPACE } from '@hydra/harness-mcp-registry/src/index.ts'
-import type { McpServerSnapshot } from '@hydra/harness-mcp-registry/src/types.ts'
+import McpServerRegistry, { MCP_SERVERS_SETTINGS_NAMESPACE } from '@hydra1902/harness-mcp-registry/src/index.ts'
+import type { McpServerSnapshot } from '@hydra1902/harness-mcp-registry/src/types.ts'
 
 const contexts: Context[] = []
 const directories: string[] = []

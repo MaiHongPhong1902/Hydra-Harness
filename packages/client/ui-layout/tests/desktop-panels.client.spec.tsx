@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, waitFor, within } from '@testing-library/react'
-import { DesktopFilesPanel } from '@hydra/harness-client-ui-layout/src/client/DesktopFilesPanel.tsx'
-import { DesktopTerminalPanel } from '@hydra/harness-client-ui-layout/src/client/DesktopTerminalPanel.tsx'
+import { DesktopFilesPanel } from '@hydra1902/harness-client-ui-layout/src/client/DesktopFilesPanel.tsx'
+import { DesktopTerminalPanel } from '@hydra1902/harness-client-ui-layout/src/client/DesktopTerminalPanel.tsx'
 
 interface MockTerminalInstance {
   options: { theme?: Record<string, string> }

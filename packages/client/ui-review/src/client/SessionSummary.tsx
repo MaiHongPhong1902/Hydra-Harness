@@ -1,14 +1,14 @@
 /** Compact session overview anchored to its header utility. @module */
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { HostDescriptionSource } from '@hydra/harness-client-connection/client'
+import type { HostDescriptionSource } from '@hydra1902/harness-client-connection/client'
 import {
   IconAgentPresetOutline16, IconBranchOutline16, IconBrowserOutline16,
   IconChevronDownOutline14, IconEditOutline16, IconLinkOutline16,
   IconPaperclipOutline16, IconRefreshOutline16, IconShareOutline16,
   useAnchoredPosition,
-} from '@hydra/harness-client-ui-primitives'
-import type { InjectFace, PropsRuntime } from '@hydra/harness-client-ui-slots'
+} from '@hydra1902/harness-client-ui-primitives'
+import type { InjectFace, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
 import { sameWorkspace, type ReviewInjected } from './Review.tsx'
 import css from './SessionSummary.module.css'
 

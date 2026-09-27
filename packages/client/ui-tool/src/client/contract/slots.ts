@@ -1,11 +1,11 @@
 /** Tool UI slot declarations and their composed component props. */
-import type { HostDescriptionSource } from '@hydra/harness-client-connection/client'
-import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime } from '@hydra/harness-client-ui-slots'
-import type { ToolCallBlock } from '@hydra/harness-client-runtime/client'
-import type {} from '@hydra/harness-client-ui-conversation/client'
-import type {} from '@hydra/harness-client-locale/client'
+import type { HostDescriptionSource } from '@hydra1902/harness-client-connection/client'
+import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import type { ToolCallBlock } from '@hydra1902/harness-client-runtime/client'
+import type {} from '@hydra1902/harness-client-ui-conversation/client'
+import type {} from '@hydra1902/harness-client-locale/client'
 
-declare module '@hydra/harness-client-ui-slots' {
+declare module '@hydra1902/harness-client-ui-slots' {
   interface SlotMap {
     /** Agent-owned review entries attached to one tool call. */
     'tool.call.review': { kind: 'list'; scope: 'session'; owner: { callId: string } }

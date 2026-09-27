@@ -8,7 +8,7 @@ import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-console.log(chalk.cyan(`📦 Building @hydra/harness-browseragent-page-controller`))
+console.log(chalk.cyan(`📦 Building @hydra1902/harness-browseragent-page-controller`))
 
 export default defineConfig({
 	clearScreen: false,
@@ -36,7 +36,7 @@ export default defineConfig({
 		},
 		outDir: resolve(__dirname, 'dist', 'lib'),
 		rollupOptions: {
-			external: ['@hydra/harness-browseragent-*', 'ai-motion'],
+			external: ['@hydra1902/harness-browseragent-*', 'ai-motion'],
 			onwarn: function (message, handler) {
 				if (message.code === 'EVAL') return
 				handler(message)

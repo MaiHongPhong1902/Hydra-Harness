@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-client-ui-message-feedback",
+  "name": "@hydra1902/harness-client-ui-message-feedback",
   "description": "Per-message feedback controls contributed to the assistant-message action strip, backed by the messageFeedback Host Remote",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -35,10 +35,10 @@
     },
     "client": {
       "inject": [
-        "@hydra/harness-client-runtime",
-        "@hydra/harness-api-remotes",
-        "@hydra/harness-client-locale",
-        "@hydra/harness-client-ui-conversation"
+        "@hydra1902/harness-client-runtime",
+        "@hydra1902/harness-api-remotes",
+        "@hydra1902/harness-client-locale",
+        "@hydra1902/harness-client-ui-conversation"
       ],
       "platform": "web"
     }
@@ -49,29 +49,29 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-api-remotes": "workspace:^",
-    "@hydra/harness-client-connection": "workspace:^",
-    "@hydra/harness-client-locale": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-ui-conversation": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-message-feedback": "workspace:^",
-    "@hydra/harness-typert-protocol": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-api-remotes": "workspace:^",
+    "@hydra1902/harness-client-connection": "workspace:^",
+    "@hydra1902/harness-client-locale": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-conversation": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-message-feedback": "workspace:^",
+    "@hydra1902/harness-typert-protocol": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-api-remotes": "workspace:^",
-    "@hydra/harness-client-connection": "workspace:^",
-    "@hydra/harness-client-locale": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-test-runtime": "workspace:^",
-    "@hydra/harness-client-ui-conversation": "workspace:^",
-    "@hydra/harness-client-ui-primitives": "workspace:^",
-    "@hydra/harness-client-ui-slots": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-message-feedback": "workspace:^",
-    "@hydra/harness-typert-protocol": "workspace:^",
-    "@hydra/cordis": "workspace:^",
+    "@hydra1902/harness-api-remotes": "workspace:^",
+    "@hydra1902/harness-client-connection": "workspace:^",
+    "@hydra1902/harness-client-locale": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-test-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-conversation": "workspace:^",
+    "@hydra1902/harness-client-ui-primitives": "workspace:^",
+    "@hydra1902/harness-client-ui-slots": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-message-feedback": "workspace:^",
+    "@hydra1902/harness-typert-protocol": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
     "@testing-library/react": "^16.1.0",
     "@types/react": "~18.3.1",
     "@types/react-dom": "~18.3.0",

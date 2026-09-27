@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-typert-protocol",
+  "name": "@hydra1902/harness-typert-protocol",
   "description": "Compiler-independent Remote metadata and Typert provider protocols",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -37,11 +37,11 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

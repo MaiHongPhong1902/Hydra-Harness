@@ -5,37 +5,37 @@
  * deployments still choose the LLM adapter, bash executor, and presentation.
  * The plugin intentionally exposes named exports only because Loader default
  * unwrapping would discard its `Config` schema (see docs/postmortem/0001).
- * @module @hydra/harness-agent-spine-demo
+ * @module @hydra1902/harness-agent-spine-demo
  */
 
-import type { Context } from '@hydra/cordis'
-import Timer from '@hydra/cordis-plugin-timer'
-import z from '@hydra/schemastery'
-import LlmRuntime from '@hydra/harness-llm'
-import SessionStore from '@hydra/harness-session'
-import SessionTitleService, { type Config as SessionTitleConfig } from '@hydra/harness-session-title'
-import SystemPrompt, { type Config as SystemPromptConfig } from '@hydra/harness-system-prompt'
-import ToolRuntime, { type Config as ToolsConfig } from '@hydra/harness-tools'
-import SkillRegistry, { type Config as SkillRegistryConfig } from '@hydra/harness-skill'
-import * as SkillFileSystem from '@hydra/harness-skill-filesystem'
-import AgentRegistry from '@hydra/harness-agent'
-import GoalService, { type Config as GoalDomainConfig } from '@hydra/harness-goal'
-import * as goalSession from '@hydra/harness-goal-round-driver'
-import * as toolGoal from '@hydra/harness-tool-goal'
-import LocalJobRegistry, { type Config as JobsConfig } from '@hydra/harness-jobs-local'
-import InvariantRegistry, { type Config as InvariantConfig } from '@hydra/harness-invariants'
-import * as sessionInvariant from '@hydra/harness-session/invariant'
-import * as agentInvariant from '@hydra/harness-agent/invariant'
-import * as scopeInvariant from '@hydra/harness-scope/invariant'
-import * as agentLoopInvariant from '@hydra/harness-agent-loop/invariant'
-import * as toolBash from '@hydra/harness-tool-bash'
-import * as bashEnv from '@hydra/harness-shell-env'
-import * as workspaceContext from '@hydra/harness-agent-instructions'
-import * as toolSkill from '@hydra/harness-tool-skill'
-import * as toolJobs from '@hydra/harness-tool-jobs'
-import AgentLoop, { type Config as AgentLoopConfig } from '@hydra/harness-agent-loop'
-import * as llmRetry from '@hydra/harness-llm-retry'
-import { resolveHydraHome } from '@hydra/harness-home-paths'
+import type { Context } from '@hydra1902/cordis'
+import Timer from '@hydra1902/cordis-plugin-timer'
+import z from '@hydra1902/schemastery'
+import LlmRuntime from '@hydra1902/harness-llm'
+import SessionStore from '@hydra1902/harness-session'
+import SessionTitleService, { type Config as SessionTitleConfig } from '@hydra1902/harness-session-title'
+import SystemPrompt, { type Config as SystemPromptConfig } from '@hydra1902/harness-system-prompt'
+import ToolRuntime, { type Config as ToolsConfig } from '@hydra1902/harness-tools'
+import SkillRegistry, { type Config as SkillRegistryConfig } from '@hydra1902/harness-skill'
+import * as SkillFileSystem from '@hydra1902/harness-skill-filesystem'
+import AgentRegistry from '@hydra1902/harness-agent'
+import GoalService, { type Config as GoalDomainConfig } from '@hydra1902/harness-goal'
+import * as goalSession from '@hydra1902/harness-goal-round-driver'
+import * as toolGoal from '@hydra1902/harness-tool-goal'
+import LocalJobRegistry, { type Config as JobsConfig } from '@hydra1902/harness-jobs-local'
+import InvariantRegistry, { type Config as InvariantConfig } from '@hydra1902/harness-invariants'
+import * as sessionInvariant from '@hydra1902/harness-session/invariant'
+import * as agentInvariant from '@hydra1902/harness-agent/invariant'
+import * as scopeInvariant from '@hydra1902/harness-scope/invariant'
+import * as agentLoopInvariant from '@hydra1902/harness-agent-loop/invariant'
+import * as toolBash from '@hydra1902/harness-tool-bash'
+import * as bashEnv from '@hydra1902/harness-shell-env'
+import * as workspaceContext from '@hydra1902/harness-agent-instructions'
+import * as toolSkill from '@hydra1902/harness-tool-skill'
+import * as toolJobs from '@hydra1902/harness-tool-jobs'
+import AgentLoop, { type Config as AgentLoopConfig } from '@hydra1902/harness-agent-loop'
+import * as llmRetry from '@hydra1902/harness-llm-retry'
+import { resolveHydraHome } from '@hydra1902/harness-home-paths'
 
 export const name = 'agent-spine-demo'
 
@@ -90,7 +90,7 @@ export interface GoalConfig {
  * `bash` name.
  */
 export interface Config {
-  /** The agent-loop `agents` list (see @hydra/harness-agent-loop's `Config`). */
+  /** The agent-loop `agents` list (see @hydra1902/harness-agent-loop's `Config`). */
   agents?: AgentLoopConfig['agents']
   /** Agent-loop concurrency cap; `1` is serial. */
   maxParallelToolCalls?: AgentLoopConfig['maxParallelToolCalls']
@@ -98,11 +98,11 @@ export interface Config {
   includeHarnessIdentity?: SystemPromptConfig['includeHarnessIdentity']
   /** Whether model history includes dynamic runtime-context snapshots (default true). */
   includeRuntimeContext?: SystemPromptConfig['includeRuntimeContext']
-  /** The deployment persona (see @hydra/harness-system-prompt's `Config`). */
+  /** The deployment persona (see @hydra1902/harness-system-prompt's `Config`). */
   persona?: SystemPromptConfig['persona']
-  /** The explicit model-facing tool order (see @hydra/harness-system-prompt's `Config`). */
+  /** The explicit model-facing tool order (see @hydra1902/harness-system-prompt's `Config`). */
   toolOrder?: SystemPromptConfig['toolOrder']
-  /** The tool registry's config — its presentation `mode` (see @hydra/harness-tools' `Config`). */
+  /** The tool registry's config — its presentation `mode` (see @hydra1902/harness-tools' `Config`). */
   tools?: ToolsConfig
   /** Hydra harness home directory shared by shell context and local skill discovery. */
   hydraHome?: string

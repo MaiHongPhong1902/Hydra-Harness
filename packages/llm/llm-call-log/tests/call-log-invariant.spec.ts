@@ -1,10 +1,10 @@
 /** Own companion startup to exercise adoption of sessions that already contain calls. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import LlmRuntime, { CallId, LlmAdapter, LlmError, markAgentLoopRequest, ReasoningEffortId } from '@hydra/harness-llm'
-import type { GenerateOptions, LlmResolvedModelInfo, StreamChunk } from '@hydra/harness-llm'
-import SessionStore, { SessionId, type Session } from '@hydra/harness-session'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import LlmRuntime, { CallId, LlmAdapter, LlmError, markAgentLoopRequest, ReasoningEffortId } from '@hydra1902/harness-llm'
+import type { GenerateOptions, LlmResolvedModelInfo, StreamChunk } from '@hydra1902/harness-llm'
+import SessionStore, { SessionId, type Session } from '@hydra1902/harness-session'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 import * as log from '../src/index.ts'
 import * as invariant from '../src/invariant.ts'
 

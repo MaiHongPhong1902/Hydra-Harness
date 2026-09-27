@@ -1,6 +1,6 @@
 /**
  * Sandbox-consuming PowerShell executor — the pwsh twin of
- * `@hydra/harness-bash-sandbox`. It wraps the exact local pwsh argv through
+ * `@hydra1902/harness-bash-sandbox`. It wraps the exact local pwsh argv through
  * `ctx.sandbox` (which on Windows resolves to the ACL restricted-token runner
  * chain), inherits local process mechanics, and reports the selected mode,
  * enforcement, and denial facts. Positive runner-launch evidence means the
@@ -9,12 +9,12 @@
  * local-executor semantics. The tool layer owns the escalation approval flow
  * through `ctx.approval`; this executor reports the sandbox facts the tool
  * renders.
- * @module @hydra/harness-pwsh-sandbox
+ * @module @hydra1902/harness-pwsh-sandbox
  */
 
-import { Context } from '@hydra/cordis'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from '@hydra/harness-shell'
-import { SandboxUnavailableError } from '@hydra/harness-sandbox'
+import { Context } from '@hydra1902/cordis'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from '@hydra1902/harness-shell'
+import { SandboxUnavailableError } from '@hydra1902/harness-sandbox'
 import type {
   ConfinedArgv,
   ConfinedSandboxMode,
@@ -23,16 +23,16 @@ import type {
   SandboxExecutionPolicy,
   SandboxMode,
   SandboxPolicy,
-} from '@hydra/harness-sandbox'
-import type {} from '@hydra/harness-sandbox-policy'
-import { PwshLocalExecutor } from '@hydra/harness-pwsh-local'
-import type { Config as LocalConfig } from '@hydra/harness-pwsh-local'
+} from '@hydra1902/harness-sandbox'
+import type {} from '@hydra1902/harness-sandbox-policy'
+import { PwshLocalExecutor } from '@hydra1902/harness-pwsh-local'
+import type { Config as LocalConfig } from '@hydra1902/harness-pwsh-local'
 import { classifyDenial, classifyRunnerFailure, isRunnerSpawnFailure, matchesSignature } from './helpers.ts'
 
 /**
  * Plugin config: the local executor's knobs, verbatim. The sandbox policy —
  * the default mode and fallback `workspace-write` root — is NOT here: it lives
- * on `ctx.sandboxPolicy` (`@hydra/harness-sandbox-policy`), which resolves
+ * on `ctx.sandboxPolicy` (`@hydra1902/harness-sandbox-policy`), which resolves
  * each calling session's mode and cwd for every enforcing capability. The
  * runner choice is likewise the `ctx.sandbox` provider's config, not this
  * executor's.

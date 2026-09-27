@@ -18,7 +18,7 @@
  * expires — plugin-set changes take effect on restart; bundle content
  * changes reach the graph only through
  * {@link ClientModuleRegistry.rebuilt}.
- * @module @hydra/harness-client-modules
+ * @module @hydra1902/harness-client-modules
  */
 
 import { createHash } from 'node:crypto'
@@ -27,10 +27,10 @@ import { readFile } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
-import { Service } from '@hydra/cordis'
-import type { Context } from '@hydra/cordis'
-import type {} from '@hydra/cordis-plugin-loader'
-import type { IndexInjection } from '@hydra/harness-host-webserver'
+import { Service } from '@hydra1902/cordis'
+import type { Context } from '@hydra1902/cordis'
+import type {} from '@hydra1902/cordis-plugin-loader'
+import type { IndexInjection } from '@hydra1902/harness-host-webserver'
 import { optionalStringArray, stripClientSuffix } from './client/manifest.ts'
 import type { WebBootEntry, WebBootGraph } from './client/manifest.ts'
 
@@ -39,7 +39,7 @@ export type {
   BootManifest, BootModuleRow, BootPluginRow, WebBootEntry, WebBootGraph,
 } from './client/manifest.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     /** The web plugin table (provided by the client-modules node half). */
     clientModules: ClientModuleRegistry
@@ -220,10 +220,10 @@ export function orderByModuleGraph(entries: readonly WebBootEntry[]): WebBootEnt
 }
 
 /** Bootstrap package whose ordinary client bundle supplies the module-system implementation. */
-const CLIENT_MODULES_ID = '@hydra/harness-client-modules'
+const CLIENT_MODULES_ID = '@hydra1902/harness-client-modules'
 
 /** Dynamic package whose ordinary client bundle must be registered before plugin boot starts. */
-const CLIENT_RUNTIME_ID = '@hydra/harness-client-runtime'
+const CLIENT_RUNTIME_ID = '@hydra1902/harness-client-runtime'
 
 /** Ordinary dynamic bundles the HTML parser executes before the Vite shell. */
 const PARSER_PRELOAD_IDS = [CLIENT_MODULES_ID, CLIENT_RUNTIME_ID] as const

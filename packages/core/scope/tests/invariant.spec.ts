@@ -1,11 +1,11 @@
-import { freezeMessage, MessageId } from '@hydra/harness-llm'
+import { freezeMessage, MessageId } from '@hydra1902/harness-llm'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { Events } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import { scopeTarget } from '@hydra/harness-scope'
-import * as ScopeInvariant from '@hydra/harness-scope/invariant'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import type { Events } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import { scopeTarget } from '@hydra1902/harness-scope'
+import * as ScopeInvariant from '@hydra1902/harness-scope/invariant'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

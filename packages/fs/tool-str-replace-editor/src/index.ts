@@ -1,18 +1,18 @@
 /**
  * Model-facing `str_replace_editor` over the Harness filesystem seam.
- * @module @hydra/harness-tool-str-replace-editor
+ * @module @hydra1902/harness-tool-str-replace-editor
  */
 
 import { isAbsolute } from 'node:path'
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { FsError } from '@hydra/harness-fs'
-import type { FsInfo, FsTarget, FsWriteIntent } from '@hydra/harness-fs'
-import { sandboxDenialMarker } from '@hydra/harness-sandbox'
-import type { SandboxExecutionPolicy } from '@hydra/harness-sandbox'
-import type { SandboxPolicyService } from '@hydra/harness-sandbox-policy'
-import { defineTool } from '@hydra/harness-tools'
-import type { ToolCallView, ToolRunContext } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { FsError } from '@hydra1902/harness-fs'
+import type { FsInfo, FsTarget, FsWriteIntent } from '@hydra1902/harness-fs'
+import { sandboxDenialMarker } from '@hydra1902/harness-sandbox'
+import type { SandboxExecutionPolicy } from '@hydra1902/harness-sandbox'
+import type { SandboxPolicyService } from '@hydra1902/harness-sandbox-policy'
+import { defineTool } from '@hydra1902/harness-tools'
+import type { ToolCallView, ToolRunContext } from '@hydra1902/harness-tools'
 
 const TRUNCATED_MESSAGE = '<response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with `grep -n` in order to find the line numbers of what you are looking for.</NOTE>'
 

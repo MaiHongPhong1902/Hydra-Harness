@@ -11,13 +11,13 @@
  * ui-sidebar would close a reference cycle through ui-layout and ui-theme.
  * Export discipline: packages/client/AGENTS.md.
  */
-import type { ClientContext } from '@hydra/harness-client-runtime/client'
-import type { ConnectionHandle } from '@hydra/harness-api-remotes/client'
+import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
+import type { ConnectionHandle } from '@hydra1902/harness-api-remotes/client'
 // Type-only pair supplying `$on` and its key face without dragging a build
 // artifact into the Host graph (rationale beside the same pair in
 // settings-scope.ts).
-import type {} from '@hydra/harness-api-remotes/types'
-import type {} from '@hydra/harness-settings/types'
+import type {} from '@hydra1902/harness-api-remotes/types'
+import type {} from '@hydra1902/harness-settings/types'
 import { SettingsSchemaService } from './schema.ts'
 import { SettingsScopeBinder } from './settings-scope.ts'
 import { SettingsDescribeMirror } from './settings-mirror.ts'

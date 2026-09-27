@@ -15,16 +15,16 @@
 // chat-toolview-slot.spec.tsx.
 
 import { describe, expect, it, vi } from 'vitest'
-import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@hydra/harness-client-test-runtime'
-import type { SessionBehaviorOverrides } from '@hydra/harness-client-test-runtime'
-import { LocaleRuntime } from '@hydra/harness-client-locale/client'
-import type { ISession, SessionId, UserMessageNode } from '@hydra/harness-client-runtime/client'
-import type { DraftAttachmentId } from '@hydra/harness-client-ui-conversation/client'
-import { apply, inject } from '@hydra/harness-client-ui-conversation/client'
+import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@hydra1902/harness-client-test-runtime'
+import type { SessionBehaviorOverrides } from '@hydra1902/harness-client-test-runtime'
+import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
+import type { ISession, SessionId, UserMessageNode } from '@hydra1902/harness-client-runtime/client'
+import type { DraftAttachmentId } from '@hydra1902/harness-client-ui-conversation/client'
+import { apply, inject } from '@hydra1902/harness-client-ui-conversation/client'
 import type {
   ChatViewInjected, ComposerBarInjected, ConversationInjected, ConversationSessionHeaderInjected,
   ConversationSessionInjected, DetailsInjected,
-} from '@hydra/harness-client-ui-conversation/client'
+} from '@hydra1902/harness-client-ui-conversation/client'
 import type { createChatStore } from '../src/client/stores.ts'
 
 // The service reads its initial locale from the browser, so these specs state

@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { startMockLlmServer } from '@hydra/harness-llm-mock-server'
+import { startMockLlmServer } from '@hydra1902/harness-llm-mock-server'
 import { execa } from 'execa'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
@@ -186,7 +186,7 @@ function createEnvironmentProbeProfile(home: string, project: string): void {
     name: 'hydra-profile-environment-probe',
     private: true,
     dependencies: {},
-    hydra: { profile: { bundles: ['@hydra/harness-base'] } },
+    hydra: { profile: { bundles: ['@hydra1902/harness-base'] } },
   }, undefined, 2))
   writeFileSync(join(profileDir, 'cordis.patch.yml'), [
     '- insert:',
@@ -209,7 +209,7 @@ interface StartupFixture {
  * A custom profile whose ordinary provider plugin injects `cmdlineArgs`, plus
  * a row that reads its app-owned service through a `!!js` config expression.
  * Both plugin modules resolve
- * `@hydra/harness-cmdline` and `commander` through the profile module
+ * `@hydra1902/harness-cmdline` and `commander` through the profile module
  * fallback, exactly as an installed out-of-tree bundle does.
  */
 function createStartupFixture(): StartupFixture {
@@ -222,7 +222,7 @@ function createStartupFixture(): StartupFixture {
   mkdirSync(bundleDir, { recursive: true })
   writeFileSync(join(bundleDir, 'startup.mjs'), [
     "import { Command } from 'commander'",
-    "import { parseCmdline } from '@hydra/harness-cmdline'",
+    "import { parseCmdline } from '@hydra1902/harness-cmdline'",
     "export const name = 'fixture-startup'",
     "export const inject = ['cmdlineArgs']",
     'export function apply(ctx) {',
@@ -315,7 +315,7 @@ describe.skipIf(!existsSync(hydraBin))('hydra BUILT bin (node lib/bin.js, no tsx
     expect(bare.code).toBe(1)
     expect(bare.stdout).toBe('')
     expect(bare.stderr).toContain('requires an interactive terminal')
-    expect(bare.stderr).toContain('npx @hydra/harness web')
+    expect(bare.stderr).toContain('npx @hydra1902/harness web')
     const help = await runBuiltBin(['--help'])
     expect(help.code).toBe(0)
     expect(help.stdout).toContain('hydra --profile web')
@@ -686,7 +686,7 @@ describe.skipIf(!existsSync(hydraBin))('hydra BUILT bin (node lib/bin.js, no tsx
         name: 'hydra-profile-up',
         private: true,
         dependencies: { 'late-bundle': 'file:./late-bundle' },
-        hydra: { profile: { bundles: ['@hydra/harness-base'] } },
+        hydra: { profile: { bundles: ['@hydra1902/harness-base'] } },
       }))
       writeFileSync(join(profileDir, 'cordis.patch.yml'), '[]\n')
       // v1: no hydra manifest — a plain dependency.
@@ -694,7 +694,7 @@ describe.skipIf(!existsSync(hydraBin))('hydra BUILT bin (node lib/bin.js, no tsx
       const first = await runBuiltBin(['plugin', '--profile', 'up', 'root'], { HYDRA_HOME: home })
       expect(first.code).toBe(0)
       let manifest = JSON.parse(readFileSync(join(profileDir, 'package.json'), 'utf8')) as { hydra: { profile: { bundles: string[] } } }
-      expect(manifest.hydra.profile.bundles).toEqual(['@hydra/harness-base'])
+      expect(manifest.hydra.profile.bundles).toEqual(['@hydra1902/harness-base'])
       // v2: the installed package now declares hydra.bundle (an update landed).
       writeFileSync(join(installed, 'package.json'), JSON.stringify({
         name: 'late-bundle', version: '2.0.0', hydra: { bundle: { patch: './cordis.patch.yml' } },
@@ -703,7 +703,7 @@ describe.skipIf(!existsSync(hydraBin))('hydra BUILT bin (node lib/bin.js, no tsx
       const second = await runBuiltBin(['plugin', '--profile', 'up', 'root'], { HYDRA_HOME: home })
       expect(second.code).toBe(0)
       manifest = JSON.parse(readFileSync(join(profileDir, 'package.json'), 'utf8')) as { hydra: { profile: { bundles: string[] } } }
-      expect(manifest.hydra.profile.bundles).toEqual(['@hydra/harness-base', 'late-bundle'])
+      expect(manifest.hydra.profile.bundles).toEqual(['@hydra1902/harness-base', 'late-bundle'])
     } finally {
       rmSync(home, { recursive: true, force: true })
     }
@@ -718,10 +718,10 @@ describe.skipIf(!existsSync(hydraBin))('hydra BUILT bin (node lib/bin.js, no tsx
       const { stdout, code, stderr } = await runBuiltBin(['--profile', 'web', '--dump-default-config'], { HYDRA_HOME: home })
       expect(code).toBe(0)
       expect(stderr).toBe('')
-      expect(stdout).toContain("name: '@hydra/harness-agent-loop'")
+      expect(stdout).toContain("name: '@hydra1902/harness-agent-loop'")
       expect(stdout).toContain('agents: []')
-      expect(stdout).toContain('# == @hydra/harness-base')
-      expect(stdout).toContain("name: '@hydra/harness-host-webserver'")
+      expect(stdout).toContain('# == @hydra1902/harness-base')
+      expect(stdout).toContain("name: '@hydra1902/harness-host-webserver'")
     }, 30_000)
 
     it('prints the headless profile without Host or browser layers', async () => {
@@ -731,10 +731,10 @@ describe.skipIf(!existsSync(hydraBin))('hydra BUILT bin (node lib/bin.js, no tsx
       )
       expect(code).toBe(0)
       expect(stderr).toBe('')
-      expect(stdout).toContain("name: '@hydra/harness-headless'")
-      expect(stdout).not.toMatch(/name: '@hydra\/harness-host-/)
-      expect(stdout).not.toContain("name: '@hydra/harness-web-app'")
-      expect(stdout).not.toMatch(/name: '@hydra\/harness-client-/)
+      expect(stdout).toContain("name: '@hydra1902/harness-headless'")
+      expect(stdout).not.toMatch(/name: '@hydra1902\/harness-host-/)
+      expect(stdout).not.toContain("name: '@hydra1902/harness-web-app'")
+      expect(stdout).not.toMatch(/name: '@hydra1902\/harness-client-/)
     }, 30_000)
 
     it('composes the profile user layer and a --patch overlay in order', async () => {

@@ -6,15 +6,15 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import LlmRuntime, { createUserMessage, LlmError, ReasoningEffortId  } from '@hydra/harness-llm'
-import type { GenerateOptions, LlmModelReasoningInfo, LlmResolvedModelInfo, StreamChunk } from '@hydra/harness-llm'
-import SessionStore, { Session, SessionId, foldRequestHeader } from '@hydra/harness-session'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime, { defineContentToolFixture } from '@hydra/harness-tools'
-import AgentRegistry, { type Agent } from '@hydra/harness-agent'
+import { Context } from '@hydra1902/cordis'
+import LlmRuntime, { createUserMessage, LlmError, ReasoningEffortId  } from '@hydra1902/harness-llm'
+import type { GenerateOptions, LlmModelReasoningInfo, LlmResolvedModelInfo, StreamChunk } from '@hydra1902/harness-llm'
+import SessionStore, { Session, SessionId, foldRequestHeader } from '@hydra1902/harness-session'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture } from '@hydra1902/harness-tools'
+import AgentRegistry, { type Agent } from '@hydra1902/harness-agent'
 
-import AgentLoop from '@hydra/harness-agent-loop'
+import AgentLoop from '@hydra1902/harness-agent-loop'
 import { MockAdapter, textResponse, toolCallResponse } from './mock-adapter.ts'
 
 async function harness(adapter: MockAdapter, persona = 'stable base') {

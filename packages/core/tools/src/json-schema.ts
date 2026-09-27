@@ -12,8 +12,8 @@
  * @module hydra-tools/json-schema
  */
 
-import { assertNever, HarnessError } from '@hydra/harness-llm'
-import { isJsonValue, type JsonValue } from '@hydra/harness-session'
+import { assertNever, HarnessError } from '@hydra1902/harness-llm'
+import { isJsonValue, type JsonValue } from '@hydra1902/harness-session'
 
 /** Scalar JSON values supported by `enum` and `const`. */
 export type JsonSchemaScalar = string | number | boolean | null

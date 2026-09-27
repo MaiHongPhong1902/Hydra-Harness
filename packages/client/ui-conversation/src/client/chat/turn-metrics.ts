@@ -1,6 +1,6 @@
 // Latency/throughput folds shared by the settled turn footer and StatsLine.
 
-import type { AssistantMessageNode, ConversationNode } from '@hydra/harness-client-runtime/client'
+import type { AssistantMessageNode, ConversationNode } from '@hydra1902/harness-client-runtime/client'
 
 /** Latency and decode-throughput readings for one turn's footer. */
 export interface TurnMetrics {

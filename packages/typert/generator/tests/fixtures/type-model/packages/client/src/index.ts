@@ -1,4 +1,4 @@
-import { Service } from '@hydra/cordis'
+import { Service } from '@hydra1902/cordis'
 import type HostDefault from '@fixture/host'
 import type * as Host from '@fixture/host'
 import type { AgentPhase } from '@fixture/host'
@@ -30,7 +30,7 @@ export class ClientBridge extends Service {
   }
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     clientBridge: ClientBridge
   }

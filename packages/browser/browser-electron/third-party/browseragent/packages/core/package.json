@@ -1,5 +1,5 @@
 {
-    "name": "@hydra/harness-browseragent-core",
+    "name": "@hydra1902/harness-browseragent-core",
     "private": true,
     "version": "1.12.4",
     "type": "module",
@@ -55,8 +55,8 @@
     },
     "dependencies": {
         "chalk": "^6.0.0",
-        "@hydra/harness-browseragent-llms": "1.12.4",
-        "@hydra/harness-browseragent-page-controller": "1.12.4"
+        "@hydra1902/harness-browseragent-llms": "1.12.4",
+        "@hydra1902/harness-browseragent-page-controller": "1.12.4"
     },
     "peerDependencies": {
         "zod": "^3.25.0 || ^4.0.0"

@@ -4,11 +4,11 @@
  * collected stdio, and one terminal-process primitive. Command defaulting,
  * shell semantics, deadlines, protocol framing, terminal readiness, and
  * presentation belong to consumers. The local implementation lives in
- * `@hydra/harness-subprocess-local`.
- * @module @hydra/harness-subprocess
+ * `@hydra1902/harness-subprocess-local`.
+ * @module @hydra1902/harness-subprocess
  */
 
-import { Context, Service } from '@hydra/cordis'
+import { Context, Service } from '@hydra1902/cordis'
 import { HYDRA_ENV_PREFIX } from './types.ts'
 import type { SubprocessHandle, SubprocessSpawnSpec } from './types.ts'
 import type { SubprocessTerminalHandle, SubprocessTerminalSpawnSpec } from './types.ts'
@@ -65,7 +65,7 @@ export function scrubbedParentEnv(): Record<string, string> {
   return env
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     subprocess: SubprocessRuntime
   }

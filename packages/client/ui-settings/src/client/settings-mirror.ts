@@ -9,8 +9,8 @@
  * through {@link SettingsDescribeMirror.acceptView}.
  */
 
-import type { IApiClient, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
-import { createSnapshotStore, type SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { IApiClient, SettingsNamespaceView } from '@hydra1902/harness-api-remotes/client'
+import { createSnapshotStore, type SnapshotStore } from '@hydra1902/harness-client-runtime/client'
 
 type SettingsFace = Pick<IApiClient, 'settings'>
 

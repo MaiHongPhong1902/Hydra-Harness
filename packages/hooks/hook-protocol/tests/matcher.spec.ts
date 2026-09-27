@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matcherDiagnostic, matchesMatcher } from '@hydra/harness-hook-protocol'
+import { matcherDiagnostic, matchesMatcher } from '@hydra1902/harness-hook-protocol'
 
 describe('matchesMatcher — match-all sentinels (both dialects)', () => {
   for (const mode of ['claude-code', 'codex'] as const) {

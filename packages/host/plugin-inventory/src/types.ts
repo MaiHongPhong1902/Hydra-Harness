@@ -1,13 +1,13 @@
-import type { Branded } from '@hydra/harness-brand'
-export type { ImportedPluginEntry, ImportedPluginSnapshot, PluginImportSource } from '@hydra/harness-plugin-runtime/types'
+import type { Branded } from '@hydra1902/harness-brand'
+export type { ImportedPluginEntry, ImportedPluginSnapshot, PluginImportSource } from '@hydra1902/harness-plugin-runtime/types'
 export type {
   McpServerDefinitionRequest, McpServerEnablementRequest, McpServerSnapshot,
   McpServerStatus, McpServerTransport, McpServerView,
-} from '@hydra/harness-mcp-registry/types'
+} from '@hydra1902/harness-mcp-registry/types'
 export type {
   HookDialect, HookRecordDefinitionRequest, HookRecordEnablementRequest, HookRecordSnapshot,
   HookRecordStatus, HookRecordView, HookSourceKind,
-} from '@hydra/harness-hooks-registry/types'
+} from '@hydra1902/harness-hooks-registry/types'
 
 /** Stable Loader-tree identity of one configured plugin entry. */
 export type PluginEntryId = Branded<'PluginEntryId'>

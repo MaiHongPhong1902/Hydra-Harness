@@ -14,6 +14,6 @@
 
 - insert:
     - id: cordis-host-runner
-      name: '@hydra/harness-cordis-host-runner'
+      name: '@hydra1902/harness-cordis-host-runner'
     - id: tool-cordis
-      name: '@hydra/harness-tool-cordis'
+      name: '@hydra1902/harness-tool-cordis'

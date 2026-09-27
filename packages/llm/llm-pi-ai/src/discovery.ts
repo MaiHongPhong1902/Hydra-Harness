@@ -21,10 +21,10 @@
  * @module hydra-llm-pi-ai/discovery
  */
 
-import { INVALID_CREDENTIAL_CODE, LlmError, normalizeApiKey } from '@hydra/harness-llm'
-import { fetchWithHttpProxy } from '@hydra/harness-llm/proxy'
-import type { LlmDiscoveredModel, LlmModelDiscoveryRequest } from '@hydra/harness-llm'
-import { attributionHeaders } from '@hydra/harness-llm'
+import { INVALID_CREDENTIAL_CODE, LlmError, normalizeApiKey } from '@hydra1902/harness-llm'
+import { fetchWithHttpProxy } from '@hydra1902/harness-llm/proxy'
+import type { LlmDiscoveredModel, LlmModelDiscoveryRequest } from '@hydra1902/harness-llm'
+import { attributionHeaders } from '@hydra1902/harness-llm'
 import { catalogModels } from './catalog.ts'
 
 /**

@@ -1,14 +1,14 @@
-/** Package-owned durable retry-event invariants. @module @hydra/harness-llm-retry/invariant */
+/** Package-owned durable retry-event invariants. @module @hydra1902/harness-llm-retry/invariant */
 
-import type { Context } from '@hydra/cordis'
-import type { Session, SessionEvent } from '@hydra/harness-session'
-import type { LlmFailure } from '@hydra/harness-llm'
-import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
-import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { Session, SessionEvent } from '@hydra1902/harness-session'
+import type { LlmFailure } from '@hydra1902/harness-llm'
+import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
 import { providerForOpenStep } from './history.ts'
 import type {} from './index.ts'
 
-const PACKAGE_NAME = '@hydra/harness-llm-retry'
+const PACKAGE_NAME = '@hydra1902/harness-llm-retry'
 
 /** Cordis companion plugin name. */
 export const name = 'llm-retry-invariant'

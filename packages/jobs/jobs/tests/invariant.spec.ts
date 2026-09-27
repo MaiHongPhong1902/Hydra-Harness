@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import { SessionId } from '@hydra/harness-session'
-import JobRegistry, { JobId } from '@hydra/harness-jobs'
-import type { JobDoneListener, JobSnapshot } from '@hydra/harness-jobs'
-import * as JobsInvariant from '@hydra/harness-jobs/invariant'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import { SessionId } from '@hydra1902/harness-session'
+import JobRegistry, { JobId } from '@hydra1902/harness-jobs'
+import type { JobDoneListener, JobSnapshot } from '@hydra1902/harness-jobs'
+import * as JobsInvariant from '@hydra1902/harness-jobs/invariant'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 
 const BASE: JobSnapshot = {
   id: JobId('bash-1'),

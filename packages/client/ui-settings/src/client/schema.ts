@@ -1,7 +1,7 @@
 /** Synchronous schema introspection and immutable settings-draft edits. */
-import { Service } from '@hydra/cordis'
-import type { Context } from '@hydra/cordis'
-import Schema from '@hydra/schemastery'
+import { Service } from '@hydra1902/cordis'
+import type { Context } from '@hydra1902/cordis'
+import Schema from '@hydra1902/schemastery'
 
 /** Live schemastery node used for settings introspection and validation. */
 export type SchemaNode = Schema
@@ -150,7 +150,7 @@ export class SettingsSchemaService extends Service {
   }
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     /** Settings-owned synchronous schema and immutable path operations. */
     settingsSchema: SettingsSchemaService

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Credential } from '@earendil-works/pi-ai'
-import { credentialKey } from '@hydra/harness-credentials'
-import { LlmError } from '@hydra/harness-llm'
+import { credentialKey } from '@hydra1902/harness-credentials'
+import { LlmError } from '@hydra1902/harness-llm'
 import type { AccountPool } from '../src/accounts.ts'
 import { AntigravityAccountAdapter } from '../src/adapter.ts'
 import { ANTIGRAVITY_TOKEN_ENDPOINT } from '../src/antigravity-oauth.ts'
-import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydra1902/harness-llm'
 
 interface TestAccount {
   readonly id: string

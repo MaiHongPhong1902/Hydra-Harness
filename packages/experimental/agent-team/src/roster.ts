@@ -1,12 +1,12 @@
 /** Team membership, continuable-child provisioning, and roster-owned teardown. */
 
 import { randomUUID } from 'node:crypto'
-import type { Context } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import type { MessageId } from '@hydra/harness-llm'
-import { SessionId } from '@hydra/harness-session'
-import { foldSubagentDescriptor } from '@hydra/harness-subagent'
-import type { ContinuableStart } from '@hydra/harness-subagent'
+import type { Context } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import type { MessageId } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydra1902/harness-session'
+import { foldSubagentDescriptor } from '@hydra1902/harness-subagent'
+import type { ContinuableStart } from '@hydra1902/harness-subagent'
 import { errorMessage, TeamError } from './error.ts'
 import type { TeamFoldState } from './fold.ts'
 import type { TeamJournal } from './journal.ts'

@@ -7,12 +7,12 @@ import type {
   Model,
   Provider,
 } from '@earendil-works/pi-ai'
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import type {
   AuthorizationMethod,
   AuthorizationPrompt,
   AuthorizationSession,
-} from '@hydra/harness-authorization'
+} from '@hydra1902/harness-authorization'
 import { accountRecordKey, type AccountPool } from './accounts.ts'
 import type { AccountProviderProfile } from './config.ts'
 import {
@@ -20,9 +20,9 @@ import {
   DEFAULT_MAX_REQUEST_IMAGE_BYTES,
   DEFAULT_MAX_TOKENS,
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
-} from '@hydra/harness-llm-pi-ai'
-import { attributionHeaders, LlmError, resolveRetryPolicy } from '@hydra/harness-llm'
-import type { ResolvedPiAiProviderProfile } from '@hydra/harness-llm-pi-ai'
+} from '@hydra1902/harness-llm-pi-ai'
+import { attributionHeaders, LlmError, resolveRetryPolicy } from '@hydra1902/harness-llm'
+import type { ResolvedPiAiProviderProfile } from '@hydra1902/harness-llm-pi-ai'
 
 /** One model row returned by ChatGPT's account-scoped model endpoint. */
 interface ChatGptModelRow {

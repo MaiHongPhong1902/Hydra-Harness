@@ -1,14 +1,14 @@
 /**
  * Package-owned invariant companion for
- * `@hydra/harness-subagent-claude-code`.
- * @module @hydra/harness-subagent-claude-code/invariant
+ * `@hydra1902/harness-subagent-claude-code`.
+ * @module @hydra1902/harness-subagent-claude-code/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-subagent-claude-code'
+const PACKAGE_NAME = '@hydra1902/harness-subagent-claude-code'
 
 /** Cordis companion plugin name. */
 export const name = 'subagent-claude-code-invariant'

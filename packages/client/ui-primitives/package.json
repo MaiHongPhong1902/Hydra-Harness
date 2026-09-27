@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-client-ui-primitives",
+  "name": "@hydra1902/harness-client-ui-primitives",
   "description": "Pure React atoms for the hydra web UI: controls, icons, markdown, and JSON inspectors (zero cordis)",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -50,10 +50,10 @@
     "tabbable": "^6.5.0"
   },
   "devDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
     "@types/react": "~18.3.1",
     "@types/react-dom": "~18.3.0",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis": "workspace:^"
   },
   "files": [
     "lib/index.js",
@@ -64,7 +64,7 @@
     "lib/types/**/*.d.ts"
   ],
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

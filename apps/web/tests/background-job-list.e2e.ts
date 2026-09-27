@@ -9,10 +9,10 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import type { Agent } from '@hydra/harness-agent'
-import { CallId } from '@hydra/harness-llm'
-import { SessionId } from '@hydra/harness-session'
-import { JobId } from '@hydra/harness-jobs'
+import type { Agent } from '@hydra1902/harness-agent'
+import { CallId } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydra1902/harness-session'
+import { JobId } from '@hydra1902/harness-jobs'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, seedSession, watchConsole, webSnapshotMode, type WebScaffold,

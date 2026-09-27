@@ -3,13 +3,13 @@
  * {@link agentEvents} couples the agent subject to its scope carrier, so the
  * scope key and the payload's `agent` cannot diverge; repeat dispatchers (the
  * loop driver) build it once in the agent's constructor and reuse it.
- * @module @hydra/harness-agent/dispatch
+ * @module @hydra1902/harness-agent/dispatch
  */
 
-import type { Context, Events } from '@hydra/cordis'
-import { scopeTarget } from '@hydra/harness-scope'
-import type { Scoped } from '@hydra/harness-scope'
-import type { AssembleContext } from '@hydra/harness-system-prompt'
+import type { Context, Events } from '@hydra1902/cordis'
+import { scopeTarget } from '@hydra1902/harness-scope'
+import type { Scoped } from '@hydra1902/harness-scope'
+import type { AssembleContext } from '@hydra1902/harness-system-prompt'
 import type { Agent } from './runtime-types.ts'
 
 /** Extract the parameter tuple from an event handler type (its `this` is not part of the tuple). */

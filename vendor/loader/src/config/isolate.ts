@@ -1,5 +1,5 @@
-import { Context } from '@hydra/cordis'
-import type { Dict } from '@hydra/cosmokit'
+import { Context } from '@hydra1902/cordis'
+import type { Dict } from '@hydra1902/cosmokit'
 import { Entry } from './entry.ts'
 
 declare module './entry.ts' {

@@ -1,14 +1,14 @@
 /**
  * Model-facing UTF-8 read. It performs one provider stat for type, routing, and observed version,
  * streams large or size-unknown files, renders a bounded window, then emits the observation.
- * @module @hydra/harness-tool-fs/src/read
+ * @module @hydra1902/harness-tool-fs/src/read
  */
 
-import type { Context } from '@hydra/cordis'
-import { defineTool } from '@hydra/harness-tools'
-import type { GenericCallView, ReadResultView, ToolResult } from '@hydra/harness-tools'
-import type {} from '@hydra/harness-fs'
-import type {} from '@hydra/harness-system-prompt'
+import type { Context } from '@hydra1902/cordis'
+import { defineTool } from '@hydra1902/harness-tools'
+import type { GenericCallView, ReadResultView, ToolResult } from '@hydra1902/harness-tools'
+import type {} from '@hydra1902/harness-fs'
+import type {} from '@hydra1902/harness-system-prompt'
 import { buildWindow, formatReadOutput, langFromPath, readMetaFromMeta } from './read-render.ts'
 import { resolveRegularReadTarget } from './read-target.ts'
 

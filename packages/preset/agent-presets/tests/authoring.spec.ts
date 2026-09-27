@@ -11,13 +11,13 @@ import { existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include from '@hydra/cordis-plugin-include'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include from '@hydra1902/cordis-plugin-include'
 import { beforeEach, describe, expect, it } from 'vitest'
 import AgentPresets, {
   COMPOSITION_FILE, copyComposition, METADATA_FILE,
-} from '@hydra/harness-agent-presets'
+} from '@hydra1902/harness-agent-presets'
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const VALID = '- id: tool-alpha\n  name: ../../plugins/contribute.js\n  config:\n    tool: alpha\n'

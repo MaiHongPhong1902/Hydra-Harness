@@ -34,7 +34,7 @@ const DEPENDENCY_SECTIONS = [
   'peerDependencies',
 ] as const
 const RELEASE_MANIFEST_NAME = 'manifest.json'
-const RELEASE_ENTRY_PACKAGE = '@hydra/harness'
+const RELEASE_ENTRY_PACKAGE = '@hydra1902/harness'
 const LATEST_DIST_TAG = 'latest'
 const POSIX_WEB_PROBE = String.raw`
 import errno, os, pty, select, signal, sys, time
@@ -260,10 +260,10 @@ class WorkspacePackageSet {
       const isVendored = manifestPath.startsWith('vendor/')
       // Vendored packages are rescoped too (vendor/README.md), so publication
       // never carries an upstream name that would squat it on the registry.
-      if (!name.startsWith('@hydra/')) {
-        throw new Error(`${manifestPath} must name an @hydra package`)
+      if (!name.startsWith('@hydra1902/')) {
+        throw new Error(`${manifestPath} must name an @hydra1902 package`)
       }
-      if (name === '@hydra/harness-root') {
+      if (name === '@hydra1902/harness-root') {
         throw new Error(`${manifestPath} unexpectedly selected the workspace root`)
       }
       if (names.has(name)) throw new Error(`duplicate package name: ${name}`)
@@ -454,7 +454,7 @@ class InstalledBundleSmoke {
         `--registry=${this.bundle.manifest.registry}`,
       ], consumerRoot, npmClientEnvironment())
 
-      const bin = resolve(consumerRoot, 'node_modules/@hydra/harness/lib/bin.js')
+      const bin = resolve(consumerRoot, 'node_modules/@hydra1902/harness/lib/bin.js')
       assertPathWithin(consumerRoot, bin, 'installed hydra bin')
       const environment = installedArtifactEnvironment(consumerRoot)
       const version = this.runner.capture(
@@ -816,7 +816,7 @@ function parsePackedPackage(value: unknown, index: number): PackedPackage {
   if (origin !== 'harness' && origin !== 'vendor') {
     throw new Error(`invalid package origin in release manifest: ${JSON.stringify(origin)}`)
   }
-  if (origin === 'harness' && (!name.startsWith('@hydra/') || name === '@hydra/harness-root')) {
+  if (origin === 'harness' && (!name.startsWith('@hydra1902/') || name === '@hydra1902/harness-root')) {
     throw new Error(`invalid package name in release manifest: ${name}`)
   }
   return {

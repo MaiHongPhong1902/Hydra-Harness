@@ -1,4 +1,4 @@
-import type { ConversationNodeContext } from '@hydra/harness-client-runtime/client'
+import type { ConversationNodeContext } from '@hydra1902/harness-client-runtime/client'
 import type {
   TrajectoryContribution, TrajectoryConversationViewNode,
 } from './trajectory-contract.ts'

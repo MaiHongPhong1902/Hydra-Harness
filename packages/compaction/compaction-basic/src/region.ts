@@ -2,7 +2,7 @@
  * Surface retention selection and the shared log-recorded compaction
  * transaction for automatic open-turn and manual idle-session compaction.
  *
- * @module @hydra/harness-compaction-basic/region
+ * @module @hydra1902/harness-compaction-basic/region
  */
 
 import { randomUUID } from 'node:crypto'
@@ -13,14 +13,14 @@ import {
   compactCheckpointSource,
   toolPairingBalancedAfter,
   toolPairingBalancedBefore,
-} from '@hydra/harness-compaction'
-import type { CompactionResult } from '@hydra/harness-compaction'
-import type { CommandId } from '@hydra/harness-commands/brand'
-import { createUserMessage, errorChain } from '@hydra/harness-llm'
-import type { Message, UserMessage } from '@hydra/harness-llm'
-import type { TokenMeasurement, TokenMeter } from '@hydra/harness-token-meter'
-import type { Session, SessionEvent } from '@hydra/harness-session'
-import type { Agent } from '@hydra/harness-agent'
+} from '@hydra1902/harness-compaction'
+import type { CompactionResult } from '@hydra1902/harness-compaction'
+import type { CommandId } from '@hydra1902/harness-commands/brand'
+import { createUserMessage, errorChain } from '@hydra1902/harness-llm'
+import type { Message, UserMessage } from '@hydra1902/harness-llm'
+import type { TokenMeasurement, TokenMeter } from '@hydra1902/harness-token-meter'
+import type { Session, SessionEvent } from '@hydra1902/harness-session'
+import type { Agent } from '@hydra1902/harness-agent'
 import { frameSummary } from './summarizer.ts'
 import type { SummarizationInput, SummaryResult } from './summarizer.ts'
 

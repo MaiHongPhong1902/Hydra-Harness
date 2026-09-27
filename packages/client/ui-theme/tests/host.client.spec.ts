@@ -1,10 +1,10 @@
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { describe, expect, it } from 'vitest'
-import type { IndexInjection } from '@hydra/harness-host-webserver'
-import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra/harness-settings'
+import type { IndexInjection } from '@hydra1902/harness-host-webserver'
+import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra1902/harness-settings'
 import {
   DEFAULT_PREFERENCE, THEME_SETTINGS_NAMESPACE, apply,
-} from '@hydra/harness-client-ui-theme'
+} from '@hydra1902/harness-client-ui-theme'
 
 class MemorySettings extends SettingsProvider {
   readonly writable = true

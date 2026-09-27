@@ -1,12 +1,12 @@
 /** Browser runtime services for slots, sessions, workspaces, and connection-stream delivery. */
-import type { Context } from '@hydra/cordis'
-import type { ConnectionHandle, SessionId } from '@hydra/harness-api-remotes/client'
+import type { Context } from '@hydra1902/cordis'
+import type { ConnectionHandle, SessionId } from '@hydra1902/harness-api-remotes/client'
 // Type-only: the ctx.remote merge. Deliberately the gateway's Client half rather
 // than api-remotes': that face imports a Host-tsdown-generated artifact, and this
 // project sits in the Host build graph.
-import type {} from '@hydra/harness-api-remotes/client'
-import type { TypertContext } from '@hydra/harness-typert-protocol'
-import type { MaybeSnapshotSelectorHook, SnapshotSelectorHook } from '@hydra/harness-client-ui-slots'
+import type {} from '@hydra1902/harness-api-remotes/client'
+import type { TypertContext } from '@hydra1902/harness-typert-protocol'
+import type { MaybeSnapshotSelectorHook, SnapshotSelectorHook } from '@hydra1902/harness-client-ui-slots'
 import { SlotRegistry } from './slots.ts'
 import { SessionRuntime } from './sessions/service.ts'
 import type { SessionListState } from './sessions/service.ts'
@@ -16,7 +16,7 @@ import type { UseProjection } from './sessions/projection-store.ts'
 import { ConversationEventRegistry } from './conversation/event-registry.ts'
 import { ConversationViewRegistry } from './conversation/view-registry.ts'
 
-export { isAppendSurfaceEvent, isReplacementSurfaceEvent } from '@hydra/harness-session/surface'
+export { isAppendSurfaceEvent, isReplacementSurfaceEvent } from '@hydra1902/harness-session/surface'
 
 export { SlotRegistry } from './slots.ts'
 export { ConversationEventRegistry } from './conversation/event-registry.ts'
@@ -49,7 +49,7 @@ export type { AgentScopeHandle } from './agents/scope.ts'
 export { DirectoryBrowseError, WorkspaceCreateError, WorkspaceRuntime } from './workspaces/service.ts'
 export { abbreviateHomePath, resolveWorkspacePath } from './workspaces/path.ts'
 // Contract only: the scope implementation and its Host transport belong to
-// @hydra/harness-client-ui-settings (see that package's settings-scope.ts).
+// @hydra1902/harness-client-ui-settings (see that package's settings-scope.ts).
 export type {
   SettingsScope, SettingsScopeSnapshot, SettingsScopeSpec,
 } from './contract/settings-scope.ts'
@@ -61,12 +61,12 @@ export type {
   SessionBinding, SessionListState, SessionProvideContribution, SessionProvideDescriptor, SessionSummary,
 } from './sessions/service.ts'
 export type { SessionListPhase, SessionSearchResultItem, SubagentCatalogSnapshot } from './sessions/manager.ts'
-export type { SubagentAddress, JobView } from '@hydra/harness-client-connection/client'
+export type { SubagentAddress, JobView } from '@hydra1902/harness-client-connection/client'
 export type { WorkspaceListPhase } from './workspaces/manager.ts'
 export type { WorkspaceListState } from './workspaces/service.ts'
 export type {
   DirectoryEntry, DirectoryListing, WorkspaceId, WorkspaceView,
-} from '@hydra/harness-client-connection/client'
+} from '@hydra1902/harness-client-connection/client'
 // Runtime owns the snapshot store; ui-renderer only binds it to React.
 export { createSnapshotStore, defineStore, shallowEqual } from './contract/store.ts'
 export type {
@@ -107,12 +107,12 @@ export type {
 export type {
   ProjectionsBaseline, ProjectionValueStore, SessionProjectionMap, UseProjection,
 } from './sessions/projection-store.ts'
-export type { SessionId } from '@hydra/harness-client-connection/client'
+export type { SessionId } from '@hydra1902/harness-client-connection/client'
 
 /** Client-side Cordis context after declaration merging. */
 export type ClientContext = Context
 
-declare module '@hydra/harness-typert-protocol' {
+declare module '@hydra1902/harness-typert-protocol' {
   interface TypertContextMap {
     /** Client Agent scope identity; the agent and session share one wire id. */
     agent: TypertContext<SessionId>
@@ -122,7 +122,7 @@ declare module '@hydra/harness-typert-protocol' {
 /** The conversation-snapshot selector hook supplied to session-scoped UI entries. */
 export type UseConversationSession = SnapshotSelectorHook<ConversationSnapshot>
 
-declare module '@hydra/harness-client-ui-slots' {
+declare module '@hydra1902/harness-client-ui-slots' {
   /**
    * Session standard kit, real members (ui-slots declares the empty seat;
    * the runtime — where the subjects live — merges the concrete types):
@@ -151,7 +151,7 @@ declare module '@hydra/harness-client-ui-slots' {
   }
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Events {
     /**
      * A slot's definition or registration set changed.

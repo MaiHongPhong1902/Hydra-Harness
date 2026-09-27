@@ -1,16 +1,16 @@
 // @vitest-environment jsdom
-import { Context, Service } from '@hydra/cordis'
+import { Context, Service } from '@hydra1902/cordis'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   ConversationEventRegistry, ConversationNodeAssembler, SlotRegistry,
-} from '@hydra/harness-client-runtime/client'
+} from '@hydra1902/harness-client-runtime/client'
 import type {
   ChatConversationViewNode, ConversationEventInput, ConversationMatch, ConversationNodeDefinition,
   ConversationViewDefinition, SessionId, SessionListState,
-} from '@hydra/harness-client-runtime/client'
-import { apply as applyLocale, inject as localeInject } from '@hydra/harness-client-locale/client'
-import { makeTranslate, stubSettingsScope } from '@hydra/harness-client-test-runtime'
+} from '@hydra1902/harness-client-runtime/client'
+import { apply as applyLocale, inject as localeInject } from '@hydra1902/harness-client-locale/client'
+import { makeTranslate, stubSettingsScope } from '@hydra1902/harness-client-test-runtime'
 import {
   WorkflowRunPanel, type WorkflowRunInjected, type WorkflowRunPanelProps,
 } from '../src/client/WorkflowRunPanel.tsx'
@@ -880,6 +880,6 @@ describe('plugin lifecycle', () => {
       register: (pkg: string) => { registered.push(pkg); return () => {} },
     } as never)
     await applyInvariant(ctx)
-    expect(registered).toEqual(['@hydra/harness-client-ui-workflow-run'])
+    expect(registered).toEqual(['@hydra1902/harness-client-ui-workflow-run'])
   })
 })

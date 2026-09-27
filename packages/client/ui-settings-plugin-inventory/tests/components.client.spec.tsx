@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { useState, useSyncExternalStore } from 'react'
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
-import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
-import type { ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import type { ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra1902/harness-api-remotes/client'
 import { PluginInventoryController } from '../src/client/inventory-controller.ts'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -42,7 +42,7 @@ const NATIVE_SNAPSHOT = {
   entries: [
     {
       entryId: 'browser' as never,
-      moduleName: '@hydra/harness-browser-electron',
+      moduleName: '@hydra1902/harness-browser-electron',
       enabled: false,
       restartRequired: false,
       toggleable: true,
@@ -50,7 +50,7 @@ const NATIVE_SNAPSHOT = {
     },
     {
       entryId: 'settings' as never,
-      moduleName: '@hydra/harness-settings',
+      moduleName: '@hydra1902/harness-settings',
       description: 'Shared app preferences.',
       application: 'Keep preferences consistent across sessions.',
       enabled: true,
@@ -165,8 +165,8 @@ describe('PluginInventorySettingsTab', () => {
   it('filters compact rows and opens the selected plugin dialog', async () => {
     const native = nativeControls()
     vi.mocked(native.list).mockResolvedValue({ entries: [
-      { ...NATIVE_SNAPSHOT.entries[0], pluginType: 'normal', moduleName: '@hydra/harness-browser-electron' },
-      { ...NATIVE_SNAPSHOT.entries[1], pluginType: 'core', moduleName: '@hydra/harness-settings' },
+      { ...NATIVE_SNAPSHOT.entries[0], pluginType: 'normal', moduleName: '@hydra1902/harness-browser-electron' },
+      { ...NATIVE_SNAPSHOT.entries[1], pluginType: 'core', moduleName: '@hydra1902/harness-settings' },
     ] })
     render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
     await screen.findByText('browser-electron')
@@ -244,7 +244,7 @@ describe('PluginInventorySettingsTab', () => {
   it('shows the core restart and preset session-scope notices', async () => {
     const core = {
       entryId: 'typert-loader' as never,
-      moduleName: '@hydra/harness-typert-loader',
+      moduleName: '@hydra1902/harness-typert-loader',
       pluginType: 'core' as const,
       enabled: true,
       restartRequired: false,
@@ -253,7 +253,7 @@ describe('PluginInventorySettingsTab', () => {
     }
     const preset = {
       entryId: 'agent-preset:standard:tool-subagent' as never,
-      moduleName: '@hydra/harness-tool-subagent',
+      moduleName: '@hydra1902/harness-tool-subagent',
       enabled: true,
       presetId: 'standard',
       newSessionsOnly: true,
@@ -294,12 +294,12 @@ describe('PluginInventorySettingsTab', () => {
 
   it('covers native runtime states, filters, sorting, and keyboard details', async () => {
     const entries: PluginInventorySnapshot['entries'] = [
-      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'failed' as never, moduleName: '@hydra/harness-failed', pluginType: 'normal', enabled: true, fiberPhase: 'failed' },
-      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'failed-two' as never, moduleName: '@hydra/harness-failed-two', pluginType: 'normal', enabled: true, fiberPhase: 'failed' },
-      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'loading' as never, moduleName: '@hydra/harness-loading', pluginType: 'normal', enabled: true, fiberPhase: 'loading' },
-      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'stopped' as never, moduleName: '@hydra/harness-stopped', pluginType: 'normal', enabled: false, fiberPhase: null },
-      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'core-restart' as never, moduleName: '@hydra/harness-core-restart', pluginType: 'core', enabled: true, restartRequired: true, fiberPhase: 'active' },
-      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'preset-filter' as never, moduleName: '@hydra/harness-preset-filter', enabled: true, presetId: 'standard', fiberPhase: null },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'failed' as never, moduleName: '@hydra1902/harness-failed', pluginType: 'normal', enabled: true, fiberPhase: 'failed' },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'failed-two' as never, moduleName: '@hydra1902/harness-failed-two', pluginType: 'normal', enabled: true, fiberPhase: 'failed' },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'loading' as never, moduleName: '@hydra1902/harness-loading', pluginType: 'normal', enabled: true, fiberPhase: 'loading' },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'stopped' as never, moduleName: '@hydra1902/harness-stopped', pluginType: 'normal', enabled: false, fiberPhase: null },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'core-restart' as never, moduleName: '@hydra1902/harness-core-restart', pluginType: 'core', enabled: true, restartRequired: true, fiberPhase: 'active' },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'preset-filter' as never, moduleName: '@hydra1902/harness-preset-filter', enabled: true, presetId: 'standard', fiberPhase: null },
     ]
     const native: NativePluginControls = {
       list: vi.fn(async () => ({ entries })),
@@ -385,7 +385,7 @@ describe('PluginInventorySettingsTab', () => {
     const entries = [
       {
         entryId: 'agent-preset:standard:tool-subagent' as never,
-        moduleName: '@hydra/harness-tool-subagent',
+        moduleName: '@hydra1902/harness-tool-subagent',
         enabled: true,
         presetId: 'standard',
         newSessionsOnly: true,
@@ -395,7 +395,7 @@ describe('PluginInventorySettingsTab', () => {
       },
       {
         entryId: 'agent-preset:standard:tool-subagent-fork' as never,
-        moduleName: '@hydra/harness-tool-subagent',
+        moduleName: '@hydra1902/harness-tool-subagent',
         enabled: false,
         presetId: 'standard',
         newSessionsOnly: true,
@@ -411,7 +411,7 @@ describe('PluginInventorySettingsTab', () => {
     const { container } = render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
 
     await screen.findByRole('switch', { name: `${en.disablePlugin} tool-subagent (standard: tool-subagent)` })
-    expect(container.querySelectorAll('[data-plugin-module="@hydra/harness-tool-subagent"]')).toHaveLength(1)
+    expect(container.querySelectorAll('[data-plugin-module="@hydra1902/harness-tool-subagent"]')).toHaveLength(1)
     expect(container.querySelectorAll('[data-plugin-entry]')).toHaveLength(2)
     expect(container.querySelectorAll('[data-plugin-entry] [data-status="session-scoped"]')).toHaveLength(2)
     expect(container.querySelector('[data-plugin-count]')?.getAttribute('data-plugin-count')).toBe('1')

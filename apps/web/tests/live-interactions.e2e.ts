@@ -17,10 +17,10 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterEach, describe, expect, it, onTestFailed } from 'vitest'
-import type { RetryPolicyConfig } from '@hydra/harness-llm'
-import { deriveReplayScript, parseSessionLog } from '@hydra/harness-llm-replay'
-import type { ReplayEntry, ReplayOverrideDoc } from '@hydra/harness-llm-replay'
-import type { SessionEvent } from '@hydra/harness-session'
+import type { RetryPolicyConfig } from '@hydra1902/harness-llm'
+import { deriveReplayScript, parseSessionLog } from '@hydra1902/harness-llm-replay'
+import type { ReplayEntry, ReplayOverrideDoc } from '@hydra1902/harness-llm-replay'
+import type { SessionEvent } from '@hydra1902/harness-session'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden, fixtureUserPrompts,
   launchWebScaffold, recordFixture, watchConsole, webSnapshotMode, type WebScaffold,

@@ -1,7 +1,7 @@
 /** Client-safe event declarations owned by the agent-preset domain. */
-import type { SessionId } from '@hydra/harness-session/types'
+import type { SessionId } from '@hydra1902/harness-session/types'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Events {
     /**
      * One session committed a different agent preset to its durable log.

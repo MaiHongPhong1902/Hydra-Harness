@@ -2,11 +2,11 @@
  * On-disk JSON unit format: the file is always the current net state, kept
  * human-readable (pretty-printed, stable key order from insertion) — that
  * legibility is this backend's reason to exist.
- * @module @hydra/harness-storage-json/src/format
+ * @module @hydra1902/harness-storage-json/src/format
  */
 
-import { StorageError } from '@hydra/harness-storage'
-import type { KvUnitDescriptor } from '@hydra/harness-storage'
+import { StorageError } from '@hydra1902/harness-storage'
+import type { KvUnitDescriptor } from '@hydra1902/harness-storage'
 
 /** In-memory authoritative state of one unit; the file is its projection. `global` is `null` until first written. */
 export interface UnitState {

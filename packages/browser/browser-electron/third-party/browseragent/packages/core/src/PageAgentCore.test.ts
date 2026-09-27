@@ -1,4 +1,4 @@
-import type { BrowserState, PageController } from '@hydra/harness-browseragent-page-controller'
+import type { BrowserState, PageController } from '@hydra1902/harness-browseragent-page-controller'
 import { describe, expect, it, vi } from 'vitest'
 import * as z from 'zod/v4'
 

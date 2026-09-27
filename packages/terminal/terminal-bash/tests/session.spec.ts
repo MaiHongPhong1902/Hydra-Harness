@@ -1,18 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PassThrough } from 'node:stream'
-import { LocalPtySession } from '@hydra/harness-terminal-bash/src/session.ts'
-import type { ResolvedConfig } from '@hydra/harness-terminal-bash/src/config.ts'
-import type { TerminalSendOperation, TerminalSessionStatus, TerminalSignal } from '@hydra/harness-terminal'
+import { LocalPtySession } from '@hydra1902/harness-terminal-bash/src/session.ts'
+import type { ResolvedConfig } from '@hydra1902/harness-terminal-bash/src/config.ts'
+import type { TerminalSendOperation, TerminalSessionStatus, TerminalSignal } from '@hydra1902/harness-terminal'
 import type {
   SubprocessOutcome,
   SubprocessTerminalHandle,
   SubprocessTerminalSignal,
-} from '@hydra/harness-subprocess'
-import { TerminalError } from '@hydra/harness-terminal'
+} from '@hydra1902/harness-subprocess'
+import { TerminalError } from '@hydra1902/harness-terminal'
 import type {
   ProcessIdentity,
   ProcessInspector,
-} from '@hydra/harness-subprocess-local/src/process-inspector.ts'
+} from '@hydra1902/harness-subprocess-local/src/process-inspector.ts'
 
 class FakeInspector implements ProcessInspector {
   pgid: number | undefined = 456

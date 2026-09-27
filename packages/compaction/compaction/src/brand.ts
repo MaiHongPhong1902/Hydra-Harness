@@ -1,4 +1,4 @@
-import type { Branded } from '@hydra/harness-brand'
+import type { Branded } from '@hydra1902/harness-brand'
 
 /** Stable identity shared by one compact start/summary/checkpoint/end transaction. */
 export type CompactionId = Branded<'CompactionId'>

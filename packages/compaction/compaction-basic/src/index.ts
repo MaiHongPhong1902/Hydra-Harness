@@ -1,21 +1,21 @@
 /**
  * Basic replay-aware compaction backend.
  *
- * @module @hydra/harness-compaction-basic
+ * @module @hydra1902/harness-compaction-basic
  */
 
-import { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { CompactionEngine, ManualCompactionError } from '@hydra/harness-compaction'
-import type { CompactionResult, CompactionTrigger } from '@hydra/harness-compaction'
-import type { TokenMeter } from '@hydra/harness-token-meter'
-import type { Session } from '@hydra/harness-session'
-import { CONTEXT_WINDOW_EXCEEDED_CODE, assertNever } from '@hydra/harness-llm'
-import type { LlmCallConfig } from '@hydra/harness-llm'
-import type { Agent, PreStepDecision } from '@hydra/harness-agent'
-import type { CommandId } from '@hydra/harness-commands/brand'
+import { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { CompactionEngine, ManualCompactionError } from '@hydra1902/harness-compaction'
+import type { CompactionResult, CompactionTrigger } from '@hydra1902/harness-compaction'
+import type { TokenMeter } from '@hydra1902/harness-token-meter'
+import type { Session } from '@hydra1902/harness-session'
+import { CONTEXT_WINDOW_EXCEEDED_CODE, assertNever } from '@hydra1902/harness-llm'
+import type { LlmCallConfig } from '@hydra1902/harness-llm'
+import type { Agent, PreStepDecision } from '@hydra1902/harness-agent'
+import type { CommandId } from '@hydra1902/harness-commands/brand'
 // Type-only: makes the optional sibling service available to `ctx.get()`.
-import type {} from '@hydra/harness-compaction-tool-result-pruner'
+import type {} from '@hydra1902/harness-compaction-tool-result-pruner'
 import {
   resolveCompactSpec,
   resolveConfig,

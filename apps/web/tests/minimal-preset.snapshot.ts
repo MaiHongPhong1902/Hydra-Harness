@@ -2,11 +2,11 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { AgentHandle } from '@hydra/harness-agent'
-import { CallId, createUserMessage } from '@hydra/harness-llm'
-import { SessionId } from '@hydra/harness-session'
-import type {} from '@hydra/harness-agent-presets'
-import type {} from '@hydra/harness-system-prompt'
+import type { AgentHandle } from '@hydra1902/harness-agent'
+import { CallId, createUserMessage } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydra1902/harness-session'
+import type {} from '@hydra1902/harness-agent-presets'
+import type {} from '@hydra1902/harness-system-prompt'
 import { assertFixtureInventory, launchWebScaffold, type WebScaffold } from './scaffold.ts'
 
 const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/minimal-preset', import.meta.url))
@@ -57,7 +57,7 @@ describe('minimal agent preset', () => {
     if (requestHeader === undefined) throw new Error('the minimal agent issued no model request')
     expect(agentHandle.agent.session.events.some(event => event.type === 'user/message'
       && event.data.source.kind === 'plugin'
-      && event.data.source.plugin === '@hydra/harness-system-prompt')).toBe(false)
+      && event.data.source.plugin === '@hydra1902/harness-system-prompt')).toBe(false)
     const presetFileSystem = scaffold.ctx.agentPresets.serviceFor(agentHandle.agent, 'fs')
     expect(presetFileSystem).toBeDefined()
     expect(presetFileSystem?.sandboxMode).toBeUndefined()

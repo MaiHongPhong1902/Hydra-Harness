@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import type { ApprovalRequestId } from '@hydra/harness-user-approval/types'
+import type { ApprovalRequestId } from '@hydra1902/harness-user-approval/types'
 import type { ApprovalResponsePayload } from './approvals.ts'
 import type { Wire } from './rpc.schema.ts'
 import { sessionIdSchema } from './sessions.schema.ts'

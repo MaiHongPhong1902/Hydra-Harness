@@ -5,25 +5,25 @@
  *
  * TODO(permissions): deployment policy belongs in `tools/pre-execute` and
  * sandboxing executors; see docs/architecture.md § Where new behavior goes.
- * @module @hydra/harness-tool-bash
+ * @module @hydra1902/harness-tool-bash
  */
 
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
 import { isAbsolute, resolve as resolvePath } from 'node:path'
-import { defineTool, TOOL_ABORTED } from '@hydra/harness-tools'
-import type { GenericCallView, TerminalCallView, ToolExecution, ToolResult, ToolResultView } from '@hydra/harness-tools'
-import { HarnessError } from '@hydra/harness-llm'
-import type { Agent } from '@hydra/harness-agent'
-import type {} from '@hydra/harness-system-prompt'
-import type {} from '@hydra/harness-jobs'
-import type {} from '@hydra/harness-user-approval'
-import type {} from '@hydra/harness-shell-env'
-import type { SandboxExecutionPolicy, SandboxMode } from '@hydra/harness-sandbox'
-import { ESCALATION_TARGETS, approveEscalation, canonicalPath, validateEscalationArgs } from '@hydra/harness-sandbox'
-import type { SandboxPolicyService } from '@hydra/harness-sandbox-policy'
-import { HYDRA_ENV_PREFIX } from '@hydra/harness-shell'
-import type { ShellRunResult } from '@hydra/harness-shell'
+import { defineTool, TOOL_ABORTED } from '@hydra1902/harness-tools'
+import type { GenericCallView, TerminalCallView, ToolExecution, ToolResult, ToolResultView } from '@hydra1902/harness-tools'
+import { HarnessError } from '@hydra1902/harness-llm'
+import type { Agent } from '@hydra1902/harness-agent'
+import type {} from '@hydra1902/harness-system-prompt'
+import type {} from '@hydra1902/harness-jobs'
+import type {} from '@hydra1902/harness-user-approval'
+import type {} from '@hydra1902/harness-shell-env'
+import type { SandboxExecutionPolicy, SandboxMode } from '@hydra1902/harness-sandbox'
+import { ESCALATION_TARGETS, approveEscalation, canonicalPath, validateEscalationArgs } from '@hydra1902/harness-sandbox'
+import type { SandboxPolicyService } from '@hydra1902/harness-sandbox-policy'
+import { HYDRA_ENV_PREFIX } from '@hydra1902/harness-shell'
+import type { ShellRunResult } from '@hydra1902/harness-shell'
 import { processOutcome } from './background.ts'
 import { parseExitStatus, renderProcessRead, renderResult } from './render.ts'
 
@@ -358,7 +358,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         }
         const jobs = ctx.get('jobs')
         if (jobs === undefined) {
-          throw new Error('background jobs unavailable: load @hydra/harness-jobs and @hydra/harness-tool-jobs')
+          throw new Error('background jobs unavailable: load @hydra1902/harness-jobs and @hydra1902/harness-tool-jobs')
         }
         // The caller owns cancellation until ctx.jobs commits detached ownership.
         if (exec.signal.aborted) {

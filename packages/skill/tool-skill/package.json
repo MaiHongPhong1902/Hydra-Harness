@@ -1,12 +1,12 @@
 {
-  "name": "@hydra/harness-tool-skill",
+  "name": "@hydra1902/harness-tool-skill",
   "description": "Bounded automatic skill routing, model-facing search, and exact loading for Hydra harness",
   "hydra": {
     "plugin": {
       "application": "Let the agent search for relevant skills and load their full instructions."
     }
   },
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -37,25 +37,25 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-skill": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-skill": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-scope": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-skill": "workspace:^",
-    "@hydra/harness-skill-filesystem": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-scope": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-skill": "workspace:^",
+    "@hydra1902/harness-skill-filesystem": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

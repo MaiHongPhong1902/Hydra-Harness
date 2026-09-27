@@ -3,11 +3,11 @@
  * the one-shot background path uses Jobs; continuable children have no Task,
  * no per-message result, and no Task cancellation.
  *
- * @module @hydra/harness-subagent/run-settlement
+ * @module @hydra1902/harness-subagent/run-settlement
  */
 
-import type { ContentBlock } from '@hydra/harness-llm'
-import type { JobOutcome } from '@hydra/harness-jobs'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { JobOutcome } from '@hydra1902/harness-jobs'
 import type { SubagentResult, SubagentRun } from './types.ts'
 
 /** Flatten a child's final output blocks to the task's final text. */

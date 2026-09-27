@@ -2,7 +2,7 @@
 # stdout is reserved for JSON-RPC; do not add a console logger or terminal UI.
 
 - id: sdk-jsonrpc-server
-  name: '@hydra/harness-sdk-jsonrpc-server'
+  name: '@hydra1902/harness-sdk-jsonrpc-server'
   config:
     maxTokensAsSuccess: !!js "process.env.HYDRA_MAX_TOKENS_AS_SUCCESS === undefined ? true : JSON.parse(process.env.HYDRA_MAX_TOKENS_AS_SUCCESS)"
 
@@ -10,23 +10,23 @@
 # request; exact-model resolution materializes request defaults before logging.
 # The model arrives per session over JSON-RPC, so it is not pinned here.
 - id: llm-deepseek
-  name: '@hydra/harness-llm-deepseek'
+  name: '@hydra1902/harness-llm-deepseek'
   config:
     thinking: enabled
     reasoningEffort: max
 
 # Managed child-process groups for the bash executor (spawn/kill/output plumbing).
 - id: subprocess
-  name: '@hydra/harness-subprocess-local'
+  name: '@hydra1902/harness-subprocess-local'
 
 - id: bash
-  name: '@hydra/harness-bash-local'
+  name: '@hydra1902/harness-bash-local'
   config:
     cwd: !!js process.env.HYDRA_CWD ?? process.cwd()
     timeoutMs: 60000
 
 - id: agent-spine
-  name: '@hydra/harness-agent-spine-demo'
+  name: '@hydra1902/harness-agent-spine-demo'
   config:
     persona: !!js process.env.HYDRA_SYSTEM_PROMPT ?? 'You are a coding agent.'
     workspaceContext: false
@@ -37,54 +37,54 @@
     toolJobs: false
 
 - id: sessions
-  name: '@hydra/harness-session-persistence-jsonl'
+  name: '@hydra1902/harness-session-persistence-jsonl'
   config:
     root: !!js process.env.HYDRA_SESSION_ROOT ?? './.sessions'
     # Snapshot runs read the raw JSONL back; production keeps zstd frames.
     compression: !!js "process.env.HYDRA_SNAPSHOT === undefined ? 'zstd' : 'none'"
 
 - id: session-checkpoints
-  name: '@hydra/harness-session-checkpoint-policy'
+  name: '@hydra1902/harness-session-checkpoint-policy'
 
 - id: subagent
-  name: '@hydra/harness-subagent'
+  name: '@hydra1902/harness-subagent'
   config:
     maxActivePerTree: 4
     maxChildrenPerTree: 8
 
 - id: subagent-spawn-in-process
-  name: '@hydra/harness-subagent-spawn-in-process'
+  name: '@hydra1902/harness-subagent-spawn-in-process'
   config:
     providerName: spawn
 
 - id: tool-subagent
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   config:
     provider: spawn
     toolName: subagent
     enableRunInBackground: false
 
 - id: tool-todo
-  name: '@hydra/harness-tool-todo'
+  name: '@hydra1902/harness-tool-todo'
   config:
     allowParallelInProgress: true
 
 - id: fs-local
-  name: '@hydra/harness-fs-local'
+  name: '@hydra1902/harness-fs-local'
   config:
     cwd: !!js process.env.HYDRA_CWD ?? process.cwd()
 
 - id: fs-observation-policy
-  name: '@hydra/harness-fs-observation-policy'
+  name: '@hydra1902/harness-fs-observation-policy'
 
 - id: tool-fs
-  name: '@hydra/harness-tool-fs'
+  name: '@hydra1902/harness-tool-fs'
 
 - id: token-meter
-  name: '@hydra/harness-token-meter'
+  name: '@hydra1902/harness-token-meter'
 
 - id: compaction-basic
-  name: '@hydra/harness-compaction-basic'
+  name: '@hydra1902/harness-compaction-basic'
   config:
     thresholdRatio: 0.8
     retainRatio: 0.16

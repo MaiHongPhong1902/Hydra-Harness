@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 import * as StorageSqliteInvariant from '../src/invariant.ts'
 
 describe('invariant companion', () => {

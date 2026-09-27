@@ -11,10 +11,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include from '@hydra/cordis-plugin-include'
-import HttpServer from '@hydra/harness-host-webserver'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include from '@hydra1902/cordis-plugin-include'
+import HttpServer from '@hydra1902/harness-host-webserver'
 import * as FrontendStatic from '../src/index.ts'
 
 let root: string | undefined
@@ -40,12 +40,12 @@ async function loadComposition(): Promise<Context> {
   await mkdir(join(dist, 'empty'))
   const configPath = join(root, 'cordis.yml')
   await writeFile(configPath, [
-    "- name: '@hydra/harness-host-webserver'",
+    "- name: '@hydra1902/harness-host-webserver'",
     '  config:',
     "    host: '127.0.0.1'",
     '    port: 0',
     '- id: frontend',
-    "  name: '@hydra/harness-host-frontend-static'",
+    "  name: '@hydra1902/harness-host-frontend-static'",
     '  config:',
     `    distIndex: '${distIndex}'`,
     '',
@@ -56,8 +56,8 @@ async function loadComposition(): Promise<Context> {
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@hydra/harness-host-webserver', HttpServer],
-    ['@hydra/harness-host-frontend-static', FrontendStatic],
+    ['@hydra1902/harness-host-webserver', HttpServer],
+    ['@hydra1902/harness-host-frontend-static', FrontendStatic],
   ])
   context.loader.internal = {
     version: 'v2',

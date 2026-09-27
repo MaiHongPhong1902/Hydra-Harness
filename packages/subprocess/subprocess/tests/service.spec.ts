@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { PassThrough } from 'node:stream'
-import { Context } from '@hydra/cordis'
-import { scrubbedParentEnv, SubprocessRuntime } from '@hydra/harness-subprocess'
+import { Context } from '@hydra1902/cordis'
+import { scrubbedParentEnv, SubprocessRuntime } from '@hydra1902/harness-subprocess'
 import type {
   SubprocessHandle,
   SubprocessOutputRead,
   SubprocessSpawnSpec,
   SubprocessTerminalHandle,
   SubprocessTerminalSpawnSpec,
-} from '@hydra/harness-subprocess'
+} from '@hydra1902/harness-subprocess'
 
 /**
  * Minimal concrete service: a hand-built handle. The seam is spawn-only —

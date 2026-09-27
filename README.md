@@ -44,7 +44,7 @@ pnpm run desktop
 ### Run from npm
 
 ```sh
-npx @hydra/harness
+npx @hydra1902/harness
 ```
 
 The interactive launcher lets you choose Web, Headless, or Desktop. Web starts at `http://127.0.0.1:3080` and local launches open your browser automatically; SSH launches print the host URL so your SSH client or editor can handle forwarding. Choose Desktop only to see the source-checkout instructions: the npm package does not yet ship a supported Electron Desktop artifact.
@@ -52,8 +52,8 @@ The interactive launcher lets you choose Web, Headless, or Desktop. Web starts a
 For scripts, CI, or redirected input, use an explicit command instead of the menu:
 
 ```sh
-npx @hydra/harness web --no-open
-npx @hydra/harness --profile headless "summarize this repository"
+npx @hydra1902/harness web --no-open
+npx @hydra1902/harness --profile headless "summarize this repository"
 ```
 
 ### Start your first task

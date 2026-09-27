@@ -5,11 +5,11 @@
  * observed-state policy stay in consumer and policy plugins; `editText`
  * remains here so version check, literal match, and rewrite share one critical
  * section.
- * @module @hydra/harness-fs
+ * @module @hydra1902/harness-fs
  */
 
-import { Context, Service } from '@hydra/cordis'
-import type { SandboxExecutionPolicy, SandboxMode } from '@hydra/harness-sandbox'
+import { Context, Service } from '@hydra1902/cordis'
+import type { SandboxExecutionPolicy, SandboxMode } from '@hydra1902/harness-sandbox'
 import type {
   FsDirEntry,
   FsEditOutcome,
@@ -44,7 +44,7 @@ export type {
   FsSnapshot,
 } from './types.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     fs: FileSystem
   }
@@ -130,7 +130,7 @@ export abstract class FileSystem extends Service {
    * `undefined` when it does not confine at all — the capability fact the tool
    * layer reads to advertise the escalation fields honestly (mirrors
    * `ShellExecutor.sandboxMode`). The base class and the bare local backend
-   * report `undefined`; a sandboxing backend (`@hydra/harness-fs-sandbox`)
+   * report `undefined`; a sandboxing backend (`@hydra1902/harness-fs-sandbox`)
    * overrides it with the deployment default. A session override may make the
    * effective mode narrower or wider, so strict escalation widening is checked
    * per call rather than encoded in this default-relative fact.

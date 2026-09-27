@@ -2,9 +2,9 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import LocalCredentialProvider from '@hydra/harness-credentials-local'
-import { credentialKey, credentialRef } from '@hydra/harness-credentials'
+import { Context } from '@hydra1902/cordis'
+import LocalCredentialProvider from '@hydra1902/harness-credentials-local'
+import { credentialKey, credentialRef } from '@hydra1902/harness-credentials'
 import { authContextFrom, credentialStoreFrom, recordKeyFor } from '../src/auth.ts'
 
 const CODEX = recordKeyFor('openai-codex')

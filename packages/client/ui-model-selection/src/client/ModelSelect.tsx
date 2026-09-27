@@ -16,12 +16,12 @@ import {
   type KeyboardEvent, type FocusEvent,
 } from 'react'
 import clsx from 'clsx'
-import type { ModelReasoningEffort, ModelSelection } from '@hydra/harness-api-remotes/client'
+import type { ModelReasoningEffort, ModelSelection } from '@hydra1902/harness-api-remotes/client'
 import {
   IconCheckOutline16, IconChevronDownOutline14, IconChevronRightOutline14,
   IconWarningOutline16, Toast,
-} from '@hydra/harness-client-ui-primitives'
-import type { PropsLocale } from '@hydra/harness-client-ui-slots'
+} from '@hydra1902/harness-client-ui-primitives'
+import type { PropsLocale } from '@hydra1902/harness-client-ui-slots'
 import type { ModelSelectInjected } from './slots.ts'
 import css from './ModelSelect.module.css'
 

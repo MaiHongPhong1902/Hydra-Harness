@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-acp",
+  "name": "@hydra1902/harness-acp",
   "description": "Automation-only Agent Client Protocol server for driving Hydra harness agents over JSON-RPC stdio",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -33,27 +33,27 @@
   "license": "MIT",
   "dependencies": {
     "@agentclientprotocol/sdk": "0.25.1",
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@hydra/harness-attachment": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-user-approval": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-attachment": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-user-approval": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-attachment": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-agent-loop": "workspace:^",
-    "@hydra/harness-agent-loop-testkit": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/harness-user-approval": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-attachment": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-agent-loop": "workspace:^",
+    "@hydra1902/harness-agent-loop-testkit": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/harness-user-approval": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

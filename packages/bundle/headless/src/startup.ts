@@ -2,12 +2,12 @@
  * The one-shot app's command-line provider: it parses the task positional and
  * `--help`, then publishes {@link HEADLESS_STARTUP_SERVICE}. The runner is an
  * ordinary consumer whose lazy config waits for that service.
- * @module @hydra/harness-headless/startup
+ * @module @hydra1902/harness-headless/startup
  */
 
 import { Command } from 'commander'
-import type { Context } from '@hydra/cordis'
-import { parseCmdline } from '@hydra/harness-cmdline'
+import type { Context } from '@hydra1902/cordis'
+import { parseCmdline } from '@hydra1902/harness-cmdline'
 
 /** Stable Cordis plugin name. */
 export const name = 'headless-startup'

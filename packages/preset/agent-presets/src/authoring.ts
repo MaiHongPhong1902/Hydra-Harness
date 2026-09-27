@@ -9,13 +9,13 @@
  * No caller supplies composition text: the inputs are ids the host resolves
  * against its own roots plus an optional display name, so authoring grants no
  * capability the copied preset did not already carry.
- * @module @hydra/harness-agent-presets/authoring
+ * @module @hydra1902/harness-agent-presets/authoring
  */
 
 import { chmod, cp, readdir, readFile, rm, stat } from 'node:fs/promises'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
-import { writeFileAtomic } from '@hydra/harness-atomic-write'
-import { expandHomePath } from '@hydra/harness-home-paths'
+import { writeFileAtomic } from '@hydra1902/harness-atomic-write'
+import { expandHomePath } from '@hydra1902/harness-home-paths'
 import { METADATA_FILE, renderPresetMetadata } from './metadata.ts'
 import { PRESET_ID, type AgentPreset, type PresetRoot } from './preset.ts'
 

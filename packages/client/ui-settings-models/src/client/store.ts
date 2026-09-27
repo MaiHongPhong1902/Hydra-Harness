@@ -8,10 +8,10 @@
 
 import type {
   ConfigurableProviderView, CredentialView, IApiClient, SettingsNamespaceView,
-} from '@hydra/harness-api-remotes/client'
-import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
-import type { SettingsDescribeFace } from '@hydra/harness-client-ui-settings/client'
+} from '@hydra1902/harness-api-remotes/client'
+import type { SnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { SettingsDescribeFace } from '@hydra1902/harness-client-ui-settings/client'
 import {
   OFFICIAL_DEEPSEEK_DECLINED_FIELD, OFFICIAL_DEEPSEEK_PROVIDER,
   OFFICIAL_DEEPSEEK_SETTINGS_NS, WELCOME_NOTICE_SETTINGS_NAMESPACE,

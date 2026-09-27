@@ -1,11 +1,11 @@
 /**
  * Client-safe skill registry event vocabulary shared with type-only consumers.
- * @module @hydra/harness-skill/types
+ * @module @hydra1902/harness-skill/types
  */
 
-import type {} from '@hydra/cordis'
+import type {} from '@hydra1902/cordis'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Events {
     /**
      * A skill provider, runtime contribution, or provider-backed catalog may

@@ -1,17 +1,17 @@
 /**
  * Single replay-aware token-meter service for request and surface pressure.
  *
- * @module @hydra/harness-token-meter
+ * @module @hydra1902/harness-token-meter
  */
 
-import { Context, Service } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { BlockAssembler, deepFreeze } from '@hydra/harness-llm'
-import type { Message, TokenUsage } from '@hydra/harness-llm'
-import type { EpochHeader, Session, SessionEvent } from '@hydra/harness-session'
-import { canonicalHeader, headerEquals, isSurfaceEvent } from '@hydra/harness-session'
+import { Context, Service } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { BlockAssembler, deepFreeze } from '@hydra1902/harness-llm'
+import type { Message, TokenUsage } from '@hydra1902/harness-llm'
+import type { EpochHeader, Session, SessionEvent } from '@hydra1902/harness-session'
+import { canonicalHeader, headerEquals, isSurfaceEvent } from '@hydra1902/harness-session'
 // Type-only: resolves the optional projection registry Context declaration.
-import type {} from '@hydra/harness-session-projection'
+import type {} from '@hydra1902/harness-session-projection'
 import type {
   TokenMeasurement,
   TokenMeasurementBaseline,
@@ -24,7 +24,7 @@ import {
 } from './usage-projection.ts'
 import { estimateContent, estimateHeader, estimateMessage, ROLE_OVERHEAD } from './estimate.ts'
 import { foldSurfaceTokens } from './surface-fold.ts'
-import type { ContentBlock } from '@hydra/harness-llm'
+import type { ContentBlock } from '@hydra1902/harness-llm'
 
 type FileText = (ref: Extract<ContentBlock, { type: 'file' }>['attachment']) => string
 
@@ -69,7 +69,7 @@ function validateConfigKeys(config: TokenMeterConfig): void {
   }
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     tokenMeter: TokenMeter
   }

@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-llm-mock-server",
+  "name": "@hydra1902/harness-llm-mock-server",
   "description": "Scriptable OpenAI-compatible HTTP/SSE fault server for LLM recovery tests",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -32,11 +32,11 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/schemastery",
+  "name": "@hydra1902/schemastery",
   "description": "Type driven schema validator",
   "version": "3.18.1",
   "publishConfig": {
@@ -34,6 +34,6 @@
   "license": "MIT",
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
-    "@hydra/cosmokit": "workspace:^"
+    "@hydra1902/cosmokit": "workspace:^"
   }
 }

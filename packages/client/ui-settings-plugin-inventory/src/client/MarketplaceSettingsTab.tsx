@@ -3,15 +3,15 @@ import type {
   AddPluginMarketplaceRequest,
   PluginMarketplaceSnapshot,
   SetPluginMarketplaceEnablementRequest,
-} from '@hydra/harness-api-remotes/client'
+} from '@hydra1902/harness-api-remotes/client'
 import {
   Button,
   IconPlusOutline16,
   Input,
   Modal,
   Switch,
-} from '@hydra/harness-client-ui-primitives'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+} from '@hydra1902/harness-client-ui-primitives'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
 import { marketplaceOwnerLabel, matchesQuery } from './marketplace-owner.ts'
 import type { ImportedPluginControls } from './PluginInventorySettingsTab.tsx'
 import css from './PluginInventorySettingsTab.module.css'

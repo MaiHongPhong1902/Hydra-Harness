@@ -1,7 +1,7 @@
 /** Browser implementation of the Cordis timer Service. */
 
-import { Service } from '@hydra/cordis'
-import type { Context } from '@hydra/cordis'
+import { Service } from '@hydra1902/cordis'
+import type { Context } from '@hydra1902/cordis'
 
 /*
  * The browser Service preserves the vendored Host TimerService's erased callback tuples and arbitrary
@@ -14,7 +14,7 @@ import type { Context } from '@hydra/cordis'
 /* oxlint-disable typescript/no-unsafe-return -- The erased generic return values pass through unchanged. */
 /* oxlint-disable typescript/prefer-promise-reject-errors -- Async iterators preserve arbitrary throw reasons. */
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context extends Pick<ClientTimerService, 'interval' | 'timeout' | 'throttle' | 'debounce' | 'setTimeout' | 'setInterval'> {
     /** Browser timer Service used by the mixed-in Context helpers. */
     timer: ClientTimerService

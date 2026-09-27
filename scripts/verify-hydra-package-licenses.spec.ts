@@ -20,7 +20,7 @@ function createWorkspace(): string {
   const root = mkdtempSync(join(tmpdir(), 'hydra-package-licenses-'))
   roots.push(root)
   writeManifest(root, 'package.json', {
-    name: '@hydra/harness-root',
+    name: '@hydra1902/harness-root',
     license: 'MIT',
     workspaces: ['apps/*', 'packages/*/*', 'vendor/*'],
   })
@@ -30,30 +30,30 @@ function createWorkspace(): string {
 describe('Hydra package license gate', () => {
   it('checks root, unhyphenated CLI, and hydra-prefixed package names while ignoring other families', () => {
     const root = createWorkspace()
-    writeManifest(root, 'apps/cli/package.json', { name: '@hydra/harness', license: 'MIT' })
+    writeManifest(root, 'apps/cli/package.json', { name: '@hydra1902/harness', license: 'MIT' })
     writeManifest(root, 'packages/core/agent/package.json', {
-      name: '@hydra/harness-agent',
+      name: '@hydra1902/harness-agent',
       license: 'BSD-3-Clause',
     })
     writeManifest(root, 'vendor/cordis/package.json', {
-      name: '@hydra/cordis',
+      name: '@hydra1902/cordis',
       license: 'BSD-3-Clause',
     })
 
     expect(inspectHydraPackageLicenses(root)).toEqual({
       packageCount: 3,
       failures: [
-        'packages/core/agent/package.json: @hydra/harness-agent must declare "license": "MIT"; found "BSD-3-Clause".',
+        'packages/core/agent/package.json: @hydra1902/harness-agent must declare "license": "MIT"; found "BSD-3-Clause".',
       ],
     })
   })
 
   it('rejects a missing license declaration', () => {
     const root = createWorkspace()
-    writeManifest(root, 'packages/core/agent/package.json', { name: '@hydra/harness-agent' })
+    writeManifest(root, 'packages/core/agent/package.json', { name: '@hydra1902/harness-agent' })
 
     expect(inspectHydraPackageLicenses(root).failures).toEqual([
-      'packages/core/agent/package.json: @hydra/harness-agent must declare "license": "MIT"; found undefined.',
+      'packages/core/agent/package.json: @hydra1902/harness-agent must declare "license": "MIT"; found undefined.',
     ])
   })
 })

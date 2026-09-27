@@ -1,17 +1,17 @@
 /**
  * Durable, lifecycle-bound feedback for finalized assistant messages.
- * @module @hydra/harness-message-feedback
+ * @module @hydra1902/harness-message-feedback
  */
 
 import { Buffer } from 'node:buffer'
 import { randomUUID } from 'node:crypto'
-import { Context, Service } from '@hydra/cordis'
-import s from '@hydra/schemastery'
-import { deriveEventMessage, isAppendSurfaceEvent } from '@hydra/harness-session/surface'
-import type { SessionHeader, SessionId } from '@hydra/harness-session/types'
-import type { SessionInspection } from '@hydra/harness-session-persistence'
-import type { KvTable } from '@hydra/harness-storage-domain'
-import { TypertRemoteService, Remote } from '@hydra/harness-typert-protocol'
+import { Context, Service } from '@hydra1902/cordis'
+import s from '@hydra1902/schemastery'
+import { deriveEventMessage, isAppendSurfaceEvent } from '@hydra1902/harness-session/surface'
+import type { SessionHeader, SessionId } from '@hydra1902/harness-session/types'
+import type { SessionInspection } from '@hydra1902/harness-session-persistence'
+import type { KvTable } from '@hydra1902/harness-storage-domain'
+import { TypertRemoteService, Remote } from '@hydra1902/harness-typert-protocol'
 import { messageFeedbackDomainSpec } from './spec.ts'
 import type { MessageFeedbackRow, MessageFeedbackSessionIdentity } from './spec.ts'
 import type {
@@ -51,7 +51,7 @@ export interface Config {
   readonly maxNoteBytes: number
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     messageFeedback: MessageFeedbackService
   }

@@ -1,14 +1,14 @@
 /** ui-theme apply wiring: service provision, settings dictionaries riding the
  * locale service, declaration-aware Appearance row registration, snapshot
  * projection into the row store, and HMR collapse recovery. */
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { SlotRegistry } from '@hydra/harness-client-runtime/client'
-import { LocaleRuntime } from '@hydra/harness-client-locale/client'
-import { TestRemote } from '@hydra/harness-client-test-runtime'
-import { apply as settingsApply, inject as settingsInject } from '@hydra/harness-client-ui-settings/client'
-import { apply, inject, SETTINGS_NS } from '@hydra/harness-client-ui-theme/client'
-import type { AppearanceRowInjected, ThemeRuntime } from '@hydra/harness-client-ui-theme/client'
+import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
+import { TestRemote } from '@hydra1902/harness-client-test-runtime'
+import { apply as settingsApply, inject as settingsInject } from '@hydra1902/harness-client-ui-settings/client'
+import { apply, inject, SETTINGS_NS } from '@hydra1902/harness-client-ui-theme/client'
+import type { AppearanceRowInjected, ThemeRuntime } from '@hydra1902/harness-client-ui-theme/client'
 import { THEME_SETTINGS_NAMESPACE, ThemeSettingsSchema } from '../src/theme-settings.ts'
 import { AppearanceRow } from '../src/client/AppearanceRow.tsx'
 import type { createAppearanceRowStore } from '../src/client/settings-store.ts'

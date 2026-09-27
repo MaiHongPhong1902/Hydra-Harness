@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import { CallId } from '@hydra/harness-llm'
-import { carrierKeyOf, createScope } from '@hydra/harness-scope'
-import type { Scope } from '@hydra/harness-scope'
-import SessionStore, { Session, SessionId } from '@hydra/harness-session'
-import type { SessionEvent } from '@hydra/harness-session'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ApprovalService, { ApprovalOutcome, ApprovalRequest, effectiveApprovalPolicy, setApprovalPolicy } from '@hydra/harness-user-approval'
+import { Context } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import { CallId } from '@hydra1902/harness-llm'
+import { carrierKeyOf, createScope } from '@hydra1902/harness-scope'
+import type { Scope } from '@hydra1902/harness-scope'
+import SessionStore, { Session, SessionId } from '@hydra1902/harness-session'
+import type { SessionEvent } from '@hydra1902/harness-session'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ApprovalService, { ApprovalOutcome, ApprovalRequest, effectiveApprovalPolicy, setApprovalPolicy } from '@hydra1902/harness-user-approval'
 
 /**
  * A minimal Agent stand-in — the service only reaches `agent.session.append`

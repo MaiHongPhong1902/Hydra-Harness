@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ReviewHistory } from '../src/client/history.ts'
 import { change, ok } from './fixture.ts'
-import type { IApiClient } from '@hydra/harness-api-remotes/client'
-import type { WorkspaceReview } from '@hydra/harness-fs-review/client'
+import type { IApiClient } from '@hydra1902/harness-api-remotes/client'
+import type { WorkspaceReview } from '@hydra1902/harness-fs-review/client'
 
 function bench() {
   const api = {

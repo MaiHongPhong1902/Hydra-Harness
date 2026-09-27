@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-subagent-codex",
+  "name": "@hydra1902/harness-subagent-codex",
   "description": "One-shot Codex subagent provider over the official app-server protocol",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -38,30 +38,30 @@
     }
   },
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-subagent": "workspace:^",
-    "@hydra/harness-subprocess": "workspace:^",
-    "@hydra/harness-timeout": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-subagent": "workspace:^",
+    "@hydra1902/harness-subprocess": "workspace:^",
+    "@hydra1902/harness-timeout": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/harness-sdk-protocol": "workspace:^",
-    "@hydra/schemastery": "workspace:^",
+    "@hydra1902/harness-sdk-protocol": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^",
     "@openai/codex": "0.147.0"
   },
   "devDependencies": {
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-loader-smoke": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-subagent": "workspace:^",
-    "@hydra/harness-subprocess": "workspace:^",
-    "@hydra/harness-subprocess-local": "workspace:^",
-    "@hydra/harness-timeout": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-loader-smoke": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-subagent": "workspace:^",
+    "@hydra1902/harness-subprocess": "workspace:^",
+    "@hydra1902/harness-subprocess-local": "workspace:^",
+    "@hydra1902/harness-timeout": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

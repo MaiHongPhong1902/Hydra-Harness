@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-client-ui-brand-official",
+  "name": "@hydra1902/harness-client-ui-brand-official",
   "description": "Official Hydra harness brand occupants for the Web client's sidebar and conversation Hero slots",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -35,9 +35,9 @@
     },
     "client": {
       "inject": [
-        "@hydra/harness-client-runtime",
-        "@hydra/harness-client-ui-conversation",
-        "@hydra/harness-client-ui-sidebar"
+        "@hydra1902/harness-client-runtime",
+        "@hydra1902/harness-client-ui-conversation",
+        "@hydra1902/harness-client-ui-sidebar"
       ],
       "platform": "web"
     }
@@ -48,19 +48,19 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-ui-conversation": "workspace:^",
-    "@hydra/harness-client-ui-sidebar": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-conversation": "workspace:^",
+    "@hydra1902/harness-client-ui-sidebar": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-ui-conversation": "workspace:^",
-    "@hydra/harness-client-ui-primitives": "workspace:^",
-    "@hydra/harness-client-ui-sidebar": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-conversation": "workspace:^",
+    "@hydra1902/harness-client-ui-primitives": "workspace:^",
+    "@hydra1902/harness-client-ui-sidebar": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
     "@testing-library/react": "^16.1.0",
     "@types/react": "~18.3.1",
     "react": "^18.2.0",

@@ -2,15 +2,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { join, sep } from 'node:path'
 import { tmpdir } from 'node:os'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import { renderPrompt, TOOL_ORDER_REST } from '@hydra/harness-system-prompt'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import { renderPrompt, TOOL_ORDER_REST } from '@hydra1902/harness-system-prompt'
 import * as agentCore from '../src/index.ts'
-import type { Agent } from '@hydra/harness-agent'
-import { SessionId } from '@hydra/harness-session'
-import LocalBashExecutor from '@hydra/harness-bash-local'
-import LocalFileSystem from '@hydra/harness-fs-local'
-import * as ToolFs from '@hydra/harness-tool-fs'
+import type { Agent } from '@hydra1902/harness-agent'
+import { SessionId } from '@hydra1902/harness-session'
+import LocalBashExecutor from '@hydra1902/harness-bash-local'
+import LocalFileSystem from '@hydra1902/harness-fs-local'
+import * as ToolFs from '@hydra1902/harness-tool-fs'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import {
   createUserMessage,
@@ -22,23 +22,23 @@ import {
   type Message,
   type ResolvedRetryPolicy,
   type StreamChunk,
-} from '@hydra/harness-llm'
-import type { ToolExecution } from '@hydra/harness-tools'
-import * as sessionInvariant from '@hydra/harness-session/invariant'
-import * as agentInvariant from '@hydra/harness-agent/invariant'
-import * as scopeInvariant from '@hydra/harness-scope/invariant'
-import * as agentLoopInvariant from '@hydra/harness-agent-loop/invariant'
+} from '@hydra1902/harness-llm'
+import type { ToolExecution } from '@hydra1902/harness-tools'
+import * as sessionInvariant from '@hydra1902/harness-session/invariant'
+import * as agentInvariant from '@hydra1902/harness-agent/invariant'
+import * as scopeInvariant from '@hydra1902/harness-scope/invariant'
+import * as agentLoopInvariant from '@hydra1902/harness-agent-loop/invariant'
 
 const testToolSignal = new AbortController().signal
 
-declare module '@hydra/harness-jobs' {
+declare module '@hydra1902/harness-jobs' {
   interface JobKindMap {
     probe: 'probe'
   }
 }
 
 /**
- * Unit coverage for the @hydra/harness-agent-spine-demo bundle: mounting it brings
+ * Unit coverage for the @hydra1902/harness-agent-spine-demo bundle: mounting it brings
  * up the whole default spine in one `ctx.plugin`, and the forwarded
  * `agents` config reaches the loop (default `[]`, or a pre-created agent).
  *
@@ -212,8 +212,8 @@ describe('hydra-agent-spine-demo bundle', () => {
 
     for (const invariants of [
       { enabled: false },
-      { package_allowlist: ['^@hydra/harness-agent$'] },
-      { package_blocklist: ['^@hydra/harness-session$'] },
+      { package_allowlist: ['^@hydra1902/harness-agent$'] },
+      { package_blocklist: ['^@hydra1902/harness-session$'] },
     ]) {
       const filtered = await mount({ workspaceContext: false, invariants })
       expect(() => { nestedTurn(filtered) }).not.toThrow()

@@ -8,22 +8,22 @@
 // and a file sub-row click opens the host path. Running parents
 // (runningCalls) nest their so-far dispatches the same way.
 
-import { Context } from '@hydra/cordis'
-import { stubSettingsScope } from '@hydra/harness-client-test-runtime'
+import { Context } from '@hydra1902/cordis'
+import { stubSettingsScope } from '@hydra1902/harness-client-test-runtime'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
 import {
   ConversationEventRegistry, ConversationViewRegistry, createSnapshotStore,
   EMPTY_CONVERSATION_VIEWS, SlotRegistry,
-} from '@hydra/harness-client-runtime/client'
+} from '@hydra1902/harness-client-runtime/client'
 import type {
   ConversationSnapshot, RunningToolCall, SessionId, SessionListState,
   ToolCallBlock, ToolResultNode, WorkspaceListState,
-} from '@hydra/harness-client-runtime/client'
-import { createSlotRenderer } from '@hydra/harness-client-test-runtime'
-import { LocaleRuntime } from '@hydra/harness-client-locale/client'
-import type { PropsRenderSlots } from '@hydra/harness-client-ui-slots'
-import { apply as applyConversation, inject as injectConversation } from '@hydra/harness-client-ui-conversation/client'
+} from '@hydra1902/harness-client-runtime/client'
+import { createSlotRenderer } from '@hydra1902/harness-client-test-runtime'
+import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
+import type { PropsRenderSlots } from '@hydra1902/harness-client-ui-slots'
+import { apply as applyConversation, inject as injectConversation } from '@hydra1902/harness-client-ui-conversation/client'
 import { apply as applyTool, inject as injectTool } from '../src/client/apply.ts'
 import { toolChatSnapshot } from './tool-details-render.client.tsx'
 

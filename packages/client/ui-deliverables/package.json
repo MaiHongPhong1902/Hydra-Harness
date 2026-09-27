@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-client-ui-deliverables",
+  "name": "@hydra1902/harness-client-ui-deliverables",
   "description": "Produced-files turn tail and clickable final-response file references for Web",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -35,10 +35,10 @@
     },
     "client": {
       "inject": [
-        "@hydra/harness-client-connection",
-        "@hydra/harness-client-locale",
-        "@hydra/harness-client-runtime",
-        "@hydra/harness-client-ui-conversation"
+        "@hydra1902/harness-client-connection",
+        "@hydra1902/harness-client-locale",
+        "@hydra1902/harness-client-runtime",
+        "@hydra1902/harness-client-ui-conversation"
       ],
       "platform": "web"
     }
@@ -49,27 +49,27 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-client-connection": "workspace:^",
-    "@hydra/harness-client-locale": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-ui-conversation": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-system-prompt": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-client-connection": "workspace:^",
+    "@hydra1902/harness-client-locale": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-conversation": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-system-prompt": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-client-connection": "workspace:^",
-    "@hydra/harness-client-locale": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-test-runtime": "workspace:^",
-    "@hydra/harness-client-ui-conversation": "workspace:^",
-    "@hydra/harness-client-ui-slots": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra1902/harness-client-connection": "workspace:^",
+    "@hydra1902/harness-client-locale": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-test-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-conversation": "workspace:^",
+    "@hydra1902/harness-client-ui-slots": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-system-prompt": "workspace:^",
     "@types/react": "~18.3.1",
-    "@hydra/cordis": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
     "react": "^18.2.0",
-    "@hydra/harness-client-ui-primitives": "workspace:^"
+    "@hydra1902/harness-client-ui-primitives": "workspace:^"
   },
   "files": [
     "lib/index.js",

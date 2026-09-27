@@ -1,9 +1,9 @@
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { describe, expect, it } from 'vitest'
-import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra/harness-settings'
+import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra1902/harness-settings'
 import {
   LOCALE_SETTINGS_NAMESPACE, apply,
-} from '@hydra/harness-client-locale'
+} from '@hydra1902/harness-client-locale'
 
 class MemorySettings extends SettingsProvider {
   readonly writable = true

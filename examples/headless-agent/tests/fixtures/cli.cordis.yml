@@ -2,18 +2,18 @@
   name: './cli-mock-llm.ts'
 
 - id: llm-call-log
-  name: '@hydra/harness-llm-call-log'
+  name: '@hydra1902/harness-llm-call-log'
 
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ../../cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra/harness-llm-deepseek'
+        name: '@hydra1902/harness-llm-deepseek'
         disabled: true
       - id: agent-spine
-        name: '@hydra/harness-agent-spine-demo'
+        name: '@hydra1902/harness-agent-spine-demo'
         config:
           agents:
             - id: main
@@ -27,6 +27,6 @@
               agentsHome: './.agents-home'
           persona: 'Keyless headless-agent smoke.'
       - id: persistence
-        name: '@hydra/harness-session-persistence-jsonl'
+        name: '@hydra1902/harness-session-persistence-jsonl'
         config:
           root: './.sessions'

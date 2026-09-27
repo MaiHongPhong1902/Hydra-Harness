@@ -4,16 +4,16 @@
  * instance owns one `(provider id, canonical workspace)` process. Queries serialize through a single
  * queue so a cancellation that fails to stop the server can terminate it without killing unrelated
  * work; distinct instances run in parallel.
- * @module @hydra/harness-lsp-stdio/instance
+ * @module @hydra1902/harness-lsp-stdio/instance
  */
 
-import { LspError } from '@hydra/harness-lsp'
+import { LspError } from '@hydra1902/harness-lsp'
 import type {
   LspOperation,
   LspProviderQuery,
   LspQueryResult,
-} from '@hydra/harness-lsp'
-import { deadline } from '@hydra/harness-timeout'
+} from '@hydra1902/harness-lsp'
+import { deadline } from '@hydra1902/harness-timeout'
 import { abortable, abortError } from './abort.ts'
 import { LspConnection } from './connection.ts'
 import type { ConnectionSpawner, ConnectionSpec, ConnectionWriter } from './connection.ts'

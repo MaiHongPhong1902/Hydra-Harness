@@ -2,11 +2,11 @@
  * Types for the TypeScript SDK client: launch options, notification shapes,
  * and owned activity results.
  *
- * @module @hydra/harness-sdk-client/types
+ * @module @hydra1902/harness-sdk-client/types
  */
 
-import type { ContentBlock } from '@hydra/harness-llm'
-import type { SessionEvent } from '@hydra/harness-session'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { SessionEvent } from '@hydra1902/harness-session'
 
 /** One server-to-client notification as received off the wire. */
 export interface HarnessNotification {
@@ -30,7 +30,7 @@ export interface HarnessClientOptions {
   /**
    * The complete child environment. `undefined` inherits the parent env
    * verbatim; passing an object replaces it entirely, so callers own
-   * credential policy (see `scrubbedParentEnv` in `@hydra/harness-subprocess`
+   * credential policy (see `scrubbedParentEnv` in `@hydra1902/harness-subprocess`
    * for the shared scrub-then-merge base).
    */
   env?: NodeJS.ProcessEnv

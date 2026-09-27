@@ -8,17 +8,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import SessionStore from '@hydra/harness-session'
-import AgentRegistry from '@hydra/harness-agent'
-import type { Agent, AgentHandle, CreateAgentOptions } from '@hydra/harness-agent'
-import { createUserMessage } from '@hydra/harness-llm'
-import SessionTitleService from '@hydra/harness-session-title'
-import UserQuestionService from '@hydra/harness-user-questions'
-import type { Session, SessionId } from '@hydra/harness-session'
-import type { RpcRequest } from '@hydra/harness-host-apiproxy/api/rpc'
-import { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
-import { createApiProxy } from '@hydra/harness-host-apiproxy'
+import { Context } from '@hydra1902/cordis'
+import SessionStore from '@hydra1902/harness-session'
+import AgentRegistry from '@hydra1902/harness-agent'
+import type { Agent, AgentHandle, CreateAgentOptions } from '@hydra1902/harness-agent'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import SessionTitleService from '@hydra1902/harness-session-title'
+import UserQuestionService from '@hydra1902/harness-user-questions'
+import type { Session, SessionId } from '@hydra1902/harness-session'
+import type { RpcRequest } from '@hydra1902/harness-host-apiproxy/api/rpc'
+import { RpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydra1902/harness-host-apiproxy'
 
 const sid = (id: string): SessionId => id as SessionId
 

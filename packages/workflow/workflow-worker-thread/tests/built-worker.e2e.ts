@@ -21,9 +21,9 @@ describe.skipIf(!existsSync(builtIndex) || !existsSync(builtWorker))('built work
     const driver = join(packageRoot, `.built-worker-driver-${process.pid}.mjs`)
     try {
       await writeFile(driver, `
-import { Context } from '@hydra/cordis'
-import SubagentRuntime from '@hydra/harness-subagent'
-import WorkerThreadWorkflowEngine from '@hydra/harness-workflow-worker-thread'
+import { Context } from '@hydra1902/cordis'
+import SubagentRuntime from '@hydra1902/harness-subagent'
+import WorkerThreadWorkflowEngine from '@hydra1902/harness-workflow-worker-thread'
 
 const ctx = new Context()
 await ctx.plugin(SubagentRuntime)

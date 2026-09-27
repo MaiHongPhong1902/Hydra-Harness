@@ -6,7 +6,7 @@
  * registers nothing on a Cordis context; the runtime process it spawns is a
  * complete harness configured by its own `cordis.yml`.
  *
- * @module @hydra/harness-sdk-client
+ * @module @hydra1902/harness-sdk-client
  */
 
 export { HydraHarness, HarnessSession } from './api.ts'
@@ -18,7 +18,7 @@ export {
   TransportClosedError,
 } from './client.ts'
 export type { NotificationSubscription } from './client.ts'
-export { JsonRpcResponseError } from '@hydra/harness-sdk-protocol'
+export { JsonRpcResponseError } from '@hydra1902/harness-sdk-protocol'
 export type {
   ContentBlock,
   HydraHarnessOptions,

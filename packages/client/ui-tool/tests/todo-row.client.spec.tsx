@@ -2,13 +2,13 @@
 /** todo_write atomic Tool presentation and its plan-summary model. */
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { TodoItem, ToolResultNode } from '@hydra/harness-client-runtime/client'
-import { makeTranslate } from '@hydra/harness-client-test-runtime'
-import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
+import type { TodoItem, ToolResultNode } from '@hydra1902/harness-client-runtime/client'
+import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
+import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
 import { TodoRow, todoToolview } from '../src/client/tool/toolviews/todo-row.tsx'
 import { planSummary } from '../src/client/tool/toolviews/plan-summary.ts'
 import { CONVERSATION_NS as NS } from '../src/client/locale.ts'
-import { en } from '@hydra/harness-client-ui-conversation/src/client/locales.ts'
+import { en } from '@hydra1902/harness-client-ui-conversation/src/client/locales.ts'
 
 type TodoRowProps = Parameters<typeof TodoRow>[0]
 

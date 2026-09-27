@@ -17,7 +17,7 @@
 //   diff -r <recorded fixtures> <this branch's fixtures>   # byte-identical
 import { cleanup, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { MarkdownText } from '@hydra/harness-client-ui-primitives'
+import { MarkdownText } from '@hydra1902/harness-client-ui-primitives'
 
 afterEach(cleanup)
 

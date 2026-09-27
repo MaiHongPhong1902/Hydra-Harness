@@ -3,31 +3,31 @@
 # turn over stream-json; the replay adapter supplies the deterministic response.
 
 - id: persistence
-  name: '@hydra/harness-session-persistence-jsonl'
+  name: '@hydra1902/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: none
 
 - id: checkpoint
-  name: '@hydra/harness-session-checkpoint-policy'
+  name: '@hydra1902/harness-session-checkpoint-policy'
 
 - id: replay
-  name: '@hydra/harness-llm-replay'
+  name: '@hydra1902/harness-llm-replay'
   config:
     file: !!js process.env.HYDRA_SNAPSHOT_FILE
     overrideFile: !!js process.env.HYDRA_SNAPSHOT_OVERRIDE
 
 # Managed child-process groups for the bash executor (spawn/kill/output plumbing).
 - id: subprocess
-  name: '@hydra/harness-subprocess-local'
+  name: '@hydra1902/harness-subprocess-local'
 
 - id: bash
-  name: '@hydra/harness-bash-local'
+  name: '@hydra1902/harness-bash-local'
   config:
     timeoutMs: 60000
 
 - id: agent
-  name: '@hydra/harness-agent-spine-demo'
+  name: '@hydra1902/harness-agent-spine-demo'
   config:
     agents: []
     workspaceContext: false

@@ -6,14 +6,14 @@
  * continuation host in `./continuation.ts` — so this module stays the published
  * surface rather than a bag of everything type-shaped.
  *
- * @module @hydra/harness-subagent/types
+ * @module @hydra1902/harness-subagent/types
  */
 
-import type { Agent, AgentOptions } from '@hydra/harness-agent'
-import type { Branded } from '@hydra/harness-brand'
-import type { ContentBlock } from '@hydra/harness-llm'
-import type { SessionEvent, SessionId } from '@hydra/harness-session'
-import type { ObjectJsonSchema, ToolRestriction } from '@hydra/harness-tools'
+import type { Agent, AgentOptions } from '@hydra1902/harness-agent'
+import type { Branded } from '@hydra1902/harness-brand'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { SessionEvent, SessionId } from '@hydra1902/harness-session'
+import type { ObjectJsonSchema, ToolRestriction } from '@hydra1902/harness-tools'
 import type { SubagentDescriptorData } from './descriptor.ts'
 
 /** Identifies one accepted subagent run across its lifecycle event pair. */

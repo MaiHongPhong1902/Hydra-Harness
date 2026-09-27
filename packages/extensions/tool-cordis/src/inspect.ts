@@ -4,14 +4,14 @@
  * `api-catalog.ts`. This module owns the join of the two plus presentation: which
  * lines a section prints, how compact the default report stays, and what an exact
  * `name` adds.
- * @module @hydra/harness-tool-cordis/inspect
+ * @module @hydra1902/harness-tool-cordis/inspect
  */
 
-import type { Context, Fiber } from '@hydra/cordis'
-import type { ScopeKey } from '@hydra/harness-scope'
-import type { Agent } from '@hydra/harness-agent'
+import type { Context, Fiber } from '@hydra1902/cordis'
+import type { ScopeKey } from '@hydra1902/harness-scope'
+import type { Agent } from '@hydra1902/harness-agent'
 // Type-only: resolves `ctx.dynamicCordisRunner` (the registry this report reads).
-import type {} from '@hydra/harness-cordis-host-runner'
+import type {} from '@hydra1902/harness-cordis-host-runner'
 import { EVENT_API, INHERITED_CTX_API, SERVICE_API, TYPE_API } from './api-catalog.ts'
 import type { EventApiEntry, InheritedApiEntry, ServiceApiEntry, ServiceApiMethod, TypeApiEntry } from './api-catalog.ts'
 import { FiberState, STATE_LABELS } from './fiber-state.ts'

@@ -3,12 +3,12 @@
  * fetch. Duplicate ids are rejected. At execution time, a configured provider must exist and
  * be usable; without one, exactly one usable provider is required, so selection never depends
  * on registration order.
- * @module @hydra/harness-web
+ * @module @hydra1902/harness-web
  */
 
-import { Context, Service } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
+import { Context, Service } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
 import { SearchSettings, type WebSearchSettings } from './settings.ts'
 import { normalizedSearchUrl, SearchProviderError, type WebSearchProviderDescriptor } from './search.ts'
 import type {
@@ -38,7 +38,7 @@ export type {
   WebSearchSource,
 } from './types.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     web: WebRuntime
   }

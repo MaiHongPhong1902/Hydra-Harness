@@ -1,10 +1,10 @@
 /** Settings for the two native account-backed provider routes. */
 
-import z from '@hydra/schemastery'
-import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import z from '@hydra1902/schemastery'
+import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
 import type { CacheRetention, ModelThinkingLevel, ThinkingBudgets, Transport } from '@earendil-works/pi-ai'
-import type { RetryPolicyConfig } from '@hydra/harness-llm'
-import { RetryPolicySchema } from '@hydra/harness-llm'
+import type { RetryPolicyConfig } from '@hydra1902/harness-llm'
+import { RetryPolicySchema } from '@hydra1902/harness-llm'
 
 /** One optional model override for an account-backed route. */
 export interface AccountModelProfile {

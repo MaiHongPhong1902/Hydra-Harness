@@ -40,7 +40,7 @@ const appOverlayFiles = new Set([
 const metadataFields = ['id', 'name', 'group', 'inject', 'intercept', 'isolate', 'pluginType', 'pluginGroup'] as const
 
 /** The adaptive directory-picker chooser package (mounts a backend row at boot). */
-const CHOOSER_PACKAGE = '@hydra/harness-host-directory-picker-auto'
+const CHOOSER_PACKAGE = '@hydra1902/harness-host-directory-picker-auto'
 
 /**
  * The packages the chooser mounts by runtime string (mirror of its exported
@@ -50,10 +50,10 @@ const CHOOSER_PACKAGE = '@hydra/harness-host-directory-picker-auto'
  * until a macOS boot.
  */
 const CHOOSER_BACKEND_PACKAGES = [
-  '@hydra/harness-host-directory-picker-native',
-  '@hydra/harness-host-directory-picker-browse',
-  '@hydra/harness-client-ui-directory-picker-browse',
-  '@hydra/harness-client-ui-directory-picker-native',
+  '@hydra1902/harness-host-directory-picker-native',
+  '@hydra1902/harness-host-directory-picker-browse',
+  '@hydra1902/harness-client-ui-directory-picker-browse',
+  '@hydra1902/harness-client-ui-directory-picker-native',
 ]
 const errors: string[] = []
 const pluginReferences: PluginReference[] = []
@@ -203,7 +203,7 @@ function validateEntry(value: unknown, file: string, path: string): void {
       validateEntry(value.insert[index], file, `${path}.insert[${index}]`)
     }
   }
-  if (value.name !== '@hydra/cordis-plugin-include') return
+  if (value.name !== '@hydra1902/cordis-plugin-include') return
   const config = value.config
   if (!isRecord(config) || !isUnknownArray(config.patches)) return
   for (let index = 0; index < config.patches.length; index++) {
@@ -446,7 +446,7 @@ function validateMetadata(entry: Record<string, unknown>, file: string, path: st
  * the Loader and the plugin inventory read. `disabled` is the single
  * interpolated metadata field: its own `!!js` expression node is allowed and
  * must parse, while expressions nested below it stay truthy data; every other
- * metadata field must stay fully static. A `@hydra/harness-client-*` row must
+ * metadata field must stay fully static. A `@hydra1902/harness-client-*` row must
  * be core: an unclassified browser-roster row persists its enablement in
  * `plugins.enabled` and applies live instead of requiring a restart.
  * @param entry - one loader entry (or patch row).
@@ -458,8 +458,8 @@ export function metadataExpressionErrors(entry: Record<string, unknown>, path: s
   if (entry.pluginType !== undefined && entry.pluginType !== 'core' && entry.pluginType !== 'normal') {
     problems.push(`${path}.pluginType: must be core or normal`)
   }
-  if (typeof entry.name === 'string' && entry.name.startsWith('@hydra/harness-client-') && entry.pluginType !== 'core') {
-    problems.push(`${path}.pluginType: a @hydra/harness-client-* row must be core`)
+  if (typeof entry.name === 'string' && entry.name.startsWith('@hydra1902/harness-client-') && entry.pluginType !== 'core') {
+    problems.push(`${path}.pluginType: a @hydra1902/harness-client-* row must be core`)
   }
   if (entry.pluginGroup !== undefined && (typeof entry.pluginGroup !== 'string' || entry.pluginGroup.trim() === '')) {
     problems.push(`${path}.pluginGroup: must be a non-empty string`)

@@ -1,9 +1,9 @@
 /**
  * Strict Schedule decoding, replay, time validation, and framing.
- * @module @hydra/harness-schedule
+ * @module @hydra1902/harness-schedule
  */
 
-import type { SessionEvent } from '@hydra/harness-session'
+import type { SessionEvent } from '@hydra1902/harness-session'
 import type {
   AfterScheduleRecord,
   AtInput,

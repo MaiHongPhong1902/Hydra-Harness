@@ -1,6 +1,6 @@
 /** Session-owned file review RPC methods. @module */
-import type { SessionId } from '@hydra/harness-session/types'
-import type { ChangeId, ReviewChange, ReviewMode, ReviewOutcome, WorkspaceReview } from '@hydra/harness-fs-review/client'
+import type { SessionId } from '@hydra1902/harness-session/types'
+import type { ChangeId, ReviewChange, ReviewMode, ReviewOutcome, WorkspaceReview } from '@hydra1902/harness-fs-review/client'
 import type { RpcRequest, RpcResponse } from './rpc.ts'
 
 /** Review reads and actions; each mutation names the exact owning session and change. */

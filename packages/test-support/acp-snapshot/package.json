@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-acp-snapshot",
+  "name": "@hydra1902/harness-acp-snapshot",
   "description": "ACP test kit: shared subprocess launcher, snapshot scenario harness, expected-output normalizers, and suite factory",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -33,17 +33,17 @@
   "license": "MIT",
   "dependencies": {
     "@agentclientprotocol/sdk": "0.25.1",
-    "@hydra/harness-loader-smoke": "workspace:*",
+    "@hydra1902/harness-loader-smoke": "workspace:*",
     "vitest": "^4.1.8"
   },
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

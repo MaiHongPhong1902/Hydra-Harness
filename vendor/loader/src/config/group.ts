@@ -1,4 +1,4 @@
-import { Context, Service } from '@hydra/cordis'
+import { Context, Service } from '@hydra1902/cordis'
 import { Entry, type EntryOptions } from './entry.ts'
 import { EntryTree } from './tree.ts'
 

@@ -1,17 +1,17 @@
 /**
  * Plugin-owned human-command registry shared by interactive UI adapters.
- * @module @hydra/harness-commands
+ * @module @hydra1902/harness-commands
  */
 
-import { Context } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import { AttachmentError, admitEncodedImages } from '@hydra/harness-attachment'
-import type { EncodedImageAttachment } from '@hydra/harness-attachment/types'
-import type { ImageBlock } from '@hydra/harness-llm'
-import { NamedEntries, ScopedLayers } from '@hydra/harness-scope'
-import type { ScopeKey, ScopeLayer } from '@hydra/harness-scope'
-import type { Session, SessionEvent, SessionEventMap } from '@hydra/harness-session'
-import { TypertRemoteService, Remote } from '@hydra/harness-typert-protocol'
+import { Context } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import { AttachmentError, admitEncodedImages } from '@hydra1902/harness-attachment'
+import type { EncodedImageAttachment } from '@hydra1902/harness-attachment/types'
+import type { ImageBlock } from '@hydra1902/harness-llm'
+import { NamedEntries, ScopedLayers } from '@hydra1902/harness-scope'
+import type { ScopeKey, ScopeLayer } from '@hydra1902/harness-scope'
+import type { Session, SessionEvent, SessionEventMap } from '@hydra1902/harness-session'
+import { TypertRemoteService, Remote } from '@hydra1902/harness-typert-protocol'
 import { CommandId } from './brand.ts'
 import type {
   CommandDescriptor,
@@ -101,7 +101,7 @@ class CommandLayer implements ScopeLayer {
   }
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     commands: CommandRuntime
   }

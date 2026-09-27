@@ -1,6 +1,6 @@
 /** Model and UI rendering for persistent terminal tool results. */
 
-import { TextRetainer } from '@hydra/harness-output-retention'
+import { TextRetainer } from '@hydra1902/harness-output-retention'
 
 interface RenderedSessionStatusRunning {
   kind: 'running'

@@ -22,7 +22,7 @@ function fixture(options: {
   const packageDir = join(root, 'packages/core/probe')
   mkdirSync(join(packageDir, 'lib'), { recursive: true })
   writeFileSync(join(packageDir, 'package.json'), `${JSON.stringify({
-    name: '@hydra/harness-probe',
+    name: '@hydra1902/harness-probe',
     type: 'module',
     files: ['lib/invariant.js'],
     exports: {
@@ -73,7 +73,7 @@ describe('built package invariant verifier', () => {
     const brokenExport = fixture({ invariantExport: './lib/missing.js' })
     const exportResult = verify(brokenExport.root, brokenExport.loaderUrl)
     expect(exportResult.status).toBe(1)
-    expect(exportResult.stderr).toContain('@hydra/harness-probe')
+    expect(exportResult.stderr).toContain('@hydra1902/harness-probe')
   })
 
   it('rejects an invariant bundle that needs an unstaged runtime chunk', () => {

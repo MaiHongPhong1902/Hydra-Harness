@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { Fiber } from '@hydra/cordis'
-import LlmRuntime, { streamWithApiKeys, markAgentLoopRequest, createUserMessage, CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, resolveRetryPolicy  } from '@hydra/harness-llm'
+import { Context } from '@hydra1902/cordis'
+import type { Fiber } from '@hydra1902/cordis'
+import LlmRuntime, { streamWithApiKeys, markAgentLoopRequest, createUserMessage, CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, resolveRetryPolicy  } from '@hydra1902/harness-llm'
 import type {
   AlwaysRetryPolicyConfig,
   BackoffConfig,
@@ -10,15 +10,15 @@ import type {
   ResolvedRetryPolicy,
   RetryPolicyConfig,
   StreamChunk,
-} from '@hydra/harness-llm'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import type { SessionEvent, SessionEventMap } from '@hydra/harness-session'
-import type { LlmRetryEventData } from '@hydra/harness-llm-retry/types'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime, { defineContentToolFixture } from '@hydra/harness-tools'
-import AgentRegistry from '@hydra/harness-agent'
-import type { Agent, RequestErrorAction } from '@hydra/harness-agent'
-import AgentLoop from '@hydra/harness-agent-loop'
+} from '@hydra1902/harness-llm'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import type { SessionEvent, SessionEventMap } from '@hydra1902/harness-session'
+import type { LlmRetryEventData } from '@hydra1902/harness-llm-retry/types'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture } from '@hydra1902/harness-tools'
+import AgentRegistry from '@hydra1902/harness-agent'
+import type { Agent, RequestErrorAction } from '@hydra1902/harness-agent'
+import AgentLoop from '@hydra1902/harness-agent-loop'
 import * as retry from '../src/index.ts'
 
 type ScriptEntry = Error | Iterable<StreamChunk> | AsyncIterable<StreamChunk>

@@ -9,8 +9,8 @@
  * every client through the mux stream carrying the same whole value).
  */
 
-import type { Branded } from '@hydra/harness-brand'
-import type { SessionId } from '@hydra/harness-session/types'
+import type { Branded } from '@hydra1902/harness-brand'
+import type { SessionId } from '@hydra1902/harness-session/types'
 import type { RpcRequest, RpcResponse } from './rpc.ts'
 
 /** Identifies one goal across its durable revisions. */

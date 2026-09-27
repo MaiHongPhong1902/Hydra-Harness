@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-repeat-tool-reminder`.
- * @module @hydra/harness-repeat-tool-reminder/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-repeat-tool-reminder`.
+ * @module @hydra1902/harness-repeat-tool-reminder/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-repeat-tool-reminder'
+const PACKAGE_NAME = '@hydra1902/harness-repeat-tool-reminder'
 
 /** Cordis companion plugin name. */
 export const name = 'repeat-tool-reminder-invariant'

@@ -1,7 +1,7 @@
 /** Zod schemas for the browser-safe subagent domain. */
 
 import { z } from 'zod'
-import type { MessageId } from '@hydra/harness-llm/brand'
+import type { MessageId } from '@hydra1902/harness-llm/brand'
 import type { RequestPayload, ResponseValue } from './rpc-map.ts'
 import type { Wire } from './rpc.schema.ts'
 import {

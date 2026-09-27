@@ -1,13 +1,13 @@
 /** The `bash` settings section layered over the executor's composition entry. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { Fiber } from '@hydra/cordis'
-import { SettingsProvider } from '@hydra/harness-settings'
-import type { SettingsNamespace } from '@hydra/harness-settings'
-import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
-import { SHELL_SETTINGS_NAMESPACE } from '@hydra/harness-shell'
-import { LocalBashExecutor } from '@hydra/harness-bash-local'
+import { Context } from '@hydra1902/cordis'
+import type { Fiber } from '@hydra1902/cordis'
+import { SettingsProvider } from '@hydra1902/harness-settings'
+import type { SettingsNamespace } from '@hydra1902/harness-settings'
+import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
+import { SHELL_SETTINGS_NAMESPACE } from '@hydra1902/harness-shell'
+import { LocalBashExecutor } from '@hydra1902/harness-bash-local'
 
 /** The smallest real provider: one in-memory document, always writable. */
 class MemorySettings extends SettingsProvider {

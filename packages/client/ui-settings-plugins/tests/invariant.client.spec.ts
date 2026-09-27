@@ -1,9 +1,9 @@
 /** The package's node half: an empty host body and an explained empty invariant companion. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import InvariantRegistry from '@hydra/harness-invariants'
-import * as PluginConfigInvariant from '@hydra/harness-client-ui-settings-plugins/invariant'
+import { Context } from '@hydra1902/cordis'
+import InvariantRegistry from '@hydra1902/harness-invariants'
+import * as PluginConfigInvariant from '@hydra1902/harness-client-ui-settings-plugins/invariant'
 
 describe('invariant companion', () => {
   it('reserves package ownership with an empty installer', async () => {
@@ -14,7 +14,7 @@ describe('invariant companion', () => {
   })
 
   it('has an empty node half', async () => {
-    const { apply } = await import('@hydra/harness-client-ui-settings-plugins')
+    const { apply } = await import('@hydra1902/harness-client-ui-settings-plugins')
 
     // The host body exists only so the plugin appears in the host cordis.yml;
     // every surface this package ships lives in the browser half.

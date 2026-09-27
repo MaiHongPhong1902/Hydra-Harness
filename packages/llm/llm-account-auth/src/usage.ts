@@ -2,8 +2,8 @@
 import type { Credential } from '@earendil-works/pi-ai'
 import type {
   AuthorizationAccountId, AuthorizationUsage, AuthorizationUsageCredits, AuthorizationUsageWindow,
-} from '@hydra/harness-authorization'
-import { LlmError } from '@hydra/harness-llm'
+} from '@hydra1902/harness-authorization'
+import { LlmError } from '@hydra1902/harness-llm'
 import type { AccountPool } from './accounts.ts'
 import type { AccountProvider, AccountProviderProfile } from './config.ts'
 import {

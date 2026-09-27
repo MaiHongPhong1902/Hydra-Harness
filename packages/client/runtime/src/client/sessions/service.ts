@@ -14,18 +14,18 @@
  * tears its scope down immediately unless it is the staged one, whose scope
  * survives frozen (read-only view) until the stage moves on.
  */
-import type { Context, Fiber } from '@hydra/cordis'
+import type { Context, Fiber } from '@hydra1902/cordis'
 import type {
   ConversationRevision, IApiClient, RpcError, RpcResult, SessionId, SubagentAddress, JobView, WorkspaceId,
-} from '@hydra/harness-api-remotes/client'
+} from '@hydra1902/harness-api-remotes/client'
 // Value import from the inline-safe wire layer (not the connection plugin):
 // plugin-to-plugin value imports are a bundle purity error.
-import { SESSION_SEARCH_RESULT_LIMIT } from '@hydra/harness-host-apiproxy/api'
-import type { PromptRevisionRequest } from '@hydra/harness-host-apiproxy/api'
+import { SESSION_SEARCH_RESULT_LIMIT } from '@hydra1902/harness-host-apiproxy/api'
+import type { PromptRevisionRequest } from '@hydra1902/harness-host-apiproxy/api'
 import type {
   HostObservable, SessionMaybeProvideInfo, SessionProvideInfo,
-} from '@hydra/harness-client-ui-slots'
-import type { SessionProjectionMap } from '@hydra/harness-session-projection/types'
+} from '@hydra1902/harness-client-ui-slots'
+import type { SessionProjectionMap } from '@hydra1902/harness-session-projection/types'
 import type { SnapshotStore } from '../contract/store.ts'
 import { createSnapshotStore } from '../contract/store.ts'
 import type { SessionFace } from '../contract/session.ts'
@@ -150,7 +150,7 @@ export interface SessionBinding {
 }
 
 // Scope primitives live in ../agents/scope.ts (the client mirror of host
-// @hydra/harness-scope, keyed by Agent identity); re-exported here so existing
+// @hydra1902/harness-scope, keyed by Agent identity); re-exported here so existing
 // consumers keep their import site.
 export { scopeOf } from '../agents/scope.ts'
 

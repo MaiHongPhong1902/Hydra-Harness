@@ -4,12 +4,12 @@
  * guards from that state, and the provider performs the atomic freshness/no-clobber check. Without
  * this plugin, tools retain the bare provider's unconditional mutation behavior. See the package
  * README for composition rules.
- * @module @hydra/harness-fs-observation-policy
+ * @module @hydra1902/harness-fs-observation-policy
  */
 
-import type { Context } from '@hydra/cordis'
-import { FsError } from '@hydra/harness-fs'
-import type { FsObservation, FsTarget, FsVersion, FsWriteIntent } from '@hydra/harness-fs'
+import type { Context } from '@hydra1902/cordis'
+import { FsError } from '@hydra1902/harness-fs'
+import type { FsObservation, FsTarget, FsVersion, FsWriteIntent } from '@hydra1902/harness-fs'
 import type { FsObservationActor } from './types.ts'
 
 export type { FsObservationActor } from './types.ts'

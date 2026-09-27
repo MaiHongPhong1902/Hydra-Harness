@@ -1,13 +1,13 @@
 /**
  * Human-facing `/goal` command over the persisted same-session goal domain.
- * @module @hydra/harness-command-goal
+ * @module @hydra1902/harness-command-goal
  */
 
-import type { Context } from '@hydra/cordis'
-import type { CommandInvocation, CommandResult } from '@hydra/harness-commands'
-import { GoalError } from '@hydra/harness-goal'
-import type { GoalPhase, GoalRef, GoalView } from '@hydra/harness-goal'
-import { createUserMessage } from '@hydra/harness-llm'
+import type { Context } from '@hydra1902/cordis'
+import type { CommandInvocation, CommandResult } from '@hydra1902/harness-commands'
+import { GoalError } from '@hydra1902/harness-goal'
+import type { GoalPhase, GoalRef, GoalView } from '@hydra1902/harness-goal'
+import { createUserMessage } from '@hydra1902/harness-llm'
 
 export const name = 'command-goal'
 export const inject = ['commands', 'goals']

@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { afterEach, describe, expect, it } from 'vitest'
-import { AttachmentId } from '@hydra/harness-attachment'
-import type { FileAttachmentRef } from '@hydra/harness-attachment'
+import { AttachmentId } from '@hydra1902/harness-attachment'
+import type { FileAttachmentRef } from '@hydra1902/harness-attachment'
 import {
   fileLeafName, readFileStreamVerbatim, saveFileStreamVerbatim, saveFileVerbatim, storedFilePath,
 } from '../src/file-store.ts'

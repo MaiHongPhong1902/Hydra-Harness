@@ -55,7 +55,7 @@ interface Paste {
 
 /** One package's catalog entry. */
 export interface CatalogEntry {
-  /** npm package name, e.g. `@hydra/harness-agent-loop`. */
+  /** npm package name, e.g. `@hydra1902/harness-agent-loop`. */
   pkg: string
   /** Repo-relative package dir, e.g. `packages/core/agent-loop`. */
   dir: string

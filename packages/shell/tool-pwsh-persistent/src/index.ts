@@ -2,16 +2,16 @@
    the PowerShell counterpart shares the session registry, polling loop, and reset contract by design. */
 /**
  * Model-facing persistent `pwsh` tool over the owner-scoped PTY seam.
- * @module @hydra/harness-tool-pwsh-persistent
+ * @module @hydra1902/harness-tool-pwsh-persistent
  */
 
 import { randomUUID } from 'node:crypto'
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type { Agent } from '@hydra/harness-agent'
-import type { TerminalReadResult, TerminalSendResult, TerminalSessionId } from '@hydra/harness-terminal'
-import { deadline, timeoutOf } from '@hydra/harness-timeout'
-import { defineTool } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type { Agent } from '@hydra1902/harness-agent'
+import type { TerminalReadResult, TerminalSendResult, TerminalSessionId } from '@hydra1902/harness-terminal'
+import { deadline, timeoutOf } from '@hydra1902/harness-timeout'
+import { defineTool } from '@hydra1902/harness-tools'
 
 // TODO: Replace the file-search advice; arbitrary command output need not come from a searchable file.
 const TRUNCATED_MESSAGE = '<response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with Select-String in order to find the line numbers of what you are looking for.</NOTE>'

@@ -1,5 +1,5 @@
-import { Context } from '@hydra/cordis'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 import { describe, expect, it } from 'vitest'
 import * as BrandInvariant from '../src/invariant.ts'
 import { apply as nodeApply } from '../src/index.ts'

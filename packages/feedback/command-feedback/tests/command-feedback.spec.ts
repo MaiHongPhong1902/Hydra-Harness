@@ -1,19 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import AgentRegistry, { Inbox } from '@hydra/harness-agent'
-import type { Agent, AgentStatus } from '@hydra/harness-agent'
-import CommandRuntime from '@hydra/harness-commands'
-import SessionStore, { foldSurface, Session, SessionId } from '@hydra/harness-session'
-import { SessionTelemetryBackend, type SessionTelemetrySharingStatus } from '@hydra/harness-session-telemetry'
-import * as commandFeedback from '@hydra/harness-command-feedback'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
+import type { Agent, AgentStatus } from '@hydra1902/harness-agent'
+import CommandRuntime from '@hydra1902/harness-commands'
+import SessionStore, { foldSurface, Session, SessionId } from '@hydra1902/harness-session'
+import { SessionTelemetryBackend, type SessionTelemetrySharingStatus } from '@hydra1902/harness-session-telemetry'
+import * as commandFeedback from '@hydra1902/harness-command-feedback'
 
 const { USER_ID, getOrCreateAnonymousUserId } = vi.hoisted(() => {
   const USER_ID = '01234567-89ab-4cde-8f01-23456789abcd'
   return { USER_ID, getOrCreateAnonymousUserId: vi.fn(() => USER_ID) }
 })
 
-vi.mock('@hydra/harness-anonymous-user-id', () => ({
+vi.mock('@hydra1902/harness-anonymous-user-id', () => ({
   getOrCreateAnonymousUserId,
 }))
 
@@ -99,7 +99,7 @@ function feedbackTexts(session: Session): string[] {
     .map(event => event.data.text)
 }
 
-describe('@hydra/harness-command-feedback registration', () => {
+describe('@hydra1902/harness-command-feedback registration', () => {
   it('registers one global command with Loader-safe exports and disposes it', async () => {
     const test = await harness()
     expect(commandFeedback.name).toBe('command-feedback')

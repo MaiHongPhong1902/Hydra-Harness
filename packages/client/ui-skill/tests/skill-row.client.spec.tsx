@@ -4,9 +4,9 @@
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { RunningToolCall, ToolResultNode } from '@hydra/harness-client-runtime/client'
-import { makeTranslate } from '@hydra/harness-client-test-runtime'
-import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
+import type { RunningToolCall, ToolResultNode } from '@hydra1902/harness-client-runtime/client'
+import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
+import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
 import { SkillRow } from '../src/client/SkillRow.tsx'
 import { en } from '../src/client/locales.ts'
 

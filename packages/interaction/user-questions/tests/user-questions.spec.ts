@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import AgentRegistry, { type Agent } from '@hydra/harness-agent'
+import { Context } from '@hydra1902/cordis'
+import AgentRegistry, { type Agent } from '@hydra1902/harness-agent'
 import UserQuestionService, {
   UserQuestionError,
   type AskUserQuestionRequest,
   type UserQuestionProvider,
-} from '@hydra/harness-user-questions'
+} from '@hydra1902/harness-user-questions'
 
 function provider(answer = 'approved'): UserQuestionProvider & { seen: AskUserQuestionRequest[] } {
   const seen: AskUserQuestionRequest[] = []

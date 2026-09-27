@@ -1,5 +1,5 @@
 /**
- * @hydra/harness-host-frontend-static — SPA dist server over the webserver
+ * @hydra1902/harness-host-frontend-static — SPA dist server over the webserver
  * fallback seat: serves the built frontend directory with explicit index
  * entry points. A readable index renders at the dist root and configured index
  * path; missing paths return 404, traversal outside the dist root is 403,
@@ -8,15 +8,15 @@
  * injection rows, then raw taps). The dist location is workspace knowledge of
  * the composing application, so `distIndex` is typically supplied through a
  * `!!js` expression, never hardcoded by a deployment.
- * @module @hydra/harness-host-frontend-static
+ * @module @hydra1902/harness-host-frontend-static
  */
 
 import type { ServerResponse } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { dirname, extname, join, normalize, resolve, sep } from 'node:path'
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type {} from '@hydra/harness-host-webserver'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type {} from '@hydra1902/harness-host-webserver'
 
 /** Stable Cordis plugin name. */
 export const name = 'frontend-static'

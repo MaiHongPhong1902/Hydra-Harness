@@ -5,9 +5,9 @@ import {
 import {
   DisclosureRow, IconChevronRightOutline14, StateDot,
   type DisclosureRowProps, type StateDotState,
-} from '@hydra/harness-client-ui-primitives'
-import type { PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
-import { shallowEqual, type SessionId, type SessionListState } from '@hydra/harness-client-runtime/client'
+} from '@hydra1902/harness-client-ui-primitives'
+import type { PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import { shallowEqual, type SessionId, type SessionListState } from '@hydra1902/harness-client-runtime/client'
 import type { WorkflowRunKey } from './locales.ts'
 import type {
   WorkflowRunMemberData, WorkflowRunPhaseData, WorkflowRunStatus,

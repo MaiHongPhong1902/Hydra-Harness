@@ -1,7 +1,7 @@
 /** Pure replay fold and strict decoder for durable goal changes. */
 
-import type { MessageSource } from '@hydra/harness-llm'
-import type { SessionEvent } from '@hydra/harness-session'
+import type { MessageSource } from '@hydra1902/harness-llm'
+import type { SessionEvent } from '@hydra1902/harness-session'
 import { GOAL_CHANGE_VERSION, GoalId } from './runtime.ts'
 import type { GoalBlockReason, GoalPhase, GoalRef, GoalSnapshot } from './types.ts'
 import type {

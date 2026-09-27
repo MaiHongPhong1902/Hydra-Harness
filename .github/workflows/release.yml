@@ -69,16 +69,15 @@ jobs:
       - name: Build
         run: pnpm run build:official
 
-      - name: Pack release tarballs
-        run: pnpm run release:pack --family hydra --out dist/npm
-
       # The harness packages declare the vendored framework as a peer, and this
       # verification must not depend on the registry already carrying matching
       # versions — one pull request may bump both families before either
-      # publishes — so it installs that family's pack output too. Only dist/npm
-      # is published.
+      # publishes — so the hydra entry package can carry the runtime closure.
       - name: Pack the vendored framework for verification
         run: pnpm run release:pack --family vendor --out dist/npm-vendor
+
+      - name: Pack release tarballs
+        run: pnpm run release:pack --family hydra --out dist/npm --vendor dist/npm-vendor
 
       # hydra-sandbox-local declares the Landlock entry as a runtime dependency, so
       # the verification needs its tarball. Its platform packages stay out: they

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import LlmRuntime, { CallId, LlmAdapter } from '@hydra/harness-llm'
-import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
-import * as LlmInvariant from '@hydra/harness-llm/invariant'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import LlmRuntime, { CallId, LlmAdapter } from '@hydra1902/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydra1902/harness-llm'
+import * as LlmInvariant from '@hydra1902/harness-llm/invariant'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

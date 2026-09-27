@@ -4,18 +4,18 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { LocalSandboxProvider } from '@hydra/harness-sandbox-local'
-import { SandboxPolicyService } from '@hydra/harness-sandbox-policy'
-import { seatbeltProfileArgs } from '@hydra/harness-sandbox-local/src/profiles.ts'
-import { SandboxBashExecutor } from '@hydra/harness-bash-sandbox'
-import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
+import { Context } from '@hydra1902/cordis'
+import { LocalSandboxProvider } from '@hydra1902/harness-sandbox-local'
+import { SandboxPolicyService } from '@hydra1902/harness-sandbox-policy'
+import { seatbeltProfileArgs } from '@hydra1902/harness-sandbox-local/src/profiles.ts'
+import { SandboxBashExecutor } from '@hydra1902/harness-bash-sandbox'
+import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
 
 /**
  * Keyless macOS integration of the real provider and executor through public run/start paths.
  * Linux rungs are forced off so Seatbelt is selected. The tests check world effects and stamped
  * facts, including EPERM classification through the wrap-carried dialect; backend-only
- * confinement is covered by `@hydra/harness-sandbox-local`. Skips off macOS or when
+ * confinement is covered by `@hydra1902/harness-sandbox-local`. Skips off macOS or when
  * `sandbox-exec` rejects the profile.
  */
 

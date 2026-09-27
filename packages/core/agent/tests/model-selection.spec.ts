@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import SystemPrompt from '@hydra/harness-system-prompt'
+import { Context } from '@hydra1902/cordis'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
 import {
   agentEvents,
   installModelSelection,
   type Agent,
   type ModelSelectionRef,
 } from '../src/index.ts'
-import { ReasoningEffortId, type LlmCallConfig } from '@hydra/harness-llm'
+import { ReasoningEffortId, type LlmCallConfig } from '@hydra1902/harness-llm'
 
 describe('installModelSelection()', () => {
   it('snapshots prompt variables and request routing together, then disposes both listeners', async () => {

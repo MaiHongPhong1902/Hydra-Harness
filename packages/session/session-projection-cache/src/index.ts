@@ -9,25 +9,25 @@
  * `ver` mismatch discards the row instead of migrating it. Design
  * authority: the session-projection RFC
  * (.agents/notes/proposed/architecture/2026-07-27-session-projection-and-command-log.md).
- * @module @hydra/harness-session-projection-cache
+ * @module @hydra1902/harness-session-projection-cache
  */
 
-import { Context, Service } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { snapshotJsonValue } from '@hydra/harness-session'
-import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydra/harness-session'
+import { Context, Service } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { snapshotJsonValue } from '@hydra1902/harness-session'
+import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydra1902/harness-session'
 // Empty type import: applies the package's cordis Context merge
 // (`ctx.sessionPersistence`), which this service reads on the cold path.
-import type {} from '@hydra/harness-session-persistence'
-import type { ProjectionCheckpoint, ProjectionSnapshot } from '@hydra/harness-session-projection'
-import type { KvTable } from '@hydra/harness-storage-domain'
+import type {} from '@hydra1902/harness-session-persistence'
+import type { ProjectionCheckpoint, ProjectionSnapshot } from '@hydra1902/harness-session-projection'
+import type { KvTable } from '@hydra1902/harness-storage-domain'
 import { projectionCacheDomainSpec } from './spec.ts'
 import type { CheckpointIdentity, CheckpointRecord } from './spec.ts'
 
 export { checkpointIdentity, checkpointRecord, checkpointRow, projectionCacheDomainSpec } from './spec.ts'
 export type { CheckpointIdentity, CheckpointRecord } from './spec.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     sessionProjectionCache: SessionProjectionCache
   }

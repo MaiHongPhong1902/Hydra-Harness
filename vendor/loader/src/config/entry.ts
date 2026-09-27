@@ -1,5 +1,5 @@
-import { Context, Fiber, Inject } from '@hydra/cordis'
-import { deepEqual, isNullable } from '@hydra/cosmokit'
+import { Context, Fiber, Inject } from '@hydra1902/cordis'
+import { deepEqual, isNullable } from '@hydra1902/cosmokit'
 import { Loader } from '../index.ts'
 import { EntryGroup } from './group.ts'
 import { EntryTree } from './tree.ts'

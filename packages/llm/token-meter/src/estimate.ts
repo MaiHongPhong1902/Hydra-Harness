@@ -3,12 +3,12 @@
  * pure context-breakdown projection, so both surfaces price identical content
  * to identical numbers.
  *
- * @module @hydra/harness-token-meter/estimate
+ * @module @hydra1902/harness-token-meter/estimate
  */
 
-import type { ContentBlock, Message } from '@hydra/harness-llm'
+import type { ContentBlock, Message } from '@hydra1902/harness-llm'
 type FileText = (ref: Extract<ContentBlock, { type: 'file' }>['attachment']) => string
-import type { EpochHeader } from '@hydra/harness-session'
+import type { EpochHeader } from '@hydra1902/harness-session'
 
 /** Fixed text-density estimate used until exact tokenization is needed. */
 const CHARS_PER_TOKEN = 4

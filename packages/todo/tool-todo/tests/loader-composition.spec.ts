@@ -6,16 +6,16 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include from '@hydra/cordis-plugin-include'
-import { CallId } from '@hydra/harness-llm'
-import { Session, SessionId } from '@hydra/harness-session'
-import AgentRegistry, { Inbox } from '@hydra/harness-agent'
-import type { Agent } from '@hydra/harness-agent'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime from '@hydra/harness-tools'
-import * as ToolTodo from '@hydra/harness-tool-todo'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include from '@hydra1902/cordis-plugin-include'
+import { CallId } from '@hydra1902/harness-llm'
+import { Session, SessionId } from '@hydra1902/harness-session'
+import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
+import type { Agent } from '@hydra1902/harness-agent'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime from '@hydra1902/harness-tools'
+import * as ToolTodo from '@hydra1902/harness-tool-todo'
 
 let root: string | undefined
 let context: Context | undefined
@@ -55,10 +55,10 @@ async function boot(configLines: readonly string[]): Promise<Context> {
   root = await mkdtemp(join(tmpdir(), 'hydra-todo-loader-'))
   const configPath = join(root, 'cordis.yml')
   await writeFile(configPath, [
-    "- name: '@hydra/harness-agent'",
-    "- name: '@hydra/harness-system-prompt'",
-    "- name: '@hydra/harness-tools'",
-    "- name: '@hydra/harness-tool-todo'",
+    "- name: '@hydra1902/harness-agent'",
+    "- name: '@hydra1902/harness-system-prompt'",
+    "- name: '@hydra1902/harness-tools'",
+    "- name: '@hydra1902/harness-tool-todo'",
     ...configLines.length > 0 ? ['  config:', ...configLines] : [],
     '',
   ].join('\n'))
@@ -69,10 +69,10 @@ async function boot(configLines: readonly string[]): Promise<Context> {
   await ctx.plugin(Loader)
   ctx.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@hydra/harness-agent', AgentRegistry],
-    ['@hydra/harness-system-prompt', SystemPrompt],
-    ['@hydra/harness-tools', ToolRuntime],
-    ['@hydra/harness-tool-todo', ToolTodo],
+    ['@hydra1902/harness-agent', AgentRegistry],
+    ['@hydra1902/harness-system-prompt', SystemPrompt],
+    ['@hydra1902/harness-tools', ToolRuntime],
+    ['@hydra1902/harness-tool-todo', ToolTodo],
   ])
   ctx.loader.internal = {
     version: 'v2',

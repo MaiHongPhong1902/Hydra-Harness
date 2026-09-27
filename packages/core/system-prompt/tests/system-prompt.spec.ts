@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import SystemPrompt, { AssembleContext, PromptAssembly, renderContextSnapshot, renderPrompt } from '@hydra/harness-system-prompt'
+import { Context } from '@hydra1902/cordis'
+import SystemPrompt, { AssembleContext, PromptAssembly, renderContextSnapshot, renderPrompt } from '@hydra1902/harness-system-prompt'
 
 /**
  * Every assembly carries the plugin's own built-ins — `harness:identity`

@@ -4,8 +4,8 @@
  * @module park-parent
  */
 
-import type { Context } from '@hydra/cordis'
-import type { SessionId } from '@hydra/harness-session'
+import type { Context } from '@hydra1902/cordis'
+import type { SessionId } from '@hydra1902/harness-session'
 
 /**
  * Reject every step of the stand-in parent. Each child settlement wakes its

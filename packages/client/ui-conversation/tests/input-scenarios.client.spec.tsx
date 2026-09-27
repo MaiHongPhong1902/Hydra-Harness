@@ -8,27 +8,27 @@
  * itself is not a dependency of this package; the source below is the
  * decision-table contract at the `InputTriggerSource` boundary.
  */
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import {
   EMPTY_CHAT_SNAPSHOT, EMPTY_CONVERSATION_VIEWS, SessionRuntime,
-} from '@hydra/harness-client-runtime/client'
-import { InputTriggerService } from '@hydra/harness-client-ui-input-trigger/client'
+} from '@hydra1902/harness-client-runtime/client'
+import { InputTriggerService } from '@hydra1902/harness-client-ui-input-trigger/client'
 import type {
   ClientSessionContext, CommandClaim, PickOutcome, SubmitEnvelope, SubmitImageAttachment, SubmitOutcome,
-} from '@hydra/harness-client-ui-input-trigger/client'
+} from '@hydra1902/harness-client-ui-input-trigger/client'
 import { FakeApiClient, fakeRemote, ok } from '../../runtime/tests/fake-api.client.ts'
-import { makeTranslate } from '@hydra/harness-client-test-runtime'
-import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
+import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
+import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
 import type { DraftAttachmentId } from '../src/client/input/contract.ts'
 import { SessionInputShell } from '../src/client/input/facade.ts'
 import { InputBar } from '../src/client/skeleton/InputBar.tsx'
 import type { InputBarProps } from '../src/client/skeleton/InputBar.tsx'
 import { en } from '../src/client/locales.ts'
-import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
-import type { ConversationSnapshot } from '@hydra/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { ConversationSnapshot } from '@hydra1902/harness-client-runtime/client'
 
 afterEach(cleanup)
 

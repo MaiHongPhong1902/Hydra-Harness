@@ -1,9 +1,9 @@
 /** Built-in Client inspect providers over live Client-owned services. */
 
-import type { Context } from '@hydra/cordis'
-import type { JsonValue } from '@hydra/harness-api-remotes/client'
-import type { SlotRegistry } from '@hydra/harness-client-runtime/client'
-import type {} from '@hydra/harness-client-ui-theme/client'
+import type { Context } from '@hydra1902/cordis'
+import type { JsonValue } from '@hydra1902/harness-api-remotes/client'
+import type { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+import type {} from '@hydra1902/harness-client-ui-theme/client'
 import { queryEventApi, queryServiceApi } from './api-catalog.ts'
 import type { ClientCordisInspectProviderRegistration } from './inspect-registry.ts'
 import { CLIENT_SLOT_API } from './slot-catalog.ts'

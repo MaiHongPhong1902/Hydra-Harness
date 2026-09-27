@@ -2,26 +2,26 @@
  * Model-facing `browser_*` tools over the embedded-browser seam (`ctx.browsers`).
  * This package owns the schemas, the accessibility-snapshot prompt section, bounding, and
  * presentation; the seam owns the window and the page.
- * @module @hydra/harness-tool-browser
+ * @module @hydra1902/harness-tool-browser
  */
 
 import { Buffer } from 'node:buffer'
 import { isAbsolute, join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { saveBrowserArtifact, validateFilename } from './artifact.ts'
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type { Agent } from '@hydra/harness-agent'
-import { AttachmentId } from '@hydra/harness-attachment'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type { Agent } from '@hydra1902/harness-agent'
+import { AttachmentId } from '@hydra1902/harness-attachment'
 import type {
   BrowserAction, BrowserCdpCommandResult, BrowserCdpEventPage, BrowserHistorySearchEntry, BrowserScreenshot,
-} from '@hydra/harness-browser-electron'
-import type {} from '@hydra/harness-browser-electron'
-import type { ContentBlock } from '@hydra/harness-llm'
-import { defineTool } from '@hydra/harness-tools'
-import type { ToolExecution } from '@hydra/harness-tools'
-import type {} from '@hydra/harness-system-prompt'
-import type {} from '@hydra/harness-user-approval'
+} from '@hydra1902/harness-browser-electron'
+import type {} from '@hydra1902/harness-browser-electron'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import { defineTool } from '@hydra1902/harness-tools'
+import type { ToolExecution } from '@hydra1902/harness-tools'
+import type {} from '@hydra1902/harness-system-prompt'
+import type {} from '@hydra1902/harness-user-approval'
 import { BROWSER_PROMPT_NAME, BROWSER_PROMPT_ORDER, BROWSER_PROMPT_TEXT } from './prompt.ts'
 import {
   DEFAULT_MAX_STATE_CHARS, contentHash, dropIgnoredNodes, formatBrowserOutput, presentBrowserCall, rankElementList, toValue,

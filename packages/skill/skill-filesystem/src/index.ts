@@ -6,19 +6,19 @@
  * user roots, parses YAML frontmatter, and loads bodies through `ctx.fs` when a
  * filesystem service is present.
  *
- * @module @hydra/harness-skill-filesystem
+ * @module @hydra1902/harness-skill-filesystem
  */
 
 import { access, lstat, readdir, readFile, stat } from 'node:fs/promises'
 import { unwatchFile, watchFile, type Stats } from 'node:fs'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { homedir } from 'node:os'
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import chokidar from 'chokidar'
-import z from '@hydra/schemastery'
-import type Schema from '@hydra/schemastery'
-import type { FileSystem, FsDirEntry, FsTarget } from '@hydra/harness-fs'
-import { canonicalizeWatchPath, resolveHydraHome } from '@hydra/harness-home-paths'
+import z from '@hydra1902/schemastery'
+import type Schema from '@hydra1902/schemastery'
+import type { FileSystem, FsDirEntry, FsTarget } from '@hydra1902/harness-fs'
+import { canonicalizeWatchPath, resolveHydraHome } from '@hydra1902/harness-home-paths'
 import {
   BUNDLED_SKILL_RANK,
   parseSkillDocument,
@@ -30,7 +30,7 @@ import {
   type SkillProviderControl,
   type SkillProviderObservation,
   type SkillSource,
-} from '@hydra/harness-skill'
+} from '@hydra1902/harness-skill'
 
 const PROJECT_HYDRA_RANK = 100
 const PROJECT_AGENTS_RANK = 200

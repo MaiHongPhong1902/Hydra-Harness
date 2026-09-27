@@ -3,14 +3,14 @@ import { useEffect, useState } from 'react'
 import {
   Button,
   IconArchiveOutline20, IconLoadingOutline16, IconRefreshOutline16, IconTrashOutline16,
-} from '@hydra/harness-client-ui-primitives'
+} from '@hydra1902/harness-client-ui-primitives'
 import type {
   SessionId, SessionListState, WorkspaceListState, WorkspaceView,
-} from '@hydra/harness-client-runtime/client'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+} from '@hydra1902/harness-client-runtime/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
 // Type-only: pulls the settings.section SlotMap merge into this component's
 // direct test and package programs.
-import type {} from '@hydra/harness-client-ui-settings/client'
+import type {} from '@hydra1902/harness-client-ui-settings/client'
 import css from './ArchivedSessionsSection.module.css'
 import { DeleteSessionDialog } from './DeleteSessionDialog.tsx'
 

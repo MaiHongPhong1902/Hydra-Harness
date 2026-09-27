@@ -1,8 +1,8 @@
-/** Content-block structure helpers. @module @hydra/harness-llm/content */
+/** Content-block structure helpers. @module @hydra1902/harness-llm/content */
 
 import type { ContentBlock } from './types.ts'
 import type { Message } from './message.ts'
-import type { FileAttachmentRef } from '@hydra/harness-attachment'
+import type { FileAttachmentRef } from '@hydra1902/harness-attachment'
 const quoted = (value: string): string => JSON.stringify(value)
 
 /** Model-facing stand-in for an image removed to fit a provider request bound. */

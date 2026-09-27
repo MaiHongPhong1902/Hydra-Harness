@@ -3,23 +3,23 @@ import { mkdir, mkdtemp, readFile, stat, symlink, writeFile } from 'node:fs/prom
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { Context } from '@hydra/cordis'
-import { boot, healProfilesModuleFallback, loadOverlayPatches, loadProfile } from '@hydra/harness-app-boot'
-import { provideCmdline } from '@hydra/harness-cmdline'
-import { SessionId } from '@hydra/harness-session'
-import { agentEvents, type Agent } from '@hydra/harness-agent'
-import type { PatchOptions } from '@hydra/cordis-plugin-include'
+import { Context } from '@hydra1902/cordis'
+import { boot, healProfilesModuleFallback, loadOverlayPatches, loadProfile } from '@hydra1902/harness-app-boot'
+import { provideCmdline } from '@hydra1902/harness-cmdline'
+import { SessionId } from '@hydra1902/harness-session'
+import { agentEvents, type Agent } from '@hydra1902/harness-agent'
+import type { PatchOptions } from '@hydra1902/cordis-plugin-include'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { settingsNamespace } from '@hydra/harness-settings'
-import { resolveSessionPreset, SETTINGS_NAMESPACE } from '@hydra/harness-agent-presets'
-import { applyChildComposition, childSessionMeta } from '@hydra/harness-subagent'
-import { CallId, createUserMessage } from '@hydra/harness-llm'
-import type {} from '@hydra/harness-compaction-basic'
-import type {} from '@hydra/harness-skill'
-import type {} from '@hydra/harness-tools'
+import { settingsNamespace } from '@hydra1902/harness-settings'
+import { resolveSessionPreset, SETTINGS_NAMESPACE } from '@hydra1902/harness-agent-presets'
+import { applyChildComposition, childSessionMeta } from '@hydra1902/harness-subagent'
+import { CallId, createUserMessage } from '@hydra1902/harness-llm'
+import type {} from '@hydra1902/harness-compaction-basic'
+import type {} from '@hydra1902/harness-skill'
+import type {} from '@hydra1902/harness-tools'
 // Type-only: resolves `ctx.get('sessionProjections')` and `ctx.get('tokenMeter')`.
-import type {} from '@hydra/harness-session-projection'
-import type {} from '@hydra/harness-token-meter'
+import type {} from '@hydra1902/harness-session-projection'
+import type {} from '@hydra1902/harness-token-meter'
 
 const CONFIG_DIR = fileURLToPath(new URL('../config/', import.meta.url))
 const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url))
@@ -97,8 +97,8 @@ async function bootWeb(
     // supplies `directoryPicker` without one.
     { id: 'directory-picker', disabled: true },
     { insert: [
-      { id: 'directory-picker-browse', name: '@hydra/harness-host-directory-picker-browse' },
-      { id: 'ui-directory-picker-browse', name: '@hydra/harness-client-ui-directory-picker-browse' },
+      { id: 'directory-picker-browse', name: '@hydra1902/harness-host-directory-picker-browse' },
+      { id: 'ui-directory-picker-browse', name: '@hydra1902/harness-client-ui-directory-picker-browse' },
     ] },
     // The roster AppCLIEntry would patch in; only the shipped root, so a
     // developer's own `~/.hydra/.preset` cannot change this test's outcome.
@@ -625,8 +625,8 @@ describe('product Bundle and user-preset intersection', () => {
     )
     const packageName = (product: Product): string => (
       product === 'codex'
-        ? '@hydra/harness-subagent-codex'
-        : '@hydra/harness-subagent-claude-code'
+        ? '@hydra1902/harness-subagent-codex'
+        : '@hydra1902/harness-subagent-claude-code'
     )
     return await bootWeb(settingsFile, [
       {
@@ -641,8 +641,8 @@ describe('product Bundle and user-preset intersection', () => {
         },
       },
     ], installed.map(packageDir), [
-      '@hydra/harness-base',
-      '@hydra/harness-web-app',
+      '@hydra1902/harness-base',
+      '@hydra1902/harness-web-app',
       ...installed.map(packageName),
     ])
   }
@@ -867,7 +867,7 @@ describe('a launcher that configures no writable root', () => {
     await mkdir(join(home, '.agent-presets', 'derived-mine'), { recursive: true })
     await writeFile(
       join(home, '.agent-presets', 'derived-mine', 'agent.cordis.yml'),
-      '- id: tool-todo\n  name: \'@hydra/harness-tool-todo\'\n  config:\n    allowParallelInProgress: true\n',
+      '- id: tool-todo\n  name: \'@hydra1902/harness-tool-todo\'\n  config:\n    allowParallelInProgress: true\n',
     )
     const settingsFile = join(home, 'settings.yaml')
     await writeFile(settingsFile, '{}\n')

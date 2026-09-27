@@ -5,9 +5,9 @@
 import { useState, type KeyboardEvent, type ReactNode } from 'react'
 import {
   IconChevronDownOutline14, IconInspectOutline12, IconSkillOutline16, StateDot,
-} from '@hydra/harness-client-ui-primitives'
-import type { ToolCallViewProps } from '@hydra/harness-client-ui-tool/client'
-import type { PropsLocale } from '@hydra/harness-client-ui-slots'
+} from '@hydra1902/harness-client-ui-primitives'
+import type { ToolCallViewProps } from '@hydra1902/harness-client-ui-tool/client'
+import type { PropsLocale } from '@hydra1902/harness-client-ui-slots'
 import css from './SkillRow.module.css'
 
 /** Skill row lifecycle derived solely from the durable call slice. */

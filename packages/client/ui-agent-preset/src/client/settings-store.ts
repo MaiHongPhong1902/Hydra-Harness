@@ -7,9 +7,9 @@
  * namespace's `default` field, which is what the host resolves at creation.
  */
 
-import type { IApiClient } from '@hydra/harness-api-remotes/client'
-import { createSnapshotStore, type SnapshotStore } from '@hydra/harness-client-runtime/client'
-import type { SettingsDescribeFace } from '@hydra/harness-client-ui-settings/client'
+import type { IApiClient } from '@hydra1902/harness-api-remotes/client'
+import { createSnapshotStore, type SnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { SettingsDescribeFace } from '@hydra1902/harness-client-ui-settings/client'
 
 /** The agent-preset settings namespace on the host wire. */
 export const AGENT_PRESET_SETTINGS_NS = 'agent-presets'

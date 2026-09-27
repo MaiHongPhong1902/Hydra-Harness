@@ -1,10 +1,10 @@
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import type {
   ConversationMatch, ConversationNodeContext, ConversationNodeDefinition, TurnMaxTokensNode,
-} from '@hydra/harness-client-runtime/client'
+} from '@hydra1902/harness-client-runtime/client'
 import { CHAT_SYNTHETIC_SEQ_OFFSETS, chatNode } from './common.ts'
 
-declare module '@hydra/harness-client-ui-conversation/client' {
+declare module '@hydra1902/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Turn ended by the per-request output-token cap. */
     'turn-max-tokens': TurnMaxTokensNode

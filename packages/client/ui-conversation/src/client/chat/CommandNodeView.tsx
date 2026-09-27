@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react'
-import type { PropsRenderSlots } from '@hydra/harness-client-ui-slots'
+import type { PropsRenderSlots } from '@hydra1902/harness-client-ui-slots'
 import type {
   ChatNodeViewProps, CommandRowOwnerProps,
 } from '../contract/slots.ts'

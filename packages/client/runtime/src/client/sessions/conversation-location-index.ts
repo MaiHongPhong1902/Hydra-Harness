@@ -1,4 +1,4 @@
-import type { SessionEvent } from '@hydra/harness-session/types'
+import type { SessionEvent } from '@hydra1902/harness-session/types'
 import type {
   ConversationEventInput, ConversationLocation, ConversationLocationData,
   ConversationLocationDataStore, ConversationStepDataMap, ConversationTimelineSnapshot,

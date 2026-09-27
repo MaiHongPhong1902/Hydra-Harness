@@ -1,9 +1,9 @@
 // Dynamic-key escape hatches and untouched-key behavior of the terminal core.
 import { describe, expect, it } from 'vitest'
-import type { SlotComponent } from '@hydra/harness-client-ui-slots'
-import { SlotCore } from '@hydra/harness-client-ui-slots'
+import type { SlotComponent } from '@hydra1902/harness-client-ui-slots'
+import { SlotCore } from '@hydra1902/harness-client-ui-slots'
 
-declare module '@hydra/harness-client-ui-slots' {
+declare module '@hydra1902/harness-client-ui-slots' {
   interface SlotMap {
     'dynamic.a': { kind: 'single'; scope: 'root' }
     'dynamic.b': { kind: 'single'; scope: 'root' }

@@ -1,7 +1,7 @@
 /** Confirmation shared by the sidebar and Archived sessions settings. */
 import { useState } from 'react'
-import { Button, Modal } from '@hydra/harness-client-ui-primitives'
-import type { SessionId } from '@hydra/harness-client-runtime/client'
+import { Button, Modal } from '@hydra1902/harness-client-ui-primitives'
+import type { SessionId } from '@hydra1902/harness-client-runtime/client'
 import type { WorkspaceBrowserProps } from './contract/slots.ts'
 import css from './WorkspaceBrowser.module.css'
 

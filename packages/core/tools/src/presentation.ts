@@ -2,10 +2,10 @@
  * Tool render-intent vocabulary: the provider-neutral types a tool declares via
  * `ToolDefinition.presentCall`/`ToolDefinition.presentResult` to say how one of its calls
  * renders in a UI (an editor's tool-call card, a CLI log line).
- * @module @hydra/harness-tools/src/presentation
+ * @module @hydra1902/harness-tools/src/presentation
  */
 
-import type { ContentBlock } from '@hydra/harness-llm'
+import type { ContentBlock } from '@hydra1902/harness-llm'
 
 /**
  * Category of a tool call, used by a UI to pick an icon or treatment. The
@@ -309,7 +309,7 @@ export interface ReadResultView {
 
 /**
  * One citeable source in a completed {@link WebSearchResultView}, the faithful
- * projection of one web-search source. The presentation projection of `@hydra/harness-web`'s
+ * projection of one web-search source. The presentation projection of `@hydra1902/harness-web`'s
  * `WebSearchSource`: that Service Definition type is authoritative (core cannot depend
  * on the web Service Definition, so the two are declared separately and MUST evolve together).
  * A web tool projects this shape through `output.presentationMeta` because the

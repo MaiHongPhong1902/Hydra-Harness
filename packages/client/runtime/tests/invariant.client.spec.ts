@@ -3,9 +3,9 @@
  * a fired key must already carry a bumped version (emission follows the
  * applied mutation), bogus payloads fail loud, foreign events pass.
  */
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { describe, expect, it } from 'vitest'
-import InvariantRegistry from '@hydra/harness-invariants'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 import * as RuntimeInvariant from '../src/invariant.ts'
 import { SlotRegistry } from '../src/client/slots.ts'
 

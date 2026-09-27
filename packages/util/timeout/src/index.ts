@@ -2,7 +2,7 @@
  * Shared timeout arithmetic, signal fusion, and classification. The library
  * only notifies through abort signals; each capability still owns the mechanism
  * that stops its work and translates timeout reasons into public outcomes.
- * @module @hydra/harness-timeout
+ * @module @hydra1902/harness-timeout
  */
 
 /**

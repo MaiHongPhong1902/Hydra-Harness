@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-client-ui-directory-picker-browse",
+  "name": "@hydra1902/harness-client-ui-directory-picker-browse",
   "description": "In-app directory browsing surface: the workspace directory-flow owner rendering the host's listing and creation primitives",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -32,9 +32,9 @@
   "hydra": {
     "client": {
       "inject": [
-        "@hydra/harness-client-runtime",
-        "@hydra/harness-client-ui-workspace",
-        "@hydra/harness-client-locale"
+        "@hydra1902/harness-client-runtime",
+        "@hydra1902/harness-client-ui-workspace",
+        "@hydra1902/harness-client-locale"
       ],
       "platform": "web"
     }
@@ -48,23 +48,23 @@
     "clsx": "^2.0.0"
   },
   "peerDependencies": {
-    "@hydra/harness-client-locale": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-ui-workspace": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-client-locale": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-workspace": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-client-locale": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-test-runtime": "workspace:^",
-    "@hydra/harness-client-ui-primitives": "workspace:^",
-    "@hydra/harness-client-ui-slots": "workspace:^",
-    "@hydra/harness-client-ui-workspace": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
+    "@hydra1902/harness-client-locale": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-test-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-primitives": "workspace:^",
+    "@hydra1902/harness-client-ui-slots": "workspace:^",
+    "@hydra1902/harness-client-ui-workspace": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
     "@testing-library/react": "^16.1.0",
     "@types/react": "~18.3.1",
-    "@hydra/cordis": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

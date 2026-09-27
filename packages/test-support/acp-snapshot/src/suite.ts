@@ -14,13 +14,13 @@
  * are identical. Every live header is checked against the composed pin, so
  * session-dependent composition must declare a separate class instead of
  * escaping coverage.
- * @module @hydra/harness-acp-snapshot/suite
+ * @module @hydra1902/harness-acp-snapshot/suite
  */
 
 import { readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { isSurfaceEligibleType } from '@hydra/harness-session/surface'
+import { isSurfaceEligibleType } from '@hydra1902/harness-session/surface'
 import { describe, expect, it } from 'vitest'
 import { type AgentUnderTest, type HarvestedLog, type InputScript, runScenario } from './harness.ts'
 import {

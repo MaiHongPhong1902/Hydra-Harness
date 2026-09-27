@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { makeTranslate } from '@hydra/harness-client-test-runtime'
-import type { SessionId, SessionListState, JobView } from '@hydra/harness-client-runtime/client'
+import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
+import type { SessionId, SessionListState, JobView } from '@hydra1902/harness-client-runtime/client'
 import { JobListAction, type JobListActionProps } from '../src/client/JobListAction.tsx'
 import { en } from '../src/client/locales.ts'
 

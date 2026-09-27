@@ -2,19 +2,19 @@ import { describe, expect, it } from 'vitest'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@hydra/cordis'
-import { createUserMessage, LlmAdapter } from '@hydra/harness-llm'
-import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
-import { SessionId } from '@hydra/harness-session'
-import type { SessionEvent } from '@hydra/harness-session'
-import AgentLoop from '@hydra/harness-agent-loop'
-import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
-import SettingsProvider, { settingsNamespace } from '@hydra/harness-settings'
-import type { SettingsNamespace } from '@hydra/harness-settings'
-import CommandRuntime from '@hydra/harness-commands'
-import { agentEvents, type PreStepDecision } from '@hydra/harness-agent'
-import * as personalization from '@hydra/harness-personalization'
-import { hasLoggedPersonality, LocalMemoryStore, resolveMemoryPolicy, resolveSessionPersonality } from '@hydra/harness-personalization'
+import { Context } from '@hydra1902/cordis'
+import { createUserMessage, LlmAdapter } from '@hydra1902/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydra1902/harness-session'
+import type { SessionEvent } from '@hydra1902/harness-session'
+import AgentLoop from '@hydra1902/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra1902/harness-agent-loop-testkit'
+import SettingsProvider, { settingsNamespace } from '@hydra1902/harness-settings'
+import type { SettingsNamespace } from '@hydra1902/harness-settings'
+import CommandRuntime from '@hydra1902/harness-commands'
+import { agentEvents, type PreStepDecision } from '@hydra1902/harness-agent'
+import * as personalization from '@hydra1902/harness-personalization'
+import { hasLoggedPersonality, LocalMemoryStore, resolveMemoryPolicy, resolveSessionPersonality } from '@hydra1902/harness-personalization'
 
 /** In-memory settings provider: the Service Definition base class owns all tested behavior. */
 class MemorySettings extends SettingsProvider {
@@ -380,7 +380,7 @@ describe('personalization: real agent-loop request history', () => {
       await agent.whenIdle()
 
       expect(JSON.stringify(adapter.requests[0]!.messages)).toContain('User prefers concise Vietnamese answers')
-      expect(adapter.requests[0]!.messages.filter(message => message.source.kind === 'plugin' && message.source.plugin === '@hydra/harness-personalization')).toHaveLength(1)
+      expect(adapter.requests[0]!.messages.filter(message => message.source.kind === 'plugin' && message.source.plugin === '@hydra1902/harness-personalization')).toHaveLength(1)
       expect(resolveMemoryPolicy(agent.session)).toEqual({ useMemories: true, generateMemories: true })
       await ctx.fiber.dispose()
     } finally {

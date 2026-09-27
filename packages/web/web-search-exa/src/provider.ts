@@ -3,16 +3,16 @@
  * highlight contents). It maps the first non-blank highlight to `snippet`, maps
  * `publishedDate` to `publishedAt`, drops entries without a snippet, and omits `content`
  * because Exa returns no generated answer.
- * @module @hydra/harness-web-search-exa/provider
+ * @module @hydra1902/harness-web-search-exa/provider
  */
 
-import { WebError } from '@hydra/harness-web'
+import { WebError } from '@hydra1902/harness-web'
 import type {
   WebSearchProvider,
   WebSearchRequest,
   WebSearchResult,
   WebSearchSource,
-} from '@hydra/harness-web'
+} from '@hydra1902/harness-web'
 import type { ExaError, ExaResult, ExaSearchResponse } from './types.ts'
 
 /** Stable id this provider registers under. */

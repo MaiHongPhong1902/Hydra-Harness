@@ -1,20 +1,20 @@
 /**
  * Model-facing Cordis runtime/package inspection, define, run, stop, and remove tools.
- * @module @hydra/harness-tool-cordis
+ * @module @hydra1902/harness-tool-cordis
  */
 
-import type { Context } from '@hydra/cordis'
-import type { Agent, PreStepDecision } from '@hydra/harness-agent'
+import type { Context } from '@hydra1902/cordis'
+import type { Agent, PreStepDecision } from '@hydra1902/harness-agent'
 import {
   CordisDynamicPackageId, CordisDynamicPluginId,
-} from '@hydra/harness-cordis-host-runner'
-import type { DynamicCordisReference } from '@hydra/harness-cordis-host-runner'
-import { createUserMessage } from '@hydra/harness-llm'
-import type { JsonValue } from '@hydra/harness-session'
-import type { UserMessage } from '@hydra/harness-session'
-import { defineTool } from '@hydra/harness-tools'
-import type { ToolExecution } from '@hydra/harness-tools'
-import type {} from '@hydra/harness-system-prompt'
+} from '@hydra1902/harness-cordis-host-runner'
+import type { DynamicCordisReference } from '@hydra1902/harness-cordis-host-runner'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import type { JsonValue } from '@hydra1902/harness-session'
+import type { UserMessage } from '@hydra1902/harness-session'
+import { defineTool } from '@hydra1902/harness-tools'
+import type { ToolExecution } from '@hydra1902/harness-tools'
+import type {} from '@hydra1902/harness-system-prompt'
 import { missingServices, providedServices } from './inspect.ts'
 import {
   presentDefineCall, presentInspectListCall, presentInspectQueryCall, presentInspectSelfCall, presentRunCall,

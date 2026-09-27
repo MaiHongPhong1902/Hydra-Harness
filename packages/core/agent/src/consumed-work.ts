@@ -9,10 +9,10 @@
  * with `removedCount` and marks a cancellation `outcome: 'canceled'`, which
  * separates a turn claiming its input from work being dropped unrun.
  *
- * @module @hydra/harness-agent/consumed-work
+ * @module @hydra1902/harness-agent/consumed-work
  */
 
-import type { SessionEvent, TurnEndReason } from '@hydra/harness-session'
+import type { SessionEvent, TurnEndReason } from '@hydra1902/harness-session'
 
 /** How one agent log accounts for the work it consumed. */
 export interface ConsumedWork {

@@ -1,12 +1,12 @@
 /** Serper and configurable JSON search providers registered on the existing web service. */
 
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { credentialRef } from '@hydra/harness-credentials'
-import { launchEnvironmentOf } from '@hydra/harness-launch-environment'
-import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
-import { WEB_SEARCH_CAPABILITIES } from '@hydra/harness-web'
-import type { SearchConfigField, WebSearchProviderDescriptor } from '@hydra/harness-web'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { credentialRef } from '@hydra1902/harness-credentials'
+import { launchEnvironmentOf } from '@hydra1902/harness-launch-environment'
+import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
+import { WEB_SEARCH_CAPABILITIES } from '@hydra1902/harness-web'
+import type { SearchConfigField, WebSearchProviderDescriptor } from '@hydra1902/harness-web'
 import { HttpSearchProvider, validateSearchConfig } from './provider.ts'
 import type { HttpSearchConfig } from './provider.ts'
 

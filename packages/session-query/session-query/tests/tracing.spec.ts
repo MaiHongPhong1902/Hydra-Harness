@@ -1,10 +1,10 @@
-import { createUserMessage, createMessage } from '@hydra/harness-llm'
+import { createUserMessage, createMessage } from '@hydra1902/harness-llm'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@hydra/harness-session'
-import type { Session, SessionEvent, SessionHeader, SessionId as SessionIdType } from '@hydra/harness-session'
-import SessionPersistence from '@hydra/harness-session-persistence'
-import { type SessionQueryErrorCode } from '@hydra/harness-session-query'
+import { Context } from '@hydra1902/cordis'
+import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@hydra1902/harness-session'
+import type { Session, SessionEvent, SessionHeader, SessionId as SessionIdType } from '@hydra1902/harness-session'
+import SessionPersistence from '@hydra1902/harness-session-persistence'
+import { type SessionQueryErrorCode } from '@hydra1902/harness-session-query'
 import { TestSessionQueryEngine } from './test-service.ts'
 
 type MutableSessionHeader = { -readonly [K in keyof SessionHeader]: SessionHeader[K] }

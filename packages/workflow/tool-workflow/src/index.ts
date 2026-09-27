@@ -2,29 +2,29 @@
  * The model-facing `workflow` tool: run a JavaScript orchestration script that fans out
  * subagents, and return the script's final value. It owns the model-facing schema and run lifecycle; script
  * parsing, execution, caps, and cancellation live behind `ctx.workflowEngine`
- * (`@hydra/harness-workflow`), so a hardened engine swaps in without touching what the model
+ * (`@hydra1902/harness-workflow`), so a hardened engine swaps in without touching what the model
  * sees. Execution awaits `run.result` and always disposes the run; non-completed reasons become tool
  * errors, and background collection remains deferred. Presentation is an args-only generic card
  * titled from `meta.name`. Explicit-ask usage guidance is registered as the tool's own prompt
  * section rather than deployment persona prose.
- * @module @hydra/harness-tool-workflow
+ * @module @hydra1902/harness-tool-workflow
  */
 
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { defineTool } from '@hydra/harness-tools'
-import type { ToolCallView, ToolResultView } from '@hydra/harness-tools'
-import type { ContentBlock } from '@hydra/harness-llm'
-import type { JsonValue, Session, SessionEventMap } from '@hydra/harness-session'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { defineTool } from '@hydra1902/harness-tools'
+import type { ToolCallView, ToolResultView } from '@hydra1902/harness-tools'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { JsonValue, Session, SessionEventMap } from '@hydra1902/harness-session'
 import type {
   WorkflowResult, WorkflowRun, WorkflowRunId, WorkflowStopReason,
-} from '@hydra/harness-workflow'
+} from '@hydra1902/harness-workflow'
 import type {
   ToolWorkflowAgentEndData, ToolWorkflowAgentStartData,
   ToolWorkflowRunEndData, ToolWorkflowRunStartData,
 } from './types.ts'
 // Declaration merge only: makes ctx.systemPrompt visible for the section registration.
-import type {} from '@hydra/harness-system-prompt'
+import type {} from '@hydra1902/harness-system-prompt'
 
 export const name = 'tool-workflow'
 export const inject = ['tools', 'workflowEngine', 'systemPrompt']

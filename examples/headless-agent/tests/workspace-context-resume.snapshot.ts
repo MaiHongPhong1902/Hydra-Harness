@@ -7,19 +7,19 @@ import { createHash } from 'node:crypto'
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@hydra/cordis'
-import { normalizeSessionSnapshot, type NormalizeContext } from '@hydra/harness-acp-snapshot'
-import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra/harness-loader-smoke'
-import { createUserMessage } from '@hydra/harness-llm'
+import { Context } from '@hydra1902/cordis'
+import { normalizeSessionSnapshot, type NormalizeContext } from '@hydra1902/harness-acp-snapshot'
+import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra1902/harness-loader-smoke'
+import { createUserMessage } from '@hydra1902/harness-llm'
 import SessionStore, {
   SESSION_FORMAT_VERSION,
   SessionId,
   type SessionEvent,
   type SessionHeader,
-} from '@hydra/harness-session'
-import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
-import { renderWorkspaceContext } from '@hydra/harness-agent-instructions'
-import { resolveConfig, workspaceBaselineIdentity } from '@hydra/harness-agent-instructions/src/config.ts'
+} from '@hydra1902/harness-session'
+import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
+import { renderWorkspaceContext } from '@hydra1902/harness-agent-instructions'
+import { resolveConfig, workspaceBaselineIdentity } from '@hydra1902/harness-agent-instructions/src/config.ts'
 import { describe, expect, it } from 'vitest'
 
 const fixtureDir = join(dirname(fileURLToPath(import.meta.url)), 'workspace-context-resume-snapshots/offline-edit')

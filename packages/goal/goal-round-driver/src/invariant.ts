@@ -1,13 +1,13 @@
-/** Package-owned goal-round prompt invariants. @module @hydra/harness-goal-round-driver/invariant */
+/** Package-owned goal-round prompt invariants. @module @hydra1902/harness-goal-round-driver/invariant */
 
 import { isDeepStrictEqual } from 'node:util'
-import type { Context } from '@hydra/cordis'
-import { foldGoal, type FoldedGoal, type GoalMessageSource, type GoalView } from '@hydra/harness-goal'
-import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
-import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { Context } from '@hydra1902/cordis'
+import { foldGoal, type FoldedGoal, type GoalMessageSource, type GoalView } from '@hydra1902/harness-goal'
+import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Session, SessionEvent } from '@hydra1902/harness-session'
 import { renderGoalRoundPrompt } from './prompt.ts'
 
-const PACKAGE_NAME = '@hydra/harness-goal-round-driver'
+const PACKAGE_NAME = '@hydra1902/harness-goal-round-driver'
 
 /** Cordis companion plugin name. */
 export const name = 'goal-round-driver-invariant'

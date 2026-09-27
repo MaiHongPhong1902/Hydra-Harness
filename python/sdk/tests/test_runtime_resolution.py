@@ -19,9 +19,9 @@ def test_default_config_is_shipped_with_the_package() -> None:
     path = bundled_default_config_path()
     assert path == bundled_package_dir() / "runtime" / "cordis.yml"
     config = path.read_text()
-    assert "@hydra/harness-agent-spine-demo" in config
-    assert "@hydra/harness-session-persistence-jsonl" in config
-    assert "@hydra/harness-session-checkpoint-policy" in config
+    assert "@hydra1902/harness-agent-spine-demo" in config
+    assert "@hydra1902/harness-session-persistence-jsonl" in config
+    assert "@hydra1902/harness-session-checkpoint-policy" in config
 
 
 def test_unknown_explicit_mode_fails_loud() -> None:

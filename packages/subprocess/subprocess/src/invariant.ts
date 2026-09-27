@@ -1,9 +1,9 @@
-/** Package-owned invariant companion for the subprocess seam. @module @hydra/harness-subprocess/invariant */
+/** Package-owned invariant companion for the subprocess seam. @module @hydra1902/harness-subprocess/invariant */
 
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-subprocess'
+const PACKAGE_NAME = '@hydra1902/harness-subprocess'
 
 /** Cordis companion plugin name. */
 export const name = 'subprocess-invariant'

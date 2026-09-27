@@ -15,16 +15,16 @@
  * reads session state once at each operation boundary; executors and providers
  * remain session-free.
  *
- * @module @hydra/harness-sandbox-policy
+ * @module @hydra1902/harness-sandbox-policy
  */
 
 import { resolve as resolvePath } from 'node:path'
-import { Context, Service } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type {} from '@hydra/harness-agent'
-import { canonicalPath, type SandboxExecutionPolicy, type SandboxMode } from '@hydra/harness-sandbox'
-import type { Session } from '@hydra/harness-session'
-import type {} from '@hydra/harness-system-prompt'
+import { Context, Service } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type {} from '@hydra1902/harness-agent'
+import { canonicalPath, type SandboxExecutionPolicy, type SandboxMode } from '@hydra1902/harness-sandbox'
+import type { Session } from '@hydra1902/harness-session'
+import type {} from '@hydra1902/harness-system-prompt'
 import { effectiveSandboxMode } from './session-mode.ts'
 
 export { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from './session-mode.ts'
@@ -51,7 +51,7 @@ function renderPolicyContext(policy: SandboxExecutionPolicy): string {
   }
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     sandboxPolicy: SandboxPolicyService
   }

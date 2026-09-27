@@ -2,13 +2,13 @@
  * Concrete agent-loop plugin: creates scoped ReactLoopAgents, publishes them
  * through the agent/session registries, and owns their ordered teardown.
  *
- * @module @hydra/harness-agent-loop
+ * @module @hydra1902/harness-agent-loop
  */
 
-import { Context, FiberState, Service } from '@hydra/cordis'
+import { Context, FiberState, Service } from '@hydra1902/cordis'
 import { randomUUID } from 'node:crypto'
-import z from '@hydra/schemastery'
-import { emitAgentEvent } from '@hydra/harness-agent'
+import z from '@hydra1902/schemastery'
+import { emitAgentEvent } from '@hydra1902/harness-agent'
 import type {
   Agent,
   AgentFactory,
@@ -18,14 +18,14 @@ import type {
   CreateAgentOptions,
   ResumeAgentOptions,
   SessionStartSource,
-} from '@hydra/harness-agent'
-import { errorChain } from '@hydra/harness-llm'
-import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
-import { SessionId, SessionPreparation } from '@hydra/harness-session'
-import type { Session, SessionHeader } from '@hydra/harness-session'
-import type {} from '@hydra/harness-system-prompt'
-import type {} from '@hydra/harness-tools'
-import type { SessionPersistence } from '@hydra/harness-session-persistence'
+} from '@hydra1902/harness-agent'
+import { errorChain } from '@hydra1902/harness-llm'
+import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
+import { SessionId, SessionPreparation } from '@hydra1902/harness-session'
+import type { Session, SessionHeader } from '@hydra1902/harness-session'
+import type {} from '@hydra1902/harness-system-prompt'
+import type {} from '@hydra1902/harness-tools'
+import type { SessionPersistence } from '@hydra1902/harness-session-persistence'
 import { ReactLoopAgent } from './agent.ts'
 import { DEFAULT_MAX_PARALLEL_TOOL_CALLS } from './constants.ts'
 
@@ -157,7 +157,7 @@ interface PreparedAgent {
   dispose(): Promise<void>
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     agentLoop: AgentLoop
     /**

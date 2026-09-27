@@ -11,14 +11,14 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { createMessage } from '@hydra/harness-llm'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import type { Session, SessionEvent } from '@hydra/harness-session'
-import SessionProjectionRegistry from '@hydra/harness-session-projection'
-import * as SessionStatsPlugin from '@hydra/harness-session-stats'
-import { sessionStatsProjectionDefinition } from '@hydra/harness-session-stats/src/projection.ts'
-import type { SessionStatsProjection } from '@hydra/harness-session-stats/types'
+import { Context } from '@hydra1902/cordis'
+import { createMessage } from '@hydra1902/harness-llm'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import type { Session, SessionEvent } from '@hydra1902/harness-session'
+import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
+import * as SessionStatsPlugin from '@hydra1902/harness-session-stats'
+import { sessionStatsProjectionDefinition } from '@hydra1902/harness-session-stats/src/projection.ts'
+import type { SessionStatsProjection } from '@hydra1902/harness-session-stats/types'
 
 async function harness(withStatsPlugin: boolean): Promise<{ ctx: Context; session: Session }> {
   const ctx = new Context()

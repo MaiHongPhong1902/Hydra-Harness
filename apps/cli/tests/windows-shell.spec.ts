@@ -16,9 +16,9 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import yaml from 'js-yaml'
-import { entryListSchema } from '@hydra/cordis-plugin-include'
-import { evaluate } from '@hydra/cordis-plugin-loader'
-import { composeEntries, initProfile, loadProfile, PROFILES_DIR } from '@hydra/harness-app-boot'
+import { entryListSchema } from '@hydra1902/cordis-plugin-include'
+import { evaluate } from '@hydra1902/cordis-plugin-loader'
+import { composeEntries, initProfile, loadProfile, PROFILES_DIR } from '@hydra1902/harness-app-boot'
 
 /**
  * The effective disabled state of one row on one platform: a `!!js` expression
@@ -42,7 +42,7 @@ describe('the shipped shell composition (real bundle layers)', () => {
 
   it('composes the confined pwsh roster on win32 and the bash roster on POSIX from the same rows', () => {
     home = mkdtempSync(join(tmpdir(), 'hydra-windows-home-'))
-    initProfile(join(home, PROFILES_DIR, 'web'), ['@hydra/harness-base', '@hydra/harness-web-app'])
+    initProfile(join(home, PROFILES_DIR, 'web'), ['@hydra1902/harness-base', '@hydra1902/harness-web-app'])
     const profile = loadProfile('hydra', 'web', anchor, home)
     const warnings: string[] = []
     const rows = composeEntries(
@@ -72,7 +72,7 @@ describe('the shipped shell composition (real bundle layers)', () => {
     // dependency closure into the profile's node_modules, so every bare
     // plugin name in the base patch must resolve from there.
     const cliManifest = JSON.parse(readFileSync(anchor, 'utf8')) as { dependencies?: Record<string, string> }
-    for (const name of ['@hydra/harness-pwsh-sandbox', '@hydra/harness-tool-pwsh']) {
+    for (const name of ['@hydra1902/harness-pwsh-sandbox', '@hydra1902/harness-tool-pwsh']) {
       expect(cliManifest.dependencies?.[name], `cold-start closure must reach ${name}`).toBeDefined()
     }
     expect(warnings).toEqual([])
@@ -80,7 +80,7 @@ describe('the shipped shell composition (real bundle layers)', () => {
 
   it('base-only profiles carry both stacks with the same platform gating', () => {
     home = mkdtempSync(join(tmpdir(), 'hydra-windows-home-'))
-    initProfile(join(home, PROFILES_DIR, 'base-only'), ['@hydra/harness-base'])
+    initProfile(join(home, PROFILES_DIR, 'base-only'), ['@hydra1902/harness-base'])
     const profile = loadProfile('hydra', 'base-only', anchor, home)
     const warnings: string[] = []
     const rows = composeEntries(

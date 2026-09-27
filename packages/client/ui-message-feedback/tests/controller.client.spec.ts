@@ -6,10 +6,10 @@
  * serialize per Session, and a disposed controller stops publishing.
  */
 import { describe, expect, it, vi } from 'vitest'
-import type { MessageId, SessionId } from '@hydra/harness-client-connection/client'
+import type { MessageId, SessionId } from '@hydra1902/harness-client-connection/client'
 import type {
   MessageFeedbackItem, MessageFeedbackVersion,
-} from '@hydra/harness-message-feedback/types'
+} from '@hydra1902/harness-message-feedback/types'
 import { MessageFeedbackController, type MessageFeedbackRemote } from '../src/client/controller.ts'
 
 const SESSION = 's-1' as SessionId

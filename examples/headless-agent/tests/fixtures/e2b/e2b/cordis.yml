@@ -2,36 +2,36 @@
 # e2b.cwd and sandbox-policy.workspaceRoot must name the same remote directory,
 # which is also bash-local's implicit default workdir.
 - id: e2b
-  name: '@hydra/harness-e2b'
+  name: '@hydra1902/harness-e2b'
   config:
     cwd: !!js process.cwd()
     timeoutMs: 180000
 
 - id: subprocess-e2b
-  name: '@hydra/harness-subprocess-e2b'
+  name: '@hydra1902/harness-subprocess-e2b'
 
 - id: bash
-  name: '@hydra/harness-bash-local'
+  name: '@hydra1902/harness-bash-local'
   config:
     timeoutMs: 30000
 
 - id: fs-e2b
-  name: '@hydra/harness-fs-e2b'
+  name: '@hydra1902/harness-fs-e2b'
 
 - id: agents
-  name: '@hydra/harness-agent'
+  name: '@hydra1902/harness-agent'
 
 - id: sandbox-policy
-  name: '@hydra/harness-sandbox-policy'
+  name: '@hydra1902/harness-sandbox-policy'
   config:
     mode: danger-full-access
     workspaceRoot: !!js process.cwd()
 
 - id: pty
-  name: '@hydra/harness-terminal'
+  name: '@hydra1902/harness-terminal'
 
 - id: terminal-bash
-  name: '@hydra/harness-terminal-bash'
+  name: '@hydra1902/harness-terminal-bash'
   config:
     pollIntervalMs: 25
     exactProbeAfterMs: 150
@@ -41,10 +41,10 @@
     disposeGraceMs: 1000
 
 - id: lsp
-  name: '@hydra/harness-lsp'
+  name: '@hydra1902/harness-lsp'
 
 - id: lsp-stdio
-  name: '@hydra/harness-lsp-stdio'
+  name: '@hydra1902/harness-lsp-stdio'
   config:
     servers:
       fixture:

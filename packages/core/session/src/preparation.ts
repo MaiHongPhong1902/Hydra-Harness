@@ -1,6 +1,6 @@
 /**
  * Ownership of one unpublished Session before registry publication.
- * @module @hydra/harness-session/preparation
+ * @module @hydra1902/harness-session/preparation
  */
 
 import type { Session } from './index.ts'

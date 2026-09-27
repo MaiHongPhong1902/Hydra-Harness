@@ -2,17 +2,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, createEvent, fireEvent, render, screen } from '@testing-library/react'
 import type { ComponentProps } from 'react'
-import type { SessionId, WorkspaceId } from '@hydra/harness-client-runtime/client'
-import { makeTranslate } from '@hydra/harness-client-test-runtime'
-import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
+import type { SessionId, WorkspaceId } from '@hydra1902/harness-client-runtime/client'
+import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
+import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
 import type { RowDragProps } from '../src/client/rows/Rows.tsx'
 import { ProjectRowItem, SearchResultItem, SessionNodeItem } from '../src/client/rows/Rows.tsx'
 import type { GroupNode, SearchResultNode, SessionNode } from '../src/client/tree.ts'
 import { en } from '../src/client/locales.ts'
 
 let selectMenu: ((id: string) => void) | undefined
-vi.mock('@hydra/harness-client-ui-primitives', async (importOriginal) => {
-  const primitives = await importOriginal<typeof import('@hydra/harness-client-ui-primitives')>()
+vi.mock('@hydra1902/harness-client-ui-primitives', async (importOriginal) => {
+  const primitives = await importOriginal<typeof import('@hydra1902/harness-client-ui-primitives')>()
   const RealMenu = primitives.Menu
   return {
     ...primitives,

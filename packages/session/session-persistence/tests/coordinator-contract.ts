@@ -1,4 +1,4 @@
-import { createUserMessage } from '@hydra/harness-llm'
+import { createUserMessage } from '@hydra1902/harness-llm'
 /**
  * Shared write-path orchestration contract for backends using {@link PersistenceCoordinator}.
  * Unlike the public storage-semantics suite in `contract.ts`, it covers SessionStore event wiring,
@@ -7,14 +7,14 @@ import { createUserMessage } from '@hydra/harness-llm'
  *
  * Each real backend supplies a shared storage scope and optional torn-tail injector; backend specs
  * retain only storage-mechanics tests, while these scenarios run once per backend.
- * @module @hydra/harness-session-persistence/tests/coordinator-contract
+ * @module @hydra1902/harness-session-persistence/tests/coordinator-contract
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context, type Fiber } from '@hydra/cordis'
-import { scopeTarget } from '@hydra/harness-scope'
-import SessionStore, { SESSION_FORMAT_VERSION, Session, SessionId } from '@hydra/harness-session'
-import type { SessionEvent } from '@hydra/harness-session'
+import { Context, type Fiber } from '@hydra1902/cordis'
+import { scopeTarget } from '@hydra1902/harness-scope'
+import SessionStore, { SESSION_FORMAT_VERSION, Session, SessionId } from '@hydra1902/harness-session'
+import type { SessionEvent } from '@hydra1902/harness-session'
 import { meta, oneTurnLog, appendLog } from './contract.ts'
 
 /**

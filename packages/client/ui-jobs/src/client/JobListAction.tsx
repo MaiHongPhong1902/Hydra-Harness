@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import type { JobView } from '@hydra/harness-client-runtime/client'
-import { IconChevronDownOutline14, StateDot, useDismissOnOutsidePointer, type StateDotState } from '@hydra/harness-client-ui-primitives'
-import type { PropsLocale, PropsRuntime, TranslateNS } from '@hydra/harness-client-ui-slots'
+import type { JobView } from '@hydra1902/harness-client-runtime/client'
+import { IconChevronDownOutline14, StateDot, useDismissOnOutsidePointer, type StateDotState } from '@hydra1902/harness-client-ui-primitives'
+import type { PropsLocale, PropsRuntime, TranslateNS } from '@hydra1902/harness-client-ui-slots'
 import { NS } from './locales.ts'
-import type {} from '@hydra/harness-client-ui-conversation/client'
+import type {} from '@hydra1902/harness-client-ui-conversation/client'
 import css from './JobListAction.module.css'
 
 /** Full props for the session-header background-job action. */

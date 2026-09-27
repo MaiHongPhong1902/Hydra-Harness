@@ -1,9 +1,9 @@
 /**
  * Web application entry: thin bootstrap over the shell library. Everything —
  * module-table seeding, the boot page, and the UI-renderer handoff — lives
- * in @hydra/harness-client-web; this file only finds the mount point.
+ * in @hydra1902/harness-client-web; this file only finds the mount point.
  */
-import { AppWebEntry } from '@hydra/harness-client-web'
+import { AppWebEntry } from '@hydra1902/harness-client-web'
 
 const el = document.getElementById('root')
 if (el === null) throw new Error('web app: missing #root')

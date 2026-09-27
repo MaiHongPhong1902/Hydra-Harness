@@ -4,7 +4,7 @@
  * discipline), so `./client` projects the same single-source content
  * `./types` serves to host consumers — zero duplication.
  *
- * @module @hydra/harness-session-title/client
+ * @module @hydra1902/harness-session-title/client
  */
 
 export type * from './types.ts'

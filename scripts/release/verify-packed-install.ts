@@ -2,14 +2,10 @@
  * Install packed tarballs into a throwaway consumer outside the repository and
  * drive the installed executable with plain Node.
  *
- * Every tarball the installed tree needs comes from `--from`, so the only
- * registry traffic is for external dependencies. That matters beyond hermetic
- * verification: the harness packages declare the vendored framework as a peer,
- * those packages live in another release sequence, and this job must not depend
- * on the registry already carrying versions that match — one pull request may
- * bump both families before either publishes — so a hydra verification passes the
- * vendored family's pack output too, while publishing only its own
- * ([rationale](../../.agents/notes/implemented/process/2026-08-10-npm-release-sequences.md)).
+ * The hydra entry package carries its internal runtime closure, so this check
+ * installs only that tarball. The other packed directories are still read to
+ * validate their identities, but no internal package is supplied as a consumer
+ * dependency. That is the bare npm install @hydra1902/harness path.
  *
  * What this proves is that `files` selected a complete payload and that the
  * published dependency ranges resolve. A workspace link or a stale `lib/` in the
@@ -87,6 +83,9 @@ function main(): void {
   const packed = packedDependencies(values.from.map(directory => resolve(root, directory)))
   const expected = packed.get(entry.packageName)
   if (expected === undefined) throw new Error(`${entry.packageName} is not among the packed tarballs`)
+  const install = family.id === 'hydra'
+    ? new Map([[entry.packageName, expected]])
+    : packed
 
   const consumerRoot = mkdtempSync(join(tmpdir(), `hydra-packed-${family.id}-`))
   try {
@@ -94,17 +93,15 @@ function main(): void {
       name: `hydra-packed-install-${family.id}`,
       version: '0.0.0',
       private: true,
-      dependencies: Object.fromEntries([...packed].map(([name, entryPacked]) => [name, entryPacked.url])),
+      dependencies: Object.fromEntries([...install].map(([name, entryPacked]) => [name, entryPacked.url])),
     }, null, 2)}\n`)
 
     const environment = consumerEnvironment(consumerRoot)
-    console.log(`release verify-packed-install: installing ${String(packed.size)} tarball(s) into ${consumerRoot}`)
-    // Optional dependencies are omitted: the Landlock platform packages behind
-    // them need a musl toolchain and one build per architecture, and a consumer
-    // that cannot install them must still start — which is what optional means
-    // here. Their entry package is a plain dependency of @hydra/harness-sandbox-local, so
-    // its tarball is supplied through --from.
-    capture('npm', ['install', '--no-audit', '--no-fund', '--package-lock=false', '--omit=optional'],
+    console.log(`release verify-packed-install: installing ${String(install.size)} tarball(s) into ${consumerRoot}`)
+    // Keep optional dependencies enabled: native packages use optional
+    // platform-specific prebuilds, and npm skips the platforms that do not
+    // match the runner.
+    capture('npm', ['install', '--no-audit', '--no-fund', '--package-lock=false'],
       { cwd: consumerRoot, env: environment })
 
     const bin = join(consumerRoot, 'node_modules', ...entry.packageName.split('/'), entry.binPath)
@@ -112,6 +109,8 @@ function main(): void {
     if (version !== expected.version) {
       throw new Error(`installed ${entry.packageName} --version reported ${JSON.stringify(version)}, expected ${expected.version}`)
     }
+    const help = capture(process.execPath, [bin, '--help'], { cwd: consumerRoot, env: environment })
+    if (!help.startsWith('Usage: hydra ')) throw new Error(`${entry.packageName} --help did not print the CLI usage`)
     console.log(`release verify-packed-install: installed ${entry.packageName} reports ${version}`)
     const bare = attempt(process.execPath, [bin], {
       cwd: consumerRoot,

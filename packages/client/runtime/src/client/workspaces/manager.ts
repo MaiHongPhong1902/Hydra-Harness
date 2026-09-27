@@ -2,8 +2,8 @@
 
 import type {
   HostFrame, IApiClient, RpcError, RpcRequest, RpcResult, SessionId, WorkspaceId, WorkspaceView,
-} from '@hydra/harness-api-remotes/client'
-import { transportError } from '@hydra/harness-host-apiproxy/api'
+} from '@hydra1902/harness-api-remotes/client'
+import { transportError } from '@hydra1902/harness-host-apiproxy/api'
 import { Notifier } from '../sessions/notifier.ts'
 import { Workspace, type WorkspaceCreateInput } from './workspace.ts'
 

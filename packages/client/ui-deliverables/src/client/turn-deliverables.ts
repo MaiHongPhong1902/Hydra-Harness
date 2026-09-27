@@ -5,10 +5,10 @@
  */
 import type {
   ConversationNodeDefinition, ToolResultNode,
-} from '@hydra/harness-client-runtime/client'
-import { isAppendSurfaceEvent } from '@hydra/harness-client-runtime/client'
-import type { MarkdownFileMentions } from '@hydra/harness-client-ui-primitives'
-import type { TurnTailOwnerProps } from '@hydra/harness-client-ui-conversation/client'
+} from '@hydra1902/harness-client-runtime/client'
+import { isAppendSurfaceEvent } from '@hydra1902/harness-client-runtime/client'
+import type { MarkdownFileMentions } from '@hydra1902/harness-client-ui-primitives'
+import type { TurnTailOwnerProps } from '@hydra1902/harness-client-ui-conversation/client'
 
 interface ProducedPath {
   readonly seq: number
@@ -20,7 +20,7 @@ export interface DeliverablesTurnData {
   readonly produced: readonly ProducedPath[]
 }
 
-declare module '@hydra/harness-client-runtime/client' {
+declare module '@hydra1902/harness-client-runtime/client' {
   interface ConversationTurnDataMap {
     /** Successful mutation paths accumulated in this Turn. */
     deliverables: DeliverablesTurnData

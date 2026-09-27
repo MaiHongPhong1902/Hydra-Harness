@@ -2,13 +2,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FitAddon } from '@xterm/addon-fit'
 import { Terminal } from '@xterm/xterm'
-import type { WorkspaceId } from '@hydra/harness-client-runtime/client'
+import type { WorkspaceId } from '@hydra1902/harness-client-runtime/client'
 import {
   IconChevronDownOutline14,
   IconChevronRightOutline14,
   IconPlusOutline16,
   IconTrashOutline16,
-} from '@hydra/harness-client-ui-primitives'
+} from '@hydra1902/harness-client-ui-primitives'
 import type { DesktopTerminalId } from './DesktopBrowserPanel.tsx'
 import './xterm.css'
 import css from './DesktopTerminalPanel.module.css'

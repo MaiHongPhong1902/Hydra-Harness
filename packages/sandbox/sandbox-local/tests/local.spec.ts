@@ -11,14 +11,14 @@ import { mkdtempSync, realpathSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { LAUNCHER_FAILURE_EXIT } from '@hydra/node-addon-landlock-run'
-import { SANDBOX_UNAVAILABLE, SandboxUnavailableError } from '@hydra/harness-sandbox'
-import type { SandboxPolicy } from '@hydra/harness-sandbox'
+import { Context } from '@hydra1902/cordis'
+import { LAUNCHER_FAILURE_EXIT } from '@hydra1902/node-addon-landlock-run'
+import { SANDBOX_UNAVAILABLE, SandboxUnavailableError } from '@hydra1902/harness-sandbox'
+import type { SandboxPolicy } from '@hydra1902/harness-sandbox'
 import {
   LocalSandboxProvider,
-} from '@hydra/harness-sandbox-local'
-import type { Config } from '@hydra/harness-sandbox-local'
+} from '@hydra1902/harness-sandbox-local'
+import type { Config } from '@hydra1902/harness-sandbox-local'
 import { bwrapProfileArgs, landlockProfileArgs, seatbeltProfileArgs } from '../src/profiles.ts'
 
 const RO: SandboxPolicy = { mode: 'read-only', workspaceRoot: '/ws' }
@@ -220,7 +220,7 @@ describe('the platform chains', () => {
   })
 
   // The win32 chain's argv contract, denial dialect, and runner-failure rules
-  // live in @hydra/harness-sandbox-windows-acl/tests/provider-chain.spec.ts
+  // live in @hydra1902/harness-sandbox-windows-acl/tests/provider-chain.spec.ts
   // (platform-independent assertions that run in every CI lane, including
   // Windows where this package's POSIX-only suites are excluded).
 

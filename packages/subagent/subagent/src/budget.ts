@@ -1,10 +1,10 @@
 /** Durable delegation admissions and process-local capacity shared by one session tree. */
-import type { Context } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import type { Session } from '@hydra/harness-session'
+import type { Context } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import type { Session } from '@hydra1902/harness-session'
 import { SubagentError } from './error.ts'
 
-declare module '@hydra/harness-session/types' {
+declare module '@hydra1902/harness-session/types' {
   interface SessionEventMap {
     /** One admitted child creation, charged to the delegation root before provider work starts. */
     'subagent/admission': { parentId: Session['id'] }

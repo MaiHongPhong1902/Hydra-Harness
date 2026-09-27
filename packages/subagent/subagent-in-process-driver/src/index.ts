@@ -8,15 +8,15 @@
  * composes and drives them directly, so this driver owns exactly one turn with
  * one result.
  *
- * @module @hydra/harness-subagent-in-process-driver
+ * @module @hydra1902/harness-subagent-in-process-driver
  */
 
 import { randomUUID } from 'node:crypto'
-import type { Context } from '@hydra/cordis'
-import { foldConsumedWork } from '@hydra/harness-agent'
-import type { Agent, AgentHandle } from '@hydra/harness-agent'
-import { SessionId, type SessionEvent, type TurnEndReason } from '@hydra/harness-session'
-import { createUserMessage, type ContentBlock } from '@hydra/harness-llm'
+import type { Context } from '@hydra1902/cordis'
+import { foldConsumedWork } from '@hydra1902/harness-agent'
+import type { Agent, AgentHandle } from '@hydra1902/harness-agent'
+import { SessionId, type SessionEvent, type TurnEndReason } from '@hydra1902/harness-session'
+import { createUserMessage, type ContentBlock } from '@hydra1902/harness-llm'
 import {
   appendDelegatedPolicyOverrides,
   applyChildComposition,
@@ -26,14 +26,14 @@ import {
   finalAssistantOutput,
   resolveChildAgentOptions,
   resolveChildDepth,
-} from '@hydra/harness-subagent'
+} from '@hydra1902/harness-subagent'
 import type {
   ResolvedSubagentStartRequest,
   SubagentDescriptorData,
   SubagentResult,
   SubagentRun,
   SubagentStopReason,
-} from '@hydra/harness-subagent'
+} from '@hydra1902/harness-subagent'
 import {
   attachStructuredRuntime,
   type StructuredAttachment,

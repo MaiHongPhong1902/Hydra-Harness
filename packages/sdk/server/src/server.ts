@@ -2,18 +2,18 @@
  * JSON-RPC methods and notifications for out-of-process harness SDKs.
  * The surrounding context owns plugins, persistence, and configured adapters.
  *
- * @module @hydra/harness-sdk-jsonrpc-server/server
+ * @module @hydra1902/harness-sdk-jsonrpc-server/server
  */
 
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import { resolve } from 'node:path'
-import type { Agent, AgentHandle } from '@hydra/harness-agent'
-import { createUserMessage } from '@hydra/harness-llm'
-import { carrierKeyOf, type Scoped } from '@hydra/harness-scope'
-import { SessionId } from '@hydra/harness-session'
-import type SubagentRuntime from '@hydra/harness-subagent'
-import type { SubagentRunEndInfo } from '@hydra/harness-subagent'
-import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
+import type { Agent, AgentHandle } from '@hydra1902/harness-agent'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import { carrierKeyOf, type Scoped } from '@hydra1902/harness-scope'
+import { SessionId } from '@hydra1902/harness-session'
+import type SubagentRuntime from '@hydra1902/harness-subagent'
+import type { SubagentRunEndInfo } from '@hydra1902/harness-subagent'
+import * as LlmDeepSeek from '@hydra1902/harness-llm-deepseek'
 import type {
   InitializeParams,
   InitializeResult,
@@ -23,7 +23,7 @@ import type {
   SessionPromptResult,
   SubagentFinishedNotification,
   SubagentStartedNotification,
-} from '@hydra/harness-sdk-protocol'
+} from '@hydra1902/harness-sdk-protocol'
 
 interface SessionRecord {
   handle: AgentHandle
@@ -219,7 +219,7 @@ export class HarnessSdkJsonRpcServer {
     // No preset composition: this server's compositions keep the model-facing
     // rows in the host plane, so this agent reads them from the global layer. A
     // deployment that configures a roster has to join one here first
-    // (@hydra/harness-agent-presets README, "Composing a child agent").
+    // (@hydra1902/harness-agent-presets README, "Composing a child agent").
     const handle = await this.ctx.agents.create({
       sessionId: SessionId(sessionId),
       meta: { cwd: this.cwd },

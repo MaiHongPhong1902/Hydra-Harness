@@ -8,8 +8,8 @@
 
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
 import { AgentPresetSection } from '../src/client/AgentPresetSection.tsx'
 import type { AgentPresetSectionProps } from '../src/client/AgentPresetSection.tsx'
 import type { AgentPresetSectionState, CopyDraft } from '../src/client/section-store.ts'

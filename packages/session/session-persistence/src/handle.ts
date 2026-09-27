@@ -1,5 +1,5 @@
 /** Per-session channel returned by the durable persistence service. */
-import type { SessionEvent, SessionHeader, SessionId } from '@hydra/harness-session'
+import type { SessionEvent, SessionHeader, SessionId } from '@hydra1902/harness-session'
 
 /** Access granted to a session handle. */
 export type SessionAccess = 'read' | 'write'

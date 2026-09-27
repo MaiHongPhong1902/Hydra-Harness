@@ -1,7 +1,7 @@
 /** Canonical tool-definition fixtures for repository tests. @module hydra-tools/testing */
 
-import type { ContentBlock } from '@hydra/harness-llm'
-import type { JsonValue } from '@hydra/harness-session'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { JsonValue } from '@hydra1902/harness-session'
 import { defineTool } from './schema.ts'
 import type { DefineToolOptions, ParameterSchemaSpec } from './schema.ts'
 import type { ToolDefinition, ToolRunContext } from './index.ts'

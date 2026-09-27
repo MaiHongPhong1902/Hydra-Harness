@@ -15,7 +15,8 @@
  * the tag after the commit merges. CI never writes to the repository.
  */
 
-import { globSync, readFileSync, writeFileSync } from 'node:fs'
+import { globSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join, matchesGlob } from 'node:path'
 import { parseArgs } from 'node:util'
 import { releaseFamily, type ReleaseFamily, type ReleaseMember } from './families.ts'
@@ -235,6 +236,23 @@ function writeVersion(root: string, manifestPath: string, from: string, to: stri
 }
 
 /**
+ * Stage the exact release files without putting every manifest on a Windows
+ * command line.
+ * @param root - repository root.
+ * @param files - repository-relative paths to stage.
+ */
+function stageReleaseFiles(root: string, files: readonly string[]): void {
+  const temporary = mkdtempSync(join(tmpdir(), 'hydra-release-stage-'))
+  const pathspec = join(temporary, 'paths')
+  try {
+    writeFileSync(pathspec, `${files.join('\0')}\0`)
+    capture('git', ['add', `--pathspec-from-file=${pathspec}`, '--pathspec-file-nul'], { cwd: root })
+  } finally {
+    rmSync(temporary, { recursive: true, force: true })
+  }
+}
+
+/**
  * Read the workspace root version.
  * @param root - repository root.
  * @returns The root manifest version.
@@ -408,7 +426,7 @@ function main(): void {
     console.log('release bump: dry run, nothing written')
     return
   }
-  capture('git', ['add', 'pnpm-lock.yaml', ...planned.map(entry => entry.manifestPath)])
+  stageReleaseFiles(root, ['pnpm-lock.yaml', ...planned.map(entry => entry.manifestPath)])
   capture('git', ['commit', '-m', `release(${family.id}): ${summary}`])
   console.log('release bump: committed. After this merges to master, tag it:')
   for (const tag of [...new Set(planned.map(entry => entry.tag).filter(tag => tag !== undefined))]) {

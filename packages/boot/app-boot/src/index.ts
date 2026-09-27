@@ -3,7 +3,7 @@
  * `.env`, install the fail-loud Loader guards, resolve the config path (snapshot-aware), load the
  * optional user patch layers from the Harness home (`~/.hydra`), expose its path resolver to
  * config expressions, and drive the Cordis Loader against a leaf `cordis.yml` until the tree settles.
- * @module @hydra/harness-app-boot
+ * @module @hydra1902/harness-app-boot
  */
 
 import { pathToFileURL } from 'node:url'
@@ -11,17 +11,17 @@ import { readFileSync } from 'node:fs'
 import { parseEnv } from 'node:util'
 import { basename, dirname, isAbsolute, resolve } from 'node:path'
 import * as yaml from 'js-yaml'
-import { Context, type FiberState } from '@hydra/cordis'
-import Loader, { type Entry, type EntryOptions } from '@hydra/cordis-plugin-loader'
-import Include, { applyEntryPatches, entryListSchema, type PatchOptions } from '@hydra/cordis-plugin-include'
-import Group from '@hydra/cordis-plugin-group'
-import { hydraHomePath, resolveHydraHome } from '@hydra/harness-home-paths'
-import { createLaunchEnvironmentSnapshot, type LaunchEnvironmentSnapshot } from '@hydra/harness-launch-environment'
-import type {} from '@hydra/cordis-plugin-hmr'
+import { Context, type FiberState } from '@hydra1902/cordis'
+import Loader, { type Entry, type EntryOptions } from '@hydra1902/cordis-plugin-loader'
+import Include, { applyEntryPatches, entryListSchema, type PatchOptions } from '@hydra1902/cordis-plugin-include'
+import Group from '@hydra1902/cordis-plugin-group'
+import { hydraHomePath, resolveHydraHome } from '@hydra1902/harness-home-paths'
+import { createLaunchEnvironmentSnapshot, type LaunchEnvironmentSnapshot } from '@hydra1902/harness-launch-environment'
+import type {} from '@hydra1902/cordis-plugin-hmr'
 // Side-effect type import: resolves `ctx.get('systemPrompt')` to the service.
-import type {} from '@hydra/harness-system-prompt'
+import type {} from '@hydra1902/harness-system-prompt'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     /** Harness-home path resolver available to Loader `!!js` config expressions. */
     hydraHomePath?: typeof hydraHomePath
@@ -267,7 +267,7 @@ export async function watchUserPatches(
 
 /**
  * Load an optional patch-list file: a top-level YAML array of loader patch
- * entries (`@hydra/cordis-plugin-include`'s `PatchOptions`): id-targeted config
+ * entries (`@hydra1902/cordis-plugin-include`'s `PatchOptions`): id-targeted config
  * overrides and `insert` lists, with `!!js` expressions allowed. A missing
  * file means "no layer"; an unreadable, unparsable, or non-array file throws —
  * a present patch file that cannot apply is a misconfiguration and must fail
@@ -307,7 +307,7 @@ export function loadOverlayPatches(binName: string, file: string): PatchOptions[
 }
 /**
  * Parse one loader patch list: a top-level YAML array of
- * `@hydra/cordis-plugin-include` `PatchOptions` (id-targeted config overrides and
+ * `@hydra1902/cordis-plugin-include` `PatchOptions` (id-targeted config overrides and
  * `insert` lists, `!!js` expressions allowed). Every invalid field or value throws,
  * because a patch file that cannot be applied at all is a misconfiguration; a
  * single patch whose target row is absent stays a per-entry Loader warning, so
@@ -505,7 +505,7 @@ export async function mountRootInclude(
     }
   // `cordis:group` alongside it: a group row is how a composition gives one
   // `isolate` realm to a provider and its consumers together, and an agent
-  // preset living outside this workspace cannot resolve `@hydra/cordis-plugin-group`
+  // preset living outside this workspace cannot resolve `@hydra1902/cordis-plugin-group`
   // by name. Both builtins load through the ambient module pipeline, so neither
   // depends on the included tree's own specifier resolution.
   ctx.loader.builtins.group = Group
@@ -808,7 +808,7 @@ export const HARNESS_SOURCE_SECTION = 'harness:source'
 /**
  * Add a global prompt section naming the on-disk harness source checkout while
  * explicitly distinguishing it from the task workspace and current working
- * directory. The self-referential `@hydra/harness-tool-cordis` toolset reads and edits this
+ * directory. The self-referential `@hydra1902/harness-tool-cordis` toolset reads and edits this
  * checkout. Call once on the settled boot context ({@link boot}); the section
  * orders just after the harness identity opener (`-100`) and before the deployment
  * persona (`0`). A booted tree with no `systemPrompt` service has no prompt to

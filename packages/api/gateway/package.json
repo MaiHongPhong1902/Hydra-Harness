@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-api-gateway",
+  "name": "@hydra1902/harness-api-gateway",
   "description": "Typert Remote Host dispatcher and Client API endpoint",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -39,8 +39,8 @@
     },
     "client": {
       "inject": [
-        "@hydra/harness-typert-registry",
-        "@hydra/harness-client-connection"
+        "@hydra1902/harness-typert-registry",
+        "@hydra1902/harness-client-connection"
       ],
       "platform": "web",
       "immediately": true
@@ -59,20 +59,20 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@hydra/harness-typert-protocol": "workspace:^"
+    "@hydra1902/harness-typert-protocol": "workspace:^"
   },
   "peerDependencies": {
-    "@hydra/harness-client-connection": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-typert-registry": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-client-connection": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-typert-registry": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-client-connection": "workspace:^",
-    "@hydra/harness-host-webserver": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-typert-registry": "workspace:^",
-    "@hydra/cordis": "workspace:^",
+    "@hydra1902/harness-client-connection": "workspace:^",
+    "@hydra1902/harness-host-webserver": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-typert-registry": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
     "zod": "^4.4.3"
   }
 }

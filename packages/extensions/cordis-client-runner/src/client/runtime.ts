@@ -14,14 +14,14 @@
  * serialization keeps a second request from interleaving with one in flight.
  */
 
-import type { Context } from '@hydra/cordis'
-import type { Loader } from '@hydra/cordis-plugin-loader'
+import type { Context } from '@hydra1902/cordis'
+import type { Loader } from '@hydra1902/cordis-plugin-loader'
 import type {
   CordisDynamicPackageId, CordisDynamicPluginId, CordisDynamicPluginRunId, DynamicCordisPackage,
-} from '@hydra/harness-api-remotes/client'
-import type { SessionId } from '@hydra/harness-client-connection/client'
-import type { ClientModuleSystem } from '@hydra/harness-client-modules/client'
-import type { SlotRegistry } from '@hydra/harness-client-runtime/client'
+} from '@hydra1902/harness-api-remotes/client'
+import type { SessionId } from '@hydra1902/harness-client-connection/client'
+import type { ClientModuleSystem } from '@hydra1902/harness-client-modules/client'
+import type { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
 import { DynamicCordisStyles, evaluateClientHalf, DYNAMIC_CLIENT_REDIRECTS } from './evaluator.ts'
 import type { DynamicCordisEvaluatedPlugin } from './evaluator.ts'
 import { dynamicCordisContext } from './guard.ts'

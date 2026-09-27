@@ -1,12 +1,12 @@
 /**
  * Durable storage-domain declaration for lifecycle-bound message feedback.
- * @module @hydra/harness-message-feedback/src/spec
+ * @module @hydra1902/harness-message-feedback/src/spec
  */
 
 import { z } from 'zod'
-import type { MessageId } from '@hydra/harness-llm/brand'
-import type { SessionId } from '@hydra/harness-session/types'
-import { defineDomain, domainTable } from '@hydra/harness-storage-domain'
+import type { MessageId } from '@hydra1902/harness-llm/brand'
+import type { SessionId } from '@hydra1902/harness-session/types'
+import { defineDomain, domainTable } from '@hydra1902/harness-storage-domain'
 import type { MessageFeedbackItem, MessageFeedbackRating, MessageFeedbackVersion } from './types.ts'
 
 const nonNegativeSafeInteger = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)

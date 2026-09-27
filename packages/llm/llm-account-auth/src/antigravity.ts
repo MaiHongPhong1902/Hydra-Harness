@@ -9,10 +9,10 @@
  * @module hydra-llm-account-auth/antigravity
  */
 
-import { CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, QUOTA_EXCEEDED_CODE, type ContentBlock, type FinishReason, type GenerateOptions, type LlmModelInfo, type LlmProviderInfo, type LlmResolvedModelInfo, type ReplayEnvelope, type StreamChunk, type TokenUsage, type ToolSchema } from '@hydra/harness-llm'
-import { idleWatchdog, timeoutOf } from '@hydra/harness-timeout'
-import type { AttachmentStore } from '@hydra/harness-attachment'
-import type { Message } from '@hydra/harness-llm/message'
+import { CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, QUOTA_EXCEEDED_CODE, type ContentBlock, type FinishReason, type GenerateOptions, type LlmModelInfo, type LlmProviderInfo, type LlmResolvedModelInfo, type ReplayEnvelope, type StreamChunk, type TokenUsage, type ToolSchema } from '@hydra1902/harness-llm'
+import { idleWatchdog, timeoutOf } from '@hydra1902/harness-timeout'
+import type { AttachmentStore } from '@hydra1902/harness-attachment'
+import type { Message } from '@hydra1902/harness-llm/message'
 import {
   ANTIGRAVITY_API_VERSION,
   ANTIGRAVITY_API_ENDPOINT,

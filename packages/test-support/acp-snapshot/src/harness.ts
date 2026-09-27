@@ -13,7 +13,7 @@
  *
  * See .agents/notes/implemented/testing/2026-06-19-acp-snapshot-tests.md.
  *
- * @module @hydra/harness-acp-snapshot/harness
+ * @module @hydra1902/harness-acp-snapshot/harness
  */
 
 import { cp, mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
@@ -160,7 +160,7 @@ export interface RunOptions {
   /**
    * Recorded SUBAGENT child-session fixture paths (replay). A nested-agent
    * scenario ships one per child (`session.1.jsonl`, …); the harness forwards
-   * them to `@hydra/harness-llm-replay` via `$HYDRA_SNAPSHOT_CHILD_FILES` so each child
+   * them to `@hydra1902/harness-llm-replay` via `$HYDRA_SNAPSHOT_CHILD_FILES` so each child
    * session replays from its own recorded script. Empty for single-session
    * scenarios. Ignored in record mode (children are harvested, not replayed).
    */
@@ -773,7 +773,7 @@ async function harvestSessionLogs(root: string): Promise<HarvestedLog[]> {
   // synchronously and strictly sequentially, so their createdAt values are
   // strictly ordered; the recordedId tiebreak only keeps a degenerate
   // same-millisecond collision (unreachable here) deterministic. This harvest
-  // order must match the replay load order in @hydra/harness-llm-replay's loadSessionScripts
+  // order must match the replay load order in @hydra1902/harness-llm-replay's loadSessionScripts
   // so session.<n>.jsonl maps to the same child on record and replay — replay
   // re-sorts childFiles by the same key, so the two stay consistent.
   logs.sort((a, b) => {

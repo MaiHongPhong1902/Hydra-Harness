@@ -15,8 +15,8 @@ import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import { join } from 'node:path'
 import { load as parseYaml } from 'js-yaml'
-import { SessionId } from '@hydra/harness-session'
-import type PluginInventoryGateway from '@hydra/harness-host-plugin-inventory'
+import { SessionId } from '@hydra1902/harness-session'
+import type PluginInventoryGateway from '@hydra1902/harness-host-plugin-inventory'
 import {
   acknowledgeReloadConnectionLoss, assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold,
@@ -156,7 +156,7 @@ describe('web e2e: settings modal and General preferences', () => {
     await compareOrRefreshGolden(PLUGIN_TOGGLE_EXPECTED, toggleSnapshot, MODE)
     await toggleRow.getByRole('switch', { name: 'Disable plugin session-stats', exact: true }).click()
     await toggleRow.getByRole('switch', { name: 'Enable plugin session-stats', exact: true }).waitFor()
-    expect((await inventory.list()).entries.find(entry => entry.moduleName === '@hydra/harness-session-stats')?.enabled).toBe(true)
+    expect((await inventory.list()).entries.find(entry => entry.moduleName === '@hydra1902/harness-session-stats')?.enabled).toBe(true)
     await toggleRow.locator('[role="button"]').click()
     const toggleDetails = page.getByRole('dialog', { name: 'session-stats', exact: true })
     await toggleDetails.getByText('Unsaved change', { exact: true }).waitFor()
@@ -165,10 +165,10 @@ describe('web e2e: settings modal and General preferences', () => {
     await toggleDetails.getByRole('button', { name: 'Close plugin details', exact: true }).click()
     await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
     await expect.poll(async () => (await inventory.list()).entries
-      .find(entry => entry.moduleName === '@hydra/harness-session-stats' && entry.presetId === undefined)?.enabled).toBe(false)
+      .find(entry => entry.moduleName === '@hydra1902/harness-session-stats' && entry.presetId === undefined)?.enabled).toBe(false)
     const settingsPath = join(scaffold.harnessHome, 'settings.yaml')
     expect(parseYaml(await readFile(settingsPath, 'utf8'))).toMatchObject({
-      plugins: { enabled: { '@hydra/harness-session-stats': false } },
+      plugins: { enabled: { '@hydra1902/harness-session-stats': false } },
     })
     await toggleRow.locator('[role="button"]').click()
     const savedToggleDetails = page.getByRole('dialog', { name: 'session-stats', exact: true })
@@ -189,14 +189,14 @@ describe('web e2e: settings modal and General preferences', () => {
     await toggleRow.getByRole('switch', { name: 'Disable plugin session-stats', exact: true }).waitFor()
     await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
     await expect.poll(async () => (await inventory.list()).entries
-      .find(entry => entry.moduleName === '@hydra/harness-session-stats' && entry.presetId === undefined)?.enabled).toBe(true)
+      .find(entry => entry.moduleName === '@hydra1902/harness-session-stats' && entry.presetId === undefined)?.enabled).toBe(true)
     expect(parseYaml(await readFile(settingsPath, 'utf8'))).toMatchObject({
-      plugins: { enabled: { '@hydra/harness-session-stats': true } },
+      plugins: { enabled: { '@hydra1902/harness-session-stats': true } },
     })
     await pluginRow.getByRole('switch', { name: 'Disable plugin ui-settings', exact: true }).click()
     await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
-    await expect.poll(async () => (await inventory.list()).entries.find(entry => entry.moduleName === '@hydra/harness-client-ui-settings')?.restartRequired).toBe(true)
-    expect((await inventory.list()).entries.find(entry => entry.moduleName === '@hydra/harness-client-ui-settings')?.enabled).toBe(true)
+    await expect.poll(async () => (await inventory.list()).entries.find(entry => entry.moduleName === '@hydra1902/harness-client-ui-settings')?.restartRequired).toBe(true)
+    expect((await inventory.list()).entries.find(entry => entry.moduleName === '@hydra1902/harness-client-ui-settings')?.enabled).toBe(true)
     await pluginRow.locator('[role="button"]').click()
     const pluginDetails = page.getByRole('dialog', { name: 'ui-settings', exact: true })
     await pluginDetails.getByText('This change will apply after restart.', { exact: true }).waitFor()
@@ -205,7 +205,7 @@ describe('web e2e: settings modal and General preferences', () => {
     await pluginDetails.getByRole('button', { name: 'Close plugin details', exact: true }).click()
     await pluginRow.getByRole('switch', { name: 'Enable plugin ui-settings', exact: true }).click()
     await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
-    await expect.poll(async () => (await inventory.list()).entries.find(entry => entry.moduleName === '@hydra/harness-client-ui-settings')?.restartRequired).toBe(false)
+    await expect.poll(async () => (await inventory.list()).entries.find(entry => entry.moduleName === '@hydra1902/harness-client-ui-settings')?.restartRequired).toBe(false)
     // Close path 1: Escape.
     await page.keyboard.press('Escape')
     await expect.poll(() => page.getByRole('dialog', { name: 'Settings' }).count(), { timeout: 5_000 }).toBe(0)
@@ -282,7 +282,7 @@ describe('web e2e: settings modal and General preferences', () => {
     await page.keyboard.press('Escape')
 
     // Hold real plugin bundles so the shell-owned loading page remains observable.
-    const pluginPattern = /\/plugins\/@hydra\/harness-client-ui-theme\/client\.js(?:\?.*)?$/
+    const pluginPattern = /\/plugins\/@hydra1902\/harness-client-ui-theme\/client\.js(?:\?.*)?$/
     let releaseBundles = (): void => {}
     const bundlesReleased = new Promise<void>((resolve) => { releaseBundles = resolve })
     await page.route(pluginPattern, async (route) => {

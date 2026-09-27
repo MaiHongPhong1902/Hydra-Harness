@@ -1,15 +1,15 @@
 /** Covers fail-closed per-call classification and model-schema isolation. */
 
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { CallId } from '@hydra/harness-llm'
-import SystemPrompt from '@hydra/harness-system-prompt'
+import { Context } from '@hydra1902/cordis'
+import { CallId } from '@hydra1902/harness-llm'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
 import ToolRuntime, {
   defineContentToolFixture,
   type ToolDefinition,
   type ToolExecutionInput,
   type ToolExecutionMode,
-} from '@hydra/harness-tools'
+} from '@hydra1902/harness-tools'
 
 const testToolSignal = new AbortController().signal
 

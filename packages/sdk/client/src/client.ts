@@ -1,15 +1,15 @@
 /**
  * Low-level JSON-RPC client for a Hydra harness SDK runtime subprocess.
  * {@link HarnessClient} owns the child process: it spawns the runtime, speaks
- * the `@hydra/harness-sdk-protocol` wire over the child's stdio, fans
+ * the `@hydra1902/harness-sdk-protocol` wire over the child's stdio, fans
  * server notifications out to subscriptions, and tears the child down to
  * quiescence through a private EOF → SIGTERM → SIGKILL ladder. The design
  * twin is the Python SDK's `HarnessClient` (`python/sdk`); both drive the
  * same runtime protocol. This client runs OUTSIDE any harness context, so it
- * spawns directly rather than through the `@hydra/harness-subprocess` service — the
+ * spawns directly rather than through the `@hydra1902/harness-subprocess` service — the
  * seam's documented exception for SDK-managed transports.
  *
- * @module @hydra/harness-sdk-client/client
+ * @module @hydra1902/harness-sdk-client/client
  */
 
 import { spawn, type ChildProcess } from 'node:child_process'
@@ -19,8 +19,8 @@ import {
   type InitializeParams,
   type InitializeResult,
   type SessionPromptParams,
-} from '@hydra/harness-sdk-protocol'
-import type { ContentBlock } from '@hydra/harness-llm'
+} from '@hydra1902/harness-sdk-protocol'
+import type { ContentBlock } from '@hydra1902/harness-llm'
 import { disposeRuntimeProcess } from './dispose.ts'
 import type { HarnessClientOptions, HarnessNotification, NotificationFilter } from './types.ts'
 

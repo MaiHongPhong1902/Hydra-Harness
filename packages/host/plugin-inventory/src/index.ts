@@ -6,23 +6,23 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { Service, type Context, type FiberState } from '@hydra/cordis'
-import type { Entry } from '@hydra/cordis-plugin-loader'
-import type { Include } from '@hydra/cordis-plugin-include'
-import { profilePluginEnablement, readProfileManifest, resolveProfileDir } from '@hydra/harness-app-boot'
-import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
-import { settingsNamespace, type SettingsScope } from '@hydra/harness-settings'
-import { TypertRemoteService, Remote } from '@hydra/harness-typert-protocol'
+import { Service, type Context, type FiberState } from '@hydra1902/cordis'
+import type { Entry } from '@hydra1902/cordis-plugin-loader'
+import type { Include } from '@hydra1902/cordis-plugin-include'
+import { profilePluginEnablement, readProfileManifest, resolveProfileDir } from '@hydra1902/harness-app-boot'
+import { withFileLock, writeFileAtomic } from '@hydra1902/harness-atomic-write'
+import { settingsNamespace, type SettingsScope } from '@hydra1902/harness-settings'
+import { TypertRemoteService, Remote } from '@hydra1902/harness-typert-protocol'
 import type {
   ImportedPluginEntry, ImportedPluginRuntime, ImportedPluginSnapshot, PluginImportSource,
-} from '@hydra/harness-plugin-runtime'
+} from '@hydra1902/harness-plugin-runtime'
 import type {
   HookRecordDefinitionRequest, HookRecordEnablementRequest, HookRecordRegistry, HookRecordSnapshot,
-} from '@hydra/harness-hooks-registry'
+} from '@hydra1902/harness-hooks-registry'
 import type {
   McpServerDefinitionRequest, McpServerEnablementRequest, McpServerRegistry, McpServerSnapshot,
-} from '@hydra/harness-mcp-registry'
-import z from '@hydra/schemastery'
+} from '@hydra1902/harness-mcp-registry'
+import z from '@hydra1902/schemastery'
 import { z as zod } from 'zod'
 import type {
   AddPluginMarketplaceRequest,
@@ -41,7 +41,7 @@ import type {
 
 export type * from './types.ts'
 
-declare module '@hydra/cordis-plugin-loader' {
+declare module '@hydra1902/cordis-plugin-loader' {
   interface EntryOptions {
     /** Optional composition-specific summary, overriding the package description. */
     description?: string
@@ -81,7 +81,7 @@ const FIBER_PHASE = {
 
 const PLUGIN_SETTINGS_NAMESPACE = settingsNamespace('plugins')
 const MARKETPLACE_SETTINGS_NAMESPACE = settingsNamespace('plugin-marketplaces')
-const HMR_MODULE = '@hydra/cordis-plugin-hmr'
+const HMR_MODULE = '@hydra1902/cordis-plugin-hmr'
 const AGENT_PRESET_ENTRY_PREFIX = 'agent-preset:'
 const MAX_MARKETPLACE_BYTES = 1024 * 1024
 const MARKETPLACE_GIT_TIMEOUT_MS = 30_000

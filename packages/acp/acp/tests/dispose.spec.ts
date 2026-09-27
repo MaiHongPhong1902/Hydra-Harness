@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PROTOCOL_VERSION } from '@agentclientprotocol/sdk'
-import type { Agent } from '@hydra/harness-agent'
-import type { StreamChunk } from '@hydra/harness-llm'
-import { SessionId } from '@hydra/harness-session'
+import type { Agent } from '@hydra1902/harness-agent'
+import type { StreamChunk } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydra1902/harness-session'
 import { makeBridgeHarness, type BridgeHarness } from './harness.ts'
 
 describe('ACP connection ownership', () => {

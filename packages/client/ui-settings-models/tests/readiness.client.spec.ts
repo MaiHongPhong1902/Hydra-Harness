@@ -1,6 +1,6 @@
 /** Pure first-run readiness projection over the shared Models join. */
 import { describe, expect, it } from 'vitest'
-import type { CredentialView, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
+import type { CredentialView, SettingsNamespaceView } from '@hydra1902/harness-api-remotes/client'
 import type { ModelsSettingsState, ProviderRow } from '../src/client/store.ts'
 import { onboardingReadiness, providerUsable } from '../src/client/store.ts'
 

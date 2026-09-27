@@ -1,4 +1,4 @@
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 
 /**
  * Deployment-style redaction rule for the telemetry e2e: scrubs the fixture

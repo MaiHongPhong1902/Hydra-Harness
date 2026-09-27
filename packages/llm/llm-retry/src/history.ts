@@ -1,6 +1,6 @@
-/** Durable request-route lookup for one open model step. @module @hydra/harness-llm-retry/history */
+/** Durable request-route lookup for one open model step. @module @hydra1902/harness-llm-retry/history */
 
-import type { SessionEvent } from '@hydra/harness-session'
+import type { SessionEvent } from '@hydra1902/harness-session'
 
 /**
  * Find the provider in force for one currently open step.

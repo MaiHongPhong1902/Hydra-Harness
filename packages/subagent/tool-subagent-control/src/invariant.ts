@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-tool-subagent-control`.
- * @module @hydra/harness-tool-subagent-control/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-tool-subagent-control`.
+ * @module @hydra1902/harness-tool-subagent-control/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-tool-subagent-control'
+const PACKAGE_NAME = '@hydra1902/harness-tool-subagent-control'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-subagent-control-invariant'

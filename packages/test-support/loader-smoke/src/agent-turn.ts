@@ -1,12 +1,12 @@
 /**
  * Test-only direct-agent turn driver shared by assembled Loader fixtures.
- * @module @hydra/harness-loader-smoke/agent-turn
+ * @module @hydra1902/harness-loader-smoke/agent-turn
  */
 
-import type { Context } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import { createUserMessage, type TokenUsage } from '@hydra/harness-llm'
-import type { SessionEvent } from '@hydra/harness-session'
+import type { Context } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import { createUserMessage, type TokenUsage } from '@hydra1902/harness-llm'
+import type { SessionEvent } from '@hydra1902/harness-session'
 
 /** Result envelope consumed only by snapshot and composition tests. */
 export interface FixtureTurnResult {

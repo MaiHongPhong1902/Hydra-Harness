@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import WebRuntime from '@hydra/harness-web'
-import { ExaSearchProvider, EXA_PROVIDER_ID } from '@hydra/harness-web-search-exa'
-import * as exaPlugin from '@hydra/harness-web-search-exa'
+import { Context } from '@hydra1902/cordis'
+import WebRuntime from '@hydra1902/harness-web'
+import { ExaSearchProvider, EXA_PROVIDER_ID } from '@hydra1902/harness-web-search-exa'
+import * as exaPlugin from '@hydra1902/harness-web-search-exa'
 import { mapExaResponse, mapExaResult } from '../src/provider.ts'
 
 const options = { apiKey: 'exa-key', baseURL: 'https://api.exa.test', searchType: 'auto' as const, highlightsPerResult: 1 }

@@ -1,5 +1,5 @@
-import type { Context } from '@hydra/cordis'
-import type { SessionId, UserMessageNode } from '@hydra/harness-client-runtime/client'
+import type { Context } from '@hydra1902/cordis'
+import type { SessionId, UserMessageNode } from '@hydra1902/harness-client-runtime/client'
 import { NS } from '../locales.ts'
 import { AssistantNodeView } from './AssistantNodeView.tsx'
 import { CommandNodeView, ManualCompactionNodeView } from './CommandNodeView.tsx'

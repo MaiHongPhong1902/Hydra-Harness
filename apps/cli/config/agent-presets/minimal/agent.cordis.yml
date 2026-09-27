@@ -7,7 +7,7 @@
 # `str_replace_editor`. Context compaction is absent.
 
 - id: persona
-  name: '@hydra/harness-persona'
+  name: '@hydra1902/harness-persona'
   config:
     text: You are a helpful software engineer assistant.
     complete: true
@@ -25,16 +25,16 @@
     terminals: true
   config:
     - id: pty
-      name: '@hydra/harness-terminal'
+      name: '@hydra1902/harness-terminal'
 
     - id: terminal-bash
-      name: '@hydra/harness-terminal-bash'
+      name: '@hydra1902/harness-terminal-bash'
       disabled: !!js process.platform === 'win32'
       config:
         timeoutMs: 300000
 
     - id: persistent-bash
-      name: '@hydra/harness-tool-bash-persistent'
+      name: '@hydra1902/harness-tool-bash-persistent'
       disabled: !!js process.platform === 'win32'
       config:
         timeoutMs: 300000
@@ -49,14 +49,14 @@
           * Please run long lived commands in the background, e.g. 'sleep 10 &' or start a server in the background.
 
     - id: terminal-pwsh
-      name: '@hydra/harness-terminal-bash'
+      name: '@hydra1902/harness-terminal-bash'
       disabled: !!js process.platform !== 'win32'
       config:
         shellDialect: pwsh
         timeoutMs: 300000
 
     - id: persistent-pwsh
-      name: '@hydra/harness-tool-pwsh-persistent'
+      name: '@hydra1902/harness-tool-pwsh-persistent'
       disabled: !!js process.platform !== 'win32'
       config:
         timeoutMs: 300000
@@ -78,11 +78,11 @@
     fs: true
   config:
     - id: fs-local
-      name: '@hydra/harness-fs-local'
+      name: '@hydra1902/harness-fs-local'
       config:
         cwd: !!js process.env.HYDRA_CWD ?? process.cwd()
 
     - id: str-replace-editor
-      name: '@hydra/harness-tool-str-replace-editor'
+      name: '@hydra1902/harness-tool-str-replace-editor'
       config:
         maxOutputChars: 16000

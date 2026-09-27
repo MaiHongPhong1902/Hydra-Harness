@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { credentialKey } from '@hydra/harness-credentials'
-import InvariantRegistry from '@hydra/harness-invariants'
-import AuthorizationService from '@hydra/harness-authorization'
+import { Context } from '@hydra1902/cordis'
+import { credentialKey } from '@hydra1902/harness-credentials'
+import InvariantRegistry from '@hydra1902/harness-invariants'
+import AuthorizationService from '@hydra1902/harness-authorization'
 import * as AuthorizationInvariant from '../src/invariant.ts'
 import { MemoryCredentials } from './memory.ts'
 
@@ -81,7 +81,7 @@ describe('authorization invariant companion', () => {
     await ctx.plugin(AuthorizationInvariant)
 
     expect(() => {
-      ctx.invariants.register('@hydra/harness-authorization', () => {})
+      ctx.invariants.register('@hydra1902/harness-authorization', () => {})
     }).toThrow(/already registered/)
   })
 })

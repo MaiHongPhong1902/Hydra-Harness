@@ -1,8 +1,8 @@
 /** Unified JSON-value schema DSL, inference, compilation, and typed tool helper. @module hydra-tools/schema */
 
-import { HarnessError } from '@hydra/harness-llm'
-import type { ContentBlock } from '@hydra/harness-llm'
-import type { JsonValue } from '@hydra/harness-session'
+import { HarnessError } from '@hydra1902/harness-llm'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { JsonValue } from '@hydra1902/harness-session'
 import type { ToolDefinition, ToolExecution, ToolExecutionResult, ToolRunContext, ToolResult } from './index.ts'
 import { assertSupportedJsonSchema, isJsonSchemaRecord, isPlainJsonArray, JsonSchemaError, validateJsonSchemaValue } from './json-schema.ts'
 import type { JsonSchemaNode, JsonSchemaScalar, ObjectJsonSchema } from './json-schema.ts'

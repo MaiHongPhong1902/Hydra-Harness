@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-host-frontend-static",
+  "name": "@hydra1902/harness-host-frontend-static",
   "description": "SPA dist server for the Web shell: owns the webserver fallback seat, serving explicit index entries and static assets with traversal rejection and 404 misses",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -32,17 +32,17 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-host-webserver": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-host-webserver": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-host-webserver": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-host-webserver": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

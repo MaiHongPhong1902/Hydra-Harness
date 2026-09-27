@@ -27,16 +27,16 @@ describe('verify-cordis-config metadata expressions', () => {
   })
 
   it('requires a browser-roster row to declare core classification', () => {
-    const client = { id: 'ui-tool', name: '@hydra/harness-client-ui-tool' }
+    const client = { id: 'ui-tool', name: '@hydra1902/harness-client-ui-tool' }
     expect(metadataExpressionErrors({ ...client, pluginType: 'core' }, '[0]')).toEqual([])
     expect(metadataExpressionErrors(client, '[0]')).toEqual([
-      '[0].pluginType: a @hydra/harness-client-* row must be core',
+      '[0].pluginType: a @hydra1902/harness-client-* row must be core',
     ])
-    expect(metadataExpressionErrors({ id: 'fs-review', name: '@hydra/harness-fs-review' }, '[0]')).toEqual([])
+    expect(metadataExpressionErrors({ id: 'fs-review', name: '@hydra1902/harness-fs-review' }, '[0]')).toEqual([])
   })
   it('accepts a disabled !!js expression', () => {
     const problems = metadataExpressionErrors(
-      { id: 'tool-bash', name: '@hydra/harness-tool-bash', disabled: { __jsExpr: "process.platform === 'win32'" } },
+      { id: 'tool-bash', name: '@hydra1902/harness-tool-bash', disabled: { __jsExpr: "process.platform === 'win32'" } },
       '[0]',
     )
     expect(problems).toEqual([])
@@ -73,11 +73,11 @@ describe('workspace Bundle discovery and product dependency closures', () => {
       mkdirSync(bundleDir, { recursive: true })
       mkdirSync(plainDir, { recursive: true })
       writeFileSync(join(bundleDir, 'package.json'), JSON.stringify({
-        name: '@hydra/harness-subagent-example',
+        name: '@hydra1902/harness-subagent-example',
         hydra: { bundle: { patch: './cordis.patch.yml' } },
       }))
       writeFileSync(join(plainDir, 'package.json'), JSON.stringify({
-        name: '@hydra/harness-plain',
+        name: '@hydra1902/harness-plain',
       }))
 
       expect(bundleManifestPaths(fixture)).toEqual([
@@ -92,16 +92,16 @@ describe('workspace Bundle discovery and product dependency closures', () => {
     const manifestPath = 'packages/subagent/example/package.json'
     const file = 'packages/subagent/example/cordis.patch.yml'
     const manifest = {
-      name: '@hydra/harness-subagent-example',
+      name: '@hydra1902/harness-subagent-example',
       dependencies: {},
     }
-    const self = { file, name: '@hydra/harness-subagent-example' }
+    const self = { file, name: '@hydra1902/harness-subagent-example' }
     expect(bundlePluginDependencyErrors(manifestPath, manifest, [self])).toEqual([])
     expect(bundlePluginDependencyErrors(manifestPath, manifest, [
       self,
-      { file, name: '@hydra/harness-missing-plugin' },
+      { file, name: '@hydra1902/harness-missing-plugin' },
     ])).toEqual([
-      `${file}: @hydra/harness-missing-plugin must be declared in ${manifestPath} dependencies`,
+      `${file}: @hydra1902/harness-missing-plugin must be declared in ${manifestPath} dependencies`,
     ])
   })
 })

@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-headless",
+  "name": "@hydra1902/harness-headless",
   "description": "The hydra one-shot bundle: a direct core Agent/Session runner over hydra-base with no Host, HTTP, or browser layer",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -47,27 +47,27 @@
     }
   },
   "dependencies": {
-    "@hydra/harness-cmdline": "workspace:^",
-    "@hydra/harness-code-runtime-worker-thread": "workspace:^",
-    "@hydra/schemastery": "workspace:^",
+    "@hydra1902/harness-cmdline": "workspace:^",
+    "@hydra1902/harness-code-runtime-worker-thread": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^",
     "commander": "^15.0.0"
   },
   "peerDependencies": {
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-agent-default-model": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-agent-default-model": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-agent-default-model": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-agent-default-model": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

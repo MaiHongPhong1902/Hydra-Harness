@@ -1,8 +1,8 @@
 /** Host registration for the browser theme preference and pre-plugin palette. */
 
-import type { Context } from '@hydra/cordis'
-import type {} from '@hydra/harness-host-webserver'
-import { settingsNamespace } from '@hydra/harness-settings'
+import type { Context } from '@hydra1902/cordis'
+import type {} from '@hydra1902/harness-host-webserver'
+import { settingsNamespace } from '@hydra1902/harness-settings'
 import { bootThemeInjection } from './boot-theme.ts'
 import {
   DEFAULT_PREFERENCE, THEME_SETTINGS_NAMESPACE, ThemeSettingsSchema,

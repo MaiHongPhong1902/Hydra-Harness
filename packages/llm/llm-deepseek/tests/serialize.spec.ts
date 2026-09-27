@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
-import { AttachmentError, AttachmentId } from '@hydra/harness-attachment'
-import type { AttachmentStore, ImageAttachmentRef, ImageMediaType } from '@hydra/harness-attachment'
-import { createUserMessage, CallId, ReasoningEffortId, createMessage } from '@hydra/harness-llm'
-import type { ContentBlock, GenerateOptions, Message } from '@hydra/harness-llm'
+import { AttachmentError, AttachmentId } from '@hydra1902/harness-attachment'
+import type { AttachmentStore, ImageAttachmentRef, ImageMediaType } from '@hydra1902/harness-attachment'
+import { createUserMessage, CallId, ReasoningEffortId, createMessage } from '@hydra1902/harness-llm'
+import type { ContentBlock, GenerateOptions, Message } from '@hydra1902/harness-llm'
 import {
   serializeMessages,
   serializeMessagesWithImages,

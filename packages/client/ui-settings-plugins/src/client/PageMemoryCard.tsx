@@ -1,6 +1,6 @@
 /** Page Memory configuration card. */
 
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
 import { PluginCard } from './PluginCard.tsx'
 import { ValueField } from './fields.tsx'
 import type { PageMemoryCardFace, PageMemorySettings } from './page-memory-card-controller.ts'

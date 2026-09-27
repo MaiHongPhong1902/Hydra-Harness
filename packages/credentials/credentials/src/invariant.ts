@@ -1,12 +1,12 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-credentials`.
- * @module @hydra/harness-credentials/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-credentials`.
+ * @module @hydra1902/harness-credentials/invariant
  */
 
-import type { Context } from '@hydra/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-credentials'
+const PACKAGE_NAME = '@hydra1902/harness-credentials'
 
 /** Cordis companion plugin name. */
 export const name = 'credentials-invariant'

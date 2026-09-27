@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { WorkerThreadCodeRuntime } from '@hydra/harness-code-runtime-worker-thread'
-import type { Config } from '@hydra/harness-code-runtime-worker-thread'
-import type { CodeBindingFunction, CodeBindingNamespace, CodeRunResult } from '@hydra/harness-code-runtime'
+import { Context } from '@hydra1902/cordis'
+import { WorkerThreadCodeRuntime } from '@hydra1902/harness-code-runtime-worker-thread'
+import type { Config } from '@hydra1902/harness-code-runtime-worker-thread'
+import type { CodeBindingFunction, CodeBindingNamespace, CodeRunResult } from '@hydra1902/harness-code-runtime'
 
 /**
  * Integration suite over REAL worker threads (no mocks — workers are cheap

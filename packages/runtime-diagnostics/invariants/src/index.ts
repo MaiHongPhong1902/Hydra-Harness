@@ -3,13 +3,13 @@
  * Every workspace package registers checks from a `./invariant` companion;
  * ordinary package entrypoints stay independent of diagnostics.
  *
- * @module @hydra/harness-invariants
+ * @module @hydra1902/harness-invariants
  */
 
-import { Context, Service } from '@hydra/cordis'
-import type { Inject } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type Schema from '@hydra/schemastery'
+import { Context, Service } from '@hydra1902/cordis'
+import type { Inject } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type Schema from '@hydra1902/schemastery'
 
 /** Runtime invariant selection configured on the service plugin. */
 export interface Config {
@@ -65,7 +65,7 @@ export class InvariantError extends Error {
   }
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     invariants: InvariantRegistry
   }

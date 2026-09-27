@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { ShellExecutor } from '@hydra/harness-shell'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult } from '@hydra/harness-shell'
+import { Context } from '@hydra1902/cordis'
+import { ShellExecutor } from '@hydra1902/harness-shell'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult } from '@hydra1902/harness-shell'
 
 /**
  * Minimal concrete executor: canned foreground results, a hand-built process

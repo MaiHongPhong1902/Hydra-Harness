@@ -19,7 +19,7 @@ import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import {
   HydraLogo, IconNewChatOutline16, IconPanelLeftOutline16, Tooltip,
-} from '@hydra/harness-client-ui-primitives'
+} from '@hydra1902/harness-client-ui-primitives'
 import type { SidebarRootComponentProps } from './contract/slots.ts'
 import css from './SidebarRoot.module.css'
 import { HydraSidebarBrand } from './HydraSidebarBrand.tsx'

@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-client-ui-goal",
+  "name": "@hydra1902/harness-client-ui-goal",
   "description": "Session goal surface: GoalBar docked above the composer, read from the goal session projection",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -35,10 +35,10 @@
     },
     "client": {
       "inject": [
-        "@hydra/harness-client-runtime",
-        "@hydra/harness-api-remotes",
-        "@hydra/harness-client-locale",
-        "@hydra/harness-client-ui-conversation"
+        "@hydra1902/harness-client-runtime",
+        "@hydra1902/harness-api-remotes",
+        "@hydra1902/harness-client-locale",
+        "@hydra1902/harness-client-ui-conversation"
       ],
       "platform": "web"
     }
@@ -49,35 +49,35 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-client-locale": "workspace:^",
-    "@hydra/harness-api-remotes": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-ui-conversation": "workspace:^",
-    "@hydra/harness-commands": "workspace:^",
-    "@hydra/harness-goal": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-typert-protocol": "workspace:^"
+    "@hydra1902/harness-client-locale": "workspace:^",
+    "@hydra1902/harness-api-remotes": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-conversation": "workspace:^",
+    "@hydra1902/harness-commands": "workspace:^",
+    "@hydra1902/harness-goal": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-typert-protocol": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-client-locale": "workspace:^",
-    "@hydra/harness-api-remotes": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-test-runtime": "workspace:^",
-    "@hydra/harness-client-ui-conversation": "workspace:^",
-    "@hydra/harness-client-ui-primitives": "workspace:^",
-    "@hydra/harness-client-ui-slots": "workspace:^",
-    "@hydra/harness-commands": "workspace:^",
-    "@hydra/harness-goal": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
+    "@hydra1902/harness-client-locale": "workspace:^",
+    "@hydra1902/harness-api-remotes": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-test-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-conversation": "workspace:^",
+    "@hydra1902/harness-client-ui-primitives": "workspace:^",
+    "@hydra1902/harness-client-ui-slots": "workspace:^",
+    "@hydra1902/harness-commands": "workspace:^",
+    "@hydra1902/harness-goal": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
     "@testing-library/react": "^16.1.0",
     "@types/react": "~18.3.1",
-    "@hydra/cordis": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-typert-protocol": "workspace:^"
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-typert-protocol": "workspace:^"
   },
   "files": [
     "lib/index.js",

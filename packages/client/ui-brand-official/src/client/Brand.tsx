@@ -1,6 +1,6 @@
-import { BrandWordmark, HydraLogo } from '@hydra/harness-client-ui-primitives'
-import type { HeroBrandMarkOwnerProps } from '@hydra/harness-client-ui-conversation/client'
-import type { SidebarBrandMarkOwnerProps } from '@hydra/harness-client-ui-sidebar/client'
+import { BrandWordmark, HydraLogo } from '@hydra1902/harness-client-ui-primitives'
+import type { HeroBrandMarkOwnerProps } from '@hydra1902/harness-client-ui-conversation/client'
+import type { SidebarBrandMarkOwnerProps } from '@hydra1902/harness-client-ui-sidebar/client'
 
 type OfficialBrandMarkProps = HeroBrandMarkOwnerProps & SidebarBrandMarkOwnerProps
 

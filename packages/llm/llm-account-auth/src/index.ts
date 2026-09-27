@@ -1,11 +1,11 @@
 /** Native account routes; provider SDKs load only for login or model operations. */
-import type { Context } from '@hydra/cordis'
-import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
+import type { Context } from '@hydra1902/cordis'
+import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
 import {
   LlmAdapter, LlmError,
   type AdapterRegistrationHandle, type GenerateOptions, type LlmDiscoveredModel,
   type LlmModelInfo, type LlmProviderInfo, type LlmResolvedModelInfo, type StreamChunk,
-} from '@hydra/harness-llm'
+} from '@hydra1902/harness-llm'
 import { accountRecordKey, createAccountPool, type AccountPool } from './accounts.ts'
 import {
   ACCOUNT_PROVIDER_LABELS, ACCOUNT_PROVIDERS, Config, resolveProfiles,

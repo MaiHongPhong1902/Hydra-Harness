@@ -7,12 +7,12 @@
 import { readFile, readdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@hydra/cordis'
-import { normalizeSessionSnapshot, type NormalizeContext } from '@hydra/harness-acp-snapshot'
-import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra/harness-loader-smoke'
-import { createUserMessage } from '@hydra/harness-llm'
-import SessionStore, { SESSION_FORMAT_VERSION, SessionId, type SessionEvent, type SessionHeader } from '@hydra/harness-session'
-import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
+import { Context } from '@hydra1902/cordis'
+import { normalizeSessionSnapshot, type NormalizeContext } from '@hydra1902/harness-acp-snapshot'
+import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra1902/harness-loader-smoke'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import SessionStore, { SESSION_FORMAT_VERSION, SessionId, type SessionEvent, type SessionHeader } from '@hydra1902/harness-session'
+import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
 import { describe, expect, it } from 'vitest'
 
 const fixtureDir = fileURLToPath(new URL('./subagent-diagnostic-snapshots/descriptorless-child', import.meta.url))

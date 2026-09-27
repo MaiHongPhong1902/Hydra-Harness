@@ -1,6 +1,6 @@
 /** Public configuration and typed failures for the combined session-query service. */
 
-import { HarnessError } from '@hydra/harness-llm'
+import { HarnessError } from '@hydra1902/harness-llm'
 
 /** Default maximum `before`/`after` raw-event window. */
 export const SESSION_QUERY_READ_WINDOW_MAX = 50

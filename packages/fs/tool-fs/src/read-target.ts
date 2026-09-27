@@ -1,12 +1,12 @@
 /**
  * Shared path resolution and regular-file validation for model-facing read tools.
- * @module @hydra/harness-tool-fs/src/read-target
+ * @module @hydra1902/harness-tool-fs/src/read-target
  */
 
-import type { Context } from '@hydra/cordis'
-import { FsError } from '@hydra/harness-fs'
-import type { FsInfo, FsTarget } from '@hydra/harness-fs'
-import type { ToolExecution } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import { FsError } from '@hydra1902/harness-fs'
+import type { FsInfo, FsTarget } from '@hydra1902/harness-fs'
+import type { ToolExecution } from '@hydra1902/harness-tools'
 import { sessionResolveOptions } from './session-cwd.ts'
 
 /**

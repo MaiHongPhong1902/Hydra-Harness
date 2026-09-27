@@ -2,7 +2,7 @@
  * Public API of the Typert analyzer, compiler-independent model, and
  * model-driven artifact emitters. Build wiring lives in the `./tsdown`
  * subpath.
- * @module @hydra/harness-typert-generator
+ * @module @hydra1902/harness-typert-generator
  */
 
 export { WorkspaceAnalyzer, WorkspaceCaches, TypertAnalysisError } from './analyzer.ts'

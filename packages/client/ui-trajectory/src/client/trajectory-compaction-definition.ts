@@ -1,8 +1,8 @@
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import type {
   ConversationMatch, ConversationNodeDefinition, RequestView,
-} from '@hydra/harness-client-runtime/client'
-import type {} from '@hydra/harness-compaction/types'
+} from '@hydra1902/harness-client-runtime/client'
+import type {} from '@hydra1902/harness-compaction/types'
 import { trajectoryNode } from './trajectory-definition-common.ts'
 
 interface CompactionState {

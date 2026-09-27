@@ -1,7 +1,7 @@
 /**
  * SQLite storage primitives: transactional append-batch packing, physical
  * reads, schema validation, revisions, repair, and lifecycle closure.
- * @module @hydra/harness-session-persistence-sqlite/store
+ * @module @hydra1902/harness-session-persistence-sqlite/store
  */
 
 import { randomUUID } from 'node:crypto'
@@ -13,7 +13,7 @@ import {
   type SessionEvent,
   type SessionHeader,
   type SessionId,
-} from '@hydra/harness-session'
+} from '@hydra1902/harness-session'
 import {
   SessionPersistenceRevision,
   type PersistenceBackend,
@@ -21,7 +21,7 @@ import {
   type SessionPersistenceSnapshot,
   type StoredPrefix,
   type StoredSuffix,
-} from '@hydra/harness-session-persistence'
+} from '@hydra1902/harness-session-persistence'
 import {
   MAX_PACKED_ROW_MEMBERS,
   packChunkRuns,

@@ -1,7 +1,7 @@
 /**
  * Keyless snapshot coverage for the TypeScript SDK path: each scenario spawns
  * the REAL `hydra-jsonrpc-agent` runtime (per `HYDRA_EXAMPLE_MODE`) through the
- * REAL `@hydra/harness-sdk-client`, drives one turn over stdio JSON-RPC,
+ * REAL `@hydra1902/harness-sdk-client`, drives one turn over stdio JSON-RPC,
  * and pins the SDK `RunResult`, the complete notification stream, and the
  * persisted session logs. Replay serves recorded model
  * responses via `llm-replay` (`cordis.snapshot.yml`); `HYDRA_SNAPSHOT=record`
@@ -27,9 +27,9 @@ import {
   tokenizeSessionFixtureCwd,
   type HarvestedLog,
   type NormalizeContext,
-} from '@hydra/harness-acp-snapshot'
-import { resolveExampleLaunch } from '@hydra/harness-loader-smoke'
-import { HydraHarness, type HarnessNotification, type RunResult } from '@hydra/harness-sdk-client'
+} from '@hydra1902/harness-acp-snapshot'
+import { resolveExampleLaunch } from '@hydra1902/harness-loader-smoke'
+import { HydraHarness, type HarnessNotification, type RunResult } from '@hydra1902/harness-sdk-client'
 
 const testsDir = dirOf(import.meta.url)
 const snapshotsDir = join(testsDir, 'snapshots')
@@ -189,7 +189,7 @@ function assembledRuntimeContexts(log: PersistedLog): string[] {
     }
     if (event.type !== 'user/message'
       || event.data?.source?.kind !== 'plugin'
-      || event.data.source.plugin !== '@hydra/harness-system-prompt') return []
+      || event.data.source.plugin !== '@hydra1902/harness-system-prompt') return []
     return event.data.content?.flatMap(block => block.type === 'text' && typeof block.text === 'string' ? [block.text] : []) ?? []
   })
 }

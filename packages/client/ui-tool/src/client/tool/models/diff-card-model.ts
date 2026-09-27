@@ -7,7 +7,7 @@
  * call this, so the hunks they show are derived once.
  * @module
  */
-import type { DiffBlockProps, DiffHunk } from '@hydra/harness-client-ui-primitives'
+import type { DiffBlockProps, DiffHunk } from '@hydra1902/harness-client-ui-primitives'
 import type { ToolCallBlock } from './tool-call-model.ts'
 
 /**

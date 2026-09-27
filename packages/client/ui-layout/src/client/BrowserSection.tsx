@@ -1,11 +1,11 @@
 /** Desktop-only Browser preferences and native browser-data managers. */
 import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
-import { Modal, RiskConfirmation } from '@hydra/harness-client-ui-primitives'
+import { Modal, RiskConfirmation } from '@hydra1902/harness-client-ui-primitives'
 import type {
   HostObservable, InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime,
-} from '@hydra/harness-client-ui-slots'
-import type { SettingsScopeSnapshot } from '@hydra/harness-client-runtime/client'
+} from '@hydra1902/harness-client-ui-slots'
+import type { SettingsScopeSnapshot } from '@hydra1902/harness-client-runtime/client'
 import type { BrowserKey } from './browser-locales.ts'
 import type {
   BrowserAnnotationScreenshots, BrowserAutofillStatus, BrowserContact, BrowserContactFields,

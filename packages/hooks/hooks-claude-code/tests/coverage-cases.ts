@@ -1,20 +1,20 @@
-import { createUserMessage } from '@hydra/harness-llm'
+import { createUserMessage } from '@hydra1902/harness-llm'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mkdtempSync, rmSync, writeFileSync, chmodSync, existsSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@hydra/cordis'
-import { SessionId, type SessionEvent } from '@hydra/harness-session'
-import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
-import { defineContentToolFixture } from '@hydra/harness-tools'
-import type { Agent } from '@hydra/harness-agent'
-import AgentLoop from '@hydra/harness-agent-loop'
-import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
-import { LocalBashExecutor } from '@hydra/harness-bash-local'
-import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
-import { scopeTarget } from '@hydra/harness-scope'
-import SubagentRuntime, { SubagentRunId } from '@hydra/harness-subagent'
-import * as HooksClaude from '@hydra/harness-hooks-claude-code'
+import { Context } from '@hydra1902/cordis'
+import { SessionId, type SessionEvent } from '@hydra1902/harness-session'
+import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
+import { defineContentToolFixture } from '@hydra1902/harness-tools'
+import type { Agent } from '@hydra1902/harness-agent'
+import AgentLoop from '@hydra1902/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra1902/harness-agent-loop-testkit'
+import { LocalBashExecutor } from '@hydra1902/harness-bash-local'
+import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
+import { scopeTarget } from '@hydra1902/harness-scope'
+import SubagentRuntime, { SubagentRunId } from '@hydra1902/harness-subagent'
+import * as HooksClaude from '@hydra1902/harness-hooks-claude-code'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 
 const testToolSignal = new AbortController().signal
@@ -153,7 +153,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
       const ctx = await harness(path, new MockAdapter([]))
       let ran = false
       ctx.tools.register(defineContentToolFixture({ name: 'echo', description: 'e', parameters: {}, async execute() { ran = true; return [{ type: 'text', text: 'x' }] } }))
-      const { CallId } = await import('@hydra/harness-llm')
+      const { CallId } = await import('@hydra1902/harness-llm')
       const result = await ctx.tools.execute({ signal: testToolSignal, callId: CallId('c1'), name: 'echo', arguments: {} })
       expect(ran).toBe(false)
       expect(result.isError).toBe(true)
@@ -479,7 +479,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
       const adapter = new MockAdapter([textResponse('ran')])
       const ctx = await harness(path, adapter) // NB: no projectDir
       // The factory create() path honors meta.cwd (the plain agentLoop.create() does not).
-      const { SessionId } = await import('@hydra/harness-session')
+      const { SessionId } = await import('@hydra1902/harness-session')
       const handle = await ctx.agents.create({ sessionId: SessionId('s1'), meta: { cwd: workspace }, agentOptions: { provider: 'mock', model: 'mock' } })
       handle.agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
       await waitForIdle(ctx, handle.agent)
@@ -675,7 +675,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
       ctx.llm.registerAdapter(['mock'], adapter)
       ctx.tools.register(defineContentToolFixture({ name: 'echo', description: 'e', parameters: {}, async execute() { return [{ type: 'text', text: 'ok' }] } }))
 
-      const { SessionId } = await import('@hydra/harness-session')
+      const { SessionId } = await import('@hydra1902/harness-session')
       const handle = await ctx.agents.create({ sessionId: SessionId('s1'), meta: { cwd: sessionDir }, agentOptions: { provider: 'mock', model: 'mock' } })
       handle.agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
       await waitForIdle(ctx, handle.agent)
@@ -703,7 +703,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
       await ctx.plugin(HooksClaude, { configPath: join(serverDir, 'hooks.json') })
       ctx.llm.registerAdapter(['mock'], new MockAdapter([]))
 
-      const { SessionId } = await import('@hydra/harness-session')
+      const { SessionId } = await import('@hydra1902/harness-session')
       const childHandle = await ctx.agents.create({ sessionId: SessionId('child-stop-session'), meta: { cwd: childDir }, agentOptions: { provider: 'mock', model: 'mock' } })
       const runId = SubagentRunId('run-stop')
       const identity = { runId, provider: 'inproc', id: childHandle.agent.id, local: true }

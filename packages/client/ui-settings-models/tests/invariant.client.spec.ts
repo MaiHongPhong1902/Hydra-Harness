@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import * as ModelsInvariant from '@hydra/harness-client-ui-settings-models/invariant'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import * as ModelsInvariant from '@hydra1902/harness-client-ui-settings-models/invariant'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 import { ModelsSection } from '../src/client/ModelsSection.tsx'
 
 describe('invariant companion', () => {
@@ -12,7 +12,7 @@ describe('invariant companion', () => {
   })
 
   it('node-half apply is a no-op host placeholder', async () => {
-    const { apply } = await import('@hydra/harness-client-ui-settings-models')
+    const { apply } = await import('@hydra1902/harness-client-ui-settings-models')
     apply()
     expect(true).toBe(true) // reaching here without throw is the contract
   })

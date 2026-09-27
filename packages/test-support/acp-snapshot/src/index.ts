@@ -13,7 +13,7 @@
  * NOTE: ./suite.ts imports vitest, so this package is importable only inside a
  * vitest run — a support-tier constraint stated in the README.
  *
- * @module @hydra/harness-acp-snapshot
+ * @module @hydra1902/harness-acp-snapshot
  */
 
 export {

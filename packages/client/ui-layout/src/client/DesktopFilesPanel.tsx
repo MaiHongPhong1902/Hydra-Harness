@@ -18,7 +18,7 @@ import {
   IconRefreshOutline14,
   IconSearchOutline16,
   IconTrashOutline16,
-} from '@hydra/harness-client-ui-primitives'
+} from '@hydra1902/harness-client-ui-primitives'
 import css from './DesktopFilesPanel.module.css'
 
 export interface DesktopFileEntry {

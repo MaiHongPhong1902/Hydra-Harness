@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-web-search-perplexity`.
- * @module @hydra/harness-web-search-perplexity/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-web-search-perplexity`.
+ * @module @hydra1902/harness-web-search-perplexity/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-web-search-perplexity'
+const PACKAGE_NAME = '@hydra1902/harness-web-search-perplexity'
 
 /** Cordis companion plugin name. */
 export const name = 'web-search-perplexity-invariant'

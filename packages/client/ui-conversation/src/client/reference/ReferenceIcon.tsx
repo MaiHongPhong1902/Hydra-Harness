@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import {
   IconBrowseOutline16, IconFolderClose16,
-} from '@hydra/harness-client-ui-primitives'
+} from '@hydra1902/harness-client-ui-primitives'
 
 /** Reference domains with distinct composer and transcript glyphs. */
 export type ReferenceIconKind = 'session' | 'file' | 'folder'

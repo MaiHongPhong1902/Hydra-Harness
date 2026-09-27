@@ -58,7 +58,7 @@ export const en = {
 /** Translation keys owned by the Cordis UI namespace. */
 export type CordisKey = keyof typeof en
 
-declare module '@hydra/harness-client-ui-slots' {
+declare module '@hydra1902/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Dynamic Cordis UI copy. */
     cordis: CordisKey

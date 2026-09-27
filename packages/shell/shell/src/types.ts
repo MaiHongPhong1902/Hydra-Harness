@@ -1,17 +1,17 @@
 /**
  * Execution types for the bash executor seam. Background job semantics belong
- * to `@hydra/harness-jobs`; this seam exposes only process handles. The
+ * to `@hydra1902/harness-jobs`; this seam exposes only process handles. The
  * managed-environment and captured-output vocabulary is owned by the
  * subprocess seam and re-exported here so bash consumers keep one import
  * root.
  * @module hydra-shell/types
  */
 
-import type { SandboxEnforcement, SandboxExecutionPolicy, SandboxMode } from '@hydra/harness-sandbox'
-import type { CollectedOutput, HydraEnvironment } from '@hydra/harness-subprocess'
+import type { SandboxEnforcement, SandboxExecutionPolicy, SandboxMode } from '@hydra1902/harness-sandbox'
+import type { CollectedOutput, HydraEnvironment } from '@hydra1902/harness-subprocess'
 
-export { HYDRA_ENV_PREFIX } from '@hydra/harness-subprocess'
-export type { CollectedOutput, HydraEnvironment, HydraEnvironmentKey } from '@hydra/harness-subprocess'
+export { HYDRA_ENV_PREFIX } from '@hydra1902/harness-subprocess'
+export type { CollectedOutput, HydraEnvironment, HydraEnvironmentKey } from '@hydra1902/harness-subprocess'
 
 /**
  * Sandbox facts for one run, present iff a sandboxing executor handled it.

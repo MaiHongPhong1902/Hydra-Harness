@@ -1,12 +1,12 @@
 /**
  * Configuration normalization for workspace instruction discovery and rendering.
  *
- * @module @hydra/harness-agent-instructions/config
+ * @module @hydra1902/harness-agent-instructions/config
  */
 
 import { relative } from 'node:path'
-import z from '@hydra/schemastery'
-import { resolveHydraHome } from '@hydra/harness-home-paths'
+import z from '@hydra1902/schemastery'
+import { resolveHydraHome } from '@hydra1902/harness-home-paths'
 
 const DEFAULT_PROJECT_ROOT_MARKERS = ['.git'] as const
 const DEFAULT_INSTRUCTION_FILE_CANDIDATES = ['AGENTS.md', 'CLAUDE.md'] as const

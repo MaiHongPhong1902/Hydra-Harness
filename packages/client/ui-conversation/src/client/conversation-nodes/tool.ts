@@ -1,14 +1,14 @@
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import type {
   ConversationMatch, ConversationNodeContext, ConversationNodeDefinition,
   RunningToolCall, ToolCallBlock, ToolResultNode,
-} from '@hydra/harness-client-runtime/client'
-import { isAppendSurfaceEvent } from '@hydra/harness-client-runtime/client'
-import type {} from '@hydra/harness-tools/types'
+} from '@hydra1902/harness-client-runtime/client'
+import { isAppendSurfaceEvent } from '@hydra1902/harness-client-runtime/client'
+import type {} from '@hydra1902/harness-tools/types'
 import type { ToolChatData } from '../contract/chat-nodes.ts'
 import { CHAT_SYNTHETIC_SEQ_OFFSETS, chatNode } from './common.ts'
 
-declare module '@hydra/harness-client-ui-conversation/client' {
+declare module '@hydra1902/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Root Tool lifecycle with recursively nested subcalls. */
     'tool-call': ToolChatData

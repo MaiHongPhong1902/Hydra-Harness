@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createDetachedRuns } from '@hydra/harness-hook-protocol'
+import { createDetachedRuns } from '@hydra1902/harness-hook-protocol'
 
 /** A promise settled from outside, so a test controls exactly when a tracked run finishes. */
 function deferred(): { promise: Promise<void>; resolve: () => void; reject: (error: Error) => void } {

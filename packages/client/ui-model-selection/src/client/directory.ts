@@ -7,9 +7,9 @@
  */
 import type {
   IApiClient, ModelCatalogFailure, ModelProviderGroup, ModelSelection, SessionId, SessionModels,
-} from '@hydra/harness-api-remotes/client'
-import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+} from '@hydra1902/harness-api-remotes/client'
+import type { SnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
 
 /** Directory snapshot both entries render from. */
 export interface ModelDirectoryState {

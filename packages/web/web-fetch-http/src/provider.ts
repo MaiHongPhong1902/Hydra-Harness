@@ -1,15 +1,15 @@
 /**
  * Safe HTTP(S) retrieval for `ctx.web`: validates URLs, follows only same-origin redirects,
  * enforces time and size limits, classifies and decodes text, and leaves presentation to
- * `@hydra/harness-tool-web`. Requests carry no browser cookies or ambient credentials.
+ * `@hydra1902/harness-tool-web`. Requests carry no browser cookies or ambient credentials.
  *
  * Connections enforce public IP destinations unless the operator grants an exact origin.
- * @module @hydra/harness-web-fetch-http/provider
+ * @module @hydra1902/harness-web-fetch-http/provider
  */
 
-import { WebError } from '@hydra/harness-web'
-import type { WebFetchBody, WebFetchProvider, WebFetchRequest, WebFetchResult } from '@hydra/harness-web'
-import { deadline, timeoutOf } from '@hydra/harness-timeout'
+import { WebError } from '@hydra1902/harness-web'
+import type { WebFetchBody, WebFetchProvider, WebFetchRequest, WebFetchResult } from '@hydra1902/harness-web'
+import { deadline, timeoutOf } from '@hydra1902/harness-timeout'
 import { classifyContentType, decoderForCharset, isSameOrigin, parseCharset, validateFetchUrl } from './policy.ts'
 import { publicDispatcher, resolveAllowedOrigins } from './network.ts'
 

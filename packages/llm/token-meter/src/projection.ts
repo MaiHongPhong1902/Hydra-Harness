@@ -1,7 +1,7 @@
 /**
  * Pure client-safe token-projection vocabulary.
  *
- * @module @hydra/harness-token-meter/projection
+ * @module @hydra1902/harness-token-meter/projection
  */
 
 /**
@@ -74,7 +74,7 @@ export interface ContextBreakdownProjection {
   messageTokens: number
 }
 
-declare module '@hydra/harness-session-projection/types' {
+declare module '@hydra1902/harness-session-projection/types' {
   interface SessionProjectionMap {
     /** Provider-reported usage accumulated across the complete durable log. */
     tokenUsage: TokenUsageProjection

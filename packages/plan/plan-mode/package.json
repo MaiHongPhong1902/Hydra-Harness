@@ -1,12 +1,12 @@
 {
-  "name": "@hydra/harness-plan-mode",
+  "name": "@hydra1902/harness-plan-mode",
   "description": "Logged per-agent plan mode with deployment guidance, a direct slash command, and a user-reviewed exit",
   "hydra": {
     "plugin": {
       "application": "Let the agent prepare a plan before requesting the user's approval to execute it."
     }
   },
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -46,19 +46,19 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-commands": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-projection": "workspace:^",
-    "@hydra/harness-system-prompt": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/harness-user-questions": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-commands": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-projection": "workspace:^",
+    "@hydra1902/harness-system-prompt": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/harness-user-questions": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "peerDependenciesMeta": {
-    "@hydra/harness-commands": {
+    "@hydra1902/harness-commands": {
       "optional": true
     }
   },
@@ -66,17 +66,17 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-agent-loop": "workspace:^",
-    "@hydra/harness-code-runtime": "workspace:^",
-    "@hydra/harness-commands": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-projection": "workspace:^",
-    "@hydra/harness-system-prompt": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/harness-user-questions": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-agent-loop": "workspace:^",
+    "@hydra1902/harness-code-runtime": "workspace:^",
+    "@hydra1902/harness-commands": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-projection": "workspace:^",
+    "@hydra1902/harness-system-prompt": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/harness-user-questions": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

@@ -3,10 +3,10 @@
  * `root` slot, which is the only ctx-level slot render in the application.
  */
 import type { ReactNode } from 'react'
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import { bindSnapshotSelector } from './bind.ts'
 import { DocumentTitle } from './DocumentTitle.tsx'
-import type {} from '@hydra/harness-client-runtime/client'
+import type {} from '@hydra1902/harness-client-runtime/client'
 
 /** Inputs available after the UI renderer's inject set activates. */
 export interface AssemblyDeps {

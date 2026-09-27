@@ -1,9 +1,9 @@
 import { fileURLToPath } from 'node:url'
-import { boot, loadOverlayPatches } from '@hydra/harness-app-boot'
-import { createApiProxy, RpcId } from '@hydra/harness-host-apiproxy'
-import { createUserMessage, LlmAdapter, type GenerateOptions, type StreamChunk } from '@hydra/harness-llm'
-import { SessionId } from '@hydra/harness-session'
-import { settingsNamespace } from '@hydra/harness-settings'
+import { boot, loadOverlayPatches } from '@hydra1902/harness-app-boot'
+import { createApiProxy, RpcId } from '@hydra1902/harness-host-apiproxy'
+import { createUserMessage, LlmAdapter, type GenerateOptions, type StreamChunk } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydra1902/harness-session'
+import { settingsNamespace } from '@hydra1902/harness-settings'
 
 const root = fileURLToPath(new URL('../../../../../packages/bundle/base/tests/fixtures/root.cordis.yml', import.meta.url))
 const base = fileURLToPath(new URL('../../../../../packages/bundle/base/cordis.patch.yml', import.meta.url))

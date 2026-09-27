@@ -3,12 +3,12 @@
 // neither knows the other's cache, so only the read-modify-write cycle under
 // the `<file>.lock` sibling keeps both namespaces alive on disk.
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
+import { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
 import { chmod, mkdtemp, readFile, rm, utimes, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { SettingsConflictError, settingsNamespace } from '@hydra/harness-settings'
+import { SettingsConflictError, settingsNamespace } from '@hydra1902/harness-settings'
 import { FileSettingsProvider } from '../src/index.ts'
 
 const AlphaSchema: z<{ value: number }> = z.object({ value: z.number().default(0) })

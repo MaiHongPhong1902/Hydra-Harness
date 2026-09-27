@@ -1,4 +1,4 @@
-# `@hydra/harness`
+# `@hydra1902/harness`
 
 The `hydra` command is the product launcher for profiles: ordered stacks of plugin-bundle patch layers under the user's own overrides. [`src/args.ts`](src/args.ts) owns the command grammar, and [`src/bin.ts`](src/bin.ts) loads only the selected runner. Invalid commands, options from another mode, configuration errors, and boot failures exit nonzero.
 
@@ -18,7 +18,7 @@ The invoking directory is the default workspace root. The `web` and `headless` p
 
 ## App arguments
 
-The launcher parses only its own flags and hands everything after them to the booted profile, where any injected app plugin may parse the shared immutable snapshot ([`@hydra/harness-cmdline`](../../packages/boot/cmdline/README.md)). Launcher flags therefore come first, and the first token the launcher does not recognize starts the app's arguments:
+The launcher parses only its own flags and hands everything after them to the booted profile, where any injected app plugin may parse the shared immutable snapshot ([`@hydra1902/harness-cmdline`](../../packages/boot/cmdline/README.md)). Launcher flags therefore come first, and the first token the launcher does not recognize starts the app's arguments:
 
 ```sh
 hydra --profile web --port 8080       # --port belongs to the web app
@@ -37,7 +37,7 @@ The tree composes over an empty root:
 - then the profile's `cordis.patch.yml`, then the home-level `$HYDRA_HOME/cordis.patch.yml`
 - then `--patch` overlays
 
-Bundles named in `hydra.profile.bundles` resolve from the hydra installation first (`@hydra/harness-base`, `@hydra/harness-web-app`, `@hydra/harness-headless`), then from the profile's own `node_modules`, where pnpm installs out-of-tree plugins.
+Bundles named in `hydra.profile.bundles` resolve from the hydra installation first (`@hydra1902/harness-base`, `@hydra1902/harness-web-app`, `@hydra1902/harness-headless`), then from the profile's own `node_modules`, where pnpm installs out-of-tree plugins.
 
 Use `--dump-default-config` and `--dump-config` to inspect the composed tree without booting it.
 

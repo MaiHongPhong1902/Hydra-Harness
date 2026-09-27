@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { once } from 'node:events'
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { describe, expect, it, vi } from 'vitest'
 import {
   CommandExitError,
@@ -9,10 +9,10 @@ import {
   type CommandHandle,
   type CommandResult,
   type Sandbox,
-} from '@hydra/harness-e2b'
-import type E2BRuntime from '@hydra/harness-e2b'
-import type { SubprocessTerminalSpawnSpec } from '@hydra/harness-subprocess'
-import E2BSubprocessRuntime from '@hydra/harness-subprocess-e2b'
+} from '@hydra1902/harness-e2b'
+import type E2BRuntime from '@hydra1902/harness-e2b'
+import type { SubprocessTerminalSpawnSpec } from '@hydra1902/harness-subprocess'
+import E2BSubprocessRuntime from '@hydra1902/harness-subprocess-e2b'
 import { spawnE2BTerminal } from '../src/terminal.ts'
 
 function commandError(exitCode: number): CommandExitError {

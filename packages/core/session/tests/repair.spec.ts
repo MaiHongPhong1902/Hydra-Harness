@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CallId , createMessage, createToolResultMessage } from '@hydra/harness-llm'
+import { CallId , createMessage, createToolResultMessage } from '@hydra1902/harness-llm'
 import { interruptedTurnClosers, TOOL_NOT_STARTED, TOOL_OUTCOME_UNKNOWN } from '../src/index.ts'
 import type { SessionEvent, SurfaceEvent } from '../src/index.ts'
 

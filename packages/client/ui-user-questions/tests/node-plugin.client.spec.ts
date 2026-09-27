@@ -1,8 +1,8 @@
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
-import ToolRuntime from '@hydra/harness-tools'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import UserQuestionService from '@hydra/harness-user-questions'
+import ToolRuntime from '@hydra1902/harness-tools'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import UserQuestionService from '@hydra1902/harness-user-questions'
 import { apply } from '../src/index.ts'
 
 let ctx: Context | undefined

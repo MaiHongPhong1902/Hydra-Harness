@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-fs-observation-policy`.
- * @module @hydra/harness-fs-observation-policy/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-fs-observation-policy`.
+ * @module @hydra1902/harness-fs-observation-policy/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-fs-observation-policy'
+const PACKAGE_NAME = '@hydra1902/harness-fs-observation-policy'
 
 /** Cordis companion plugin name. */
 export const name = 'fs-observation-policy-invariant'

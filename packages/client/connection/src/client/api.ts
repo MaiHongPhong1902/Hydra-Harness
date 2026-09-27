@@ -22,12 +22,12 @@ export type {
   AuthorizationUsageView,
   SubagentsApi, SubagentAddress, SubagentCatalog, SubagentListEntry, SubagentPromptReceipt,
   JobView,
-} from '@hydra/harness-host-apiproxy/api'
-export type { ToolCallView, ToolResultView } from '@hydra/harness-tools/presentation'
+} from '@hydra1902/harness-host-apiproxy/api'
+export type { ToolCallView, ToolResultView } from '@hydra1902/harness-tools/presentation'
 export type {
   RpcRequest, RpcResponse, RpcResult, RpcError, RpcErrorCode,
   ClientRequest, ServerResponse, ServerRequest, ClientResponse, RpcMessage, RpcReceipt,
-} from '@hydra/harness-host-apiproxy/api'
+} from '@hydra1902/harness-host-apiproxy/api'
 // transportError lives in the apiproxy api layer (beside RpcResult, its
 // subject); re-exported here so connection consumers keep one contract
 // entry point.
@@ -35,17 +35,17 @@ export {
   RpcId,
   SESSION_SEARCH_RESULT_LIMIT,
   transportError,
-} from '@hydra/harness-host-apiproxy/api'
-export { AbstractApiClient } from '@hydra/harness-host-apiproxy/client'
-export type { IApiClient } from '@hydra/harness-host-apiproxy/client'
-export type { SessionId, SessionEvent } from '@hydra/harness-session/types'
-export type { MessageId } from '@hydra/harness-llm/brand'
-export type { ContentBlock, StreamChunk } from '@hydra/harness-llm/types'
+} from '@hydra1902/harness-host-apiproxy/api'
+export { AbstractApiClient } from '@hydra1902/harness-host-apiproxy/client'
+export type { IApiClient } from '@hydra1902/harness-host-apiproxy/client'
+export type { SessionId, SessionEvent } from '@hydra1902/harness-session/types'
+export type { MessageId } from '@hydra1902/harness-llm/brand'
+export type { ContentBlock, StreamChunk } from '@hydra1902/harness-llm/types'
 
 /** Successful value returned by the connection-generation host handshake. */
-export type HostDescription = import('@hydra/harness-host-apiproxy/api').ResponseValue<'host.describe'>
+export type HostDescription = import('@hydra1902/harness-host-apiproxy/api').ResponseValue<'host.describe'>
 
-import type { RpcResponse, RpcResult } from '@hydra/harness-host-apiproxy/api'
+import type { RpcResponse, RpcResult } from '@hydra1902/harness-host-apiproxy/api'
 
 /**
  * Unwrap a unary response: RpcResponse<T> -> RpcResult<T> (business code only

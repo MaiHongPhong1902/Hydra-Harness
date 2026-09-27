@@ -1,13 +1,13 @@
 /** Direct one-shot Agent driving, durable aggregation, flushing, and exit mapping. */
 
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import AgentRegistry, { Inbox } from '@hydra/harness-agent'
-import type { Agent, AgentHandle, CreateAgentOptions } from '@hydra/harness-agent'
-import AgentDefaultModelConfig from '@hydra/harness-agent-default-model'
-import { createAssistantMessage } from '@hydra/harness-llm'
-import SessionStore from '@hydra/harness-session'
-import type { Session, UserMessage } from '@hydra/harness-session'
+import { Context } from '@hydra1902/cordis'
+import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
+import type { Agent, AgentHandle, CreateAgentOptions } from '@hydra1902/harness-agent'
+import AgentDefaultModelConfig from '@hydra1902/harness-agent-default-model'
+import { createAssistantMessage } from '@hydra1902/harness-llm'
+import SessionStore from '@hydra1902/harness-session'
+import type { Session, UserMessage } from '@hydra1902/harness-session'
 import { apply, Config, internals } from '../src/index.ts'
 
 const originalInternals = { ...internals }

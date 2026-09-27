@@ -19,7 +19,7 @@
  * flat fallback directory `$HYDRA_HOME/profiles/node_modules` (one symlink per
  * package the installation's app and bundles depend on) makes every in-box
  * plugin Node-resolvable from any profile through the ordinary parent-walk.
- * @module @hydra/harness-app-boot/profile
+ * @module @hydra1902/harness-app-boot/profile
  */
 
 import { createRequire } from 'node:module'
@@ -27,9 +27,9 @@ import {
   existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, realpathSync, symlinkSync, unlinkSync, writeFileSync,
 } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
-import type { EntryOptions } from '@hydra/cordis-plugin-loader'
-import { applyEntryPatches, type PatchOptions } from '@hydra/cordis-plugin-include'
-import { resolveHydraHome } from '@hydra/harness-home-paths'
+import type { EntryOptions } from '@hydra1902/cordis-plugin-loader'
+import { applyEntryPatches, type PatchOptions } from '@hydra1902/cordis-plugin-include'
+import { resolveHydraHome } from '@hydra1902/harness-home-paths'
 import { loadOverlayPatches } from './index.ts'
 
 /** Directory under the Harness home holding every profile. */
@@ -116,17 +116,17 @@ export function resolveProfileDir(name: string, home: string = resolveHydraHome(
 
 /** The shipped profile templates auto-initialized on first use, by name. */
 export const PROFILE_TEMPLATES: Record<string, readonly string[]> = {
-  web: ['@hydra/harness-base', '@hydra/harness-web-app'],
-  headless: ['@hydra/harness-base', '@hydra/harness-headless'],
+  web: ['@hydra1902/harness-base', '@hydra1902/harness-web-app'],
+  headless: ['@hydra1902/harness-base', '@hydra1902/harness-headless'],
 }
 
 /** Installation-owned bundle tuples normalized to the shipped template. */
 const INSTALLATION_OWNED_PROFILE_TUPLES: Record<string, readonly string[]> = {
-  headless: ['@hydra/harness-base', '@hydra/harness-web-app', '@hydra/harness-headless'],
+  headless: ['@hydra1902/harness-base', '@hydra1902/harness-web-app', '@hydra1902/harness-headless'],
 }
 
 /** The bundle list a `hydra plugin` init uses for a name with no shipped template. */
-export const DEFAULT_PROFILE_BUNDLES: readonly string[] = ['@hydra/harness-base']
+export const DEFAULT_PROFILE_BUNDLES: readonly string[] = ['@hydra1902/harness-base']
 
 const PROFILE_PATCH_TEMPLATE = `# Your patch layer for this hydra profile, applied after every bundle layer:
 # a top-level YAML array of loader patch entries (id-targeted config
@@ -214,7 +214,7 @@ function ensureSymlink(link: string, target: string): void {
  * resolves without pnpm ever managing it — the exact "bundles come from the
  * installation" contract. The closure (not just direct dependencies) is
  * required for out-of-tree plugins: their peer dependencies name Service
- * Definition packages (`@hydra/harness-compaction`, `@hydra/harness-invariants`, ...) that the app
+ * Definition packages (`@hydra1902/harness-compaction`, `@hydra1902/harness-invariants`, ...) that the app
  * reaches only through its Service Provider packages. Symlinked packages
  * resolve their own dependencies from their real directories (Node's default
  * symlink-following), so each package needs only its one flat link.
@@ -236,8 +236,8 @@ export function healProfilesModuleFallback(installAnchor: string, home: string =
   // map itself (first resolution wins, matching Node's own nearest-wins).
   const queue: { anchor: string; manifest: ProfileManifest }[] = [{ anchor: installAnchor, manifest: appManifest }]
   for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
-    // Peer dependencies participate: Service Definition packages (@hydra/harness-subprocess,
-    // @hydra/harness-compaction, ...) are peers of their implementations, never plain
+    // Peer dependencies participate: Service Definition packages (@hydra1902/harness-subprocess,
+    // @hydra1902/harness-compaction, ...) are peers of their implementations, never plain
     // dependencies, yet out-of-tree plugins import them directly.
     /* v8 ignore next -- a real app manifest always declares dependencies */
     for (const dep of [...Object.keys(next.manifest.dependencies ?? {}), ...Object.keys(next.manifest.peerDependencies ?? {})]) {
@@ -357,7 +357,7 @@ function packageDirFromAnchor(anchor: string, packageName: string): string | und
 /**
  * Resolve one bundle package's directory: installation anchor first, then the
  * profile directory. The installation-first order is the contract that
- * `@hydra/harness-base` (and every other in-box bundle) always comes from
+ * `@hydra1902/harness-base` (and every other in-box bundle) always comes from
  * the same installation as the running hydra, never from a profile-local copy.
  * Resolution does not require the package to export `./package.json`.
  * @param binName - the diagnostic prefix on the thrown error.

@@ -3,12 +3,12 @@
 // active conversation scrollport (see ConversationRoot data-conversation-scroll).
 
 import { Fragment, memo, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Tooltip } from '@hydra/harness-client-ui-primitives'
-import type { ConversationSnapshot, UseProjection } from '@hydra/harness-client-runtime/client'
-import type { SnapshotSelectorHook } from '@hydra/harness-client-ui-slots'
+import { Tooltip } from '@hydra1902/harness-client-ui-primitives'
+import type { ConversationSnapshot, UseProjection } from '@hydra1902/harness-client-runtime/client'
+import type { SnapshotSelectorHook } from '@hydra1902/harness-client-ui-slots'
 // Type-only: merges the sessionStats key into SessionProjectionMap for useProjection.
-import type {} from '@hydra/harness-session-stats/client'
-import type { ContextPressureProjection, TokenUsageProjection } from '@hydra/harness-token-meter/client'
+import type {} from '@hydra1902/harness-session-stats/client'
+import type { ContextPressureProjection, TokenUsageProjection } from '@hydra1902/harness-token-meter/client'
 import type { ComposerBarProps } from '../contract/slots.ts'
 import { formatTokensPerSecond } from './message-chrome.ts'
 import { assistantStepReading } from './turn-metrics.ts'

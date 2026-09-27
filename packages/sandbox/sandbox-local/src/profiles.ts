@@ -1,12 +1,12 @@
 /**
  * Internal platform-profile builders for the local sandbox provider.
  *
- * @module @hydra/harness-sandbox-local/profiles
+ * @module @hydra1902/harness-sandbox-local/profiles
  */
 
-import { grantArgs as landlockGrantArgs } from '@hydra/node-addon-landlock-run'
-import { writableRoots } from '@hydra/harness-sandbox'
-import type { SandboxPolicy } from '@hydra/harness-sandbox'
+import { grantArgs as landlockGrantArgs } from '@hydra1902/node-addon-landlock-run'
+import { writableRoots } from '@hydra1902/harness-sandbox'
+import type { SandboxPolicy } from '@hydra1902/harness-sandbox'
 
 /**
  * Build the bwrap profile arguments for one file-effect policy.
@@ -44,7 +44,7 @@ function sbplString(path: string): string {
  * Build the sandbox-exec arguments and SBPL profile for one policy. The
  * writable roots come from the shared {@link writableRoots} helper (canonical,
  * deduplicated) so the Seatbelt grant and the in-process fs fence
- * (`@hydra/harness-fs-sandbox`) can never drift apart.
+ * (`@hydra1902/harness-fs-sandbox`) can never drift apart.
  * @param policy - file-effect policy to express as an SBPL profile.
  * @returns sandbox-exec arguments before the trailing separator and command argv.
  */

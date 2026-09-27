@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import * as CommandInvariant from '@hydra/harness-commands/invariant'
-import InvariantRegistry, { InvariantError } from '@hydra/harness-invariants'
-import SessionStore, { SessionId, type Session } from '@hydra/harness-session'
-import { CommandId } from '@hydra/harness-commands'
+import { Context } from '@hydra1902/cordis'
+import * as CommandInvariant from '@hydra1902/harness-commands/invariant'
+import InvariantRegistry, { InvariantError } from '@hydra1902/harness-invariants'
+import SessionStore, { SessionId, type Session } from '@hydra1902/harness-session'
+import { CommandId } from '@hydra1902/harness-commands'
 
 async function mount(installCompanion = true): Promise<{ ctx: Context; session: Session }> {
   const ctx = new Context()
@@ -50,7 +50,7 @@ describe('command lifecycle invariants', () => {
       })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@hydra/harness-commands',
+      packageName: '@hydra1902/harness-commands',
     }))
   })
 
@@ -68,7 +68,7 @@ describe('command lifecycle invariants', () => {
       })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@hydra/harness-commands',
+      packageName: '@hydra1902/harness-commands',
     }))
   })
 
@@ -83,7 +83,7 @@ describe('command lifecycle invariants', () => {
 
     await expect(ctx.plugin(CommandInvariant)).rejects.toMatchObject({
       code: 'INVARIANT',
-      packageName: '@hydra/harness-commands',
+      packageName: '@hydra1902/harness-commands',
     })
   })
 })

@@ -1,5 +1,5 @@
-import type { SessionEvent } from '@hydra/harness-session/types'
-import type { ToolEventView } from '@hydra/harness-api-remotes/client'
+import type { SessionEvent } from '@hydra1902/harness-session/types'
+import type { ToolEventView } from '@hydra1902/harness-api-remotes/client'
 
 /* oxlint-disable typescript/no-duplicate-type-constituents, typescript/no-redundant-type-constituents --
  * The unaugmented declaration-merge maps intentionally resolve to never in the Runtime program;

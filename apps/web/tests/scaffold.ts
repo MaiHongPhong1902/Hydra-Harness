@@ -29,29 +29,29 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { Page } from 'playwright'
 import { expect } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include, { type PatchOptions } from '@hydra/cordis-plugin-include'
-import Group from '@hydra/cordis-plugin-group'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include, { type PatchOptions } from '@hydra1902/cordis-plugin-include'
+import Group from '@hydra1902/cordis-plugin-group'
 import {
   scrubRequestHeaders,
   scrubSessionSnapshot,
   stabilizeFixtureMessageIds,
-} from '@hydra/harness-acp-snapshot'
+} from '@hydra1902/harness-acp-snapshot'
 import {
   assertEntriesLoaded,
   composeEntries,
   healProfilesModuleFallback,
   loadOverlayPatches,
-} from '@hydra/harness-app-boot'
-import { hydraHomePath } from '@hydra/harness-home-paths'
-import { settingsNamespace } from '@hydra/harness-settings'
-import { LlmAdapter } from '@hydra/harness-llm'
+} from '@hydra1902/harness-app-boot'
+import { hydraHomePath } from '@hydra1902/harness-home-paths'
+import { settingsNamespace } from '@hydra1902/harness-settings'
+import { LlmAdapter } from '@hydra1902/harness-llm'
 import type {
   LlmModelInfo, LlmProviderInfo, LlmResolvedModelInfo, RetryPolicyConfig, StreamChunk,
-} from '@hydra/harness-llm'
-import type { ReplayHandle } from '@hydra/harness-llm-replay'
-import { installLlmReplay, parseSessionLog } from '@hydra/harness-llm-replay'
+} from '@hydra1902/harness-llm'
+import type { ReplayHandle } from '@hydra1902/harness-llm-replay'
+import { installLlmReplay, parseSessionLog } from '@hydra1902/harness-llm-replay'
 import SessionStore, {
   packChunkRuns,
   SESSION_FORMAT_VERSION,
@@ -59,12 +59,12 @@ import SessionStore, {
   type Session,
   type SessionEvent,
   type SessionHeader,
-} from '@hydra/harness-session'
-import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
+} from '@hydra1902/harness-session'
+import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
 // Empty type imports carry the webServer/agents/sessionPersistence Context merges.
-import type {} from '@hydra/harness-host-webserver'
-import type {} from '@hydra/harness-agent'
-import { provideCmdline } from '@hydra/harness-cmdline'
+import type {} from '@hydra1902/harness-host-webserver'
+import type {} from '@hydra1902/harness-agent'
+import { provideCmdline } from '@hydra1902/harness-cmdline'
 import { REPO_ROOT, requireDist } from './support.ts'
 
 // Host-side web e2e cannot import a browser package: doing so would pull that
@@ -74,7 +74,7 @@ import { REPO_ROOT, requireDist } from './support.ts'
 // import {
 //   WELCOME_NOTICE_ACK_FIELD, WELCOME_NOTICE_SETTINGS_NAMESPACE,
 //   WELCOME_NOTICE_VERSION, WELCOME_NOTICE_COPY,
-// } from '@hydra/harness-client-ui-settings-models'
+// } from '@hydra1902/harness-client-ui-settings-models'
 export const WELCOME_NOTICE_SETTINGS_NAMESPACE = 'ui-onboarding'
 export const WELCOME_NOTICE_ACK_FIELD = 'welcomeNoticeVersion'
 export const WELCOME_NOTICE_VERSION = '2026-08-13.1'
@@ -480,7 +480,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
       config: { host: '127.0.0.1', port: 0 },
     },
     // The bundle's web-runtime row resolves the same built dist under test
-    // (apps/web IS @hydra/harness-web-frontend); native browser opening and the
+    // (apps/web IS @hydra1902/harness-web-frontend); native browser opening and the
     // URL line are disabled because this scaffold owns its Playwright browser.
     // Preserve the composed surface-context choice because a patch replaces
     // the row's complete config.
@@ -498,8 +498,8 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     // disable+insert pair.
     { id: 'directory-picker', disabled: true },
     { insert: [
-      { id: 'directory-picker-browse', name: '@hydra/harness-host-directory-picker-browse' },
-      { id: 'ui-directory-picker-browse', name: '@hydra/harness-client-ui-directory-picker-browse' },
+      { id: 'directory-picker-browse', name: '@hydra1902/harness-host-directory-picker-browse' },
+      { id: 'ui-directory-picker-browse', name: '@hydra1902/harness-client-ui-directory-picker-browse' },
     ] },
     ...options.agentPresets === undefined
       ? []
@@ -511,7 +511,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     // scenario adds only the model-facing tools that exercise those services.
     ...options.cordisTools === true
       ? [{ insert: [
-        { id: 'tool-cordis', name: '@hydra/harness-tool-cordis' },
+        { id: 'tool-cordis', name: '@hydra1902/harness-tool-cordis' },
       ] }]
       : [],
     ...options.deepSeekSearch === undefined
@@ -567,7 +567,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     // `cordis:group` beside it, exactly as `boot()` registers it: a group row is
     // how a preset gives one `isolate` realm to a provider and its consumers,
     // and a preset resolving package names from its own directory cannot reach
-    // `@hydra/cordis-plugin-group` by name.
+    // `@hydra1902/cordis-plugin-group` by name.
     ctx.loader.builtins.group = Group
     await ctx.loader.create({
       name: 'cordis:include',

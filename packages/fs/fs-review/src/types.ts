@@ -1,7 +1,7 @@
 /** Durable agent-owned change evidence, independent of current Git state. @module */
-import type { Branded } from '@hydra/harness-brand'
-import type { SessionId } from '@hydra/harness-session/types'
-import type { CallId } from '@hydra/harness-llm/brand'
+import type { Branded } from '@hydra1902/harness-brand'
+import type { SessionId } from '@hydra1902/harness-session/types'
+import type { CallId } from '@hydra1902/harness-llm/brand'
 
 /** Identifies one snapshot and its review record. */
 export type ChangeId = Branded<'ChangeId'>

@@ -3,24 +3,24 @@
  * spill backend does — persist a tool's oversized text and return a model-facing
  * locator plus retrieval guidance — without saying HOW. Implementations
  * subclass {@link SpillStore} and register as the `spillStore` service;
- * `@hydra/harness-spill-local` (host filesystem) is the first.
+ * `@hydra1902/harness-spill-local` (host filesystem) is the first.
  *
  * The Service Definition is deliberately minimal: `saveText` and nothing else. It owns NO
- * retention policy (that is `@hydra/harness-output-retention`), NO tool-result
- * replacement (that is `@hydra/harness-spill-policy`), and NO retrieval or
+ * retention policy (that is `@hydra1902/harness-output-retention`), NO tool-result
+ * replacement (that is `@hydra1902/harness-spill-policy`), and NO retrieval or
  * search API. The backend supplies the locator and retrieval hint appropriate
  * for its storage substrate.
  *
- * @module @hydra/harness-spill
+ * @module @hydra1902/harness-spill
  */
 
-import { Context, Service } from '@hydra/cordis'
+import { Context, Service } from '@hydra1902/cordis'
 import type { SaveTextSpill, SpillRef } from './types.ts'
 
 export { SpillLocator } from './types.ts'
 export type { SaveTextSpill, SpillOwner, SpillRef, SpillSource } from './types.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     spillStore: SpillStore
   }

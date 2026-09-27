@@ -1,6 +1,6 @@
 /** Review presentation invariant ownership. @module */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 /** Companion identity. */
 export const name = 'client-ui-review-invariant'
 /** Registration dependency. */
@@ -14,4 +14,4 @@ const install: InvariantInstaller = () => {}
  * @returns registration disposer.
  */
 export const apply = (ctx: Context): Promise<() => void> =>
-  Promise.resolve(ctx.invariants.register('@hydra/harness-client-ui-review', install))
+  Promise.resolve(ctx.invariants.register('@hydra1902/harness-client-ui-review', install))

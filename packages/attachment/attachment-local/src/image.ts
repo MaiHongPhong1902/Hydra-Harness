@@ -1,8 +1,8 @@
 /** Raster inspection: full decode at admission, header-only probe on verified reads. */
 
 import sharp, { type Sharp } from 'sharp'
-import { AttachmentError } from '@hydra/harness-attachment'
-import type { ImageMediaType } from '@hydra/harness-attachment'
+import { AttachmentError } from '@hydra1902/harness-attachment'
+import type { ImageMediaType } from '@hydra1902/harness-attachment'
 
 /** Decoded metadata from a supported image. */
 export interface DetectedImage {

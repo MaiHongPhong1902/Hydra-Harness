@@ -2,19 +2,19 @@
  * Model-facing foreground Ralph loop over the workflow and subagent seams. A
  * fixed script starts one fresh structured-output child per round, carrying
  * only the immutable objective and the previous bounded handoff between them.
- * @module @hydra/harness-tool-ralph
+ * @module @hydra1902/harness-tool-ralph
  */
 
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type { ContentBlock } from '@hydra/harness-llm'
-import type { JsonValue } from '@hydra/harness-session'
-import type { SubagentProvider } from '@hydra/harness-subagent'
-import { defineTool } from '@hydra/harness-tools'
-import type { ToolCallView, ToolResultView } from '@hydra/harness-tools'
-import type { WorkflowResult, WorkflowRun } from '@hydra/harness-workflow'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { JsonValue } from '@hydra1902/harness-session'
+import type { SubagentProvider } from '@hydra1902/harness-subagent'
+import { defineTool } from '@hydra1902/harness-tools'
+import type { ToolCallView, ToolResultView } from '@hydra1902/harness-tools'
+import type { WorkflowResult, WorkflowRun } from '@hydra1902/harness-workflow'
 // Declaration merge only: makes ctx.systemPrompt visible for section registration.
-import type {} from '@hydra/harness-system-prompt'
+import type {} from '@hydra1902/harness-system-prompt'
 
 export const name = 'tool-ralph'
 export const inject = ['tools', 'workflowEngine', 'subagents', 'systemPrompt']

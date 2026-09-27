@@ -3,16 +3,16 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include from '@hydra/cordis-plugin-include'
-import AgentRegistry from '@hydra/harness-agent'
-import AgentLoop from '@hydra/harness-agent-loop'
-import LlmRuntime, { createUserMessage, LlmAdapter, LlmError, resolveRetryPolicy  } from '@hydra/harness-llm'
-import type { GenerateOptions, ResolvedRetryPolicy, StreamChunk } from '@hydra/harness-llm'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime from '@hydra/harness-tools'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include from '@hydra1902/cordis-plugin-include'
+import AgentRegistry from '@hydra1902/harness-agent'
+import AgentLoop from '@hydra1902/harness-agent-loop'
+import LlmRuntime, { createUserMessage, LlmAdapter, LlmError, resolveRetryPolicy  } from '@hydra1902/harness-llm'
+import type { GenerateOptions, ResolvedRetryPolicy, StreamChunk } from '@hydra1902/harness-llm'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime from '@hydra1902/harness-tools'
 import * as retry from '../src/index.ts'
 
 let root: string | undefined
@@ -58,13 +58,13 @@ async function loadYaml(lines: readonly string[]): Promise<Context> {
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@hydra/harness-llm', LlmRuntime],
-    ['@hydra/harness-session', SessionStore],
-    ['@hydra/harness-system-prompt', SystemPrompt],
-    ['@hydra/harness-tools', ToolRuntime],
-    ['@hydra/harness-agent', AgentRegistry],
-    ['@hydra/harness-llm-retry', retry],
-    ['@hydra/harness-agent-loop', AgentLoop],
+    ['@hydra1902/harness-llm', LlmRuntime],
+    ['@hydra1902/harness-session', SessionStore],
+    ['@hydra1902/harness-system-prompt', SystemPrompt],
+    ['@hydra1902/harness-tools', ToolRuntime],
+    ['@hydra1902/harness-agent', AgentRegistry],
+    ['@hydra1902/harness-llm-retry', retry],
+    ['@hydra1902/harness-agent-loop', AgentLoop],
   ])
   context.loader.internal = {
     version: 'v2',
@@ -87,13 +87,13 @@ describe('real Loader composition', () => {
   // to trip the default 5s budget on cold caches.
   it('loads provider-supplied policy and records recovery through the shipping loop', { timeout: 60_000 }, async () => {
     const loaded = await loadYaml([
-      "- name: '@hydra/harness-llm'",
-      "- name: '@hydra/harness-session'",
-      "- name: '@hydra/harness-system-prompt'",
-      "- name: '@hydra/harness-tools'",
-      "- name: '@hydra/harness-agent'",
-      "- name: '@hydra/harness-llm-retry'",
-      "- name: '@hydra/harness-agent-loop'",
+      "- name: '@hydra1902/harness-llm'",
+      "- name: '@hydra1902/harness-session'",
+      "- name: '@hydra1902/harness-system-prompt'",
+      "- name: '@hydra1902/harness-tools'",
+      "- name: '@hydra1902/harness-agent'",
+      "- name: '@hydra1902/harness-llm-retry'",
+      "- name: '@hydra1902/harness-agent-loop'",
     ])
 
     const unloaded = [...loaded.loader.entries()]

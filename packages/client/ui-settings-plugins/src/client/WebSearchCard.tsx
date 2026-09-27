@@ -1,9 +1,9 @@
 /** Search Settings rendered from the backend provider directory. */
 
 import { useState } from 'react'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
-import type {} from '@hydra/harness-client-ui-settings/client'
-import type { SearchConfigField } from '@hydra/harness-host-apiproxy/api'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import type {} from '@hydra1902/harness-client-ui-settings/client'
+import type { SearchConfigField } from '@hydra1902/harness-host-apiproxy/api'
 import type { WebSearchCardFace } from './web-search-card-controller.ts'
 import type {} from './slot-contract.ts'
 import css from './web-search.module.css'

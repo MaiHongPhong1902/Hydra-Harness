@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsdown'
 
 // The confinement runner builds as its own entry (path-loaded by
-// @hydra/harness-sandbox-local's win32 chain), inlining the sandbox primitives while
+// @hydra1902/harness-sandbox-local's win32 chain), inlining the sandbox primitives while
 // koffi stays an external native require — the same shape as
 // directory-picker-native's worker entry.
 export default defineConfig({

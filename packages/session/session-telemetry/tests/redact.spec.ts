@@ -1,4 +1,4 @@
-import { createUserMessage } from '@hydra/harness-llm'
+import { createUserMessage } from '@hydra1902/harness-llm'
 /**
  * The `session-telemetry/record` waterfall contract: pass-through when no listener is
  * mounted, listener stacking and replacement, ops-record coverage, the
@@ -6,8 +6,8 @@ import { createUserMessage } from '@hydra/harness-llm'
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import SessionStore, { SessionId } from '@hydra/harness-session'
+import { Context } from '@hydra1902/cordis'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
 import {
   SessionTelemetryCoordinator,
   type SessionTelemetrySink,

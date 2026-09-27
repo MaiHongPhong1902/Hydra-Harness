@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { fileURLToPath } from 'node:url'
-import { LspConnection } from '@hydra/harness-lsp-stdio'
-import type { ConnectionWriter } from '@hydra/harness-lsp-stdio/src/connection.ts'
-import { scrubbedParentEnv } from '@hydra/harness-subprocess'
-import { spawnSubprocess } from '@hydra/harness-subprocess-local/src/spawn.ts'
+import { LspConnection } from '@hydra1902/harness-lsp-stdio'
+import type { ConnectionWriter } from '@hydra1902/harness-lsp-stdio/src/connection.ts'
+import { scrubbedParentEnv } from '@hydra1902/harness-subprocess'
+import { spawnSubprocess } from '@hydra1902/harness-subprocess-local/src/spawn.ts'
 
 const fixtureServer = fileURLToPath(new URL('./fixture-server.ts', import.meta.url))
 

@@ -11,6 +11,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 import { releaseFamily, tarballName, type ReleaseFamily, type ReleaseMember } from './families.ts'
+import { packCliBundle } from './pack-cli-bundle.ts'
 import { isEntry, run } from './process.ts'
 import { PUBLISH_ORDER_FILE, tarballFiles } from './tarball.ts'
 
@@ -24,7 +25,11 @@ const DEFAULT_OUTPUT = 'dist/npm'
  * @param destination - absolute output directory.
  * @returns The tarball filename.
  */
-function packMember(family: ReleaseFamily, member: ReleaseMember, destination: string): string {
+function packMember(
+  family: ReleaseFamily,
+  member: ReleaseMember,
+  destination: string,
+): string {
   run('pnpm', ['--dir', member.directory, 'pack', '--pack-destination', destination])
 
   const filename = tarballName(member)
@@ -37,7 +42,7 @@ function packMember(family: ReleaseFamily, member: ReleaseMember, destination: s
 /** Pack the family named by `--family` into `--out`. */
 function main(): void {
   const { values } = parseArgs({
-    options: { family: { type: 'string' }, out: { type: 'string' } },
+    options: { family: { type: 'string' }, out: { type: 'string' }, vendor: { type: 'string' } },
     allowPositionals: false,
   })
   if (values.family === undefined) throw new Error('usage: pack.ts --family <hydra|vendor> [--out dist/npm]')
@@ -54,6 +59,14 @@ function main(): void {
 
   const order: string[] = []
   for (const member of members) order.push(packMember(family, member, destination))
+  if (family.id === 'hydra' && values.vendor !== undefined) {
+    const cli = members.find(member => member.name === '@hydra1902/harness')
+    if (cli === undefined) throw new Error('hydra release family has no CLI entry package')
+    const filename = packCliBundle(destination, cli, resolve(root, values.vendor))
+    const index = order.indexOf(filename)
+    if (index === -1) throw new Error('bundled CLI tarball is absent from publish order')
+    order[index] = filename
+  }
   writeFileSync(join(destination, PUBLISH_ORDER_FILE), `${order.join('\n')}\n`)
 
   console.log(`release pack: family ${family.id}, ${String(order.length)} tarball(s) in ${values.out ?? DEFAULT_OUTPUT}`)

@@ -1,8 +1,8 @@
-import type { Context } from '@hydra/cordis'
-import type {} from '@hydra/harness-agent'
-import { CompactionId, compactCheckpointSource } from '@hydra/harness-compaction'
-import { createUserMessage } from '@hydra/harness-llm'
-import type {} from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import type {} from '@hydra1902/harness-agent'
+import { CompactionId, compactCheckpointSource } from '@hydra1902/harness-compaction'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import type {} from '@hydra1902/harness-tools'
 
 export const name = 'workspace-context-compaction'
 

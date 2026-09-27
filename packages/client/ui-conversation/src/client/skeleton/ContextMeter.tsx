@@ -5,10 +5,10 @@
  * capacity. */
 
 import { useEffect, useRef, useState } from 'react'
-import type { UseProjection } from '@hydra/harness-client-runtime/client'
+import type { UseProjection } from '@hydra1902/harness-client-runtime/client'
 // Type-only: the `contextPressure` / `contextBreakdown` projection key merges.
-import type {} from '@hydra/harness-token-meter/client'
-import { Tooltip } from '@hydra/harness-client-ui-primitives'
+import type {} from '@hydra1902/harness-token-meter/client'
+import { Tooltip } from '@hydra1902/harness-client-ui-primitives'
 import type { ComposerBarProps } from '../contract/slots.ts'
 import { contextOccupancy, formatTokens } from '../chat/StatsLine.tsx'
 import css from './ContextMeter.module.css'

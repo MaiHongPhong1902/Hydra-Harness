@@ -1,16 +1,16 @@
 /**
- * @hydra/harness-commands' owned branded id: command lifecycle pairing across the
+ * @hydra1902/harness-commands' owned branded id: command lifecycle pairing across the
  * session log, the wire admission response, and client-side flow pairing.
  *
- * The `Branded<B>` primitive lives in `@hydra/harness-brand`; this module
+ * The `Branded<B>` primitive lives in `@hydra1902/harness-brand`; this module
  * is a pure type/constructor outlet (no cordis imports, no module
  * augmentation) so wire and client programs can name the brand without
  * loading the host plugin's Context merges — the `hydra-llm/brand` shape.
  *
- * @module @hydra/harness-commands/brand
+ * @module @hydra1902/harness-commands/brand
  */
 
-import type { Branded } from '@hydra/harness-brand'
+import type { Branded } from '@hydra1902/harness-brand'
 
 /**
  * Pairs one command execution's `command/run`/`command/done` lifecycle

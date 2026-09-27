@@ -1,6 +1,6 @@
 /** `reference` namespace dictionaries for the unified `@` source. */
 
-import type {} from '@hydra/harness-client-ui-slots'
+import type {} from '@hydra1902/harness-client-ui-slots'
 
 /** Dictionary namespace owned by this plugin. */
 export const NS = 'reference'
@@ -18,7 +18,7 @@ export const en = {
 /** The reference namespace key union. */
 export type ReferenceKey = keyof typeof en
 
-declare module '@hydra/harness-client-ui-slots' {
+declare module '@hydra1902/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The unified `@` reference menu's copy. */
     reference: ReferenceKey

@@ -3,13 +3,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include from '@hydra/cordis-plugin-include'
-import type { Agent } from '@hydra/harness-agent'
-import CommandRuntime from '@hydra/harness-commands'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import * as SessionLogDownload from '@hydra/harness-session-log-export'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include from '@hydra1902/cordis-plugin-include'
+import type { Agent } from '@hydra1902/harness-agent'
+import CommandRuntime from '@hydra1902/harness-commands'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import * as SessionLogDownload from '@hydra1902/harness-session-log-export'
 
 let root: string | undefined
 let context: Context | undefined
@@ -26,9 +26,9 @@ describe('session-log-download real Loader composition', () => {
     root = await mkdtemp(join(tmpdir(), 'hydra-session-export-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@hydra/harness-session'",
-      "- name: '@hydra/harness-commands'",
-      "- name: '@hydra/harness-session-log-export'",
+      "- name: '@hydra1902/harness-session'",
+      "- name: '@hydra1902/harness-commands'",
+      "- name: '@hydra1902/harness-session-log-export'",
       '',
     ].join('\n'))
 
@@ -37,9 +37,9 @@ describe('session-log-download real Loader composition', () => {
     await context.plugin(Loader)
     context.loader.builtins.include = Include
     const modules = new Map<string, unknown>([
-      ['@hydra/harness-session', SessionStore],
-      ['@hydra/harness-commands', CommandRuntime],
-      ['@hydra/harness-session-log-export', SessionLogDownload],
+      ['@hydra1902/harness-session', SessionStore],
+      ['@hydra1902/harness-commands', CommandRuntime],
+      ['@hydra1902/harness-session-log-export', SessionLogDownload],
     ])
     context.loader.internal = {
       version: 'v2',

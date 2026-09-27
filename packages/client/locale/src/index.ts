@@ -1,7 +1,7 @@
 /** Host registration for the browser locale preference. */
 
-import type { Context } from '@hydra/cordis'
-import { settingsNamespace } from '@hydra/harness-settings'
+import type { Context } from '@hydra1902/cordis'
+import { settingsNamespace } from '@hydra1902/harness-settings'
 import { LOCALE_SETTINGS_NAMESPACE, LocaleSettingsSchema } from './locale-settings.ts'
 
 export {

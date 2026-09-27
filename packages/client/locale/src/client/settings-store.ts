@@ -3,7 +3,7 @@
  * plugin's apply-world change listener is the only writer; the row component
  * reads via props.useStore.
  */
-import { defineStore, type EngineStoreHandle } from '@hydra/harness-client-runtime/client'
+import { defineStore, type EngineStoreHandle } from '@hydra1902/harness-client-runtime/client'
 
 /** One selectable locale row (id + self-described label). */
 export interface LanguageOptionRow {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { DesktopTitleBar } from '@hydra/harness-client-ui-layout/src/client/DesktopTitleBar.tsx'
+import { DesktopTitleBar } from '@hydra1902/harness-client-ui-layout/src/client/DesktopTitleBar.tsx'
 
 afterEach(cleanup)
 

@@ -1,12 +1,12 @@
-import { MessageId, createUserMessage, createMessage } from '@hydra/harness-llm'
+import { MessageId, createUserMessage, createMessage } from '@hydra1902/harness-llm'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { appendFile, mkdtemp, mkdir, rm, readFile, writeFile, readdir, stat, symlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import type { Session, SessionEvent, SessionHeader } from '@hydra/harness-session'
-import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import type { Session, SessionEvent, SessionHeader } from '@hydra1902/harness-session'
+import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
 import {
   encodeSegment, eventLines, logPath, projectDir, projectKey, scanLog, sessionDir, SessionLogScanner, toHeaderLine,
 } from '../src/format.ts'

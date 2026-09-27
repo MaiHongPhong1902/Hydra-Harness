@@ -1,7 +1,7 @@
 {
-  "name": "@hydra/harness-client-ui-settings",
+  "name": "@hydra1902/harness-client-ui-settings",
   "description": "Settings domain base plugin: the settings-namespace scope service and the canonical settings slot-type contract",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
@@ -35,9 +35,9 @@
     },
     "client": {
       "inject": [
-        "@hydra/harness-client-connection",
-        "@hydra/harness-client-runtime",
-        "@hydra/harness-api-remotes"
+        "@hydra1902/harness-client-connection",
+        "@hydra1902/harness-client-runtime",
+        "@hydra1902/harness-api-remotes"
       ],
       "platform": "web"
     }
@@ -48,27 +48,27 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@hydra/cordis": "workspace:^",
-    "@hydra/harness-api-remotes": "workspace:^",
-    "@hydra/harness-client-connection": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-settings": "workspace:^"
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/harness-api-remotes": "workspace:^",
+    "@hydra1902/harness-client-connection": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis": "workspace:^",
-    "@hydra/harness-api-remotes": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-test-runtime": "workspace:^",
-    "@hydra/harness-client-ui-slots": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/harness-api-remotes": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-test-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-slots": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
     "@types/react": "~18.3.1",
     "react": "^18.2.0",
-    "@hydra/harness-client-connection": "workspace:^"
+    "@hydra1902/harness-client-connection": "workspace:^"
   },
   "files": [
     "lib/index.js",
