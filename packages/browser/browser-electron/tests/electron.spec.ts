@@ -652,15 +652,21 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       })
       const action = await child.call(method, { name, text: 'Ada' }) as ActionResult
       expect(action, action.message).toMatchObject({ success: true })
-      const result = await child.call('execute_javascript', {
-        script: `const cursor = document.querySelector('#page-agent-runtime_simulator-mask').lastElementChild;
-          const rect = document.getElementById('${name}').getBoundingClientRect();
-          globalThis.__cursorObserver.disconnect();
-          return [Math.abs(parseFloat(cursor.style.left) - rect.left - rect.width / 2) < 1,
-            Math.abs(parseFloat(cursor.style.top) - rect.top - rect.height / 2) < 1,
-            cursor.dataset.mode, globalThis.__cursorPoints.size > 2].join('|')`,
-      }) as ActionResult
-      expect(result.message).toContain(`true|true|${mode}|true`)
+      try {
+        await expect.poll(async () => {
+          const result = await child.call('execute_javascript', {
+            script: `const cursor = document.querySelector('#page-agent-runtime_simulator-mask').lastElementChild;
+              const rect = document.getElementById('${name}').getBoundingClientRect();
+              return [Math.abs(parseFloat(cursor.style.left) - rect.left - rect.width / 2) < 1,
+                Math.abs(parseFloat(cursor.style.top) - rect.top - rect.height / 2) < 1,
+                cursor.dataset.mode, globalThis.__cursorPoints.size > 2].join('|')`,
+          }) as ActionResult
+          expect(result.success).toBe(true)
+          return result.message
+        }, { timeout: 2_000 }).toContain(`true|true|${mode}|true`)
+      } finally {
+        await child.call('execute_javascript', { script: 'globalThis.__cursorObserver.disconnect()' })
+      }
     }
   }, 30_000)
 

@@ -291,9 +291,8 @@ async function installNativePointerActions(controller) {
       x: rect.left + rect.width / 2 + (frameRect?.left ?? 0),
       y: rect.top + rect.height / 2 + (frameRect?.top ?? 0),
     }
-    window.dispatchEvent(new CustomEvent('PageAgent::MovePointerTo', { detail: point }))
+    await controller.mask.moveCursorTo(point.x, point.y)
     const native = await ipcRenderer.invoke('browser:native-mouse', { type: 'mouseMove', ...point })
-    await wait(300)
     return { element, point, native: native === true }
   }
   const click = controller.clickElement.bind(controller)

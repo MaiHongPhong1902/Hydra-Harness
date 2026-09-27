@@ -53,7 +53,10 @@ describe('background process windows', () => {
       process.stderr.write(child.collected.stderr.readFrom(0).text);
       process.exitCode = result.exitCode ?? 1;`
     const result = spawnSync(process.execPath, ['--import', 'tsx/esm', '--input-type=module', '-e', host], {
-      windowsHide: true, encoding: 'utf8', timeout: 10_000,
+      windowsHide: true,
+      encoding: 'utf8',
+      timeout: 10_000,
+      env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
     })
     expect(result.status, result.stderr).toBe(0)
     expect(result.stdout).toBe('true\n')

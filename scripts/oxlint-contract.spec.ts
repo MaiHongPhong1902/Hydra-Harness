@@ -19,11 +19,16 @@ function isUnknownArray(value: unknown): value is unknown[] {
   return Array.isArray(value)
 }
 
+function testProcessEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const { FORCE_COLOR: _forceColor, ...inherited } = process.env
+  return { ...inherited, NO_COLOR: '1', ...env }
+}
+
 function runRepositoryOxlint(args: readonly string[], env: NodeJS.ProcessEnv = {}) {
   return spawnSync(process.execPath, [tsxCli, 'scripts/run-oxlint.ts', ...args], {
     cwd: repositoryRoot,
     encoding: 'utf8',
-    env: { ...process.env, NO_COLOR: '1', ...env },
+    env: testProcessEnv(env),
   })
 }
 
@@ -31,7 +36,7 @@ function runOxlint(args: readonly string[], env: NodeJS.ProcessEnv = {}) {
   return spawnSync(process.execPath, [oxlintCli, ...args], {
     cwd: repositoryRoot,
     encoding: 'utf8',
-    env: { ...process.env, NO_COLOR: '1', ...env },
+    env: testProcessEnv(env),
   })
 }
 

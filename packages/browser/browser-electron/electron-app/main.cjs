@@ -2090,7 +2090,7 @@ async function readBrowserState(tab, waitForReady, followActive, signal) {
   const deadline = Date.now() + READINESS_TIMEOUT_MS
   const observationId = randomUUID()
   let candidateSince
-  let candidateUrl
+  let candidateSignature
   let lastState
   let lastTab = tab
   let lastError
@@ -2110,7 +2110,7 @@ async function readBrowserState(tab, waitForReady, followActive, signal) {
       current.lastState = state
       if (followActive && activeTab !== undefined && activeTab !== current) {
         candidateSince = undefined
-        candidateUrl = undefined
+        candidateSignature = undefined
         continue
       }
       lastState = state
@@ -2122,8 +2122,9 @@ async function readBrowserState(tab, waitForReady, followActive, signal) {
         if (current.settledState?.url === state.url && current.settledState.content === state.content) {
           return completeState(current, state, true)
         }
-        if (candidateUrl !== state.url) {
-          candidateUrl = state.url
+        const signature = JSON.stringify([state.url, state.title, state.content])
+        if (candidateSignature !== signature) {
+          candidateSignature = signature
           candidateSince = Date.now()
         }
         if (Date.now() - candidateSince >= READINESS_SETTLE_MS) {
@@ -2131,13 +2132,13 @@ async function readBrowserState(tab, waitForReady, followActive, signal) {
         }
       } else {
         candidateSince = undefined
-        candidateUrl = undefined
+        candidateSignature = undefined
       }
     } catch (error) {
       if (!isNavigationInterruption(error) && !isTransientPageStateError(error)) throw error
       lastError = error
       candidateSince = undefined
-      candidateUrl = undefined
+      candidateSignature = undefined
     }
 
     if (Date.now() >= deadline) {
@@ -3027,6 +3028,9 @@ app.whenReady().then(async () => {
         contextIsolation: true,
         sandbox: true,
         nodeIntegration: false,
+        // Hidden browser tabs still need timers and animation frames for SPA
+        // hydration and the simulated cursor to make progress in headless mode.
+        backgroundThrottling: false,
       },
     })
     const tab = {
