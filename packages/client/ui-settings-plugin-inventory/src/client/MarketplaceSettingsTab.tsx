@@ -39,6 +39,7 @@ export type MarketplaceSettingsTabProps =
   & InjectFace<MarketplaceSettingsTabInjected>
 
 type Marketplace = PluginMarketplaceSnapshot['marketplaces'][number]
+type SavedMarketplaceRequest = AddPluginMarketplaceRequest & { readonly sparsePaths: readonly string[] }
 
 type ViewState =
   | { readonly status: 'loading' }
@@ -59,13 +60,11 @@ function isMissingMarketplaceCatalog(error: unknown): boolean {
     && /\bmarketplace\.json\b/iu.test(error.message)
 }
 
-function sameMarketplaceRequest(left: AddPluginMarketplaceRequest, right: AddPluginMarketplaceRequest): boolean {
-  const leftSparsePaths = left.sparsePaths ?? []
-  const rightSparsePaths = right.sparsePaths ?? []
+function sameMarketplaceRequest(left: SavedMarketplaceRequest, right: SavedMarketplaceRequest): boolean {
   return left.source === right.source
     && left.gitRef === right.gitRef
-    && leftSparsePaths.length === rightSparsePaths.length
-    && leftSparsePaths.every((path, index) => path === rightSparsePaths[index])
+    && left.sparsePaths.length === right.sparsePaths.length
+    && left.sparsePaths.every((path, index) => path === right.sparsePaths[index])
 }
 
 /** Add and inspect configured marketplace sources. */
@@ -93,7 +92,7 @@ export function MarketplaceSettingsTab({
    * import failed. Retrying the same request avoids re-adding a record, while
    * editing ref or sparse paths deliberately invalidates that shortcut.
    */
-  const [savedRequest, setSavedRequest] = useState<AddPluginMarketplaceRequest>()
+  const [savedRequest, setSavedRequest] = useState<SavedMarketplaceRequest>()
   const [removing, setRemoving] = useState<string>()
   const [toggling, setToggling] = useState<string>()
   const [mutationFailure, setMutationFailure] = useState<MutationFailure>()
@@ -142,7 +141,7 @@ export function MarketplaceSettingsTab({
     if (normalizedSource.length === 0) return
     const normalizedGitRef = gitRef.trim()
     const normalizedPluginName = pluginName.trim()
-    const request: AddPluginMarketplaceRequest = {
+    const request: SavedMarketplaceRequest = {
       source: normalizedSource,
       ...(normalizedGitRef === '' ? {} : { gitRef: normalizedGitRef }),
       sparsePaths: sparsePaths.split(/\r?\n/u).map(path => path.trim()).filter(path => path !== ''),

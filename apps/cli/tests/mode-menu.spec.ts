@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { PassThrough } from 'node:stream'
 import { describe, expect, it } from 'vitest'
 import { runModeMenu, type ModeMenuIO, type ModeMenuResult } from '../src/mode-menu.ts'
@@ -17,8 +18,8 @@ async function runMenu(
   const error = new PassThrough()
   let outputText = ''
   let errorText = ''
-  output.on('data', (chunk) => { outputText += chunk.toString() })
-  error.on('data', (chunk) => { errorText += chunk.toString() })
+  output.on('data', (chunk: Buffer) => { outputText += chunk.toString() })
+  error.on('data', (chunk: Buffer) => { errorText += chunk.toString() })
   const resultPromise = runModeMenu({
     input,
     output,

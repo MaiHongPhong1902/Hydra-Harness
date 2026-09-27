@@ -18,7 +18,7 @@
 import { Command, CommanderError } from 'commander'
 
 /** Show the interactive mode selector for a bare launcher invocation. */
-export interface MenuInvocation {
+interface MenuInvocation {
   mode: 'menu'
 }
 

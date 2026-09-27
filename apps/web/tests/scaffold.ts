@@ -407,6 +407,13 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
   const patches: PatchOptions[] = [
     ...basePatches,
     ...surfacePatches,
+    // Ordinary scenarios model an installation that already chose a model.
+    // First-run scenarios keep the shipped unselected default; scenario
+    // overlays below can still choose a different route explicitly.
+    ...options.deepSeekMissingCredential === true ? [] : [{
+      id: 'agent-default-model',
+      config: { provider: REPLAY_PROVIDERS[0]!.id, model: REPLAY_PROVIDERS[0]!.models[0]!.id },
+    }],
     ...extraOverlayPatches,
     ...extraPatches,
     // The roster's `roots` is an assembly fact AppCLIEntry resolves and patches
@@ -573,7 +580,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
         op: 'set', path: [WELCOME_NOTICE_ACK_FIELD], value: WELCOME_NOTICE_VERSION,
       }])
     }
-    if (options.deepSeekMissingCredential !== true) {
+    if (options.deepSeekMissingCredential !== true && options.welcomeNoticePending !== true) {
       await ctx.settings.mutate(settingsNamespace(WELCOME_NOTICE_SETTINGS_NAMESPACE), [{
         op: 'set', path: ['deepseekOfficialDeclined'], value: false,
       }])

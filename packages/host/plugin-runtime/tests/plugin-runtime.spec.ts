@@ -1401,6 +1401,7 @@ describe('PluginStore', () => {
       await vi.waitFor(async () => {
         expect((await plugins.info(identity)).mcpServers[0]?.startupState).toBe('started')
       }, { timeout: 10_000 })
+      expect((await pluginCommand(ctx, `info ${identity}`)).text?.split('\n').at(-1)).toBe('MCP: local=started')
       const serverName = (await new PluginManifestLoader().load(source, identity)).mcp[0]!.config.serverName
       const execute = (raw: string) => ctx.tools.execute({
         name: publicToolName(serverName, raw), arguments: {}, callId: CallId('policy'), signal: new AbortController().signal,

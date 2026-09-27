@@ -50,8 +50,8 @@ function defaultIO(): ModeMenuIO {
     input: process.stdin,
     output: process.stdout,
     error: process.stderr,
-    stdinIsTTY: process.stdin.isTTY === true,
-    stdoutIsTTY: process.stdout.isTTY === true,
+    stdinIsTTY: process.stdin.isTTY,
+    stdoutIsTTY: process.stdout.isTTY,
     ci: process.env.CI,
   }
 }
@@ -73,9 +73,9 @@ export async function runModeMenu(io: ModeMenuIO = defaultIO()): Promise<ModeMen
   }
 
   const readline = createInterface({ input: io.input, output: io.output, terminal: false })
-  let interrupted = false
+  const signal = { interrupted: false }
   readline.once('SIGINT', () => {
-    interrupted = true
+    signal.interrupted = true
     readline.close()
   })
   const lines = readline[Symbol.asyncIterator]()
@@ -90,7 +90,7 @@ export async function runModeMenu(io: ModeMenuIO = defaultIO()): Promise<ModeMen
     while (true) {
       const choice = await readLine('Choice [1-3, q]: ')
       if (choice === null || choice === '') {
-        return { kind: 'exit', code: interrupted ? 130 : 0 }
+        return { kind: 'exit', code: signal.interrupted ? 130 : 0 }
       }
       switch (choice.trim().toLowerCase()) {
         case '1':
@@ -99,7 +99,7 @@ export async function runModeMenu(io: ModeMenuIO = defaultIO()): Promise<ModeMen
           while (true) {
             const task = await readLine('Task: ')
             if (task === null || task === '') {
-              return { kind: 'exit', code: interrupted ? 130 : 0 }
+              return { kind: 'exit', code: signal.interrupted ? 130 : 0 }
             }
             if (task.trim().length > 0) {
               return { kind: 'profile', profile: 'headless', args: [task.trim()] }

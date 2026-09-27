@@ -237,8 +237,11 @@ describe('stored records', () => {
     })
   })
 
-  it.each(['//user:password@mcp.example.test/v1', 'user:password@mcp.example.test/v1'])
-  ('does not echo credentials from a malformed HTTP URL projection: %s', async (url) => {
+  it.each([
+    ['//user:password@mcp.example.test/v1', '//mcp.example.test/v1'],
+    ['user:password@mcp.example.test/v1', 'mcp.example.test/v1'],
+    ['not-a-url', 'not-a-url'],
+  ])('projects malformed HTTP URLs safely: %s', async (url, projected) => {
     const root = await mkdtemp(join(tmpdir(), 'hydra-mcp-registry-malformed-url-'))
     directories.push(root)
     const settingsPath = join(root, 'settings.yaml')
@@ -254,6 +257,7 @@ describe('stored records', () => {
 
     const ctx = await mount(settingsPath)
 
+    expect(ctx.mcpServers.list().servers[0]?.url).toBe(projected)
     expect(ctx.mcpServers.list().servers[0]?.url).not.toContain('password')
   })
 

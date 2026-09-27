@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { setTimeout } from 'node:timers/promises'
 import { fileURLToPath } from 'node:url'
 import { boot, loadOverlayPatches } from '@hydra/harness-app-boot'
 import { CallId, createUserMessage, LlmAdapter, type GenerateOptions, type Message, type StreamChunk } from '@hydra/harness-llm'
@@ -28,11 +29,26 @@ const adapter = new class extends LlmAdapter {
 }()
 try {
   const identity = (await ctx.importedPlugins.import(join(process.cwd(), 'plugin'))).plugins[0]!.identity
-  const enabled = (await ctx.importedPlugins.enable(identity)).plugins[0]!
-  const toolName = enabled.mcpServers[0]!.tools.find(name => name.endsWith('__admin__reset'))
-  if (toolName === undefined) throw new Error('enable returned before MCP discovery')
+  await ctx.importedPlugins.enable(identity)
+  await ctx.importedPlugins.setMcpServerEnabled(identity, 'local', true)
+  let enabled = await ctx.importedPlugins.info(identity)
+  let server = enabled.mcpServers.find(candidate => candidate.name === 'local')
+  if (server === undefined) throw new Error(`imported MCP server local is missing from ${identity}`)
+  let toolName = server.tools.find(name => name.endsWith('__admin__reset'))
+  const deadline = Date.now() + 10_000
+  while (toolName === undefined && server.startupState !== 'failed' && Date.now() < deadline) {
+    await setTimeout(50)
+    enabled = await ctx.importedPlugins.info(identity)
+    server = enabled.mcpServers.find(candidate => candidate.name === 'local')
+    if (server === undefined) throw new Error(`imported MCP server local disappeared from ${identity}`)
+    toolName = server.tools.find(name => name.endsWith('__admin__reset'))
+  }
+  if (toolName === undefined) {
+    throw new Error(`imported MCP tool admin__reset not discovered (state=${server.startupState}, tools=${JSON.stringify(server.tools)})`)
+  }
+  const discoveredToolName = toolName
   async function tool() {
-    const result = await ctx.tools.execute({ name: toolName!, arguments: {}, callId: CallId('mcp-check'), signal: new AbortController().signal })
+    const result = await ctx.tools.execute({ name: discoveredToolName, arguments: {}, callId: CallId('mcp-check'), signal: new AbortController().signal })
     return { isError: result.isError, text: result.content.flatMap(block => block.type === 'text' ? [block.text] : []).join('') }
   }
   const defaultDenied = (await tool()).isError
@@ -79,8 +95,8 @@ try {
     }
   }
   const hookRuns = await readFile(join(enabled.dataPath, 'hook-runs.txt'), 'utf8')
-  const remaining = ctx.tools.schemas().filter(tool => enabled.mcpServers[0]!.tools.includes(tool.name)).length
-  process.stdout.write(`${JSON.stringify({ startup: enabled.mcpServers[0]!.startupState, defaultDenied, allowed, denied, turns, hookRuns, remaining })}\n`)
+  const remaining = ctx.tools.schemas().filter(tool => server.tools.includes(tool.name)).length
+  process.stdout.write(`${JSON.stringify({ startup: server.startupState, defaultDenied, allowed, denied, turns, hookRuns, remaining })}\n`)
 } finally {
   await ctx.fiber.dispose()
 }

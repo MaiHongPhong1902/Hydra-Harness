@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, createEvent, fireEvent, render, screen } from '@testing-library/react'
+import type { ComponentProps } from 'react'
 import type { SessionId, WorkspaceId } from '@hydra/harness-client-runtime/client'
 import { makeTranslate } from '@hydra/harness-client-test-runtime'
 import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
@@ -8,6 +9,19 @@ import type { RowDragProps } from '../src/client/rows/Rows.tsx'
 import { ProjectRowItem, SearchResultItem, SessionNodeItem } from '../src/client/rows/Rows.tsx'
 import type { GroupNode, SearchResultNode, SessionNode } from '../src/client/tree.ts'
 import { en } from '../src/client/locales.ts'
+
+let selectMenu: ((id: string) => void) | undefined
+vi.mock('@hydra/harness-client-ui-primitives', async (importOriginal) => {
+  const primitives = await importOriginal<typeof import('@hydra/harness-client-ui-primitives')>()
+  const RealMenu = primitives.Menu
+  return {
+    ...primitives,
+    Menu: (props: ComponentProps<typeof RealMenu>) => {
+      selectMenu = props.onSelect
+      return <RealMenu {...props} />
+    },
+  }
+})
 
 afterEach(cleanup)
 
@@ -279,6 +293,26 @@ describe('workspace browser rows', () => {
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
+  it('starts and ends workspace row dragging with the workspace key', () => {
+    const start = vi.fn()
+    const end = vi.fn()
+    const group: GroupNode = {
+      key: 'project', workspaceId: wid('project'), cwd: '/projects/project', createdAt: 0, label: 'Project',
+      sessionCount: 0, expanded: false, containsCurrent: false, sessions: [],
+    }
+    render(<ProjectRowItem
+      group={group} onToggle={vi.fn()} onCreate={vi.fn()} drag={{ start, end }} t={t}
+    />)
+    const dataTransfer = { effectAllowed: '', setData: vi.fn() }
+    const row = screen.getByRole('treeitem')
+    fireEvent.dragStart(row, { dataTransfer })
+    expect(dataTransfer.effectAllowed).toBe('move')
+    expect(dataTransfer.setData).toHaveBeenCalledWith('text/plain', 'project')
+    expect(start).toHaveBeenCalledOnce()
+    fireEvent.dragEnd(row)
+    expect(end).toHaveBeenCalledOnce()
+  })
+
   it('workspace hover card shows its details and copies the full directory path', async () => {
     vi.useFakeTimers()
     const writeText = vi.fn(async () => {})
@@ -389,6 +423,9 @@ describe('workspace browser rows', () => {
       onDeleteUngrouped={onDeleteUngrouped} ungroupedDeleteDisabled t={t}
     />)
     const row = screen.getByRole('treeitem')
+    fireEvent.keyDown(screen.getByText('Ungrouped'), { key: 'Enter' })
+    fireEvent.keyDown(row, { key: 'Escape' })
+    expect(onToggle).not.toHaveBeenCalled()
     fireEvent.keyDown(row, { key: 'Enter' })
     expect(onToggle).toHaveBeenCalledOnce()
     fireEvent.click(screen.getByRole('button', { name: 'Ungrouped actions' }))
@@ -396,6 +433,31 @@ describe('workspace browser rows', () => {
     expect(item.disabled).toBe(true)
     fireEvent.click(item)
     expect(onDeleteUngrouped).not.toHaveBeenCalled()
+  })
+
+  it('guards disabled deletion and ignores selections outside the current workspace menu', () => {
+    const onDeleteUngrouped = vi.fn()
+    const onRename = vi.fn()
+    const onDelete = vi.fn()
+    const ungrouped: GroupNode = {
+      key: '', workspaceId: undefined, cwd: undefined, createdAt: undefined, label: 'Ungrouped',
+      sessionCount: 0, expanded: false, containsCurrent: false, sessions: [],
+    }
+    const { rerender } = render(<ProjectRowItem
+      group={ungrouped} onToggle={vi.fn()} onCreate={vi.fn()}
+      onDeleteUngrouped={onDeleteUngrouped} ungroupedDeleteDisabled t={t}
+    />)
+    act(() => { selectMenu!('delete-ungrouped') })
+    expect(onDeleteUngrouped).not.toHaveBeenCalled()
+    act(() => { selectMenu!('rename') })
+    expect(onRename).not.toHaveBeenCalled()
+
+    rerender(<ProjectRowItem group={{ ...ungrouped, workspaceId: wid('project'), key: 'project', label: 'Project' }}
+      onToggle={vi.fn()} onCreate={vi.fn()} actions={{ rename: onRename, delete: onDelete }} t={t} />)
+    act(() => { selectMenu!('delete-ungrouped') })
+    act(() => { selectMenu!('archive') })
+    expect(onRename).not.toHaveBeenCalled()
+    expect(onDelete).not.toHaveBeenCalled()
   })
 
   it('blank New Session rows carry no menu, no time label, and no hover-card time', () => {

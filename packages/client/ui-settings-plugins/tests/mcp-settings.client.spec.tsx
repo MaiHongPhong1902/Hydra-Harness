@@ -312,6 +312,27 @@ describe('McpSettingsTab', () => {
     })
   })
 
+  it('reports a failed per-tool approval mutation and refreshes the list', async () => {
+    const tool = 'mcp__toolkit@local__read'
+    const snapshot = {
+      plugins: [{
+        identity: 'toolkit@local', name: 'Toolkit', version: '4.9.0', enabled: true,
+        mcpServers: [{
+          name: 'toolkit-mcp', enabled: true, startupState: 'started',
+          authenticationState: 'not-applicable', defaultToolsApprovalMode: 'ask', toolApproval: {}, tools: [tool],
+        }],
+      }],
+    } as never
+    const list = vi.fn(async () => snapshot)
+    const setToolApproval = vi.fn(async () => { throw new Error('approval refused') })
+    renderTab({}, { list, setEnabled: vi.fn(), setToolApproval })
+
+    const approval = await screen.findByRole('combobox', { name: `${en.mcpToolApproval} ${tool}` })
+    fireEvent.change(approval, { target: { value: 'deny' } })
+    expect(await screen.findByText(en.mcpToggleFailed)).toBeTruthy()
+    expect(list).toHaveBeenCalledTimes(2)
+  })
+
   it('filters imported MCP server rows by the shared search query', async () => {
     const snapshot = {
       plugins: [{

@@ -187,6 +187,32 @@ describe('MarketplaceSettingsTab', () => {
     expect(screen.queryByRole('button', { name: 'Install' })).toBeNull()
   })
 
+  it('retries the same saved marketplace request without persisting it twice', async () => {
+    const importedPlugins = props().importedPlugins
+    vi.mocked(importedPlugins.import).mockRejectedValue(new Error('ambiguous marketplace'))
+    const addMarketplace = vi.fn(async () => READY)
+    render(<MarketplaceSettingsTab {...props({ addMarketplace, importedPlugins })} />)
+
+    await screen.findByText(en.marketplaceEmpty)
+    fireEvent.click(screen.getByRole('button', { name: en.marketplaceAdd }))
+    const dialog = screen.getByRole('dialog', { name: en.marketplaceAddTitle })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplaceSource }), {
+      target: { value: SOURCE },
+    })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplaceSparsePaths }), {
+      target: { value: 'plugins/codex' },
+    })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplacePluginName }), {
+      target: { value: 'example-plugin' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: en.marketplaceSave }))
+    expect((await within(dialog).findByRole('alert')).textContent).toBe(en.marketplaceImportError)
+
+    fireEvent.click(within(dialog).getByRole('button', { name: en.marketplaceSave }))
+    await waitFor(() => { expect(importedPlugins.import).toHaveBeenCalledTimes(2) })
+    expect(addMarketplace).toHaveBeenCalledOnce()
+  })
+
   it('keeps the add dialog open when importing the named plugin fails, and does not re-add the saved source', async () => {
     const importedPlugins = props().importedPlugins
     vi.mocked(importedPlugins.import).mockRejectedValue(new Error('ambiguous marketplace'))

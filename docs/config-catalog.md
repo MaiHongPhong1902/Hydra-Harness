@@ -966,7 +966,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/host/plugin-inventory/src/index.ts:372`](../packages/host/plugin-inventory/src/index.ts)
+Source: [`packages/host/plugin-inventory/src/index.ts:373`](../packages/host/plugin-inventory/src/index.ts)
 
 <a id="hydraharness-host-webserver"></a>
 

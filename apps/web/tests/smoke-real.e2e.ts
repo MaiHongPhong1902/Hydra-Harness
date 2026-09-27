@@ -52,6 +52,14 @@ async function rpc<T>(baseUrl: string, method: string, payload: unknown): Promis
   return body.result.value
 }
 
+async function selectDefaultModel(baseUrl: string, sessionId: string): Promise<void> {
+  await rpc(baseUrl, 'session.selectModel', {
+    sessionId,
+    provider: 'deepseek-official',
+    model: 'deepseek-v4-flash',
+  })
+}
+
 interface HistoryPage {
   events: { event: { type: string; data: unknown } }[]
   hasMore: boolean
@@ -165,6 +173,7 @@ describe('hydra web keyless CLI smoke', () => {
     try {
       const baseUrl = await waitForReadyLine(child)
       const created = await rpc<{ sessionId: string }>(baseUrl, 'session.create', {})
+      await selectDefaultModel(baseUrl, created.sessionId)
       await rpc<{ accepted: true }>(baseUrl, 'session.prompt', {
         sessionId: created.sessionId,
         mode: 'queue',
@@ -283,6 +292,7 @@ describe('hydra web keyless CLI smoke', () => {
     try {
       const baseUrl = await waitForReadyLine(child)
       const created = await rpc<{ sessionId: string }>(baseUrl, 'session.create', {})
+      await selectDefaultModel(baseUrl, created.sessionId)
       await rpc<{ accepted: true }>(baseUrl, 'session.prompt', {
         sessionId: created.sessionId,
         mode: 'queue',
@@ -367,6 +377,7 @@ describe('hydra web keyless CLI smoke', () => {
     try {
       const baseUrl = await waitForReadyLine(child)
       const created = await rpc<{ sessionId: string }>(baseUrl, 'session.create', {})
+      await selectDefaultModel(baseUrl, created.sessionId)
       await rpc<{ accepted: true }>(baseUrl, 'session.prompt', {
         sessionId: created.sessionId,
         mode: 'queue',
