@@ -47,7 +47,7 @@ const proxyFetch: typeof fetch = (input, init) => {
   return undiciFetch(input as Parameters<typeof undiciFetch>[0], {
     ...init,
     dispatcher: agentFor(proxy),
-  } as Parameters<typeof undiciFetch>[1]) as unknown as ReturnType<typeof fetch>
+  } as Parameters<typeof undiciFetch>[1]) as ReturnType<typeof fetch>
 }
 
 function ensureFetchInterceptor(): void {
@@ -86,5 +86,5 @@ export function fetchWithHttpProxy(
   return undiciFetch(input as Parameters<typeof undiciFetch>[0], {
     ...init,
     dispatcher: agentFor(resolved),
-  } as Parameters<typeof undiciFetch>[1]) as unknown as ReturnType<typeof fetch>
+  } as Parameters<typeof undiciFetch>[1]) as ReturnType<typeof fetch>
 }

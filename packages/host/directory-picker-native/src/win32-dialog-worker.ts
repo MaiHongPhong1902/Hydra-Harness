@@ -38,7 +38,7 @@ const post = (message: Win32DialogWorkerMessage): void => {
   // Flush the terminal message before closing the channel; the process exits
   // when the loop drains.
   /* v8 ignore next 3 -- disconnect needs a live IPC channel the unit lane must not sever (built-worker.e2e.ts owns the real close path). */
-  send(message, () => { if (process.connected) process.disconnect?.() })
+  send(message, () => { if (process.connected) process.disconnect() })
 }
 
 // A settled driver (or a dead parent) must not orphan a dialog still on screen.
