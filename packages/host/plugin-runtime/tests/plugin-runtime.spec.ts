@@ -117,7 +117,7 @@ describe('PluginStore', () => {
         agentMetadata: { displayName: 'Portable' }, appMappings: ['browser'],
         mcpServers: [{ enabled: false, defaultToolsApprovalMode: 'ask', toolApproval: {}, authenticationState: 'unknown' }],
       })
-      expect((await pluginCommand(ctx, 'info portable-plugin')).text).toContain('MCP: remote=not-started')
+      expect((await pluginCommand(ctx, 'info portable-plugin')).text).toContain('MCP: remote=disabled')
       registry.plugins[identity]!.mcp = { remote: { enabled: false, defaultToolsApprovalMode: 'ask', toolApproval: {} } }
       await writeFile(registryPath, JSON.stringify(registry))
       expect((await pluginCommand(ctx, 'info portable-plugin')).text).toContain('MCP: remote=disabled')

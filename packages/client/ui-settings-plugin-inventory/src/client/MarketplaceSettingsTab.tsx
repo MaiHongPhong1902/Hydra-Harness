@@ -60,10 +60,12 @@ function isMissingMarketplaceCatalog(error: unknown): boolean {
 }
 
 function sameMarketplaceRequest(left: AddPluginMarketplaceRequest, right: AddPluginMarketplaceRequest): boolean {
+  const leftSparsePaths = left.sparsePaths ?? []
+  const rightSparsePaths = right.sparsePaths ?? []
   return left.source === right.source
     && left.gitRef === right.gitRef
-    && left.sparsePaths.length === right.sparsePaths.length
-    && left.sparsePaths.every((path, index) => path === right.sparsePaths[index])
+    && leftSparsePaths.length === rightSparsePaths.length
+    && leftSparsePaths.every((path, index) => path === rightSparsePaths[index])
 }
 
 /** Add and inspect configured marketplace sources. */

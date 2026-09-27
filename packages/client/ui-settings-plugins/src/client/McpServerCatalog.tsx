@@ -173,7 +173,7 @@ export function McpServerCatalog({ active = true, controls, query, t }: {
   const [draft, setDraft] = useState<Draft>()
   const [saving, setSaving] = useState(false)
   const [mutating, setMutating] = useState<string>()
-  const [failure, setFailure] = useState<'save' | 'mutate' | 'env' | 'headers' | 'name'>()
+  const [failure, setFailure] = useState<'save' | 'mutate' | 'env' | 'headers' | 'url' | 'name'>()
 
   useEffect(() => {
     if (!active) return undefined

@@ -223,10 +223,10 @@ describe('stored records', () => {
       '  servers:',
       '    - name: legacy',
       '      transport: streamable-http',
-      '      url: https://user:password@mcp.example.test/v1',
+      '      url: "https://user:password@mcp.example.test/v1"',
       '      enabled: false',
       '',
-    ].join('\\n'))
+    ].join('\n'))
 
     const ctx = await mount(settingsPath)
 

@@ -169,6 +169,26 @@ describe('McpServerCatalog', () => {
     })
   })
 
+  it('blocks embedded credentials in a remote URL before saving', async () => {
+    const face = controls()
+    render(<McpServerCatalog controls={face} query="" t={t} />)
+
+    await screen.findByText(en.userMcpEmpty)
+    fireEvent.click(screen.getByRole('button', { name: en.userMcpAdd }))
+    const dialog = screen.getByRole('dialog', { name: en.userMcpAddTitle })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.userMcpName }), { target: { value: 'remote' } })
+    fireEvent.change(within(dialog).getByRole('combobox', { name: en.userMcpTransport }), {
+      target: { value: 'streamable-http' },
+    })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.userMcpUrl }), {
+      target: { value: 'https://user:password@mcp.example.test/v1' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: en.userMcpSave }))
+
+    expect((await within(dialog).findByRole('alert')).textContent).toBe(en.userMcpUrlInvalid)
+    expect(face.define).not.toHaveBeenCalled()
+  })
+
   it('omits a blank credential map on an edit, so the stored value survives', async () => {
     const face = controls({ list: vi.fn(async () => STORED) })
     render(<McpServerCatalog controls={face} query="" t={t} />)
