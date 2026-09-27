@@ -370,7 +370,16 @@ export function AppFrame({
       data-terminal-open={terminalOpen || undefined}
       data-browser-expanded={browserExpanded || undefined}
     >
-      <DesktopTitleBar onAction={onTitleBarAction} sidebarOpen={!sidebarCollapsed} />
+      <DesktopTitleBar onAction={onTitleBarAction} sidebarOpen={!sidebarCollapsed}>
+        <DesktopPanelControls
+          browserOpen={browserOpen}
+          terminalOpen={terminalOpen}
+          browserExpanded={browserExpanded}
+          onToggleBrowser={toggleBrowser}
+          onToggleTerminal={() => { setTerminalOpen(open => !open) }}
+          onToggleExpanded={toggleExpanded}
+        />
+      </DesktopTitleBar>
       <div className={css.desktopApp} data-desktop-shell>{frame}</div>
       <DesktopBrowserPanel
         open={browserOpen}
@@ -424,14 +433,6 @@ export function AppFrame({
           }}
         />
       )}
-      <DesktopPanelControls
-        browserOpen={browserOpen}
-        terminalOpen={terminalOpen}
-        browserExpanded={browserExpanded}
-        onToggleBrowser={toggleBrowser}
-        onToggleTerminal={() => { setTerminalOpen(open => !open) }}
-        onToggleExpanded={toggleExpanded}
-      />
     </div>
   )
 }

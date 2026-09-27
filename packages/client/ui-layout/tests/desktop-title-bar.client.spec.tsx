@@ -19,4 +19,15 @@ describe('DesktopTitleBar', () => {
     expect(onAction).toHaveBeenNthCalledWith(2, 'toggle-sidebar')
     expect(onAction).toHaveBeenNthCalledWith(3, 'toggle-bottom-panel')
   })
+
+  it('renders trailing children before window controls overlay', () => {
+    const onAction = vi.fn()
+    render(
+      <DesktopTitleBar onAction={onAction} sidebarOpen>
+        <button type="button">Custom Control</button>
+      </DesktopTitleBar>,
+    )
+
+    expect(screen.getByRole('button', { name: 'Custom Control' })).toBeTruthy()
+  })
 })

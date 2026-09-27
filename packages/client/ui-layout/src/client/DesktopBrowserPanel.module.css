@@ -29,7 +29,7 @@
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  padding: 4px 98px 4px 8px;
+  padding: 4px 8px;
   border-bottom: 1px solid var(--dsw-alias-border-l1);
   background: var(--dsw-specific-sidebar-fill);
 }
@@ -251,11 +251,10 @@
 }
 
 .panelControls {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  z-index: 40;
+  display: flex;
+  align-items: center;
   gap: 2px;
+  -webkit-app-region: no-drag;
 }
 
 .iconButton {
@@ -270,6 +269,7 @@
   color: var(--dsw-alias-label-secondary);
   background: transparent;
   cursor: pointer;
+  -webkit-app-region: no-drag;
 }
 
 .iconButton[data-active] {

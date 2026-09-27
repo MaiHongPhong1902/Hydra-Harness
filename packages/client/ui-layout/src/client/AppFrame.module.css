@@ -143,9 +143,9 @@
   background: var(--dsw-alias-bg-base);
 }
 
-/* Keep the closed-panel controls clear of the first conversation-header row. */
-.desktopShell:not([data-browser-open]) :global([data-slot='conversation.session.header']) > header > :first-child {
-  padding-right: 94px;
+.desktopShell > [data-desktop-titlebar] {
+  grid-column: 1 / -1;
+  grid-row: 1;
 }
 
 .desktopShell > [data-desktop-panel][hidden] {

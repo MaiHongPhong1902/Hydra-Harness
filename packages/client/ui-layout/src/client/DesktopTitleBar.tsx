@@ -18,6 +18,7 @@ export interface DesktopTitleBarProps {
   canGoBack?: boolean
   canGoForward?: boolean
   sidebarOpen: boolean
+  children?: ReactNode
 }
 
 function shortcut(label: string, keys: string): ReactNode {
@@ -122,7 +123,7 @@ function TitleMenu(props: {
 }
 
 /** Desktop-only product bar; native window controls remain in Electron's overlay. */
-export function DesktopTitleBar({ onAction, canGoBack = false, canGoForward = false, sidebarOpen }: DesktopTitleBarProps) {
+export function DesktopTitleBar({ onAction, canGoBack = false, canGoForward = false, sidebarOpen, children }: DesktopTitleBarProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -177,6 +178,11 @@ export function DesktopTitleBar({ onAction, canGoBack = false, canGoForward = fa
         {menu('View', VIEW_ITEMS)}
         {menu('Help', HELP_ITEMS)}
       </nav>
+      {children !== undefined && (
+        <div className={css.trailing}>
+          {children}
+        </div>
+      )}
     </header>
   )
 }
