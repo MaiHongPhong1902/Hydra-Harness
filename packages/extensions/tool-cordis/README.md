@@ -57,7 +57,7 @@ Namespace plugin: named exports `name` / `inject` / `apply`, no default export (
 
 #### What the model sees
 
-The conversation model sees the generated [`cordis_inspect`, `cordis_define`, `cordis_run`, `cordis_stop`, and `cordis_undefine` schemas](../../../docs/tool-catalog.md#hydra1902harness-tool-cordis) whenever this plugin is visible.
+The conversation model sees the generated [`cordis_inspect`, `cordis_define`, `cordis_run`, `cordis_stop`, and `cordis_undefine` schemas](../../../docs/tool-catalog.md#hydraharness-tool-cordis) whenever this plugin is visible.
 
 #### Token effect
 

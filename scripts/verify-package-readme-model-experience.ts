@@ -8,6 +8,7 @@
 import { existsSync, globSync, readFileSync } from 'node:fs'
 import { relative, resolve, sep } from 'node:path'
 import { markdownHeadingLines, markdownProseLines, type MarkdownProseLine } from './markdown.ts'
+import { hydraPackageSlug } from './verify-md-links.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const HEADING = '## Model Experience'
@@ -253,7 +254,12 @@ function toolCatalogLinkFragments(text: string): string[] {
 const toolCatalogFragments = new Set<string>()
 for (const line of readFileSync(resolve(root, 'docs/tool-catalog.md'), 'utf8').split('\n')) {
   const title = /^## (.+)$/.exec(line)?.[1]
-  if (title !== undefined) toolCatalogFragments.add(headingFragment(title))
+  if (title !== undefined) {
+    const packageName = title.replaceAll('`', '')
+    toolCatalogFragments.add(packageName.startsWith('@hydra1902/')
+      ? hydraPackageSlug(packageName)
+      : headingFragment(title))
+  }
 }
 
 const failures: Failure[] = []

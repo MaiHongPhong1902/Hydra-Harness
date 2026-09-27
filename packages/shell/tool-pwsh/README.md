@@ -67,7 +67,7 @@ Prefix-stable while the registration scope and prompt text are unchanged. Plugin
 
 #### What the model sees
 
-The model sees the generated [`pwsh` schema](../../../docs/tool-catalog.md#hydra1902harness-tool-pwsh). Agent-scoped tool restrictions can remove the definition for that agent.
+The model sees the generated [`pwsh` schema](../../../docs/tool-catalog.md#hydraharness-tool-pwsh). Agent-scoped tool restrictions can remove the definition for that agent.
 
 #### Token effect
 

@@ -1,22 +1,22 @@
-# Agent Note: Package catalog fragment compatibility
+# Agent Note: Package catalog product fragments
 
 Status: implemented
 
 ## Problem
 
-Generated catalog sections use package-derived fragments, while repository links can retain the earlier package scope spelling.
+Generated catalog sections use package-derived fragments, while the product name stays `hydraharness` after the npm scope migration.
 
 ## Decision
 
-Generated tool and configuration catalogs emit the canonical `@hydra1902` package anchor and a compatibility anchor for the `@hydra` package spelling. Package READMEs and guides can keep either fragment while headings and package names use the published scope. The `legacyHydraPackageSlug` helper owns the mapping, and both catalog generators call it when rendering package sections.
+Generated tool and configuration catalogs emit `hydraharness` package anchors even though headings and package names use the published `@hydra1902` scope. The `hydraPackageSlug` helper owns the mapping, and both catalog generators call it when rendering package sections.
 
 ## Consequences
 
-Existing package-section links continue to resolve, and new catalog entries receive the same compatibility behavior without hand-editing generated Markdown.
+Existing package-section links continue to resolve under the product name, and new catalog entries receive the same behavior without hand-editing generated Markdown.
 
 ## Alternatives considered
 
-Updating every existing link would create a large documentation-only diff and would not preserve links held outside the repository. Emitting only the current fragment would leave those links broken.
+Using the npm scope in fragments would expose an implementation rename in public product links and break the established `hydraharness` anchors.
 
 ## Verification
 

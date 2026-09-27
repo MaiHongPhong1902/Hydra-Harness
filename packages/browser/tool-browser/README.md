@@ -119,7 +119,7 @@ Prefix-stable while the package is loaded and the section text is unchanged. Loa
 
 #### What the model sees
 
-The generated [`browser_*` schemas](../../../docs/tool-catalog.md#hydra1902harness-tool-browser): navigation, state, wait, indexed or named accessibility actions, `browser_find`, `browser_fill`, tab actions including `browser_forward`, selected-viewport screenshot, sensitive-history search, and demoted `browser_page_agent_run`/`status`/`stop`. PageAgent uses the invoking Hydra agent's selected model through a private host bridge; no API key or PageAgent UI is sent to a page. Screenshot appears only while durable attachments are mounted; experimental JavaScript appears only when its host gate is enabled, while the two Full CDP schemas appear only during the effective organization-and-user opt-in. `maxStateChars` and `timeoutMs` are deployment settings, not model arguments.
+The generated [`browser_*` schemas](../../../docs/tool-catalog.md#hydraharness-tool-browser): navigation, state, wait, indexed or named accessibility actions, `browser_find`, `browser_fill`, tab actions including `browser_forward`, selected-viewport screenshot, sensitive-history search, and demoted `browser_page_agent_run`/`status`/`stop`. PageAgent uses the invoking Hydra agent's selected model through a private host bridge; no API key or PageAgent UI is sent to a page. Screenshot appears only while durable attachments are mounted; experimental JavaScript appears only when its host gate is enabled, while the two Full CDP schemas appear only during the effective organization-and-user opt-in. `maxStateChars` and `timeoutMs` are deployment settings, not model arguments.
 
 #### Token effect
 

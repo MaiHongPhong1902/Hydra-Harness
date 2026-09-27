@@ -54,7 +54,7 @@ A whitespace-bounded `/name` token in a claimed direct-user message deterministi
 
 #### What the model sees
 
-The model sees the generated [`skill_search` and `skill` schemas](../../../docs/tool-catalog.md#hydra1902harness-tool-skill). No data-dependent skill roster is added to the request prefix.
+The model sees the generated [`skill_search` and `skill` schemas](../../../docs/tool-catalog.md#hydraharness-tool-skill). No data-dependent skill roster is added to the request prefix.
 
 #### Token effect
 

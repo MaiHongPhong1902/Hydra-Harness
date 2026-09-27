@@ -9,8 +9,6 @@ This file is GENERATED from source (`scripts/gen-config-catalog.ts`) and verifie
 
 A `Requires:` line lists the service keys the plugin `inject`s: its `cordis.yml` tree must also load providers for those services. Scope is the harness tier (`packages/`); the vendored cordis plugins a config tree may also load (`hmr`, the console logger, …) are pinned upstream source ([vendoring policy](../vendor/README.md)) and not catalogued here.
 
-<a id="hydra1902harness-acp"></a>
-
 <a id="hydraharness-acp"></a>
 
 ## `@hydra1902/harness-acp`
@@ -32,8 +30,6 @@ export interface AcpConfig {
 Depends on: `Stream` (`@agentclientprotocol/sdk`)
 
 Source: [`packages/acp/acp/src/index.ts:71`](../packages/acp/acp/src/index.ts)
-
-<a id="hydra1902harness-acp-demo"></a>
 
 <a id="hydraharness-acp-demo"></a>
 
@@ -86,11 +82,9 @@ export interface Config {
 }
 ```
 
-Depends on: [`agentCore`](../packages/examples/agent-spine-demo/src/index.ts) · [`JsonlCompression`](../packages/session/session-persistence-jsonl/src/index.ts) · [`ToolsConfig`](#hydra1902harness-tools)
+Depends on: [`agentCore`](../packages/examples/agent-spine-demo/src/index.ts) · [`JsonlCompression`](../packages/session/session-persistence-jsonl/src/index.ts) · [`ToolsConfig`](#hydraharness-tools)
 
 Source: [`packages/examples/acp-demo/src/index.ts:39`](../packages/examples/acp-demo/src/index.ts)
-
-<a id="hydra1902harness-agent-default-model"></a>
 
 <a id="hydraharness-agent-default-model"></a>
 
@@ -107,8 +101,6 @@ export interface Config {
 ```
 
 Source: [`packages/core/agent-default-model/src/index.ts:41`](../packages/core/agent-default-model/src/index.ts)
-
-<a id="hydra1902harness-agent-instructions"></a>
 
 <a id="hydraharness-agent-instructions"></a>
 
@@ -139,8 +131,6 @@ export interface Config {
 ```
 
 Source: [`packages/context/agent-instructions/src/config.ts:18`](../packages/context/agent-instructions/src/config.ts)
-
-<a id="hydra1902harness-agent-loop"></a>
 
 <a id="hydraharness-agent-loop"></a>
 
@@ -173,8 +163,6 @@ export interface Config {
 Depends on: [`AgentOptions`](subsystems/core.md) · [`SessionId`](subsystems/core.md)
 
 Source: [`packages/core/agent-loop/src/index.ts:255`](../packages/core/agent-loop/src/index.ts)
-
-<a id="hydra1902harness-agent-presets"></a>
 
 <a id="hydraharness-agent-presets"></a>
 
@@ -213,8 +201,6 @@ export type PresetTrust = 'system' | 'user'
 ```
 
 Source: [`packages/preset/agent-presets/src/preset.ts:52`](../packages/preset/agent-presets/src/preset.ts)
-
-<a id="hydra1902harness-agent-spine-demo"></a>
 
 <a id="hydraharness-agent-spine-demo"></a>
 
@@ -304,11 +290,9 @@ export interface GoalConfig {
 }
 ```
 
-Depends on: [`AgentLoopConfig`](#hydra1902harness-agent-loop) · [`GoalDomainConfig`](#hydra1902harness-goal) · [`InvariantConfig`](#hydra1902harness-invariants) · [`JobsConfig`](#hydra1902harness-jobs-local) · [`SessionTitleConfig`](#hydra1902harness-session-title) · [`SkillFileSystem`](../packages/skill/skill-filesystem/src/index.ts) · [`SkillRegistryConfig`](#hydra1902harness-skill) · [`SystemPromptConfig`](#hydra1902harness-system-prompt) · [`toolBash`](../packages/shell/tool-bash/src/index.ts) · [`toolGoal`](../packages/goal/tool-goal/src/index.ts) · [`toolJobs`](../packages/jobs/tool-jobs/src/index.ts) · [`ToolsConfig`](#hydra1902harness-tools) · [`toolSkill`](../packages/skill/tool-skill/src/index.ts) · [`workspaceContext`](../packages/context/agent-instructions/src/index.ts)
+Depends on: [`AgentLoopConfig`](#hydraharness-agent-loop) · [`GoalDomainConfig`](#hydraharness-goal) · [`InvariantConfig`](#hydraharness-invariants) · [`JobsConfig`](#hydraharness-jobs-local) · [`SessionTitleConfig`](#hydraharness-session-title) · [`SkillFileSystem`](../packages/skill/skill-filesystem/src/index.ts) · [`SkillRegistryConfig`](#hydraharness-skill) · [`SystemPromptConfig`](#hydraharness-system-prompt) · [`toolBash`](../packages/shell/tool-bash/src/index.ts) · [`toolGoal`](../packages/goal/tool-goal/src/index.ts) · [`toolJobs`](../packages/jobs/tool-jobs/src/index.ts) · [`ToolsConfig`](#hydraharness-tools) · [`toolSkill`](../packages/skill/tool-skill/src/index.ts) · [`workspaceContext`](../packages/context/agent-instructions/src/index.ts)
 
 Source: [`packages/examples/agent-spine-demo/src/index.ts:92`](../packages/examples/agent-spine-demo/src/index.ts)
-
-<a id="hydra1902harness-agent-tool-presentation"></a>
 
 <a id="hydraharness-agent-tool-presentation"></a>
 
@@ -334,8 +318,6 @@ Depends on: [`ToolPresentationMode`](subsystems/tools.md)
 
 Source: [`packages/core/agent-tool-presentation/src/index.ts:38`](../packages/core/agent-tool-presentation/src/index.ts)
 
-<a id="hydra1902harness-attachment-local"></a>
-
 <a id="hydraharness-attachment-local"></a>
 
 ## `@hydra1902/harness-attachment-local`
@@ -359,8 +341,6 @@ export interface Config {
 ```
 
 Source: [`packages/attachment/attachment-local/src/index.ts:32`](../packages/attachment/attachment-local/src/index.ts)
-
-<a id="hydra1902harness-bash-local"></a>
 
 <a id="hydraharness-bash-local"></a>
 
@@ -388,8 +368,6 @@ export interface Config {
 
 Source: [`packages/shell/bash-local/src/index.ts:41`](../packages/shell/bash-local/src/index.ts)
 
-<a id="hydra1902harness-bash-sandbox"></a>
-
 <a id="hydraharness-bash-sandbox"></a>
 
 ## `@hydra1902/harness-bash-sandbox`
@@ -407,11 +385,9 @@ Requires: `subprocess` · `sandbox` · `sandboxPolicy`
 export type Config = LocalConfig
 ```
 
-Depends on: [`LocalConfig`](#hydra1902harness-bash-local)
+Depends on: [`LocalConfig`](#hydraharness-bash-local)
 
 Source: [`packages/shell/bash-sandbox/src/index.ts:35`](../packages/shell/bash-sandbox/src/index.ts)
-
-<a id="hydra1902harness-browser-electron"></a>
 
 <a id="hydraharness-browser-electron"></a>
 
@@ -464,8 +440,6 @@ export type BrowserDecision = 'allow' | 'ask' | 'block'
 
 Source: [`packages/browser/browser-electron/src/index.ts:145`](../packages/browser/browser-electron/src/index.ts)
 
-<a id="hydra1902harness-client-connection"></a>
-
 <a id="hydraharness-client-connection"></a>
 
 ## `@hydra1902/harness-client-connection`
@@ -491,8 +465,6 @@ export interface ConnectionConfig {
 
 Source: [`packages/client/connection/src/index.ts:50`](../packages/client/connection/src/index.ts)
 
-<a id="hydra1902harness-client-hmr"></a>
-
 <a id="hydraharness-client-hmr"></a>
 
 ## `@hydra1902/harness-client-hmr`
@@ -508,8 +480,6 @@ export interface Config {
 ```
 
 Source: [`packages/client/hmr/src/index.ts:31`](../packages/client/hmr/src/index.ts)
-
-<a id="hydra1902harness-code-runtime-worker-thread"></a>
 
 <a id="hydraharness-code-runtime-worker-thread"></a>
 
@@ -547,8 +517,6 @@ export interface Config {
 ```
 
 Source: [`packages/code-runtime/code-runtime-worker-thread/src/index.ts:25`](../packages/code-runtime/code-runtime-worker-thread/src/index.ts)
-
-<a id="hydra1902harness-compaction-basic"></a>
 
 <a id="hydraharness-compaction-basic"></a>
 
@@ -596,8 +564,6 @@ export interface ModelCompactPolicyConfig extends CompactionPolicyConfig {
 
 Source: [`packages/compaction/compaction-basic/src/types.ts:38`](../packages/compaction/compaction-basic/src/types.ts)
 
-<a id="hydra1902harness-compaction-tool-result-pruner"></a>
-
 <a id="hydraharness-compaction-tool-result-pruner"></a>
 
 ## `@hydra1902/harness-compaction-tool-result-pruner`
@@ -618,8 +584,6 @@ export interface ToolResultPruneConfig {
 
 Source: [`packages/compaction/compaction-tool-result-pruner/src/types.ts:4`](../packages/compaction/compaction-tool-result-pruner/src/types.ts)
 
-<a id="hydra1902harness-cordis-host-runner"></a>
-
 <a id="hydraharness-cordis-host-runner"></a>
 
 ## `@hydra1902/harness-cordis-host-runner`
@@ -635,8 +599,6 @@ export interface Config {
 ```
 
 Source: [`packages/extensions/cordis-host-runner/src/index.ts:88`](../packages/extensions/cordis-host-runner/src/index.ts)
-
-<a id="hydra1902harness-credentials-local"></a>
 
 <a id="hydraharness-credentials-local"></a>
 
@@ -658,8 +620,6 @@ export interface Config {
 
 Source: [`packages/credentials/credentials-local/src/index.ts:64`](../packages/credentials/credentials-local/src/index.ts)
 
-<a id="hydra1902harness-e2b"></a>
-
 <a id="hydraharness-e2b"></a>
 
 ## `@hydra1902/harness-e2b`
@@ -677,8 +637,6 @@ export interface Config {
 ```
 
 Source: [`packages/e2b/e2b/src/index.ts:43`](../packages/e2b/e2b/src/index.ts)
-
-<a id="hydra1902harness-experimental-agent-team"></a>
 
 <a id="hydraharness-experimental-agent-team"></a>
 
@@ -704,8 +662,6 @@ export interface Config {
 
 Source: [`packages/experimental/agent-team/src/types.ts:125`](../packages/experimental/agent-team/src/types.ts)
 
-<a id="hydra1902harness-experimental-tool-agent-team"></a>
-
 <a id="hydraharness-experimental-tool-agent-team"></a>
 
 ## `@hydra1902/harness-experimental-tool-agent-team`
@@ -723,8 +679,6 @@ export interface Config {
 ```
 
 Source: [`packages/experimental/tool-agent-team/src/index.ts:17`](../packages/experimental/tool-agent-team/src/index.ts)
-
-<a id="hydra1902harness-file-reference-local"></a>
 
 <a id="hydraharness-file-reference-local"></a>
 
@@ -746,8 +700,6 @@ export interface Config {
 
 Source: [`packages/context/file-reference-local/src/index.ts:35`](../packages/context/file-reference-local/src/index.ts)
 
-<a id="hydra1902harness-fs-local"></a>
-
 <a id="hydraharness-fs-local"></a>
 
 ## `@hydra1902/harness-fs-local`
@@ -766,8 +718,6 @@ export interface Config {
 ```
 
 Source: [`packages/fs/fs-local/src/index.ts:44`](../packages/fs/fs-local/src/index.ts)
-
-<a id="hydra1902harness-fs-review"></a>
 
 <a id="hydraharness-fs-review"></a>
 
@@ -797,8 +747,6 @@ export interface ReviewLimits {
 
 Source: [`packages/fs/fs-review/src/index.ts:25`](../packages/fs/fs-review/src/index.ts)
 
-<a id="hydra1902harness-fs-sandbox"></a>
-
 <a id="hydraharness-fs-sandbox"></a>
 
 ## `@hydra1902/harness-fs-sandbox`
@@ -815,11 +763,9 @@ Requires: `sandboxPolicy`
 export type Config = LocalConfig
 ```
 
-Depends on: [`LocalConfig`](#hydra1902harness-fs-local)
+Depends on: [`LocalConfig`](#hydraharness-fs-local)
 
 Source: [`packages/fs/fs-sandbox/src/index.ts:49`](../packages/fs/fs-sandbox/src/index.ts)
-
-<a id="hydra1902harness-goal"></a>
 
 <a id="hydraharness-goal"></a>
 
@@ -837,8 +783,6 @@ export interface Config {
 
 Source: [`packages/goal/goal/src/index.ts:116`](../packages/goal/goal/src/index.ts)
 
-<a id="hydra1902harness-headless"></a>
-
 <a id="hydraharness-headless"></a>
 
 ## `@hydra1902/harness-headless`
@@ -854,8 +798,6 @@ export interface Config {
 ```
 
 Source: [`packages/bundle/headless/src/index.ts:31`](../packages/bundle/headless/src/index.ts)
-
-<a id="hydra1902harness-hooks-claude-code"></a>
 
 <a id="hydraharness-hooks-claude-code"></a>
 
@@ -895,8 +837,6 @@ export interface Config {
 
 Source: [`packages/hooks/hooks-claude-code/src/index.ts:45`](../packages/hooks/hooks-claude-code/src/index.ts)
 
-<a id="hydra1902harness-hooks-codex"></a>
-
 <a id="hydraharness-hooks-codex"></a>
 
 ## `@hydra1902/harness-hooks-codex`
@@ -926,8 +866,6 @@ export interface Config {
 
 Source: [`packages/hooks/hooks-codex/src/index.ts:47`](../packages/hooks/hooks-codex/src/index.ts)
 
-<a id="hydra1902harness-hooks-registry"></a>
-
 <a id="hydraharness-hooks-registry"></a>
 
 ## `@hydra1902/harness-hooks-registry`
@@ -943,8 +881,6 @@ export interface Config {
 ```
 
 Source: [`packages/hooks/hooks-registry/src/index.ts:54`](../packages/hooks/hooks-registry/src/index.ts)
-
-<a id="hydra1902harness-host-apiproxy"></a>
 
 <a id="hydraharness-host-apiproxy"></a>
 
@@ -986,8 +922,6 @@ export interface Config {
 
 Source: [`packages/host/apiproxy/src/index.ts:44`](../packages/host/apiproxy/src/index.ts)
 
-<a id="hydra1902harness-host-directory-picker-browse"></a>
-
 <a id="hydraharness-host-directory-picker-browse"></a>
 
 ## `@hydra1902/harness-host-directory-picker-browse`
@@ -1001,8 +935,6 @@ export interface Config {
 ```
 
 Source: [`packages/host/directory-picker-browse/src/index.ts:181`](../packages/host/directory-picker-browse/src/index.ts)
-
-<a id="hydra1902harness-host-frontend-static"></a>
 
 <a id="hydraharness-host-frontend-static"></a>
 
@@ -1020,8 +952,6 @@ export interface Config {
 
 Source: [`packages/host/frontend-static/src/index.ts:28`](../packages/host/frontend-static/src/index.ts)
 
-<a id="hydra1902harness-host-plugin-inventory"></a>
-
 <a id="hydraharness-host-plugin-inventory"></a>
 
 ## `@hydra1902/harness-host-plugin-inventory`
@@ -1038,8 +968,6 @@ export interface Config {
 
 Source: [`packages/host/plugin-inventory/src/index.ts:373`](../packages/host/plugin-inventory/src/index.ts)
 
-<a id="hydra1902harness-host-webserver"></a>
-
 <a id="hydraharness-host-webserver"></a>
 
 ## `@hydra1902/harness-host-webserver`
@@ -1055,8 +983,6 @@ export interface Config {
 ```
 
 Source: [`packages/host/webserver/src/index.ts:59`](../packages/host/webserver/src/index.ts)
-
-<a id="hydra1902harness-invariants"></a>
 
 <a id="hydraharness-invariants"></a>
 
@@ -1075,8 +1001,6 @@ export interface Config {
 ```
 
 Source: [`packages/runtime-diagnostics/invariants/src/index.ts:15`](../packages/runtime-diagnostics/invariants/src/index.ts)
-
-<a id="hydra1902harness-jev"></a>
 
 <a id="hydraharness-jev"></a>
 
@@ -1098,8 +1022,6 @@ export interface Config {
 
 Source: [`packages/llm/jev/src/index.ts:84`](../packages/llm/jev/src/index.ts)
 
-<a id="hydra1902harness-jobs-local"></a>
-
 <a id="hydraharness-jobs-local"></a>
 
 ## `@hydra1902/harness-jobs-local`
@@ -1116,8 +1038,6 @@ export interface Config {
 ```
 
 Source: [`packages/jobs/jobs-local/src/index.ts:31`](../packages/jobs/jobs-local/src/index.ts)
-
-<a id="hydra1902harness-llm-account-auth"></a>
 
 <a id="hydraharness-llm-account-auth"></a>
 
@@ -1195,8 +1115,6 @@ Depends on: `CacheRetention` (`@earendil-works/pi-ai`) · `ModelThinkingLevel` (
 
 Source: [`packages/llm/llm-account-auth/src/config.ts:66`](../packages/llm/llm-account-auth/src/config.ts)
 
-<a id="hydra1902harness-llm-deepseek"></a>
-
 <a id="hydraharness-llm-deepseek"></a>
 
 ## `@hydra1902/harness-llm-deepseek`
@@ -1259,8 +1177,6 @@ export interface DeepSeekCatalogModel {
 Depends on: [`ModelModality`](../packages/llm/llm/src/index.ts) · [`RetryPolicyConfig`](../packages/llm/llm/src/index.ts)
 
 Source: [`packages/llm/llm-deepseek/src/index.ts:74`](../packages/llm/llm-deepseek/src/index.ts)
-
-<a id="hydra1902harness-llm-pi-ai"></a>
 
 <a id="hydraharness-llm-pi-ai"></a>
 
@@ -1516,8 +1432,6 @@ Depends on: `Api` (`@earendil-works/pi-ai`) · `CacheRetention` (`@earendil-work
 
 Source: [`packages/llm/llm-pi-ai/src/config.ts:208`](../packages/llm/llm-pi-ai/src/config.ts)
 
-<a id="hydra1902harness-llm-replay"></a>
-
 <a id="hydraharness-llm-replay"></a>
 
 ## `@hydra1902/harness-llm-replay`
@@ -1586,8 +1500,6 @@ Depends on: [`ModelModality`](../packages/llm/llm/src/index.ts) · [`RetryPolicy
 
 Source: [`packages/test-support/llm-replay/src/index.ts:809`](../packages/test-support/llm-replay/src/index.ts)
 
-<a id="hydra1902harness-llm-retry"></a>
-
 <a id="hydraharness-llm-retry"></a>
 
 ## `@hydra1902/harness-llm-retry`
@@ -1600,8 +1512,6 @@ export type Config = Readonly<Record<string, never>>
 ```
 
 Source: [`packages/llm/llm-retry/src/index.ts:25`](../packages/llm/llm-retry/src/index.ts)
-
-<a id="hydra1902harness-lsp-stdio"></a>
 
 <a id="hydraharness-lsp-stdio"></a>
 
@@ -1644,8 +1554,6 @@ export interface LspLocalServerConfig {
 ```
 
 Source: [`packages/lsp/lsp-stdio/src/index.ts:82`](../packages/lsp/lsp-stdio/src/index.ts)
-
-<a id="hydra1902harness-mcp-client"></a>
 
 <a id="hydraharness-mcp-client"></a>
 
@@ -1722,8 +1630,6 @@ export interface ReconnectConfig {
 
 Source: [`packages/mcp/mcp-client/src/index.ts:101`](../packages/mcp/mcp-client/src/index.ts)
 
-<a id="hydra1902harness-message-feedback"></a>
-
 <a id="hydraharness-message-feedback"></a>
 
 ## `@hydra1902/harness-message-feedback`
@@ -1740,8 +1646,6 @@ export interface Config {
 
 Source: [`packages/feedback/message-feedback/src/index.ts:49`](../packages/feedback/message-feedback/src/index.ts)
 
-<a id="hydra1902harness-obsidian-knowledge"></a>
-
 <a id="hydraharness-obsidian-knowledge"></a>
 
 ## `@hydra1902/harness-obsidian-knowledge`
@@ -1757,8 +1661,6 @@ export interface Config {
 ```
 
 Source: [`packages/knowledge/obsidian-knowledge/src/index.ts:52`](../packages/knowledge/obsidian-knowledge/src/index.ts)
-
-<a id="hydra1902harness-page-memory"></a>
 
 <a id="hydraharness-page-memory"></a>
 
@@ -1806,8 +1708,6 @@ export interface RouteRule {
 
 Source: [`packages/knowledge/page-memory/src/index.ts:63`](../packages/knowledge/page-memory/src/index.ts)
 
-<a id="hydra1902harness-permission-presets"></a>
-
 <a id="hydraharness-permission-presets"></a>
 
 ## `@hydra1902/harness-permission-presets`
@@ -1848,8 +1748,6 @@ Depends on: [`ApprovalPolicy`](subsystems/approval.md) · [`SandboxMode`](subsys
 
 Source: [`packages/interaction/permission-presets/src/index.ts:168`](../packages/interaction/permission-presets/src/index.ts)
 
-<a id="hydra1902harness-persona"></a>
-
 <a id="hydraharness-persona"></a>
 
 ## `@hydra1902/harness-persona`
@@ -1874,8 +1772,6 @@ export interface Config {
 
 Source: [`packages/preset/persona/src/index.ts:34`](../packages/preset/persona/src/index.ts)
 
-<a id="hydra1902harness-plan-mode"></a>
-
 <a id="hydraharness-plan-mode"></a>
 
 ## `@hydra1902/harness-plan-mode`
@@ -1892,8 +1788,6 @@ export interface PlanModeConfig {
 
 Source: [`packages/plan/plan-mode/src/index.ts:70`](../packages/plan/plan-mode/src/index.ts)
 
-<a id="hydra1902harness-plugin-runtime"></a>
-
 <a id="hydraharness-plugin-runtime"></a>
 
 ## `@hydra1902/harness-plugin-runtime`
@@ -1909,8 +1803,6 @@ export interface Config {
 ```
 
 Source: [`packages/host/plugin-runtime/src/index.ts:45`](../packages/host/plugin-runtime/src/index.ts)
-
-<a id="hydra1902harness-pwsh-local"></a>
 
 <a id="hydraharness-pwsh-local"></a>
 
@@ -1945,8 +1837,6 @@ export interface Config {
 
 Source: [`packages/shell/pwsh-local/src/index.ts:58`](../packages/shell/pwsh-local/src/index.ts)
 
-<a id="hydra1902harness-pwsh-sandbox"></a>
-
 <a id="hydraharness-pwsh-sandbox"></a>
 
 ## `@hydra1902/harness-pwsh-sandbox`
@@ -1965,11 +1855,9 @@ Requires: `subprocess` · `sandbox` · `sandboxPolicy`
 export type Config = LocalConfig
 ```
 
-Depends on: [`LocalConfig`](#hydra1902harness-pwsh-local)
+Depends on: [`LocalConfig`](#hydraharness-pwsh-local)
 
 Source: [`packages/shell/pwsh-sandbox/src/index.ts:40`](../packages/shell/pwsh-sandbox/src/index.ts)
-
-<a id="hydra1902harness-repeat-tool-reminder"></a>
 
 <a id="hydraharness-repeat-tool-reminder"></a>
 
@@ -2005,8 +1893,6 @@ export interface Config {
 
 Source: [`packages/guard/repeat-tool-reminder/src/index.ts:28`](../packages/guard/repeat-tool-reminder/src/index.ts)
 
-<a id="hydra1902harness-research-policy"></a>
-
 <a id="hydraharness-research-policy"></a>
 
 ## `@hydra1902/harness-research-policy`
@@ -2030,8 +1916,6 @@ export interface Config {
 ```
 
 Source: [`packages/guard/research-policy/src/index.ts:14`](../packages/guard/research-policy/src/index.ts)
-
-<a id="hydra1902harness-sandbox-local"></a>
 
 <a id="hydraharness-sandbox-local"></a>
 
@@ -2065,8 +1949,6 @@ export interface Config {
 
 Source: [`packages/sandbox/sandbox-local/src/index.ts:44`](../packages/sandbox/sandbox-local/src/index.ts)
 
-<a id="hydra1902harness-sandbox-policy"></a>
-
 <a id="hydraharness-sandbox-policy"></a>
 
 ## `@hydra1902/harness-sandbox-policy`
@@ -2094,8 +1976,6 @@ Depends on: [`SandboxMode`](subsystems/sandbox.md)
 
 Source: [`packages/sandbox/sandbox-policy/src/index.ts:67`](../packages/sandbox/sandbox-policy/src/index.ts)
 
-<a id="hydra1902harness-sdk-jsonrpc-server"></a>
-
 <a id="hydraharness-sdk-jsonrpc-server"></a>
 
 ## `@hydra1902/harness-sdk-jsonrpc-server`
@@ -2119,8 +1999,6 @@ export interface JsonRpcConfig {
 Depends on: `Readable` (`node:stream`) · `Writable` (`node:stream`)
 
 Source: [`packages/sdk/server/src/index.ts:25`](../packages/sdk/server/src/index.ts)
-
-<a id="hydra1902harness-session-persistence-jsonl"></a>
 
 <a id="hydraharness-session-persistence-jsonl"></a>
 
@@ -2161,8 +2039,6 @@ export type JsonlCompression = 'zstd' | 'none'
 
 Source: [`packages/session/session-persistence-jsonl/src/index.ts:60`](../packages/session/session-persistence-jsonl/src/index.ts)
 
-<a id="hydra1902harness-session-persistence-sqlite"></a>
-
 <a id="hydraharness-session-persistence-sqlite"></a>
 
 ## `@hydra1902/harness-session-persistence-sqlite`
@@ -2190,8 +2066,6 @@ export type JournalMode = 'wal' | 'delete' | 'truncate' | 'persist'
 
 Source: [`packages/session/session-persistence-sqlite/src/index.ts:36`](../packages/session/session-persistence-sqlite/src/index.ts)
 
-<a id="hydra1902harness-session-projection-cache"></a>
-
 <a id="hydraharness-session-projection-cache"></a>
 
 ## `@hydra1902/harness-session-projection-cache`
@@ -2214,8 +2088,6 @@ export interface Config {
 ```
 
 Source: [`packages/session/session-projection-cache/src/index.ts:42`](../packages/session/session-projection-cache/src/index.ts)
-
-<a id="hydra1902harness-session-query-sqlite"></a>
 
 <a id="hydraharness-session-query-sqlite"></a>
 
@@ -2263,8 +2135,6 @@ Depends on: [`SessionQueryConfig`](../packages/session-query/session-query/src/i
 
 Source: [`packages/session-query/session-query-sqlite/src/index.ts:89`](../packages/session-query/session-query-sqlite/src/index.ts)
 
-<a id="hydra1902harness-session-reference"></a>
-
 <a id="hydraharness-session-reference"></a>
 
 ## `@hydra1902/harness-session-reference`
@@ -2284,8 +2154,6 @@ export interface Config {
 ```
 
 Source: [`packages/context/session-reference/src/config.ts:11`](../packages/context/session-reference/src/config.ts)
-
-<a id="hydra1902harness-session-telemetry-otel"></a>
 
 <a id="hydraharness-session-telemetry-otel"></a>
 
@@ -2333,8 +2201,6 @@ Depends on: `BatchLogRecordProcessorOptions` (`@opentelemetry/sdk-logs`) · `OTL
 
 Source: [`packages/session/session-telemetry-otel/src/index.ts:91`](../packages/session/session-telemetry-otel/src/index.ts)
 
-<a id="hydra1902harness-session-title"></a>
-
 <a id="hydraharness-session-title"></a>
 
 ## `@hydra1902/harness-session-title`
@@ -2355,8 +2221,6 @@ export interface Config {
 
 Source: [`packages/session/session-title/src/index.ts:79`](../packages/session/session-title/src/index.ts)
 
-<a id="hydra1902harness-session-title-all-prompts-llm"></a>
-
 <a id="hydraharness-session-title-all-prompts-llm"></a>
 
 ## `@hydra1902/harness-session-title-all-prompts-llm`
@@ -2372,8 +2236,6 @@ Depends on: [`SessionTitleLlmConfig`](../packages/session/session-title-llm/src/
 
 Source: [`packages/session/session-title-all-prompts-llm/src/index.ts:15`](../packages/session/session-title-all-prompts-llm/src/index.ts)
 
-<a id="hydra1902harness-session-title-first-prompt-llm"></a>
-
 <a id="hydraharness-session-title-first-prompt-llm"></a>
 
 ## `@hydra1902/harness-session-title-first-prompt-llm`
@@ -2388,8 +2250,6 @@ export type Config = SessionTitleLlmConfig
 Depends on: [`SessionTitleLlmConfig`](../packages/session/session-title-llm/src/index.ts)
 
 Source: [`packages/session/session-title-first-prompt-llm/src/index.ts:15`](../packages/session/session-title-first-prompt-llm/src/index.ts)
-
-<a id="hydra1902harness-settings-file"></a>
 
 <a id="hydraharness-settings-file"></a>
 
@@ -2411,8 +2271,6 @@ export interface Config {
 
 Source: [`packages/settings/settings-file/src/index.ts:21`](../packages/settings/settings-file/src/index.ts)
 
-<a id="hydra1902harness-shell-env"></a>
-
 <a id="hydraharness-shell-env"></a>
 
 ## `@hydra1902/harness-shell-env`
@@ -2427,8 +2285,6 @@ export interface Config {
 
 Source: [`packages/shell/shell-env/src/index.ts:29`](../packages/shell/shell-env/src/index.ts)
 
-<a id="hydra1902harness-skill"></a>
-
 <a id="hydraharness-skill"></a>
 
 ## `@hydra1902/harness-skill`
@@ -2442,8 +2298,6 @@ export interface Config {
 ```
 
 Source: [`packages/skill/skill/src/index.ts:277`](../packages/skill/skill/src/index.ts)
-
-<a id="hydra1902harness-skill-filesystem"></a>
 
 <a id="hydraharness-skill-filesystem"></a>
 
@@ -2483,8 +2337,6 @@ export interface Config {
 
 Source: [`packages/skill/skill-filesystem/src/index.ts:48`](../packages/skill/skill-filesystem/src/index.ts)
 
-<a id="hydra1902harness-spill-local"></a>
-
 <a id="hydraharness-spill-local"></a>
 
 ## `@hydra1902/harness-spill-local`
@@ -2502,8 +2354,6 @@ export interface Config {
 ```
 
 Source: [`packages/spill/spill-local/src/index.ts:22`](../packages/spill/spill-local/src/index.ts)
-
-<a id="hydra1902harness-spill-policy"></a>
 
 <a id="hydraharness-spill-policy"></a>
 
@@ -2524,8 +2374,6 @@ export interface Config {
 ```
 
 Source: [`packages/spill/spill-policy/src/index.ts:60`](../packages/spill/spill-policy/src/index.ts)
-
-<a id="hydra1902harness-storage-domain"></a>
 
 <a id="hydraharness-storage-domain"></a>
 
@@ -2550,8 +2398,6 @@ export interface Config {
 
 Source: [`packages/storage/storage-domain/src/index.ts:52`](../packages/storage/storage-domain/src/index.ts)
 
-<a id="hydra1902harness-storage-json"></a>
-
 <a id="hydraharness-storage-json"></a>
 
 ## `@hydra1902/harness-storage-json`
@@ -2572,8 +2418,6 @@ export interface Config {
 ```
 
 Source: [`packages/storage/storage-json/src/index.ts:27`](../packages/storage/storage-json/src/index.ts)
-
-<a id="hydra1902harness-storage-sqlite"></a>
 
 <a id="hydraharness-storage-sqlite"></a>
 
@@ -2615,8 +2459,6 @@ export type JournalMode = 'wal' | 'delete' | 'truncate' | 'persist'
 
 Source: [`packages/storage/storage-sqlite/src/index.ts:24`](../packages/storage/storage-sqlite/src/index.ts)
 
-<a id="hydra1902harness-subagent"></a>
-
 <a id="hydraharness-subagent"></a>
 
 ## `@hydra1902/harness-subagent`
@@ -2632,8 +2474,6 @@ export interface DelegationLimits {
 ```
 
 Source: [`packages/subagent/subagent/src/budget.ts:34`](../packages/subagent/subagent/src/budget.ts)
-
-<a id="hydra1902harness-subagent-acp"></a>
 
 <a id="hydraharness-subagent-acp"></a>
 
@@ -2688,8 +2528,6 @@ export type PermissionPolicy = 'allow' | 'reject'
 
 Source: [`packages/subagent/subagent-acp/src/index.ts:27`](../packages/subagent/subagent-acp/src/index.ts)
 
-<a id="hydra1902harness-subagent-claude-code"></a>
-
 <a id="hydraharness-subagent-claude-code"></a>
 
 ## `@hydra1902/harness-subagent-claude-code`
@@ -2723,8 +2561,6 @@ export type ClaudeCodePermissionMode = typeof CLAUDE_CODE_PERMISSION_MODES[numbe
 
 Source: [`packages/subagent/subagent-claude-code/src/index.ts:38`](../packages/subagent/subagent-claude-code/src/index.ts)
 
-<a id="hydra1902harness-subagent-codex"></a>
-
 <a id="hydraharness-subagent-codex"></a>
 
 ## `@hydra1902/harness-subagent-codex`
@@ -2756,8 +2592,6 @@ export type CodexPermissionMode =
 
 Source: [`packages/subagent/subagent-codex/src/index.ts:36`](../packages/subagent/subagent-codex/src/index.ts)
 
-<a id="hydra1902harness-subagent-fork-in-process"></a>
-
 <a id="hydraharness-subagent-fork-in-process"></a>
 
 ## `@hydra1902/harness-subagent-fork-in-process`
@@ -2773,8 +2607,6 @@ export interface Config {
 ```
 
 Source: [`packages/subagent/subagent-fork-in-process/src/index.ts:31`](../packages/subagent/subagent-fork-in-process/src/index.ts)
-
-<a id="hydra1902harness-subagent-sdk"></a>
 
 <a id="hydraharness-subagent-sdk"></a>
 
@@ -2829,8 +2661,6 @@ export interface Config {
 
 Source: [`packages/subagent/subagent-sdk/src/index.ts:29`](../packages/subagent/subagent-sdk/src/index.ts)
 
-<a id="hydra1902harness-subagent-spawn-in-process"></a>
-
 <a id="hydraharness-subagent-spawn-in-process"></a>
 
 ## `@hydra1902/harness-subagent-spawn-in-process`
@@ -2847,8 +2677,6 @@ export interface Config {
 
 Source: [`packages/subagent/subagent-spawn-in-process/src/index.ts:25`](../packages/subagent/subagent-spawn-in-process/src/index.ts)
 
-<a id="hydra1902harness-subprocess-e2b"></a>
-
 <a id="hydraharness-subprocess-e2b"></a>
 
 ## `@hydra1902/harness-subprocess-e2b`
@@ -2864,8 +2692,6 @@ export interface Config {
 ```
 
 Source: [`packages/e2b/subprocess-e2b/src/index.ts:25`](../packages/e2b/subprocess-e2b/src/index.ts)
-
-<a id="hydra1902harness-system-prompt"></a>
 
 <a id="hydraharness-system-prompt"></a>
 
@@ -2893,8 +2719,6 @@ export interface Config {
 ```
 
 Source: [`packages/core/system-prompt/src/index.ts:186`](../packages/core/system-prompt/src/index.ts)
-
-<a id="hydra1902harness-terminal-bash"></a>
 
 <a id="hydraharness-terminal-bash"></a>
 
@@ -2946,8 +2770,6 @@ export type ShellDialect = 'bash' | 'pwsh'
 
 Source: [`packages/terminal/terminal-bash/src/config.ts:10`](../packages/terminal/terminal-bash/src/config.ts)
 
-<a id="hydra1902harness-time-context"></a>
-
 <a id="hydraharness-time-context"></a>
 
 ## `@hydra1902/harness-time-context`
@@ -2966,8 +2788,6 @@ export interface Config {
 
 Source: [`packages/context/time-context/src/index.ts:27`](../packages/context/time-context/src/index.ts)
 
-<a id="hydra1902harness-tmux-context"></a>
-
 <a id="hydraharness-tmux-context"></a>
 
 ## `@hydra1902/harness-tmux-context`
@@ -2984,8 +2804,6 @@ export interface Config {
 
 Source: [`packages/context/tmux-context/src/index.ts:34`](../packages/context/tmux-context/src/index.ts)
 
-<a id="hydra1902harness-token-meter"></a>
-
 <a id="hydraharness-token-meter"></a>
 
 ## `@hydra1902/harness-token-meter`
@@ -2996,8 +2814,6 @@ export type TokenMeterConfig = Record<string, never>
 ```
 
 Source: [`packages/llm/token-meter/src/types.ts:12`](../packages/llm/token-meter/src/types.ts)
-
-<a id="hydra1902harness-tool-bash"></a>
 
 <a id="hydraharness-tool-bash"></a>
 
@@ -3014,8 +2830,6 @@ export interface Config {
 ```
 
 Source: [`packages/shell/tool-bash/src/index.ts:34`](../packages/shell/tool-bash/src/index.ts)
-
-<a id="hydra1902harness-tool-bash-persistent"></a>
 
 <a id="hydraharness-tool-bash-persistent"></a>
 
@@ -3038,8 +2852,6 @@ export interface Config {
 ```
 
 Source: [`packages/shell/tool-bash-persistent/src/index.ts:432`](../packages/shell/tool-bash-persistent/src/index.ts)
-
-<a id="hydra1902harness-tool-browser"></a>
 
 <a id="hydraharness-tool-browser"></a>
 
@@ -3071,8 +2883,6 @@ export interface Config {
 
 Source: [`packages/browser/tool-browser/src/index.ts:48`](../packages/browser/tool-browser/src/index.ts)
 
-<a id="hydra1902harness-tool-fs"></a>
-
 <a id="hydraharness-tool-fs"></a>
 
 ## `@hydra1902/harness-tool-fs`
@@ -3094,8 +2904,6 @@ export interface Config {
 ```
 
 Source: [`packages/fs/tool-fs/src/index.ts:25`](../packages/fs/tool-fs/src/index.ts)
-
-<a id="hydra1902harness-tool-fs-search"></a>
 
 <a id="hydraharness-tool-fs-search"></a>
 
@@ -3132,8 +2940,6 @@ export interface Config {
 
 Source: [`packages/fs/tool-fs-search/src/index.ts:73`](../packages/fs/tool-fs-search/src/index.ts)
 
-<a id="hydra1902harness-tool-goal"></a>
-
 <a id="hydraharness-tool-goal"></a>
 
 ## `@hydra1902/harness-tool-goal`
@@ -3149,8 +2955,6 @@ export interface Config {
 ```
 
 Source: [`packages/goal/tool-goal/src/index.ts:26`](../packages/goal/tool-goal/src/index.ts)
-
-<a id="hydra1902harness-tool-jobs"></a>
 
 <a id="hydraharness-tool-jobs"></a>
 
@@ -3186,8 +2990,6 @@ export type CompletionDelivery = 'quiet' | 'wakeup'
 
 Source: [`packages/jobs/tool-jobs/src/index.ts:32`](../packages/jobs/tool-jobs/src/index.ts)
 
-<a id="hydra1902harness-tool-lsp"></a>
-
 <a id="hydraharness-tool-lsp"></a>
 
 ## `@hydra1902/harness-tool-lsp`
@@ -3208,8 +3010,6 @@ export interface Config {
 
 Source: [`packages/lsp/tool-lsp/src/index.ts:58`](../packages/lsp/tool-lsp/src/index.ts)
 
-<a id="hydra1902harness-tool-pwsh"></a>
-
 <a id="hydraharness-tool-pwsh"></a>
 
 ## `@hydra1902/harness-tool-pwsh`
@@ -3225,8 +3025,6 @@ export interface Config {
 ```
 
 Source: [`packages/shell/tool-pwsh/src/index.ts:52`](../packages/shell/tool-pwsh/src/index.ts)
-
-<a id="hydra1902harness-tool-pwsh-persistent"></a>
 
 <a id="hydraharness-tool-pwsh-persistent"></a>
 
@@ -3250,8 +3048,6 @@ export interface Config {
 
 Source: [`packages/shell/tool-pwsh-persistent/src/index.ts:472`](../packages/shell/tool-pwsh-persistent/src/index.ts)
 
-<a id="hydra1902harness-tool-ralph"></a>
-
 <a id="hydraharness-tool-ralph"></a>
 
 ## `@hydra1902/harness-tool-ralph`
@@ -3274,8 +3070,6 @@ export interface Config {
 
 Source: [`packages/workflow/tool-ralph/src/index.ts:23`](../packages/workflow/tool-ralph/src/index.ts)
 
-<a id="hydra1902harness-tool-session-query"></a>
-
 <a id="hydraharness-tool-session-query"></a>
 
 ## `@hydra1902/harness-tool-session-query`
@@ -3293,8 +3087,6 @@ export interface Config {
 ```
 
 Source: [`packages/session-query/tool-session-query/src/index.ts:29`](../packages/session-query/tool-session-query/src/index.ts)
-
-<a id="hydra1902harness-tool-skill"></a>
 
 <a id="hydraharness-tool-skill"></a>
 
@@ -3316,8 +3108,6 @@ export interface Config {
 
 Source: [`packages/skill/tool-skill/src/index.ts:44`](../packages/skill/tool-skill/src/index.ts)
 
-<a id="hydra1902harness-tool-str-replace-editor"></a>
-
 <a id="hydraharness-tool-str-replace-editor"></a>
 
 ## `@hydra1902/harness-tool-str-replace-editor`
@@ -3335,8 +3125,6 @@ export interface Config {
 ```
 
 Source: [`packages/fs/tool-str-replace-editor/src/index.ts:505`](../packages/fs/tool-str-replace-editor/src/index.ts)
-
-<a id="hydra1902harness-tool-subagent"></a>
 
 <a id="hydraharness-tool-subagent"></a>
 
@@ -3403,8 +3191,6 @@ Depends on: [`AgentOptions`](subsystems/core.md)
 
 Source: [`packages/subagent/tool-subagent/src/index.ts:29`](../packages/subagent/tool-subagent/src/index.ts)
 
-<a id="hydra1902harness-tool-subagent-report"></a>
-
 <a id="hydraharness-tool-subagent-report"></a>
 
 ## `@hydra1902/harness-tool-subagent-report`
@@ -3427,8 +3213,6 @@ Depends on: [`SubagentReportDelivery`](subsystems/subagent.md)
 
 Source: [`packages/subagent/tool-subagent-report/src/index.ts:27`](../packages/subagent/tool-subagent-report/src/index.ts)
 
-<a id="hydra1902harness-tool-terminal"></a>
-
 <a id="hydraharness-tool-terminal"></a>
 
 ## `@hydra1902/harness-tool-terminal`
@@ -3446,8 +3230,6 @@ export interface Config {
 ```
 
 Source: [`packages/terminal/tool-terminal/src/index.ts:35`](../packages/terminal/tool-terminal/src/index.ts)
-
-<a id="hydra1902harness-tool-todo"></a>
 
 <a id="hydraharness-tool-todo"></a>
 
@@ -3470,8 +3252,6 @@ export interface Config {
 ```
 
 Source: [`packages/todo/tool-todo/src/index.ts:29`](../packages/todo/tool-todo/src/index.ts)
-
-<a id="hydra1902harness-tool-web"></a>
 
 <a id="hydraharness-tool-web"></a>
 
@@ -3501,8 +3281,6 @@ export interface Config {
 
 Source: [`packages/web/tool-web/src/index.ts:37`](../packages/web/tool-web/src/index.ts)
 
-<a id="hydra1902harness-tool-workflow"></a>
-
 <a id="hydraharness-tool-workflow"></a>
 
 ## `@hydra1902/harness-tool-workflow`
@@ -3520,8 +3298,6 @@ export interface Config {
 ```
 
 Source: [`packages/workflow/tool-workflow/src/index.ts:33`](../packages/workflow/tool-workflow/src/index.ts)
-
-<a id="hydra1902harness-tools"></a>
 
 <a id="hydraharness-tools"></a>
 
@@ -3559,8 +3335,6 @@ export type ToolPresentationMode = 'native' | 'code' | 'both'
 
 Source: [`packages/core/tools/src/index.ts:654`](../packages/core/tools/src/index.ts)
 
-<a id="hydra1902harness-typert-loader"></a>
-
 <a id="hydraharness-typert-loader"></a>
 
 ## `@hydra1902/harness-typert-loader`
@@ -3576,8 +3350,6 @@ export interface Config {
 ```
 
 Source: [`packages/typert/loader/src/index.ts:47`](../packages/typert/loader/src/index.ts)
-
-<a id="hydra1902harness-user-approval"></a>
 
 <a id="hydraharness-user-approval"></a>
 
@@ -3610,8 +3382,6 @@ export type ApprovalPolicy = 'ask' | 'never'
 
 Source: [`packages/interaction/user-approval/src/index.ts:177`](../packages/interaction/user-approval/src/index.ts)
 
-<a id="hydra1902harness-web"></a>
-
 <a id="hydraharness-web"></a>
 
 ## `@hydra1902/harness-web`
@@ -3636,8 +3406,6 @@ export interface WebRuntimeConfig {
 ```
 
 Source: [`packages/web/web/src/index.ts:61`](../packages/web/web/src/index.ts)
-
-<a id="hydra1902harness-web-app"></a>
 
 <a id="hydraharness-web-app"></a>
 
@@ -3665,8 +3433,6 @@ export interface Config {
 ```
 
 Source: [`packages/bundle/web-app/src/index.ts:45`](../packages/bundle/web-app/src/index.ts)
-
-<a id="hydra1902harness-web-fetch-http"></a>
 
 <a id="hydraharness-web-fetch-http"></a>
 
@@ -3696,8 +3462,6 @@ export interface Config {
 
 Source: [`packages/web/web-fetch-http/src/index.ts:34`](../packages/web/web-fetch-http/src/index.ts)
 
-<a id="hydra1902harness-web-search-deepseek"></a>
-
 <a id="hydraharness-web-search-deepseek"></a>
 
 ## `@hydra1902/harness-web-search-deepseek`
@@ -3726,8 +3490,6 @@ export interface Config {
 
 Source: [`packages/web/web-search-deepseek/src/index.ts:46`](../packages/web/web-search-deepseek/src/index.ts)
 
-<a id="hydra1902harness-web-search-exa"></a>
-
 <a id="hydraharness-web-search-exa"></a>
 
 ## `@hydra1902/harness-web-search-exa`
@@ -3751,8 +3513,6 @@ export interface Config {
 ```
 
 Source: [`packages/web/web-search-exa/src/index.ts:38`](../packages/web/web-search-exa/src/index.ts)
-
-<a id="hydra1902harness-web-search-http"></a>
 
 <a id="hydraharness-web-search-http"></a>
 
@@ -3824,8 +3584,6 @@ export interface HttpSearchConfig {
 
 Source: [`packages/web/web-search-http/src/index.ts:74`](../packages/web/web-search-http/src/index.ts)
 
-<a id="hydra1902harness-web-search-perplexity"></a>
-
 <a id="hydraharness-web-search-perplexity"></a>
 
 ## `@hydra1902/harness-web-search-perplexity`
@@ -3849,8 +3607,6 @@ export interface Config {
 ```
 
 Source: [`packages/web/web-search-perplexity/src/index.ts:32`](../packages/web/web-search-perplexity/src/index.ts)
-
-<a id="hydra1902harness-workflow-worker-thread"></a>
 
 <a id="hydraharness-workflow-worker-thread"></a>
 

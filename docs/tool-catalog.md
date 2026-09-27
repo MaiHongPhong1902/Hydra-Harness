@@ -45,8 +45,6 @@ This table connects model-visible tool names to the plugin package and service s
 | `@hydra1902/harness-tool-browser` | `browser_back`, `browser_click`, `browser_click_at`, `browser_close`, `browser_close_tab`, `browser_console_messages`, `browser_drag`, `browser_drop`, `browser_file_upload`, `browser_fill`, `browser_fill_form`, `browser_find`, `browser_forward`, `browser_handle_dialog`, `browser_history_search`, `browser_hover`, `browser_navigate`, `browser_navigate_back`, `browser_network_request`, `browser_network_requests`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_press_key`, `browser_resize`, `browser_screenshot`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_select_text`, `browser_snapshot`, `browser_state`, `browser_switch_tab`, `browser_tabs`, `browser_take_screenshot`, `browser_type`, `browser_upload_file`, `browser_wait`, `browser_wait_for` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
 | `@hydra1902/harness-page-memory` | `page_memory_get`, `page_memory_upsert` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent in the configured workspace` | `tool/call`, `tool/result`, `user/message`, `private page-memory SQLite database` | - | - |
 
-<a id="hydra1902harness-browser-decisions"></a>
-
 <a id="hydraharness-browser-decisions"></a>
 
 ## `@hydra1902/harness-browser-decisions`
@@ -85,8 +83,6 @@ Ask the optional Jev decision provider to choose one candidate action from the c
 Source: [`packages/browser/browser-decisions/src/index.ts`](../packages/browser/browser-decisions/src/index.ts)
 
 Advisory candidate selection only; unavailable Jev returns available:false and ordinary browser execution remains independent.
-
-<a id="hydra1902harness-tool-ask-user"></a>
 
 <a id="hydraharness-tool-ask-user"></a>
 
@@ -162,8 +158,6 @@ Source: [`packages/interaction/tool-ask-user/src/index.ts`](../packages/interact
 
 ask_user_question pauses the tool call until the active UI provider returns a human answer.
 
-<a id="hydra1902harness-tools"></a>
-
 <a id="hydraharness-tools"></a>
 
 ## `@hydra1902/harness-tools`
@@ -196,8 +190,6 @@ Source: [`packages/core/tools/src/code-mode.ts`](../packages/core/tools/src/code
 
 Owned by the tool registry as a reserved transport outside filterable capability layers under `mode: code` / `mode: both` (see the Code Mode Agent Note). Under `code` it is the registry's only wire contribution; the other visible capabilities are declared in a generated SDK section in the loaded runtime's language, and a program calls them through bindings scheduled under the native concurrency contract (submission-ordered starts and policy; concurrency-safe bodies overlap up to `maxParallelSubCalls`) that re-enter the complete guarded tool pipeline and link each nested execution to this outer result.
 
-<a id="hydra1902harness-plan-mode"></a>
-
 <a id="hydraharness-plan-mode"></a>
 
 ## `@hydra1902/harness-plan-mode`
@@ -224,8 +216,6 @@ Use only in plan mode. Present your plan for the user's review and, on approval,
 Source: [`packages/plan/plan-mode/src/index.ts`](../packages/plan/plan-mode/src/index.ts)
 
 exit_plan_mode stays in the model-facing schema while planning is inactive so transitions add no tool-catalog churn on top of the plan-policy change. Its execute path rejects calls outside plan mode; in plan mode it presents the plan over the user-questions seam (approve / keep planning with feedback), and approval logs plan mode inactive at the step boundary.
-
-<a id="hydra1902harness-tool-bash"></a>
 
 <a id="hydraharness-tool-bash"></a>
 
@@ -278,8 +268,6 @@ Source: [`packages/shell/tool-bash/src/index.ts`](../packages/shell/tool-bash/sr
 
 The bash tool is the model-facing consumer of the bash executor seam. A `run_in_background` run registers with the generic `ctx.jobs` runtime and is collected/stopped through the `job_*` tools from `@hydra1902/harness-tool-jobs`; the `enableRunInBackground` config (default true) removes the parameter entirely when disabled.
 
-<a id="hydra1902harness-tool-pwsh"></a>
-
 <a id="hydraharness-tool-pwsh"></a>
 
 ## `@hydra1902/harness-tool-pwsh`
@@ -330,8 +318,6 @@ Execute a PowerShell command (`pwsh -Command`) and return its stdout/stderr. Eac
 Source: [`packages/shell/tool-pwsh/src/index.ts`](../packages/shell/tool-pwsh/src/index.ts)
 
 The pwsh tool is the PowerShell-dialect consumer of the bash executor seam for Windows compositions (a PowerShell executor such as `@hydra1902/harness-pwsh-local` backs `ctx.shell`); it mirrors the bash tool call-for-call minus sandbox controls — `run_in_background` runs register with the generic `ctx.jobs` runtime and are collected/stopped through the `job_*` tools, and the managed `HYDRA_*` environment comes from `@hydra1902/harness-shell-env`. Each call runs in a fresh process (no persistent PTY session), with native `C:\...` paths and `$env:NAME` variables.
-
-<a id="hydra1902harness-tool-cordis"></a>
 
 <a id="hydraharness-tool-cordis"></a>
 
@@ -571,8 +557,6 @@ Source: [`packages/extensions/tool-cordis/src/index.ts`](../packages/extensions/
 
 Not in any shipped tree (a deliberate opt-in — dynamic package code reaches the real runtime, see .agents/notes/implemented/feature/2026-07-08-self-referential-cordis-toolset.md). The toolset injects `ctx.dynamicCordisRunner` from `@hydra1902/harness-cordis-host-runner`, which owns the definition registry and the vm sandbox; a composition missing it never activates the tools. A running package may register ADDITIONAL model-visible tools until it is stopped, undefined, or Hydra restarts; a full changed request header logs those tool-set changes.
 
-<a id="hydra1902harness-tool-bash-persistent"></a>
-
 <a id="hydraharness-tool-bash-persistent"></a>
 
 ## `@hydra1902/harness-tool-bash-persistent`
@@ -600,8 +584,6 @@ Source: [`packages/shell/tool-bash-persistent/src/index.ts`](../packages/shell/t
 
 One owner-isolated persistent bash tool; deployment composition supplies the PTY backend and may override the model-facing environment description.
 
-<a id="hydra1902harness-tool-pwsh-persistent"></a>
-
 <a id="hydraharness-tool-pwsh-persistent"></a>
 
 ## `@hydra1902/harness-tool-pwsh-persistent`
@@ -628,8 +610,6 @@ Run commands in a persistent PowerShell shell. State, including the current dire
 Source: [`packages/shell/tool-pwsh-persistent/src/index.ts`](../packages/shell/tool-pwsh-persistent/src/index.ts)
 
 One owner-isolated persistent pwsh tool, the Windows counterpart of the persistent bash tool; deployment composition supplies a pwsh-dialect PTY backend and may override the model-facing environment description.
-
-<a id="hydra1902harness-tool-str-replace-editor"></a>
 
 <a id="hydraharness-tool-str-replace-editor"></a>
 
@@ -736,8 +716,6 @@ Notes for using the `str_replace` command:
 Source: [`packages/fs/tool-str-replace-editor/src/index.ts`](../packages/fs/tool-str-replace-editor/src/index.ts)
 
 Standalone view/create/unique literal replace/line insert tool over the filesystem seam; it composes with any shell or terminal API.
-
-<a id="hydra1902harness-tool-fs"></a>
 
 <a id="hydraharness-tool-fs"></a>
 
@@ -859,8 +837,6 @@ Source: [`packages/fs/tool-fs/src/index.ts`](../packages/fs/tool-fs/src/index.ts
 
 The read-before-write/edit policy is added by `@hydra1902/harness-fs-observation-policy` (an `fs/*` event-gate plugin, no schema change); a deployment that loads these tools is expected to also load it. `read_image` is not registered without `ctx.attachments`; its schema is route-independent, and execution refuses unless the exact routed model declares image input.
 
-<a id="hydra1902harness-tool-fs-search"></a>
-
 <a id="hydraharness-tool-fs-search"></a>
 
 ## `@hydra1902/harness-tool-fs-search`
@@ -920,8 +896,6 @@ Search file contents with a ripgrep regular expression. Returns matching lines w
 Source: [`packages/fs/tool-fs-search/src/index.ts`](../packages/fs/tool-fs-search/src/index.ts)
 
 glob and grep are unconditional discovery tools that spawn the packaged ripgrep binary (`@vscode/ripgrep`) through ctx.subprocess as ordinary foreground calls (never background jobs) — no host `rg` install and no shell layer. The catalog uses `sampleOverCapGlobResults: true`; deployments must choose that behavior explicitly. Capped results save the complete formatted list through the optional ctx.spillStore backend; returned locators are follow-up-readable/searchable when the backend exposes local paths in co-located deployments.
-
-<a id="hydra1902harness-tool-terminal"></a>
 
 <a id="hydraharness-tool-terminal"></a>
 
@@ -1088,8 +1062,6 @@ Source: [`packages/terminal/tool-terminal/src/index.ts`](../packages/terminal/to
 
 The six terminal tools are opt-in and complement one-shot shell/filesystem tools. `terminal_send(run_in_background: true)` registers with `ctx.jobs`; TUI, named key sequences, BEL, resize, auto-start, and cross-agent sharing are absent from the schema.
 
-<a id="hydra1902harness-tool-goal"></a>
-
 <a id="hydraharness-tool-goal"></a>
 
 ## `@hydra1902/harness-tool-goal`
@@ -1183,8 +1155,6 @@ Update the exact current goal revision. edit, pause, and resume require a direct
 Source: [`packages/goal/tool-goal/src/index.ts`](../packages/goal/tool-goal/src/index.ts)
 
 create, edit, pause, and resume require direct-human root authority; complete and blocked also accept the exact current goal round. The default blocked lower bound is three admitted rounds.
-
-<a id="hydra1902harness-schedule"></a>
 
 <a id="hydraharness-schedule"></a>
 
@@ -1283,8 +1253,6 @@ Source: [`packages/schedule/schedule/src/tools.ts`](../packages/schedule/schedul
 
 Registered only inside live root Agent scopes created after the opt-in Schedule plugin loads. Version 1 accepts after_seconds, explicit absolute at, and bounded fixed-rate every_seconds, and discloses session-local delivery; management reads and mutations require the shared Session persistence barrier.
 
-<a id="hydra1902harness-tool-lsp"></a>
-
 <a id="hydraharness-tool-lsp"></a>
 
 ## `@hydra1902/harness-tool-lsp`
@@ -1333,8 +1301,6 @@ Source: [`packages/lsp/tool-lsp/src/index.ts`](../packages/lsp/tool-lsp/src/inde
 
 The lsp tool keeps provider selection and language-server subprocesses behind ctx.lsp, so its model-visible schema stays stable across providers. Requires a registered provider (e.g. `@hydra1902/harness-lsp-stdio`) at runtime; without one, a query returns the structured `LSP_UNAVAILABLE` error rather than changing the schema.
 
-<a id="hydra1902harness-tool-ralph"></a>
-
 <a id="hydraharness-tool-ralph"></a>
 
 ## `@hydra1902/harness-tool-ralph`
@@ -1365,8 +1331,6 @@ Run a foreground fresh-agent Ralph loop toward one immutable objective. Use only
 Source: [`packages/workflow/tool-ralph/src/index.ts`](../packages/workflow/tool-ralph/src/index.ts)
 
 A fixed foreground workflow starts one fresh structured child per round; the model selects only the immutable objective and an optional round cap.
-
-<a id="hydra1902harness-tool-skill"></a>
 
 <a id="hydraharness-tool-skill"></a>
 
@@ -1413,8 +1377,6 @@ Find a bounded shortlist of skills for a substantive user task before loading on
 ```
 
 Source: [`packages/skill/tool-skill/src/index.ts`](../packages/skill/tool-skill/src/index.ts)
-
-<a id="hydra1902harness-tool-session-query"></a>
 
 <a id="hydraharness-tool-session-query"></a>
 
@@ -1651,8 +1613,6 @@ Source: [`packages/session-query/tool-session-query/src/index.ts`](../packages/s
 
 The five read-only tools hide provider cursors and authorize every result from the immutable calling agent session. The package is opt-in; compositions that need enforced deadlines or bounded inline output also mount the generic timeout or spill policies.
 
-<a id="hydra1902harness-tool-subagent"></a>
-
 <a id="hydraharness-tool-subagent"></a>
 
 ## `@hydra1902/harness-tool-subagent`
@@ -1688,8 +1648,6 @@ Delegate a self-contained task to a subagent (a separate agent that works in its
 Source: [`packages/subagent/tool-subagent/src/index.ts`](../packages/subagent/tool-subagent/src/index.ts)
 
 The registered tool name is the load-time `toolName` config (default `subagent`); the schema above is that default. The shipped compositions load this package once per subagent backend, so the model additionally sees `subagent_fork` bound to the fork backend. Each instance's description, `run_in_background` parameter, and system-prompt policy follow its own `backgroundMode` and `enableRunInBackground`, so the two shipped schemas are not identical: `subagent` is `continuable` and defaults omitted calls to background with automatic settlement delivery, while `subagent_fork` stays `one-shot` and defaults them to foreground — see `packages/bundle/base/cordis.patch.yml` and `examples/acp-agent/cordis.yml`.
-
-<a id="hydra1902harness-tool-subagent-control"></a>
 
 <a id="hydraharness-tool-subagent-control"></a>
 
@@ -1766,8 +1724,6 @@ Source: [`packages/subagent/tool-subagent-control/src/index.ts`](../packages/sub
 
 The globally named control tools over continuable background subagents: provider-bound `tool-subagent` instances register distinct delegation tools, while this package registers `send_message` and `interrupt_agent` once, plus `list_agents` from its separately loaded `/list-agents` plugin (whose catalog rows use the sessionProjections and live Agent registries).
 
-<a id="hydra1902harness-tool-subagent-report"></a>
-
 <a id="hydraharness-tool-subagent-report"></a>
 
 ## `@hydra1902/harness-tool-subagent-report`
@@ -1794,8 +1750,6 @@ Report selected content to the agent that started you. Call this once before you
 Source: [`packages/subagent/tool-subagent-report/src/index.ts`](../packages/subagent/tool-subagent-report/src/index.ts)
 
 Registered per continuable in-process child rather than globally, so this schema is visible only inside such a child and survives its global `toolFilter`. The same contribution installs the child-scoped `tool:report` prompt section, which this catalog does not render. The parent-facing `send_message` tool is installed independently.
-
-<a id="hydra1902harness-tool-jobs"></a>
 
 <a id="hydraharness-tool-jobs"></a>
 
@@ -1869,8 +1823,6 @@ Read a background job by its job id, not a continuable subagent id. Stream jobs 
 Source: [`packages/jobs/tool-jobs/src/index.ts`](../packages/jobs/tool-jobs/src/index.ts)
 
 The kind-agnostic background-job controller: background bash commands, PTY sends, and subagents are read, listed, and killed through the same three tools. Loading the plugin attaches the controller that arms producers' `ctx.jobs.start()`.
-
-<a id="hydra1902harness-experimental-tool-agent-team"></a>
 
 <a id="hydraharness-experimental-tool-agent-team"></a>
 
@@ -2188,8 +2140,6 @@ Source: [`packages/experimental/tool-agent-team/src/index.ts`](../packages/exper
 
 All ten tools are scoped to implicit Team Leads and durable teammates. The shipped @hydra1902/harness-base bundle keeps the package disabled; the documented Agent Teams profile patch enables it while disabling the legacy continuable-child control names.
 
-<a id="hydra1902harness-tool-todo"></a>
-
 <a id="hydraharness-tool-todo"></a>
 
 ## `@hydra1902/harness-tool-todo`
@@ -2239,8 +2189,6 @@ Record and update a structured task list for the current work. Send the ENTIRE l
 Source: [`packages/todo/tool-todo/src/index.ts`](../packages/todo/tool-todo/src/index.ts)
 
 todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task.
-
-<a id="hydra1902harness-tool-workflow"></a>
 
 <a id="hydraharness-tool-workflow"></a>
 
@@ -2337,8 +2285,6 @@ Constraints: concurrency and total-agent caps apply; no filesystem, network, tim
 
 Source: [`packages/workflow/tool-workflow/src/index.ts`](../packages/workflow/tool-workflow/src/index.ts)
 
-<a id="hydra1902harness-tool-web"></a>
-
 <a id="hydraharness-tool-web"></a>
 
 ## `@hydra1902/harness-tool-web`
@@ -2397,8 +2343,6 @@ Search the web for current information. Provide non-empty queries in the require
 Source: [`packages/web/tool-web/src/index.ts`](../packages/web/tool-web/src/index.ts)
 
 web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps.
-
-<a id="hydra1902harness-tool-browser"></a>
 
 <a id="hydraharness-tool-browser"></a>
 
@@ -3629,8 +3573,6 @@ Wait up to ten seconds for text to appear or disappear in the accessibility snap
 Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
 
 The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE.
-
-<a id="hydra1902harness-page-memory"></a>
 
 <a id="hydraharness-page-memory"></a>
 

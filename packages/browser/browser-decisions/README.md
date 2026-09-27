@@ -10,7 +10,7 @@ The tool is advisory. It never navigates, clicks, fills, executes JavaScript or 
 
 #### What the model sees
 
-The generated [`browser_decide` schema](../../../docs/tool-catalog.md#hydra1902harness-browser-decisions) accepts observed state, a question, and distinct candidate labels. The tool remains callable without Jev and returns an unavailable result in that case.
+The generated [`browser_decide` schema](../../../docs/tool-catalog.md#hydraharness-browser-decisions) accepts observed state, a question, and distinct candidate labels. The tool remains callable without Jev and returns an unavailable result in that case.
 
 #### Token effect
 
