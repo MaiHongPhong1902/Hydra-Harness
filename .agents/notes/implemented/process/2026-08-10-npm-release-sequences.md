@@ -97,7 +97,7 @@ The entity in this domain is a **release family**: a set of packages sharing one
 | `publishOrder` | topological order over the sections npm installs plus peer declarations, ties broken by package name; a cycle among installed dependencies is reported rather than resolved arbitrarily, and a peer edge no order can honour is dropped and named |
 | `pack` | packs a whole family into one directory and records the upload order |
 | `verify` | the family's version baseline, the publish order it prints in full, and — when publishing — that the run comes from that family's tag and its members are publishable |
-| `verify-packed-install` | installs the tarballs of one or more pack directories into a throwaway consumer and drives the installed executable |
+| `verify-packed-install` | installs the hydra entry tarball alone (and all tarballs for families without a bundle) into a throwaway consumer and drives the installed executable |
 | `publish` | the three registry states above |
 | `process` / `tarball` | the one home for spawning commands and for reading a packed tarball, including the entry guard that keeps every script importable |
 
@@ -110,6 +110,8 @@ The `pack` job walks the whole release set once, packing each member into one di
 `pack` carries no credentials and runs on every pull request and master push, so a pull request proves the release set still packs. Publication lives in a separate `release-publish.yml` / `release-vendor-publish.yml` workflow that is `workflow_dispatch`-only (so it never appears as a PR check): it repacks the current tree and then publishes each entry in order, behind the `npm-publish` environment for human approval. Pack runs are grouped per ref so concurrent pull requests do not displace each other; the `publish` job carries the global `Release-publish` group, because dist-tags are shared registry state.
 
 A hydra verification installs the vendored family's pack output too. The harness packages declare the vendored framework as a peer, those packages live in another sequence, and the credential-free job cannot fetch them from a private registry — so the hydra `pack` job packs the vendored family for verification while publishing only the hydra set. The publish workflow (`release-publish.yml`) repacks the current tree and publishes only the hydra set.
+
+The hydra CLI tarball also bundles the internal dependency and peer closure reached by its CLI manifest and the vendored framework. The consumer probe installs only that one tarball, leaving external packages as ordinary dependencies so npm can select platform-specific builds; this is the supported bare-install path.
 
 The verification also packs the Landlock entry, which `@hydra/harness-sandbox-local` declares as a plain dependency, and omits optional dependencies. The platform packages behind those optional entries need a musl toolchain and one build per architecture, so a job on one runner cannot produce them; a consumer that cannot install them must still start, which is what optional means here. The verification therefore reads a directory by its contents rather than a pack order, because a directory can hold tarballs packed only to satisfy a cross-sequence dependency.
 
@@ -158,7 +160,7 @@ This Agent Note replaces the version scheme and the release-set boundary in [art
 
 The release scripts are importable modules behind a guarded entry point, and their judgements carry unit tests: tag naming, publish order and cycle reporting, version-baseline arithmetic, the payload change judgement, and each family's payload policy. Two defects the first draft carried — a publish command that ran the pack command on import, and a change judgement blind to `vendor/cordis` source edits — are exactly what a test at that seam catches.
 
-A pull request runs the full pack for both sequences without credentials and installs the packed hydra tarballs into a throwaway consumer, where plain Node drives `hydra --version`. That probe is deliberately one command: it proves `files` selected a complete payload and that the published ranges resolve, and says nothing about interactive behavior.
+A pull request runs the full pack for both sequences without credentials and installs the hydra entry tarball into a throwaway consumer, where plain Node drives `hydra --version`. That probe proves the bundled internal closure, the package payload, and the external ranges resolve, and says nothing about interactive behavior.
 
 What this costs:
 

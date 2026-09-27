@@ -5,7 +5,13 @@
 
 import { spawnSync } from 'node:child_process'
 import { realpathSync } from 'node:fs'
+import { isAbsolute } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+/** Use the Windows shell for command shims, but execute absolute paths directly. */
+function needsShell(command: string): boolean {
+  return process.platform === 'win32' && !isAbsolute(command)
+}
 
 /** Where and with what environment a release step runs a command. */
 export interface RunOptions {
@@ -40,7 +46,7 @@ export function attempt(command: string, args: readonly string[], options: RunOp
     // Windows installs pnpm and npm as command shims rather than native
     // executables. Release commands are fixed internal invocations, so shell
     // resolution keeps the same argument list working on both platforms.
-    shell: process.platform === 'win32',
+    shell: needsShell(command),
   })
   if (result.error !== undefined) throw result.error
   return { status: result.status, stdout: result.stdout, stderr: result.stderr }
@@ -70,7 +76,7 @@ export function attemptEchoed(command: string, args: readonly string[], options:
     cwd: options.cwd,
     env: options.env,
     encoding: 'utf8',
-    shell: process.platform === 'win32',
+    shell: needsShell(command),
     // 'inherit' would leave nothing to capture, so the streams are piped and
     // echoed instead.
     stdio: ['inherit', 'pipe', 'pipe'],
@@ -108,7 +114,7 @@ export function run(command: string, args: readonly string[], options: RunOption
     cwd: options.cwd,
     env: options.env,
     stdio: 'inherit',
-    shell: process.platform === 'win32',
+    shell: needsShell(command),
   })
   if (result.error !== undefined) throw result.error
   if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} exited with ${String(result.status)}`)
