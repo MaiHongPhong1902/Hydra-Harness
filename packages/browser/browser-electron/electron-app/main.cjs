@@ -2119,7 +2119,9 @@ async function readBrowserState(tab, waitForReady, followActive, signal) {
       if (!waitForReady) return completeState(current, state, !loading && isUsableState(state))
 
       if (!loading && isUsableState(state)) {
-        if (current.settledState?.url === state.url && current.settledState.content === state.content) {
+        if (current.settledState?.url === state.url
+          && current.settledState.title === state.title
+          && current.settledState.content === state.content) {
           return completeState(current, state, true)
         }
         const signature = JSON.stringify([state.url, state.title, state.content])
