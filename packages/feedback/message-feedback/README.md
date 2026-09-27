@@ -14,7 +14,7 @@ Notes must contain at least one non-whitespace character, but accepted text is s
 
 ```yaml
 - id: message-feedback
-  name: '@hydra/harness-message-feedback'
+  name: '@hydra1902/harness-message-feedback'
   config:
     maxNoteBytes: 8192
 ```

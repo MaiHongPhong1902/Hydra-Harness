@@ -12,11 +12,11 @@ It is a **library, not a service or plugin**: no `ctx`, registers nothing, emits
 import {
   ItemRetainer, TextRetainer,
   describeOmitted, formatRetentionNotice,
-} from '@hydra/harness-output-retention'
+} from '@hydra1902/harness-output-retention'
 import type {
   Omitted, PushDecision, RetainedItems, RetainedText,
   ItemRetentionStrategy, TextRetentionStrategy, RetentionNotice,
-} from '@hydra/harness-output-retention'
+} from '@hydra1902/harness-output-retention'
 ```
 
 | Export | Role |

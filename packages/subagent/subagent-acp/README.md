@@ -33,7 +33,7 @@ ACP advertises no start-time capabilities because this process cannot enforce th
 
 ```yaml
 - id: subagent-acp
-  name: '@hydra/harness-subagent-acp'
+  name: '@hydra1902/harness-subagent-acp'
   config:
     providerName: acp
     command: node

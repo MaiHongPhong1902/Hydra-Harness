@@ -16,7 +16,7 @@ This is an **implementation** package: it registers a provider into `ctx.web`, i
 
 ```yaml
 - id: web-search-exa
-  name: '@hydra/harness-web-search-exa'
+  name: '@hydra1902/harness-web-search-exa'
   config:
     apiKey: !!js process.env.EXA_API_KEY
 ```

@@ -26,11 +26,11 @@ In `tmp/cordis-tutorial`, write `cordis.yml`:
 
 ```yaml
 - id: logger
-  name: '@hydra/cordis-plugin-logger-console'
+  name: '@hydra1902/cordis-plugin-logger-console'
 - id: timer
-  name: '@hydra/cordis-plugin-timer'
+  name: '@hydra1902/cordis-plugin-timer'
 - id: hmr
-  name: '@hydra/cordis-plugin-hmr'
+  name: '@hydra1902/cordis-plugin-hmr'
   config:
     root: ['.']
 - id: hello
@@ -63,7 +63,7 @@ The flip side of dependency-driven loading: a plugin whose `inject` names a serv
 You can see the states directly. Every context can enumerate the plugin registry; create `diagnose.ts`:
 
 ```ts
-import { FiberState, type Context } from '@hydra/cordis'
+import { FiberState, type Context } from '@hydra1902/cordis'
 
 export const name = 'diagnose'
 
@@ -83,7 +83,7 @@ export function apply(ctx: Context) {
 And a plugin with an unsatisfiable dependency, `needs-timer.ts`:
 
 ```ts
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 
 export const name = 'needs-timer'
 export const inject = ['timer']

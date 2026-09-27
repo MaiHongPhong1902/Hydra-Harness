@@ -11,9 +11,9 @@ Authorization Service Definition (`ctx.authorization`). Some credentials cannot 
 ## Surface
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import { AuthorizationDeclinedError, type AuthorizationSession } from '@hydra/harness-authorization'
-import { credentialKey } from '@hydra/harness-credentials'
+import type { Context } from '@hydra1902/cordis'
+import { AuthorizationDeclinedError, type AuthorizationSession } from '@hydra1902/harness-authorization'
+import { credentialKey } from '@hydra1902/harness-credentials'
 
 declare const ctx: Context
 declare const exchange: (signal: AbortSignal) => Promise<void>

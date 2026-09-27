@@ -100,14 +100,14 @@ The example composition remains opt-in and safe by default:
 
 ```yaml
 plugins:
-  '@hydra/harness-sandbox-local':
-  '@hydra/harness-sandbox-policy':
+  '@hydra1902/harness-sandbox-local':
+  '@hydra1902/harness-sandbox-policy':
     config:
       mode: workspace-write
       workspaceRoot: .
-  '@hydra/harness-terminal':
-  '@hydra/harness-subprocess-local':
-  '@hydra/harness-terminal-bash':
+  '@hydra1902/harness-terminal':
+  '@hydra1902/harness-subprocess-local':
+  '@hydra1902/harness-terminal-bash':
     config:
       scrollbackLines: 10000
       scrollbackMaxBytes: 4194304
@@ -118,7 +118,7 @@ plugins:
       handoffGraceMs: 500
       timeoutMs: 30000
       disposeGraceMs: 3000
-  '@hydra/harness-tool-terminal':
+  '@hydra1902/harness-tool-terminal':
     config:
       enableRunInBackground: true
       maxResultBytes: 262144

@@ -24,14 +24,14 @@ Deny-only at the seam: a denial is a reported fact, and this executor never nego
 
 ```yaml
 - id: sandbox
-  name: '@hydra/harness-sandbox-local'
+  name: '@hydra1902/harness-sandbox-local'
 - id: sandbox-policy
-  name: '@hydra/harness-sandbox-policy'
+  name: '@hydra1902/harness-sandbox-policy'
   config:
     mode: read-only
     workspaceRoot: !!js process.cwd() # fallback for calls without a session cwd
 - id: bash
-  name: '@hydra/harness-bash-sandbox'
+  name: '@hydra1902/harness-bash-sandbox'
 ```
 
 ## Model Experience
@@ -40,7 +40,7 @@ Deny-only at the seam: a denial is a reported fact, and this executor never nego
 
 #### What the model sees
 
-The generated [`@hydra/harness-tool-bash` schemas](../../../docs/tool-catalog.md#hydraharness-tool-bash) are the baseline. By advertising a confining `sandboxMode`, this backend augments `bash` with `sandbox_permissions` using enum `workspace-write` | `danger-full-access` and with `justification`. The policy owner separately contributes the current capability-neutral `sandbox:policy` context.
+The generated [`@hydra/harness-tool-bash` schemas](../../../docs/tool-catalog.md#hydra1902harness-tool-bash) are the baseline. By advertising a confining `sandboxMode`, this backend augments `bash` with `sandbox_permissions` using enum `workspace-write` | `danger-full-access` and with `justification`. The policy owner separately contributes the current capability-neutral `sandbox:policy` context.
 
 #### Token effect
 

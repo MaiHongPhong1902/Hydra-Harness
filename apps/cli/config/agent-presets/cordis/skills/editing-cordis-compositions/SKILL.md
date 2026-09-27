@@ -89,11 +89,11 @@ When a preset genuinely owns a service, wrap the provider **and every consumer t
     workflows: true
   config:
     - id: workflow-worker-thread
-      name: '@hydra/harness-workflow-worker-thread'
+      name: '@hydra1902/harness-workflow-worker-thread'
       config:
         provider: spawn
     - id: tool-workflow
-      name: '@hydra/harness-tool-workflow'
+      name: '@hydra1902/harness-tool-workflow'
 ```
 
 `true` means a realm private to each mounting session. A string label instead joins subtrees into one shared realm; `provide()` still throws on the second registration under that symbol, so a label does not pool instances and is not what a preset needs.
@@ -126,10 +126,10 @@ After a clean mount-validation, ask the user to start a session on the new prese
 Codex and Claude Code providers are independent optional Profile Bundles. Install only the products a Profile needs, then restart the Profile so its Host registers those providers:
 
 ```sh
-hydra plugin --profile <name> add @hydra/harness-subagent-codex
-hydra plugin --profile <name> add @hydra/harness-subagent-claude-code
-hydra plugin --profile <name> remove @hydra/harness-subagent-codex
-hydra plugin --profile <name> remove @hydra/harness-subagent-claude-code
+hydra plugin --profile <name> add @hydra1902/harness-subagent-codex
+hydra plugin --profile <name> add @hydra1902/harness-subagent-claude-code
+hydra plugin --profile <name> remove @hydra1902/harness-subagent-codex
+hydra plugin --profile <name> remove @hydra1902/harness-subagent-claude-code
 ```
 
 Each Bundle owns its Host availability; the preset separately grants one Agent its ordinary delegation tool. Never move a product provider into the preset and never add a product-specific settings field. Removing one package withdraws only that provider on the next Profile start.
@@ -138,7 +138,7 @@ Copy these disabled templates from a shipped full preset and remove `disabled` o
 
 ```yaml
 - id: tool-subagent-codex
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   disabled: true
   config:
     provider: codex
@@ -147,7 +147,7 @@ Copy these disabled templates from a shipped full preset and remove `disabled` o
     maxDepth: provider-managed
 
 - id: tool-subagent-claude-code
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   disabled: true
   config:
     provider: claude-code

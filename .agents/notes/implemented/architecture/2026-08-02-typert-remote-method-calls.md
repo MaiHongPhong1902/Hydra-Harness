@@ -96,7 +96,7 @@ In LIB mode, the Typert compiler performs strict method discovery, type resoluti
 The Gateway has no built-in branches for Agent, Session, or other business objects. Each object-owning package provides both a static declaration and a runtime provider:
 
 ```text
-declare module '@hydra/harness-typert-protocol' {
+declare module '@hydra1902/harness-typert-protocol' {
   interface TypertLookupMap {
     agent: TypertLookup<Agent, SessionId>
   }
@@ -123,7 +123,7 @@ Typert, the permissive SRC parser, Host Gateway, and Client Remote exchange one 
 
 ```text
 InvocationDescriptor {
-  id: '@hydra/harness-goal#goals/create'
+  id: '@hydra1902/harness-goal#goals/create'
   service: 'goals'
   namespace: 'goals'
   method: 'create'
@@ -171,8 +171,8 @@ The registry's Host root entry has the complete `TypertRegistryContract` interfa
 Remote Client DTS does not copy business DTOs or redeclare structurally identical shadow types. It imports original symbols only from public, type-only subpaths that do not carry Host Cordis merges:
 
 ```text
-import type { SessionId } from '@hydra/harness-session/types'
-import type { CreateGoalRequest, CreateGoalResult } from '@hydra/harness-goal/types'
+import type { SessionId } from '@hydra1902/harness-session/types'
+import type { CreateGoalRequest, CreateGoalResult } from '@hydra1902/harness-goal/types'
 ```
 
 Consequently, `SessionId`, the Agent wire ID, the request, and the result all refer to the same TypeScript declaration in the Host and Browser Client. A future TUI can reuse them without a second set of types. Go to Definition, renames, and Find References for a DTO return to the one source location for the business type instead of stopping at a copy in a generated file.
@@ -231,7 +231,7 @@ Every business package that provides Remote methods exports a generated `/remote
 Consumer code selects a capability through the business package itself:
 
 ```text
-import goalsRemote from '@hydra/harness-goal/remote'
+import goalsRemote from '@hydra1902/harness-goal/remote'
 ```
 
 This import brings the `.d.ts` map augmentation into the current TypeScript project while supplying the JS descriptor for the same contract as a value to the runtime. A business package that is not imported does not extend the current project's Remote API types.
@@ -300,8 +300,8 @@ Typert.remotes  imported Remote contribution
 `@hydra/harness-api-remotes/client` centrally loads the required Remote contributions:
 
 ```text
-import goalsRemote from '@hydra/harness-goal/remote'
-import sessionsRemote from '@hydra/harness-session/remote'
+import goalsRemote from '@hydra1902/harness-goal/remote'
+import sessionsRemote from '@hydra1902/harness-session/remote'
 
 await ctx.remote.$mount(goalsRemote)
 await ctx.remote.$mount(sessionsRemote)

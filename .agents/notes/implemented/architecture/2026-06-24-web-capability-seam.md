@@ -41,13 +41,13 @@ The three-package Service Definition / Service Provider / Consumer split follows
 The dependency direction mirrors bash and filesystem:
 
 ```text
-@hydra/harness-tool-web  --depends on-->  @hydra/harness-web  <--depends on--  @hydra/harness-web-search-exa
+@hydra1902/harness-tool-web  --depends on-->  @hydra1902/harness-web  <--depends on--  @hydra1902/harness-web-search-exa
         consumer                                 interface                       implementation
-                                                                 <--depends on--  @hydra/harness-web-search-perplexity
+                                                                 <--depends on--  @hydra1902/harness-web-search-perplexity
                                                                                   implementation
-                                                                 <--depends on--  @hydra/harness-web-search-deepseek
+                                                                 <--depends on--  @hydra1902/harness-web-search-deepseek
                                                                                   implementation
-                                                                 <--depends on--  @hydra/harness-web-fetch-http
+                                                                 <--depends on--  @hydra1902/harness-web-fetch-http
                                                                                   implementation
 ```
 
@@ -55,11 +55,11 @@ At runtime, provider packages register capabilities with `ctx.web`; `tool-web` r
 
 ```mermaid
 flowchart LR
-  exa["@hydra/harness-web-search-exa"] -->|registerSearchProvider| web["@hydra/harness-web / ctx.web"]
-  perplexity["@hydra/harness-web-search-perplexity"] -->|registerSearchProvider| web
-  deepseek["@hydra/harness-web-search-deepseek"] -->|registerSearchProvider| web
-  fetchLocal["@hydra/harness-web-fetch-http"] -->|registerFetchProvider| web
-  toolWeb["@hydra/harness-tool-web"] -->|search/fetch| web
+  exa["@hydra1902/harness-web-search-exa"] -->|registerSearchProvider| web["@hydra1902/harness-web / ctx.web"]
+  perplexity["@hydra1902/harness-web-search-perplexity"] -->|registerSearchProvider| web
+  deepseek["@hydra1902/harness-web-search-deepseek"] -->|registerSearchProvider| web
+  fetchLocal["@hydra1902/harness-web-fetch-http"] -->|registerFetchProvider| web
+  toolWeb["@hydra1902/harness-tool-web"] -->|search/fetch| web
   toolWeb -->|ctx.tools.register| webSearch["tool: web_search"]
   toolWeb -->|ctx.tools.register| webFetch["tool: web_fetch"]
 ```
@@ -75,7 +75,7 @@ Provider packages depend only on `@hydra/harness-web` and Cordis. They own crede
 `ctx.web` is a provider registry plus a provider-selecting execution API. The registry half stays close to `LlmRuntime`: a `Map<id, provider>` per capability kind, `registerSearchProvider` / `registerFetchProvider` methods that return disposers, duplicate ids that throw `WebError`, and execution-time resolution that throws when the selected provider is absent or unusable. The authoritative signatures live in `packages/web/web/src/types.ts`; the seam's shape:
 
 ```ts
-import type { WebFetchRequest, WebFetchResult, WebSearchRequest, WebSearchResult } from '@hydra/harness-web'
+import type { WebFetchRequest, WebFetchResult, WebSearchRequest, WebSearchResult } from '@hydra1902/harness-web'
 
 interface WebSearchProvider {
   readonly id: string
@@ -126,25 +126,25 @@ The "single provider auto-selects" rule is for tests, demos, and simple deployme
 
 ```yaml
 - id: web
-  name: '@hydra/harness-web'
+  name: '@hydra1902/harness-web'
   config:
     searchProvider: exa
     fetchProvider: http
 
 - id: web-search-exa
-  name: '@hydra/harness-web-search-exa'
+  name: '@hydra1902/harness-web-search-exa'
 
 - id: web-search-perplexity
-  name: '@hydra/harness-web-search-perplexity'
+  name: '@hydra1902/harness-web-search-perplexity'
 
 - id: web-search-deepseek
-  name: '@hydra/harness-web-search-deepseek'
+  name: '@hydra1902/harness-web-search-deepseek'
 
 - id: web-fetch-http
-  name: '@hydra/harness-web-fetch-http'
+  name: '@hydra1902/harness-web-fetch-http'
 
 - id: tool-web
-  name: '@hydra/harness-tool-web'
+  name: '@hydra1902/harness-tool-web'
 ```
 
 Operational overrides feed the same explicit selection path: `HYDRA_WEB_SEARCH_PROVIDER=perplexity` is equivalent to config `searchProvider: perplexity`, not a hidden priority chain inside `@hydra/harness-tool-web`.
@@ -171,7 +171,7 @@ The seam request carries no provider-specific controls — no Perplexity model s
 ```ts
 interface WebSearchRequest {
   readonly query: string
-  /** Upper bound on returned sources; the seam truncates to it. Omitted = no bound. `@hydra/harness-tool-web` always sets it. */
+  /** Upper bound on returned sources; the seam truncates to it. Omitted = no bound. `@hydra1902/harness-tool-web` always sets it. */
   readonly maxResults?: number
 }
 

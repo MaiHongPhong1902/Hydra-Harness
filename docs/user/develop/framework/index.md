@@ -78,7 +78,7 @@ export function apply(ctx: Context) {
 To stop a plugin instance early:
 
 ```ts
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 
 declare const ctx: Context
 declare function myPlugin(ctx: Context): void

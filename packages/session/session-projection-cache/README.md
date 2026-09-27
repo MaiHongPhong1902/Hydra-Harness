@@ -40,7 +40,7 @@ The read ladder, zero full-log load on the happy path: cached rows → `sessionP
 
 ```yaml
 - id: session-projection-cache
-  name: '@hydra/harness-session-projection-cache'
+  name: '@hydra1902/harness-session-projection-cache'
   config:
     writeEveryEvents: 200
     writeIntervalMs: 5000

@@ -25,7 +25,7 @@ This is the Consumer package for the user-questions seam. It does not render UI 
 
 #### What the model sees
 
-The model sees the generated [`ask_user_question` schema](../../../docs/tool-catalog.md#hydraharness-tool-ask-user), including question ids, prompts, headings, options, and multi-select flags. It reserves the tool for a concrete task blocked by a user-owned choice or a fact normal inspection cannot establish; execution permission requests, greetings, casual chat, vague requests, and generic action/tool menus are excluded.
+The model sees the generated [`ask_user_question` schema](../../../docs/tool-catalog.md#hydra1902harness-tool-ask-user), including question ids, prompts, headings, options, and multi-select flags. It reserves the tool for a concrete task blocked by a user-owned choice or a fact normal inspection cannot establish; execution permission requests, greetings, casual chat, vague requests, and generic action/tool menus are excluded.
 
 #### Token effect
 

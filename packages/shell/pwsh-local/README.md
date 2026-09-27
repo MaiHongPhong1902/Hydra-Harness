@@ -10,7 +10,7 @@ The package root exports the default and named `PwshLocalExecutor` plugin, its `
 
 ```yaml
 - id: bash
-  name: '@hydra/harness-pwsh-local'
+  name: '@hydra1902/harness-pwsh-local'
   config:
     cwd: C:\path\to\workspace   # default: process.cwd()
     timeoutMs: 120000           # default foreground timeout

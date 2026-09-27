@@ -18,7 +18,7 @@ One `cordis.yml` entry mounts the seam. Not loading it is the fail-closed opt-ou
 
 ```yaml
 - id: approval
-  name: '@hydra/harness-user-approval'
+  name: '@hydra1902/harness-user-approval'
   # config:
   #   policy: never   # deployment default for sessions without an override; 'ask' when omitted
 ```

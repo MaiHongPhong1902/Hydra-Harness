@@ -16,7 +16,7 @@ The Bash execution capability consists of:
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌──────────────┐
-│  @hydra/harness-shell   │────▶│  @hydra/harness-bash-local  │     │ @hydra/harness-tool-bash│
+│  @hydra1902/harness-shell   │────▶│  @hydra1902/harness-bash-local  │     │ @hydra1902/harness-tool-bash│
 │(definition) │     │    (provider)     │     │(consumer/tool)│
 └─────────────┘     └──────────────────┘     └──────────────┘
        ▲                                            │
@@ -32,7 +32,7 @@ One Service Definition can have multiple providers selected through `cordis.yml`
 
 ```yaml
 # Local execution
-- name: '@hydra/harness-bash-local'
+- name: '@hydra1902/harness-bash-local'
 
 # Replace this row with another package that provides the same service.
 ```
@@ -59,9 +59,9 @@ The [capability-seam reference](../../../capability-seams.md) owns the current b
 
 ```ts ignore-check
 // packages/my-cap/my-cap/src/index.ts
-import { Service, type Context } from '@hydra/cordis'
+import { Service, type Context } from '@hydra1902/cordis'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     myCap: MyCapService
   }
@@ -89,8 +89,8 @@ export interface MyCapResult {
 
 ```ts ignore-check
 // packages/my-cap/my-cap-local/src/index.ts
-import type { Context } from '@hydra/cordis'
-import { MyCapService, type MyCapRequest, type MyCapResult } from '@hydra/harness-my-cap'
+import type { Context } from '@hydra1902/cordis'
+import { MyCapService, type MyCapRequest, type MyCapResult } from '@hydra1902/harness-my-cap'
 
 class MyCapLocal extends MyCapService {
   async execute(request: MyCapRequest): Promise<MyCapResult> {
@@ -110,8 +110,8 @@ export function apply(ctx: Context) {
 
 ```ts ignore-check
 // packages/my-cap/tool-my-cap/src/index.ts
-import type { Context } from '@hydra/cordis'
-import { defineTool } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import { defineTool } from '@hydra1902/harness-tools'
 
 export const name = 'tool-my-cap'
 export const inject = ['tools', 'myCap']
@@ -138,8 +138,8 @@ export function apply(ctx: Context) {
 ### Compose them in cordis.yml
 
 ```yaml
-- name: '@hydra/harness-my-cap-local'
-- name: '@hydra/harness-tool-my-cap'
+- name: '@hydra1902/harness-my-cap-local'
+- name: '@hydra1902/harness-tool-my-cap'
 ```
 
 ## Design points

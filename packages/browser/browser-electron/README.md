@@ -81,7 +81,7 @@ The simulator cursor uses DOM APIs to construct its SVG indicator so pages enfor
 `electron-app/preload.cjs` is committed. Regenerate it when the local BrowserAgent source or `preload.entry.js` changes:
 
 ```
-pnpm --filter @hydra/harness-browser-electron run build:preload
+pnpm --filter @hydra1902/harness-browser-electron run build:preload
 ```
 
 The BrowserAgent source already contains Hydra's cursor and mask changes, so the build has no external checkout or patch overlay step.

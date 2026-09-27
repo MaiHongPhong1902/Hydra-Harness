@@ -13,7 +13,7 @@ The boundary must preserve two properties: the owner of a fact decides how to re
 Extend the [`SessionPersistence`](../architecture/2026-06-14-session-persistence.md) seam with a synchronous, side-effect-free location query:
 
 ```ts
-import type { SessionHeader } from '@hydra/harness-session'
+import type { SessionHeader } from '@hydra1902/harness-session'
 
 interface SessionLocation {
   readonly kind: string

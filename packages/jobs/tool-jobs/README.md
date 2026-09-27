@@ -61,7 +61,7 @@ Prefix-stable while the plugin scope and guidance text are unchanged. Activation
 
 #### What the model sees
 
-The generated [`job_output`, `job_list`, and `job_kill` schemas](../../../docs/tool-catalog.md#hydraharness-tool-jobs) while this tool set is visible. `job_output` and `job_kill` accept only background job ids, never continuable subagent ids.
+The generated [`job_output`, `job_list`, and `job_kill` schemas](../../../docs/tool-catalog.md#hydra1902harness-tool-jobs) while this tool set is visible. `job_output` and `job_kill` accept only background job ids, never continuable subagent ids.
 
 #### Token effect
 

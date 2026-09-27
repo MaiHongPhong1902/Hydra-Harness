@@ -98,6 +98,12 @@ export function githubSlug(heading: string): string {
   return heading.toLowerCase().replace(/[^\p{L}\p{N}_ -]/gu, '').replaceAll(' ', '-')
 }
 
+/** Return the compatibility fragment for a current Hydra package heading. */
+export function legacyHydraPackageSlug(heading: string): string | undefined {
+  if (!heading.startsWith('@hydra1902/')) return undefined
+  return githubSlug(`@hydra/${heading.slice('@hydra1902/'.length)}`)
+}
+
 /**
  * Every anchor one Markdown document exposes: each heading's GitHub slug —
  * computed from the RENDERED heading text, so links, images, inline code, and

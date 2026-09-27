@@ -46,8 +46,8 @@ The [Agent Note](../../../.agents/notes/implemented/architecture/2026-07-29-proj
 ## Composition
 
 ```yaml
-- name: '@hydra/harness-token-meter'
-- name: '@hydra/harness-compaction-basic'
+- name: '@hydra1902/harness-token-meter'
+- name: '@hydra1902/harness-compaction-basic'
 ```
 
 Both plugins have usable defaults. The meter remains independent of model routing and optional compaction. A deployment configures capacity on its LLM adapter and compaction policy on `@hydra/harness-compaction-basic`.

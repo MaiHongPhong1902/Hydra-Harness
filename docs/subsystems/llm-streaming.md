@@ -512,7 +512,7 @@ interface GenerateOptions {
   /**
    * Ordered conversation messages, exactly as the provider sees them (after
    * the `system` slot). A loop-built request assembles them as
-   * the derived history (@hydra/harness-agent-loop); a hand-built one-shot passes any list.
+   * the derived history (@hydra1902/harness-agent-loop); a hand-built one-shot passes any list.
    */
   messages: Message[]
   /** System prompt text (adapters map to the provider's system slot). */
@@ -566,8 +566,8 @@ interface FinishReasonMap {
 /**
  * JSON-schema description of a tool, as sent to the model.
  *
- * Declared here (not in @hydra/harness-tools) because it is part of {@link GenerateOptions};
- * @hydra/harness-tools' ToolDefinition and @hydra/harness-system-prompt's PromptAssembly both import
+ * Declared here (not in @hydra1902/harness-tools) because it is part of {@link GenerateOptions};
+ * @hydra1902/harness-tools' ToolDefinition and @hydra1902/harness-system-prompt's PromptAssembly both import
  * it from this package.
  */
 interface ToolSchema {

@@ -6,7 +6,7 @@ Implicit-root Agent Teams domain. `ctx.agentTeams` owns a flat Lead/teammate ros
 
 ```yaml
 - id: agent-team
-  name: '@hydra/harness-experimental-agent-team'
+  name: '@hydra1902/harness-experimental-agent-team'
   config:
     maxMembers: 8
     maxTasks: 256

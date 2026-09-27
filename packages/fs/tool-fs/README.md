@@ -4,8 +4,8 @@ The **model-facing filesystem tools** — `read`, `read_image`, `write`, `edit` 
 
 ```ts ignore-check
 // Default deployment: a ctx.fs provider, the policy plugin, then the tools.
-await ctx.plugin(LocalFileSystem, { cwd: process.cwd() }) // @hydra/harness-fs-local
-await ctx.plugin(FsPolicy)                             // @hydra/harness-fs-observation-policy (policy gate)
+await ctx.plugin(LocalFileSystem, { cwd: process.cwd() }) // @hydra1902/harness-fs-local
+await ctx.plugin(FsPolicy)                             // @hydra1902/harness-fs-observation-policy (policy gate)
 await ctx.plugin(LocalAttachmentStore, { hydraHome })       // optional — enables durable read_image results
 await ctx.plugin(ToolFs)                                  // this package — read/write/edit, plus read_image with attachments
 ```
@@ -97,7 +97,7 @@ Prefix-stable while the plugin scope and guidance text are unchanged. Tool restr
 
 #### What the model sees
 
-The model sees the generated [`read`, `read_image`, `write`, and `edit` schemas](../../../docs/tool-catalog.md#hydraharness-tool-fs), with snake_case arguments. `read_image` appears only while a durable attachment store is mounted; the schema itself is route-independent, and the strict gate refuses at execution. Scoped tool restrictions can remove any definition for one agent.
+The model sees the generated [`read`, `read_image`, `write`, and `edit` schemas](../../../docs/tool-catalog.md#hydra1902harness-tool-fs), with snake_case arguments. `read_image` appears only while a durable attachment store is mounted; the schema itself is route-independent, and the strict gate refuses at execution. Scoped tool restrictions can remove any definition for one agent.
 
 #### Token effect
 

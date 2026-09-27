@@ -6,8 +6,8 @@ Reference for the contracts a model-facing tool must satisfy. For an ordered fir
 
 ```ts
 import { readFile } from 'node:fs/promises'
-import type { Context } from '@hydra/cordis'
-import { defineTool } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import { defineTool } from '@hydra1902/harness-tools'
 
 export const name = 'my-tool'
 export const inject = ['tools']

@@ -19,8 +19,8 @@ The key is `<scope>/<id>`, where `scope` is the **owning plugin's registered nam
 ## Surface
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import { credentialKey, credentialRef } from '@hydra/harness-credentials'
+import type { Context } from '@hydra1902/cordis'
+import { credentialKey, credentialRef } from '@hydra1902/harness-credentials'
 
 declare const ctx: Context
 

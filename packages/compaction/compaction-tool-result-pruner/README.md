@@ -29,8 +29,8 @@ All values are integers; the threshold is positive and head/tail are non-negativ
 ## Usage
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import ToolResultPruner from '@hydra/harness-compaction-tool-result-pruner'
+import type { Context } from '@hydra1902/cordis'
+import ToolResultPruner from '@hydra1902/harness-compaction-tool-result-pruner'
 
 export function apply(ctx: Context): void {
   ctx.plugin(ToolResultPruner)

@@ -18,7 +18,7 @@ The Windows rung keeps one deterministic write SID and standing ACE per workspac
 
 ```yaml
 - id: sandbox
-  name: '@hydra/harness-sandbox-local'
+  name: '@hydra1902/harness-sandbox-local'
 ```
 
 Consumers: [`@hydra/harness-bash-sandbox`](../../shell/bash-sandbox/); see [the acp-agent example](../../../examples/acp-agent/) for the runnable default composition.

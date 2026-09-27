@@ -8,7 +8,7 @@ The package root exports the default and named `LocalBashExecutor` plugin plus i
 
 ```yaml
 - id: bash
-  name: '@hydra/harness-bash-local'
+  name: '@hydra1902/harness-bash-local'
   config:
     cwd: /path/to/workspace   # default: process.cwd()
     timeoutMs: 120000          # default foreground timeout

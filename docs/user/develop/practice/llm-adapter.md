@@ -9,9 +9,9 @@ An LLM adapter extends `LlmAdapter` and implements `stream()`, translating Harne
 ## Minimal implementation
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import Schema from '@hydra/schemastery'
-import { LlmAdapter, type GenerateOptions, type StreamChunk } from '@hydra/harness-llm'
+import type { Context } from '@hydra1902/cordis'
+import Schema from '@hydra1902/schemastery'
+import { LlmAdapter, type GenerateOptions, type StreamChunk } from '@hydra1902/harness-llm'
 
 class MyAdapter extends LlmAdapter {
   private apiKey: string
@@ -52,7 +52,7 @@ export function apply(ctx: Context, config: Config) {
 `stream()` yields chunks using this protocol:
 
 ```ts
-import { CallId, type StreamChunk } from '@hydra/harness-llm'
+import { CallId, type StreamChunk } from '@hydra1902/harness-llm'
 
 async function* exampleChunks(): AsyncIterable<StreamChunk> {
   // 1. Start each content block with block-start.
@@ -131,7 +131,7 @@ The first argument lists provider routes handled by the adapter. `GenerateOption
       - my-provider
 
 - id: agent-loop
-  name: '@hydra/harness-agent-loop'
+  name: '@hydra1902/harness-agent-loop'
   config:
     agents:
       - id: main
@@ -159,7 +159,7 @@ import {
   LlmError,
   type GenerateOptions,
   type StreamChunk,
-} from '@hydra/harness-llm'
+} from '@hydra1902/harness-llm'
 
 class HttpAdapter extends LlmAdapter {
   constructor(private readonly endpoint: string) {

@@ -6,7 +6,7 @@ The OpenTelemetry backend for [the telemetry seam](../session-telemetry/) — th
 
 ```yaml
 - id: sessionTelemetry-otel
-  name: '@hydra/harness-session-sessionTelemetry-otel'
+  name: '@hydra1902/harness-session-sessionTelemetry-otel'
   config:
     mode: FULL                # explicit opt-in; default: DISABLED
     shutdownTimeoutMillis: 3000 # optional; defaults to 3000

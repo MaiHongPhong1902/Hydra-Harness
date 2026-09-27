@@ -6,16 +6,16 @@ Shared lifecycle owner for one E2B sandbox. The filesystem and subprocess adapte
 
 ```yaml
 - id: e2b
-  name: '@hydra/harness-e2b'
+  name: '@hydra1902/harness-e2b'
   config:
     cwd: /home/user/workspace
     timeoutMs: 300000
 
 - id: subprocess-e2b
-  name: '@hydra/harness-subprocess-e2b'
+  name: '@hydra1902/harness-subprocess-e2b'
 
 - id: fs-e2b
-  name: '@hydra/harness-fs-e2b'
+  name: '@hydra1902/harness-fs-e2b'
 ```
 
 `apiKey` is optional and otherwise reads `E2B_API_KEY`; the key configures the host SDK connection and is never installed in the sandbox. `cwd` defaults to `/home/user/workspace` and must be an absolute POSIX path. `timeoutMs` defaults to five minutes and controls the sandbox lifetime; expiry deletes the sandbox.

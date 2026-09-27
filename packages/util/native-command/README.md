@@ -9,7 +9,7 @@ It is a **library, not a service or plugin**: no `ctx`, registers nothing, holds
 ## Surface
 
 ```ts
-import { runNativeCommand, type NativeCommandRunner } from '@hydra/harness-native-command'
+import { runNativeCommand, type NativeCommandRunner } from '@hydra1902/harness-native-command'
 ```
 
 ## Model Experience

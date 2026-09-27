@@ -20,10 +20,10 @@ The old Agent Note already deferred a separate `@hydra/harness-fs-observation-po
 Split the stack into four layers:
 
 ```text
-tool          @hydra/harness-tool-fs       model-facing schemas + read windowing + text rendering; the EXECUTOR (reads/writes/edits via ctx.fs, dispatches the fs/* events)
-policy        @hydra/harness-fs-observation-policy  observed-state + read-before-edit + write/edit freshness, contributed through the fs/* event gate (no service)
-provider contract @hydra/harness-fs            ctx.fs: text IO + atomic mutation primitives (optional version guard)
-provider      @hydra/harness-fs-local      local implementation of ctx.fs
+tool          @hydra1902/harness-tool-fs       model-facing schemas + read windowing + text rendering; the EXECUTOR (reads/writes/edits via ctx.fs, dispatches the fs/* events)
+policy        @hydra1902/harness-fs-observation-policy  observed-state + read-before-edit + write/edit freshness, contributed through the fs/* event gate (no service)
+provider contract @hydra1902/harness-fs            ctx.fs: text IO + atomic mutation primitives (optional version guard)
+provider      @hydra1902/harness-fs-local      local implementation of ctx.fs
 ```
 
 `@hydra/harness-tool-fs` keeps the same model-facing `read`/`write`/`edit` schemas. It is the executor: it injects `fs` (not a policy service) and reaches `ctx.fs` directly, owns read windowing, and dispatches the `fs/*` events so `@hydra/harness-fs-observation-policy` can gate and record.

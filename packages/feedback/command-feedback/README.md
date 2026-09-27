@@ -38,9 +38,9 @@ The producer injects only `commands`. A custom app mounts the registry plus this
 
 ```yaml
 - id: commands
-  name: '@hydra/harness-commands'
+  name: '@hydra1902/harness-commands'
 - id: command-feedback
-  name: '@hydra/harness-command-feedback'
+  name: '@hydra1902/harness-command-feedback'
 ```
 
 The shipped `hydra` base mounts this command unconditionally; it has no configuration and no dependency on the persisted-goal stack. The Web client exposes it through the command adapter. Headless mode, ACP automation, and JSON-RPC do not provide a command adapter, so they do not expose it.

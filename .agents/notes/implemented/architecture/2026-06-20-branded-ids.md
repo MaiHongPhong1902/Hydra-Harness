@@ -25,7 +25,7 @@ A type-only change. Brands are zero-cost casts; nothing about runtime behavior, 
 Illustrative shape (the factory pattern is identical to the three existing brands):
 
 ```ts ignore-check
-import type { Branded } from '@hydra/harness-brand'
+import type { Branded } from '@hydra1902/harness-brand'
 
 /** A background bash task handle (generated `bash-N` by the local executor). */
 export type BashTaskId = Branded<'BashTaskId'>

@@ -31,7 +31,7 @@ What is unreachable from a `packages/client/*` program is `@hydra/harness-compac
 The repo's answer to exactly this is a cordis-free leaf subpath, and this change adds one: `COMPACT_CHECKPOINT_SOURCE` and `isCompactCheckpointSource` now live in `packages/compaction/compaction/src/checkpoint.ts`, which imports no cordis and augments no module (the `hydra-commands/brand` / `hydra-llm/message` shape), and the root re-exports both so every host-side consumer — the terminal's chat helpers, `@hydra/harness-session-reference`'s projection — is unchanged. The adapter pins its literal to that declaration with a type-only import:
 
 ```ts
-import type { CompactionCheckpointSource } from '@hydra/harness-compaction/checkpoint'
+import type { CompactionCheckpointSource } from '@hydra1902/harness-compaction/checkpoint'
 const COMPACT_PLUGIN: CompactionCheckpointSource['plugin'] = 'compact'
 ```
 

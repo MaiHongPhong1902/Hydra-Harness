@@ -27,7 +27,7 @@ One frame in the mux stream:
 `JobView` is browser-safe and owned by the carrier at [`packages/host/apiproxy/src/api/jobs.ts`](../../../../packages/host/apiproxy/src/api/jobs.ts), alongside the other domain contracts, with its wire schema beside it in `jobs.schema.ts`:
 
 ```ts
-import type { JobId } from '@hydra/harness-jobs/brand'
+import type { JobId } from '@hydra1902/harness-jobs/brand'
 
 export interface JobView {
   id: JobId

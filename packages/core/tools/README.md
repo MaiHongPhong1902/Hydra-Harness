@@ -64,8 +64,8 @@ First-party plugin authors can use the `defineTool()` helper (exported from this
 
 ```ts
 import { readFile } from 'node:fs/promises'
-import type { Context } from '@hydra/cordis'
-import { defineTool } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import { defineTool } from '@hydra1902/harness-tools'
 
 declare const ctx: Context
 
@@ -146,7 +146,7 @@ Prefix-stable while visible definitions and their order are unchanged. Registrat
 
 #### What the model sees
 
-Code Mode exposes the generated [`run_code` schema](../../../docs/tool-catalog.md#hydraharness-tools), the SDK instructions below, and the generated exact SDK block for the loaded runtime's language (the TypeScript `declare const tools` block, or the Python `tools` declaration). `both` exposes normal schemas and this Code Mode API. Under `code` the prompt also carries the `tools:code-only` rule, ordered ahead of the per-tool guidance band so the model reads which tools it may call before it reads what each one is for; `both` renders it empty. The instructions and SDK block match the loaded runtime's language; the TypeScript version (via [`@hydra/harness-code-runtime-worker-thread`](../../code-runtime/code-runtime-worker-thread/README.md)) is shown below, and the Python version (for any runtime reporting `language: 'python'`) has the same operations and types in Python syntax (`await tools.name(args)`, subscript access for exotic names, `print(...)` and top-level `return`).
+Code Mode exposes the generated [`run_code` schema](../../../docs/tool-catalog.md#hydra1902harness-tools), the SDK instructions below, and the generated exact SDK block for the loaded runtime's language (the TypeScript `declare const tools` block, or the Python `tools` declaration). `both` exposes normal schemas and this Code Mode API. Under `code` the prompt also carries the `tools:code-only` rule, ordered ahead of the per-tool guidance band so the model reads which tools it may call before it reads what each one is for; `both` renders it empty. The instructions and SDK block match the loaded runtime's language; the TypeScript version (via [`@hydra/harness-code-runtime-worker-thread`](../../code-runtime/code-runtime-worker-thread/README.md)) is shown below, and the Python version (for any runtime reporting `language: 'python'`) has the same operations and types in Python syntax (`await tools.name(args)`, subscript access for exotic names, `print(...)` and top-level `return`).
 
 ##### Code Mode SDK instructions
 

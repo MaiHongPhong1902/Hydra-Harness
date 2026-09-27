@@ -7,9 +7,9 @@ A **service** is a named capability one plugin provides and other plugins consum
 Create `greeter.ts` in `tmp/cordis-tutorial`:
 
 ```ts
-import { Service, type Context } from '@hydra/cordis'
+import { Service, type Context } from '@hydra1902/cordis'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     greeter: GreeterService
   }
@@ -44,7 +44,7 @@ A `Service` subclass is itself a plugin (the class form from chapter 1), so `ctx
 Create `consumer.ts`:
 
 ```ts
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 
 export const name = 'consumer'
 export const inject = ['greeter']

@@ -15,7 +15,7 @@ A native cordis plugin could do everything this bridge does, more powerfully; th
 ## Config
 
 ```ts
-import type { Config } from '@hydra/harness-hooks-codex'
+import type { Config } from '@hydra1902/harness-hooks-codex'
 const config: Config = {
   configPath: '/path/to/.codex/hooks.json', // required
   model: 'deepseek-v4',                      // optional: stamped on every payload (Codex includes `model`)

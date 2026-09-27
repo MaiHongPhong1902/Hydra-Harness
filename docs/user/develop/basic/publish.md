@@ -90,7 +90,7 @@ The first use initializes the profile (with `@hydra/harness-base` as its first b
   "hydra": {
     "profile": {
       "bundles": [
-        "@hydra/harness-base",
+        "@hydra1902/harness-base",
         "hydra-hello-plugin"
       ]
     }

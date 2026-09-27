@@ -9,9 +9,9 @@ The two halves live in one package — the Host half under `src/`, the browser h
 The namespace is the join key, so pick it once and spell it in both halves. A consumer that already has a `cordis.yml` entry should register through `installSettingsSection`, which layers the entry under the user document and keeps working when no settings provider is mounted:
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
-import z from '@hydra/schemastery'
+import type { Context } from '@hydra1902/cordis'
+import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
+import z from '@hydra1902/schemastery'
 
 declare function assertReachable(endpoint: string | undefined): void
 declare function rebuildFromSettings(config: Config): void
@@ -46,10 +46,10 @@ export function apply(ctx: Context, config: Config) {
 The card registers into `settings.plugin.item` under its namespace and owns everything inside it — chrome, controls, and copy. It reads and writes through `ctx.settingsScope`, which fences each write with the revision it read:
 
 ```ts ignore-check
-import type { ClientContext } from '@hydra/harness-client-runtime/client'
+import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
 // Type-only: the keyed slot's declaration. Cross-plugin collaboration goes
 // through cordis services; a value import fails the client bundle-purity gate.
-import type {} from '@hydra/harness-client-ui-settings-plugins/client'
+import type {} from '@hydra1902/harness-client-ui-settings-plugins/client'
 
 export const inject = ['slots', 'locale', 'connection', 'remote', 'settingsScope']
 
@@ -83,7 +83,7 @@ The browser half is served to the page by the [client module system](../../packa
     ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
     "./client": { "types": "./lib/types/client/index.d.ts", "default": "./lib/client.js" }
   },
-  "hydra": { "client": { "platform": "web", "inject": ["@hydra/harness-client-ui-settings-plugins"] } }
+  "hydra": { "client": { "platform": "web", "inject": ["@hydra1902/harness-client-ui-settings-plugins"] } }
 }
 ```
 
@@ -92,7 +92,7 @@ The bundle must be the loader's lazy-CJS factory artifact. Inside this repositor
 ```ts ignore-check
 import { clientBundle } from '../tsdown.client.ts'
 
-export default clientBundle('@hydra/harness-client-my-plugin', ['lib/types/index.js', 'lib/types/invariant.js'])
+export default clientBundle('@hydra1902/harness-client-my-plugin', ['lib/types/index.js', 'lib/types/invariant.js'])
 ```
 
 That preset is not published today, so a package outside this repository has to reproduce the same output format itself. The bundle-purity gate also rejects value imports across plugins, so a card cannot import this section's card chrome or its staged-form model — it renders its own, and owns its own staging and revision fencing. Both limits are recorded under [the section's known limitations](../../packages/client/ui-settings-plugins/README.md#known-limitations-and-deferred-work).

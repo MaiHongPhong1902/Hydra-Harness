@@ -25,11 +25,11 @@ The producer injects `commands` and `goals`. A custom app mounts their owners pl
 
 ```yaml
 - id: commands
-  name: '@hydra/harness-commands'
+  name: '@hydra1902/harness-commands'
 - id: goal
-  name: '@hydra/harness-goal'
+  name: '@hydra1902/harness-goal'
 - id: command-goal
-  name: '@hydra/harness-command-goal'
+  name: '@hydra1902/harness-command-goal'
 ```
 
 The shipped `hydra` base enables the persisted-goal stack and this command; the Web client provides its interactive adapter. The ACP automation app enables the domain and model tools without a command adapter; `goals: false` removes that stack. The UI-less `agent-spine-demo` requires an explicit `goals: {}` so headless one-shot callers do not silently change from one physical turn to a multi-round operation.

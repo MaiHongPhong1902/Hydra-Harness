@@ -8,7 +8,7 @@ The package root exports the Cordis plugin contract (`name`, `inject`, `Config`,
 
 ```yaml
 - id: shell-env
-  name: '@hydra/harness-shell-env'
+  name: '@hydra1902/harness-shell-env'
   config:
     hydraHome: C:\Users\me\.hydra   # default: $HYDRA_HOME, then ~/.hydra
 ```
@@ -20,8 +20,8 @@ Every foreground and background model shell call receives a newly collected trus
 `ctx.shellEnv` owns collection. Other plugins can register an effect-scoped contributor with a stable name, declared keys/descriptions, and `resolve(execution: ToolExecution)`; duplicate ownership and undeclared runtime keys fail loudly, while `list()` enumerates declarations without executing providers. Harness built-ins reserve `HYDRA_HOME`, `HYDRA_SHELL`, and `HYDRA_SESSION_ID`; this plugin's persistence translator owns `HYDRA_SESSION_JSONL` by reading the backend-neutral `sessionPersistence.locate()` seam.
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import type {} from '@hydra/harness-shell-env'
+import type { Context } from '@hydra1902/cordis'
+import type {} from '@hydra1902/harness-shell-env'
 
 export const inject = ['shellEnv']
 

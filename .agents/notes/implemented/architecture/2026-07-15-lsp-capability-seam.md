@@ -33,7 +33,7 @@ The seam exposes one `query(request, signal?)` operation because no fields need 
 The contract shape:
 
 ```ts
-import type { Branded } from '@hydra/harness-brand'
+import type { Branded } from '@hydra1902/harness-brand'
 
 type LspOperation = 'goToDefinition' | 'findReferences' | 'goToImplementation' | 'hover'
 type LspProviderId = Branded<'LspProviderId'>

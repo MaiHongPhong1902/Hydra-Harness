@@ -86,7 +86,7 @@ Copy the same entry fields and use a unique `id` and `serverName`:
 ```yaml
 - insert:
     - id: memory-my-server
-      name: '@hydra/harness-mcp-client'
+      name: '@hydra1902/harness-mcp-client'
       config:
         serverName: my-memory
         transport: stdio

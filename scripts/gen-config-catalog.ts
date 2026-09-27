@@ -12,7 +12,7 @@ import { dirname, resolve, sep } from 'node:path'
 import ts from 'typescript'
 import { LINK_MAP } from './gen-cordis-catalog.ts'
 import { parseJsDoc, pointer, rawJsDoc } from './jsdoc.ts'
-import { githubSlug } from './verify-md-links.ts'
+import { githubSlug, legacyHydraPackageSlug } from './verify-md-links.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const OUT = 'docs/config-catalog.md'
@@ -788,7 +788,10 @@ function refLink(ref: TypeRef, byName: Map<string, CatalogEntry>): string {
 
 /** Render one configurable plugin's section. */
 function renderConfigEntry(entry: CatalogEntry, byName: Map<string, CatalogEntry>): string[] {
-  const out = [`<a id="${githubSlug(entry.pkg)}"></a>`, '', `## \`${entry.pkg}\``, '']
+  const out = [`<a id="${githubSlug(entry.pkg)}"></a>`]
+  const legacySlug = legacyHydraPackageSlug(entry.pkg)
+  if (legacySlug !== undefined) out.push('', `<a id="${legacySlug}"></a>`)
+  out.push('', `## \`${entry.pkg}\``, '')
   const requires = requiresLine(entry.inject)
   if (requires) out.push(requires, '')
   out.push('```' + FENCE, ...(entry.pastes ?? []).map(p => p.text).join('\n\n').split('\n'), '```', '')

@@ -72,7 +72,7 @@ import * as PageMemory from '@hydra1902/harness-page-memory'
 import VmWorkflowEngine from '@hydra1902/harness-workflow-worker-thread'
 import * as ToolRalph from '@hydra1902/harness-tool-ralph'
 import * as ToolWorkflow from '@hydra1902/harness-tool-workflow'
-import { githubSlug } from './verify-md-links.ts'
+import { githubSlug, legacyHydraPackageSlug } from './verify-md-links.ts'
 
 /** Attachment seam marker that makes the attachments-conditional `read_image` schema harvestable. */
 class CatalogAttachmentStore extends AttachmentStore {
@@ -805,7 +805,10 @@ export function render(catalog: ToolCatalog): string {
     '',
   ]
   for (const entry of catalog) {
-    lines.push(`<a id="${githubSlug(entry.pkg)}"></a>`, '', `## \`${entry.pkg}\``, '')
+    lines.push(`<a id="${githubSlug(entry.pkg)}"></a>`)
+    const legacySlug = legacyHydraPackageSlug(entry.pkg)
+    if (legacySlug !== undefined) lines.push('', `<a id="${legacySlug}"></a>`)
+    lines.push('', `## \`${entry.pkg}\``, '')
     for (const schema of entry.schemas) {
       // Collection validated that every harvested schema has a source.
       const source = entry.sources[schema.name] as string

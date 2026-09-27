@@ -12,7 +12,7 @@ Profiles accept `apiKeyFallbackEnvs`, ordered credential references after `apiKe
 
 ```yaml
 - id: llm-deepseek
-  name: '@hydra/harness-llm-deepseek'
+  name: '@hydra1902/harness-llm-deepseek'
   config:
     apiKeyEnv: DEEPSEEK_API_KEY  # default; resolved per request via ctx.credentials, then the environment
     baseURL: https://api.deepseek.com # optional; $DEEPSEEK_BASE_URL then the public API when omitted

@@ -8,7 +8,7 @@ Mount the plugin in a Hydra profile or patch:
 
 ```yaml
 - id: obsidian-knowledge
-  name: '@hydra/harness-obsidian-knowledge'
+  name: '@hydra1902/harness-obsidian-knowledge'
 ```
 
 Recall, exact reads, and approval-gated saves work with no user-facing settings. The settings document intentionally contains no vault path, MCP URL, or token.

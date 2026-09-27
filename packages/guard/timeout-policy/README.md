@@ -8,7 +8,7 @@ A function/namespace plugin (`name` / `inject` / `apply`), not a service. It reg
 
 ```yaml
 - id: timeout-policy
-  name: '@hydra/harness-tool-call-timeout-policy'
+  name: '@hydra1902/harness-tool-call-timeout-policy'
 ```
 
 The per-tool budget is declared by the tool plugin (e.g. `@hydra/harness-tool-web`'s `fetchTimeoutMs`/`searchTimeoutMs` config, attached as `ToolDefinition.timeoutMs`); this plugin only enforces it, so a mistyped tool name is not possible.

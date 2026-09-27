@@ -47,10 +47,10 @@ An adapter may return no capacity for a valid dynamic route, and resolved capaci
 `BasicCompactionEngine` requires `ctx.llm`, `ctx.tokenMeter`, and `ctx.sessions`. The composition below receives `ctx.llm` from its host and installs the other two services:
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import { BasicCompactionEngine } from '@hydra/harness-compaction-basic'
-import SessionStore from '@hydra/harness-session'
-import TokenMeter from '@hydra/harness-token-meter'
+import type { Context } from '@hydra1902/cordis'
+import { BasicCompactionEngine } from '@hydra1902/harness-compaction-basic'
+import SessionStore from '@hydra1902/harness-session'
+import TokenMeter from '@hydra1902/harness-token-meter'
 
 export const name = 'compaction-basic'
 export const inject = ['llm']
@@ -67,7 +67,7 @@ Loading the plugin registers `ctx.compaction`. Add [`@hydra/harness-compaction-t
 For example, the same compact plugin can safely serve models with different capacities and one target-specific policy:
 
 ```yaml
-- name: '@hydra/harness-compaction-basic'
+- name: '@hydra1902/harness-compaction-basic'
   config:
     thresholdRatio: 0.8
     retainRatio: 0.16

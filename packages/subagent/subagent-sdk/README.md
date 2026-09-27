@@ -38,7 +38,7 @@ The provider advertises no start-time capabilities (`outputSchema`/`depthLimit`/
 
 ```yaml
 - id: subagent-sdk
-  name: '@hydra/harness-subagent-sdk'
+  name: '@hydra1902/harness-subagent-sdk'
   config:
     providerName: hydra-sdk
     command: node
@@ -47,7 +47,7 @@ The provider advertises no start-time capabilities (`outputSchema`/`depthLimit`/
     env:
       DEEPSEEK_API_KEY: !!js process.env.DEEPSEEK_API_KEY
 - id: tool-subagent
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   config: { provider: hydra-sdk, toolName: subagent, maxDepth: 'provider-managed' }
 ```
 

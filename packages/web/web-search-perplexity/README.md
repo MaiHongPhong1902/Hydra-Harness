@@ -16,7 +16,7 @@ This is an **implementation** package: it registers a provider into `ctx.web`, i
 
 ```yaml
 - id: web-search-perplexity
-  name: '@hydra/harness-web-search-perplexity'
+  name: '@hydra1902/harness-web-search-perplexity'
   config:
     apiKey: !!js process.env.PERPLEXITY_API_KEY
 ```

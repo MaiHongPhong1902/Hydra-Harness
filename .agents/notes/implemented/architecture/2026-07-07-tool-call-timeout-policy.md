@@ -42,9 +42,9 @@ The plugin is `@hydra/harness-tool-call-timeout-policy`, a zero-config function/
 
 ```yaml
 - id: timeout-policy
-  name: '@hydra/harness-tool-call-timeout-policy'
+  name: '@hydra1902/harness-tool-call-timeout-policy'
 - id: tool-web
-  name: '@hydra/harness-tool-web'
+  name: '@hydra1902/harness-tool-web'
   config:
     fetchTimeoutMs: 30000
     searchTimeoutMs: 30000

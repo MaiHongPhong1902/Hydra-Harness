@@ -13,9 +13,9 @@ Business services use `@Remote` or `@RemoteScope` to select the methods exposed 
 Services normally extend `TypertRemoteService` so the constructor explicitly binds the Cordis service key and default Remote namespace. A service that already has another base class can instead declare `readonly typertRemote = bindTypertRemote(this, serviceKey)`; both forms leave an inspectable public binding and do not depend on the compiler injecting a symbol into the constructor.
 
 ```ts
-import type { Agent } from '@hydra/harness-agent'
-import { TypertRemoteService, Remote, RemoteScope } from '@hydra/harness-typert-protocol'
-import type { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import { TypertRemoteService, Remote, RemoteScope } from '@hydra1902/harness-typert-protocol'
+import type { Context } from '@hydra1902/cordis'
 
 export interface CreateGoalRequest {
   objective: string
@@ -56,10 +56,10 @@ Remote methods may return a value synchronously or return a Promise. For coopera
 The Client uses concrete functions on ordinary objects, not a JavaScript Proxy. Direct and scoped calls appear under `ctx.remote.<namespace>` and `agentCtx.remote.<namespace>`. Each namespace is a traced Cordis child Service registered as `remote.<namespace>`; the Client assembly mounts contributions through `ctx.remote.$mount()`, and the namespace unloads after its last method is withdrawn. Dependency declarations belong to the actual caller: only a business package that reads `ctx.remote.<namespace>` or `agentCtx.remote.<namespace>` declares both `remote` and `remote.<namespace>` in its own `inject`; assemblies that only mount contributions and higher-level runtimes that do not call that namespace do not declare the namespace dependency on the business package's behalf. When an `@Remote` method has exactly one lookup parameter and a same-named `TypertContextMap` uses the same wire identity, the generated scoped signature omits that identity parameter. `@RemoteScope` generates only the scoped invocation interface.
 
 ```ts ignore-check
-import type { SessionId } from '@hydra/harness-session/types'
-import type { AgentContext } from '@hydra/harness-client-runtime/client'
-import type { Context } from '@hydra/cordis'
-import type {} from '@hydra/harness-api-remotes/client'
+import type { SessionId } from '@hydra1902/harness-session/types'
+import type { AgentContext } from '@hydra1902/harness-client-runtime/client'
+import type { Context } from '@hydra1902/cordis'
+import type {} from '@hydra1902/harness-api-remotes/client'
 
 export const inject = ['remote', 'remote.goals']
 

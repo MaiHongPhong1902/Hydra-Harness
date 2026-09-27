@@ -112,15 +112,15 @@ With `@hydra/harness-spill-policy` configured, a large formatted fetch result is
 
 ```yaml
 - id: web-fetch-http
-  name: '@hydra/harness-web-fetch-http'
+  name: '@hydra1902/harness-web-fetch-http'
   config:
     maxBodyChars: 500000
 
 - id: spill-local
-  name: '@hydra/harness-spill-local'
+  name: '@hydra1902/harness-spill-local'
 
 - id: spill-policy
-  name: '@hydra/harness-spill-policy'
+  name: '@hydra1902/harness-spill-policy'
   config:
     maxInlineBytes: 50000
 ```

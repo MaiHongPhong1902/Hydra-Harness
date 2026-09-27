@@ -31,7 +31,7 @@ The normalized service results are also the canonical tool values: `WebSearchRes
 
 ```yaml
 - id: tool-web
-  name: '@hydra/harness-tool-web'
+  name: '@hydra1902/harness-tool-web'
 ```
 
 When product search selection is enabled, `ctx.web.searchPreferences()` supplies the saved query/result limits and deadline for each call. Provider changes preserve the common `web_search` argument schema. Source metadata includes provider attribution and optional position/score. Normalized URL comparison deduplicates sources across concurrent queries before the total cap.
@@ -84,7 +84,7 @@ Prefix-stable while enabled tools, scope, and guidance text are unchanged. Confi
 
 #### What the model sees
 
-The model sees the generated [`web_search` and `web_fetch` schemas](../../../docs/tool-catalog.md#hydraharness-tool-web). Result-count and timeout budgets are deployment settings, not model arguments.
+The model sees the generated [`web_search` and `web_fetch` schemas](../../../docs/tool-catalog.md#hydra1902harness-tool-web). Result-count and timeout budgets are deployment settings, not model arguments.
 
 #### Token effect
 

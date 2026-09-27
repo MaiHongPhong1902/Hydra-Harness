@@ -8,7 +8,7 @@ One plugin instance per MCP server in `cordis.yml`:
 
 ```yaml
 - id: mcp-github
-  name: '@hydra/harness-mcp-client'
+  name: '@hydra1902/harness-mcp-client'
   config:
     serverName: github
     transport: stdio
@@ -18,7 +18,7 @@ One plugin instance per MCP server in `cordis.yml`:
       GITHUB_TOKEN: !!js process.env.GITHUB_TOKEN
 
 - id: mcp-web
-  name: '@hydra/harness-mcp-client'
+  name: '@hydra1902/harness-mcp-client'
   config:
     serverName: web
     transport: streamable-http

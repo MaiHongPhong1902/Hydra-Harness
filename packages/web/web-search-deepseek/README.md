@@ -26,7 +26,7 @@ It reuses the `DEEPSEEK_API_KEY` credential reference (no new secret) but **not*
 
 ```yaml
 - id: web-search-deepseek
-  name: '@hydra/harness-web-search-deepseek'
+  name: '@hydra1902/harness-web-search-deepseek'
   config:
     apiKeyEnv: DEEPSEEK_API_KEY
     baseURL: https://gateway.internal/anthropic/v1

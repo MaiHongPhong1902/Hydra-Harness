@@ -5,7 +5,7 @@ Zero-dependency atomic file replacement shared by file-backed stores that must n
 ## Surface
 
 ```ts
-import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
+import { withFileLock, writeFileAtomic } from '@hydra1902/harness-atomic-write'
 
 declare const text: string
 declare const render: (previous: string) => string

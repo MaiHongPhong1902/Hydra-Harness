@@ -19,7 +19,7 @@ The modal reports preparation, download start, or failure. Closing it does not c
 
 ```yaml
 - id: session-log-download
-  name: '@hydra/harness-session-log-export'
+  name: '@hydra1902/harness-session-log-export'
 ```
 
 The Web bundle mounts the package beside `@hydra/harness-host-apiproxy`, `@hydra/harness-commands`, `@hydra/harness-client-ui-commands`, and `@hydra/harness-client-ui-conversation`. The package contributes its button and modal to the right-aligned `conversation.session.header.utilities` list, independently of the title-adjacent mode, Subagent, and Task entries in `conversation.session.header.actions`; Trajectory carries no export control.

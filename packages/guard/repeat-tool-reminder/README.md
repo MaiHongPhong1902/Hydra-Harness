@@ -6,7 +6,7 @@ An advisory loop-breaker, not a model-facing tool: it never appears in the tool 
 
 ```yaml
 - id: repeat-tool-reminder
-  name: '@hydra/harness-repeat-tool-reminder'
+  name: '@hydra1902/harness-repeat-tool-reminder'
   config:
     thresholds: [3, 5, 8]        # default; consecutive counts that trigger a reminder
     include: []                  # tool-name patterns to track; empty ⇒ all tools

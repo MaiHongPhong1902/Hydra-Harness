@@ -7,7 +7,7 @@ Unlike the Python SDK, the launch spec is fully explicit (`command`/`args`): thi
 ## HydraHarness
 
 ```ts
-import { HydraHarness } from '@hydra/harness-sdk-client'
+import { HydraHarness } from '@hydra1902/harness-sdk-client'
 
 await using harness = new HydraHarness({
   launch: { command: 'node', args: ['lib/bin.js', 'cordis.yml'] },

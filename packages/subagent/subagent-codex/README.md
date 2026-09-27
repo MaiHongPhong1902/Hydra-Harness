@@ -38,8 +38,8 @@ Production resolves the `codex` bin declared by its pinned `@openai/codex@0.147.
 This package is an optional Profile Bundle. Install it into the target Profile, then restart that Profile; installation brings the official wrapper and one compatible native platform payload into that Profile, while the declared `cordis.patch.yml` layer registers only the dormant `codex` Host provider and starts no Codex process. Removing the package withdraws that provider and its private runtime closure on the next Profile start.
 
 ```sh
-hydra plugin --profile <name> add @hydra/harness-subagent-codex
-hydra plugin --profile <name> remove @hydra/harness-subagent-codex
+hydra plugin --profile <name> add @hydra1902/harness-subagent-codex
+hydra plugin --profile <name> remove @hydra1902/harness-subagent-codex
 hydra --profile <name>
 ```
 
@@ -49,7 +49,7 @@ The standalone composition below shows the complete explicit capability. A Profi
 
 ```yaml
 - id: subagent-codex-safe
-  name: '@hydra/harness-subagent-codex'
+  name: '@hydra1902/harness-subagent-codex'
   config:
     providerName: codex-safe
     permissionMode: never
@@ -57,7 +57,7 @@ The standalone composition below shows the complete explicit capability. A Profi
       OPENAI_API_KEY: !!js process.env.OPENAI_API_KEY
 
 - id: subagent-codex-bypass
-  name: '@hydra/harness-subagent-codex'
+  name: '@hydra1902/harness-subagent-codex'
   config:
     providerName: codex-bypass
     permissionMode: dangerously-bypass-approvals-and-sandbox
@@ -67,13 +67,13 @@ The standalone composition below shows the complete explicit capability. A Profi
 
 ```yaml
 - id: jobs
-  name: '@hydra/harness-jobs-local'
+  name: '@hydra1902/harness-jobs-local'
 
 - id: tool-jobs
-  name: '@hydra/harness-tool-jobs'
+  name: '@hydra1902/harness-tool-jobs'
 
 - id: tool-subagent-codex-safe
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   disabled: true
   config:
     provider: codex-safe
@@ -82,7 +82,7 @@ The standalone composition below shows the complete explicit capability. A Profi
     maxDepth: provider-managed
 
 - id: tool-subagent-codex-bypass
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   config:
     provider: codex-bypass
     toolName: subagent_codex_bypass

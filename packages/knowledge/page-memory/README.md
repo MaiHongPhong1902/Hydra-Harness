@@ -8,7 +8,7 @@ Mount the plugin in a Hydra profile or patch with an explicit workspace and runt
 
 ```yaml
 - id: page-memory
-  name: '@hydra/harness-page-memory'
+  name: '@hydra1902/harness-page-memory'
   config:
     workspaceDir: 'C:/work/acme'
     role: operator
@@ -93,7 +93,7 @@ Recall messages append after the stable prompt and tool definitions. A new messa
 
 #### What the model sees
 
-The generated [`page_memory_get` and `page_memory_upsert` schemas](../../../docs/tool-catalog.md#hydraharness-page-memory) expose exact task lookup and verified workflow replacement. The model supplies CSS selectors and observed text; namespace, route, size, time, and workspace checks remain host configuration.
+The generated [`page_memory_get` and `page_memory_upsert` schemas](../../../docs/tool-catalog.md#hydra1902harness-page-memory) expose exact task lookup and verified workflow replacement. The model supplies CSS selectors and observed text; namespace, route, size, time, and workspace checks remain host configuration.
 
 #### Token effect
 

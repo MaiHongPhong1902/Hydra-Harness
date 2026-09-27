@@ -7,9 +7,9 @@ This chapter registers a model-callable tool with the harness's `tools` service,
 Create `greet-tool.ts` in `tmp/cordis-tutorial`:
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import { defineTool } from '@hydra/harness-tools'
-import { CallId } from '@hydra/harness-llm'
+import type { Context } from '@hydra1902/cordis'
+import { defineTool } from '@hydra1902/harness-tools'
+import { CallId } from '@hydra1902/harness-llm'
 
 export const name = 'greet-tool'
 export const inject = ['tools']
@@ -51,8 +51,8 @@ Every pattern here is from the earlier chapters: `inject: ['tools']` ([chapter 3
 Create `tool-logger.ts` — a separate plugin that watches every tool call in the app through the harness's `tools/result` event:
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import type {} from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import type {} from '@hydra1902/harness-tools'
 
 export const name = 'tool-logger'
 export const inject = ['tools']
@@ -72,8 +72,8 @@ The `import type {} from '@hydra/harness-tools'` line pulls in the package's dec
 ## Compose and run
 
 ```yaml
-- name: '@hydra/harness-system-prompt'
-- name: '@hydra/harness-tools'
+- name: '@hydra1902/harness-system-prompt'
+- name: '@hydra1902/harness-tools'
 - name: './tool-logger.ts'
 - name: './greet-tool.ts'
 ```

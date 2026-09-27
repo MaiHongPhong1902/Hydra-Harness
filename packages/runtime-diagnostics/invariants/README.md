@@ -50,16 +50,16 @@ The root entrypoint of each owner remains independent of diagnostics. Loading th
 ## Composition
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import InvariantRegistry from '@hydra/harness-invariants'
-import * as SessionInvariant from '@hydra/harness-session/invariant'
+import type { Context } from '@hydra1902/cordis'
+import InvariantRegistry from '@hydra1902/harness-invariants'
+import * as SessionInvariant from '@hydra1902/harness-session/invariant'
 
 declare const ctx: Context
 
 ctx.plugin(InvariantRegistry, {
   enabled: true,
-  package_allowlist: ['^@hydra/harness-'],
-  package_blocklist: ['^@hydra/harness-agent-loop$'],
+  package_allowlist: ['^@hydra1902/harness-'],
+  package_blocklist: ['^@hydra1902/harness-agent-loop$'],
 })
 ctx.plugin(SessionInvariant)
 ```

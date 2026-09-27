@@ -200,10 +200,10 @@ The policy plugin needs just enough execution context to derive the observed-sta
 ```ts type-equiv
 /**
  * Minimal structural view of a tool execution the policy plugin needs to derive
- * an observed-state owner. `@hydra/harness-tools`' `ToolExecution` contains
+ * an observed-state owner. `@hydra1902/harness-tools`' `ToolExecution` contains
  * these fields, so the tool passes its `exec` straight through as the opaque
  * `object` actor on the `fs/*` events; this plugin narrows that actor to
- * `FsObservationActor` without importing `@hydra/harness-tools`, `@hydra/harness-agent`, or `@hydra/harness-session`.
+ * `FsObservationActor` without importing `@hydra1902/harness-tools`, `@hydra1902/harness-agent`, or `@hydra1902/harness-session`.
  *
  * The owner is `agent.session` when present. It is treated as an opaque object
  * identity (a `WeakMap` key); this package never reads any of its fields.

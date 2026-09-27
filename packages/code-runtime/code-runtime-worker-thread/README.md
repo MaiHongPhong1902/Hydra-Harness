@@ -6,7 +6,7 @@ Worker-thread implementation of the [`@hydra/harness-code-runtime`](../code-runt
 
 ```yaml
 - id: code-runtime
-  name: '@hydra/harness-code-runtime-worker-thread'
+  name: '@hydra1902/harness-code-runtime-worker-thread'
   config:
     computeMs: 60000              # busy-time budget (measured event-loop active time)
     maxWallMs: 600000             # wall-clock ceiling; never pauses for anything

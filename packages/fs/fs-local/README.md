@@ -3,11 +3,11 @@
 The **local-filesystem implementation** of the `ctx.fs` provider contract ([`@hydra/harness-fs`](../fs)). Backs the twelve `FileSystem` primitives with the host filesystem; loading it as a plugin populates `ctx.fs`.
 
 ```ts ignore-check
-import { LocalFileSystem } from '@hydra/harness-fs-local'
+import { LocalFileSystem } from '@hydra1902/harness-fs-local'
 
 await ctx.plugin(LocalFileSystem, { cwd: process.cwd() })
-// ctx.fs uses the local backend; load @hydra/harness-fs-observation-policy for the
-// freshness policy gate and @hydra/harness-tool-fs to expose read/write/edit.
+// ctx.fs uses the local backend; load @hydra1902/harness-fs-observation-policy for the
+// freshness policy gate and @hydra1902/harness-tool-fs to expose read/write/edit.
 ```
 
 ## Behavior

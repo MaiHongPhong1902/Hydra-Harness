@@ -31,7 +31,7 @@ All five events ride this path, and their dedicated `HostFrame` variants or Clie
 type-meta gains one **shape predicate**, one **selection seat**, and **one** member on `TypertClientRemote`. No runtime code:
 
 ```ts
-import type { Events } from '@hydra/cordis'
+import type { Events } from '@hydra1902/cordis'
 
 /** Cordis events shaped for one-way remote delivery: no Scope binding, void return. */
 export type TypertForwardableEvent = {
@@ -81,7 +81,7 @@ export const API_REMOTE_FORWARDED_EVENTS = [
 // types.ts — the type face, derived
 export type ApiRemoteForwardedEvent = typeof API_REMOTE_FORWARDED_EVENTS[number]
 
-declare module '@hydra/harness-typert-protocol' {
+declare module '@hydra1902/harness-typert-protocol' {
   interface TypertRemoteEventSelection extends Record<ApiRemoteForwardedEvent, true> {}
 }
 ```

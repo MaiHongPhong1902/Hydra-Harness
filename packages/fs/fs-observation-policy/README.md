@@ -3,14 +3,14 @@
 The **fs-observation-policy plugin**: it records observed presence or absence and adds read-before-edit plus guarded write/edit on top of the `ctx.fs` provider contract ([`@hydra/harness-fs`](../fs)) — through the `fs/*` event gate, **NOT** through a method service. This plugin registers **no** `ctx.fsPolicy` service and has no public `read`/`write`/`edit`/`resolve` methods. It is the policy third of the filesystem stack: not a swappable seam, but the policy that does not belong on the `FileSystem` provider base class.
 
 ```ts
-import type { Context } from '@hydra/cordis'
-import * as FsPolicy from '@hydra/harness-fs-observation-policy'
+import type { Context } from '@hydra1902/cordis'
+import * as FsPolicy from '@hydra1902/harness-fs-observation-policy'
 
 declare const ctx: Context
 
 // No service to inject — this plugin only registers the three fs/* listeners.
-// Load it alongside a ctx.fs provider (e.g. @hydra/harness-fs-local) and the
-// @hydra/harness-tool-fs tools; the tools dispatch the fs/* events this plugin
+// Load it alongside a ctx.fs provider (e.g. @hydra1902/harness-fs-local) and the
+// @hydra1902/harness-tool-fs tools; the tools dispatch the fs/* events this plugin
 // decides. Order does not matter for resolution (no inject), but the policy
 // listener should be the first decider registered for the fs/*-intent slots.
 await ctx.plugin(FsPolicy)

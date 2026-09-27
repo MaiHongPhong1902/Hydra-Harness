@@ -11,7 +11,7 @@ Before waiting, the plugin appends a non-surface `llm/retry` event with the shar
 The separately published `./invariant` companion checks that every scheduled retry names the current open turn and current open step, matches the failed request's durable provider, carries non-empty provider and policy identities, has mode-specific bounds, the correct provider-policy retry number, and a bounded timer delay. It also requires each `llm/retry-started` event to name one prior scheduled attempt with the same `retryId`, turn, step, and retry number, and rejects repeated started events. Full jitter may schedule zero milliseconds at its lower boundary.
 
 ```yaml
-- name: '@hydra/harness-llm-deepseek'
+- name: '@hydra1902/harness-llm-deepseek'
   config:
     apiKeyEnv: DEEPSEEK_API_KEY
     retryPolicy:
@@ -21,7 +21,7 @@ The separately published `./invariant` companion checks that every scheduled ret
         maxDelayMs: 30000
         jitterRatio: 0.2
 
-- name: '@hydra/harness-llm-retry'
+- name: '@hydra1902/harness-llm-retry'
 ```
 
 The executor has no policy config. Multi-provider adapters such as `@hydra/harness-llm-pi-ai` place `retryPolicy` inside each provider profile, avoiding a second provider-name list.

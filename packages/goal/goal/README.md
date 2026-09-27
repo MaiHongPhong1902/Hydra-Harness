@@ -6,7 +6,7 @@ Event-sourced same-session goal state. The service retains one current completio
 
 ```yaml
 - id: goal
-  name: '@hydra/harness-goal'
+  name: '@hydra1902/harness-goal'
   config:
     defaultMaxGoalRounds: 256
 ```

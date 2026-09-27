@@ -58,7 +58,7 @@ Example `cordis.yml` usage:
 
 ```yaml
 - id: mcp-github
-  name: '@hydra/harness-mcp-client'
+  name: '@hydra1902/harness-mcp-client'
   config:
     serverName: github
     transport: stdio
@@ -68,7 +68,7 @@ Example `cordis.yml` usage:
       GITHUB_TOKEN: !!js process.env.GITHUB_TOKEN
 
 - id: mcp-web
-  name: '@hydra/harness-mcp-client'
+  name: '@hydra1902/harness-mcp-client'
   config:
     serverName: web
     transport: streamable-http

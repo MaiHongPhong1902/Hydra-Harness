@@ -19,14 +19,14 @@ Because the tool calls `fileContext` methods, removing the policy layer is a bre
 Invert the control flow. **`@hydra/harness-tool-fs` becomes the executor and calls `ctx.fs` directly**; **`@hydra/harness-fs-observation-policy` becomes a gate + recorder plugin** that participates through events, never through a method the tool calls and never by registering a `ctx.fileContext` service.
 
 ```text
-tool          @hydra/harness-tool-fs       executor: resolves, reads windows, writes/edits via ctx.fs;
+tool          @hydra1902/harness-tool-fs       executor: resolves, reads windows, writes/edits via ctx.fs;
                                 emits fs policy events; renders results
-policy        @hydra/harness-fs-observation-policy  plugin: listens to fs/write-intent +
+policy        @hydra1902/harness-fs-observation-policy  plugin: listens to fs/write-intent +
                                 fs/edit-intent (single-slot waterfall) and fs/observed
                                 (emit) events; adds observed-state + freshness.
-provider contract @hydra/harness-fs            ctx.fs: text IO + ATOMIC mutation primitives whose version
+provider contract @hydra1902/harness-fs            ctx.fs: text IO + ATOMIC mutation primitives whose version
                                 guard is OPTIONAL; owns the fs policy event vocabulary
-provider      @hydra/harness-fs-local      local implementation of ctx.fs
+provider      @hydra1902/harness-fs-local      local implementation of ctx.fs
 ```
 
 The model is additive: bare `ctx.fs` performs atomic, unconstrained text I/O, while `@hydra/harness-fs-observation-policy` adds observed state, read-before-edit, and version guards. Removing the policy therefore leaves the tools usable but unconstrained. Shipped agent configs load the policy; the bare mode exists to keep policy optional at the service boundary, not as the normal deployment stance.
@@ -52,7 +52,7 @@ For the bare provider to be unconstrained, the version guard on its two mutation
 // writeText: expected is now optional. The FsWriteIntent union is UNCHANGED.
 writeText(target: FsTarget, content: string, expected?: FsWriteIntent, signal?: AbortSignal): Promise<FsWriteOutcome>
 //   undefined          → unconditionally create-or-overwrite (bare default)
-//   createIfAbsent     → create only, reject an existing file (@hydra/harness-fs-observation-policy, unobserved)   [unchanged]
+//   createIfAbsent     → create only, reject an existing file (@hydra1902/harness-fs-observation-policy, unobserved)   [unchanged]
 //   replaceIfVersion   → overwrite only at the observed version, else FS_STALE_VERSION    [unchanged]
 
 // editText: expected becomes optional (was the required { version: FsVersion }).
@@ -75,7 +75,7 @@ These events carry existing `@hydra/harness-fs` vocabulary (`FsTarget`, `FsVersi
 The actor is typed `object` in `@hydra/harness-fs` — a pure opaque carrier the provider contract never reads or narrows. The owner-derivation (`actor.agent?.session`) and the `{ agent?: { session? } }` structural shape stay entirely inside `@hydra/harness-fs-observation-policy`, which narrows the `object` actor to that shape in its listeners. `@hydra/harness-fs` owns the event names and the fs vocabulary; it does NOT own the policy layer's runtime owner structure.
 
 ```ts
-import type { FsObservation, FsTarget, FsVersion, FsWriteIntent } from '@hydra/harness-fs'
+import type { FsObservation, FsTarget, FsVersion, FsWriteIntent } from '@hydra1902/harness-fs'
 
 interface Events {
   /**
@@ -97,7 +97,7 @@ interface Events {
   /**
    * Record that an actor observed a target as present at a version or absent.
    * Fire-and-forget (plain emit). Listeners MUST be
-   * synchronous, side-effect-only recorders (`@hydra/harness-fs-observation-policy`'s is a WeakMap
+   * synchronous, side-effect-only recorders (`@hydra1902/harness-fs-observation-policy`'s is a WeakMap
    * write); the tool does not guard the emit, so a throwing listener surfaces as
    * the tool's isError result. No listener ⇒ nothing recorded.
    * @mode emit

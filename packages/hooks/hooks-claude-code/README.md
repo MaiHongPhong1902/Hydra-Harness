@@ -7,7 +7,7 @@ A native cordis plugin could do everything this bridge does — more powerfully,
 ## Config
 
 ```ts
-import type { Config } from '@hydra/harness-hooks-claude-code'
+import type { Config } from '@hydra1902/harness-hooks-claude-code'
 const config: Config = {
   configPath: '/path/to/hooks.json', // required: a hooks.json or a settings file with a `hooks` key
   pluginRoot: '/path/to/plugin',     // optional: replaces ${CLAUDE_PLUGIN_ROOT} in command strings

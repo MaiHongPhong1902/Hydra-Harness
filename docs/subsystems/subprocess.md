@@ -92,7 +92,7 @@ The seam applies no defaults: every disposition, limit, and directory is explici
 /**
  * A fully-specified spawn request. This seam applies no defaults: every
  * disposition, limit, and directory is explicit, so the caller's own config —
- * not a hidden subprocess-service default — decides them (the `@hydra/harness-shell`
+ * not a hidden subprocess-service default — decides them (the `@hydra1902/harness-shell`
  * request/spec split is the owning template).
  */
 interface SubprocessSpawnSpec {

@@ -12,7 +12,7 @@ Building directly on the raw ACL mechanism is the recorded design choice: it imp
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { AclSandbox, tempWriteSid, workspaceWriteSid } from '@hydra/harness-sandbox-windows-acl'
+import { AclSandbox, tempWriteSid, workspaceWriteSid } from '@hydra1902/harness-sandbox-windows-acl'
 
 const workspaceRoot = process.cwd()
 const tempDir = mkdtempSync(join(tmpdir(), 'hydra-'))

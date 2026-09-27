@@ -32,7 +32,7 @@ Replay keys every call by its calling session id (`GenerateOptions.sessionId`, s
 
 ```yaml
 - id: llm-replay
-  name: '@hydra/harness-llm-replay'
+  name: '@hydra1902/harness-llm-replay'
   config:
     providers:
       - id: deepseek-official

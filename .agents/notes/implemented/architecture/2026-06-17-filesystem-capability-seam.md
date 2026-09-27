@@ -41,7 +41,7 @@ Read-before-write/edit and observed state belong to `@hydra/harness-fs-observati
 The filesystem seam uses the same dependency direction as the bash trio:
 
 ```text
-@hydra/harness-tool-fs  --depends on-->  @hydra/harness-fs  <--depends on--  @hydra/harness-fs-local
+@hydra1902/harness-tool-fs  --depends on-->  @hydra1902/harness-fs  <--depends on--  @hydra1902/harness-fs-local
         consumer                                interface                         implementation
 ```
 

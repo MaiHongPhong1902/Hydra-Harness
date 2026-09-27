@@ -79,7 +79,7 @@ Give an agent a workspace, a model, and the permissions it needs. Hydra keeps th
 ### From npm
 
 ```sh
-npx @hydra/harness
+npx @hydra1902/harness
 ```
 
 The interactive launcher offers Web, Headless, and Desktop. Desktop currently prints the source-checkout workflow because the npm package does not yet ship a supported Electron artifact. For scripts, CI, or redirected input, use `npx @hydra/harness web` or `npx @hydra/harness --profile headless "<task>"`; the Web UI starts at `http://127.0.0.1:3080`, and `--no-open` prevents the browser from opening automatically.

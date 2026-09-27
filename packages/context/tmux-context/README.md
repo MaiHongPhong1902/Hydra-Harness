@@ -6,7 +6,7 @@ Opt-in durable context naming the tmux session, window, and pane this agent proc
 
 ```yaml
 - id: tmux-context
-  name: '@hydra/harness-tmux-context'
+  name: '@hydra1902/harness-tmux-context'
   config:
     refreshIntervalMs: 60000 # optional; omit or set to 0 to inject on every changed turn
 ```

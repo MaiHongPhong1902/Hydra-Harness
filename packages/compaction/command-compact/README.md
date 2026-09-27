@@ -32,11 +32,11 @@ The producer injects `commands` and `compact`. Mount the command registry, one b
 
 ```yaml
 - id: commands
-  name: '@hydra/harness-commands'
+  name: '@hydra1902/harness-commands'
 - id: compaction-basic
-  name: '@hydra/harness-compaction-basic'
+  name: '@hydra1902/harness-compaction-basic'
 - id: command-compact
-  name: '@hydra/harness-command-compact'
+  name: '@hydra1902/harness-command-compact'
 ```
 
 The shipped `hydra` base mounts it beside `compaction-basic`, and the Web client provides the command adapter. Automation surfaces that compose no command adapter keep automatic compaction only.

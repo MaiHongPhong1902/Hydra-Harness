@@ -15,10 +15,10 @@ The harness publishes two sibling one-shot provider packages whose default regis
 Both providers report `inheritsParentContext: false`, advertise no optional start capabilities, and pass the parent Session cwd without copying the parent conversation. Their documented tools use `backgroundMode: 'one-shot'` and `maxDepth: 'provider-managed'`: the consumer keeps foreground collection as the default and may place the same run in the generic Job runtime, while recursion policy stays with the out-of-process product. Every call creates a fresh product process and a non-resumable product conversation. `ctx.subagents` owns named-request resolution and paired lifecycle events; `@hydra/harness-tool-subagent` owns model-visible scheduling and foreground-versus-Job adaptation; `ctx.jobs` and `@hydra/harness-tool-jobs` own Job ids, state, output, controls, notices, and parent-owner cancellation; each product provider owns native result mapping, while `@hydra/harness-subprocess` owns credential scrubbing, process-tree termination, and whole-tree exit observation.
 
 ```text
-configured tool -> @hydra/harness-tool-subagent -> ctx.subagents -> product provider -> product process
+configured tool -> @hydra1902/harness-tool-subagent -> ctx.subagents -> product provider -> product process
   foreground <- final product outcome
-  background -> ctx.jobs / @hydra/harness-tool-jobs -> Job id / state / notice / controls
-  both -> provider disposal -> @hydra/harness-subprocess -> whole-tree exit
+  background -> ctx.jobs / @hydra1902/harness-tool-jobs -> Job id / state / notice / controls
+  both -> provider disposal -> @hydra1902/harness-subprocess -> whole-tree exit
 ```
 
 ### Ownership and lifecycle
