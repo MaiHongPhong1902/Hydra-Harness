@@ -196,11 +196,16 @@ export class SimulatorMask extends EventTarget {
 		const hud = document.createElement('div')
 		hud.className = cursorStyles.scrollHud ?? 'hydra-scroll-hud'
 		hud.setAttribute('data-scroll-hud', 'true')
-		hud.innerHTML = `
-			<svg class="${cursorStyles.scrollHudIcon ?? 'hydra-scroll-hud-icon'}" viewBox="0 0 24 24" width="14" height="14">
-				<path fill="currentColor" d="M12 2C8.69 2 6 4.69 6 8v8c0 3.31 2.69 6 6 6s6-2.69 6-6V8c0-3.31-2.69-6-6-6zm4 14c0 2.21-1.79 4-4 4s-4-1.79-4-4V8c0-2.21 1.79-4 4-4s4 1.79 4 4v8zm-5-9h2v4h-2V7z"/>
-			</svg>
-		`
+		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+		svg.setAttribute('class', cursorStyles.scrollHudIcon ?? 'hydra-scroll-hud-icon')
+		svg.setAttribute('viewBox', '0 0 24 24')
+		svg.setAttribute('width', '14')
+		svg.setAttribute('height', '14')
+		const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+		path.setAttribute('fill', 'currentColor')
+		path.setAttribute('d', 'M12 2C8.69 2 6 4.69 6 8v8c0 3.31 2.69 6 6 6s6-2.69 6-6V8c0-3.31-2.69-6-6-6zm4 14c0 2.21-1.79 4-4 4s-4-1.79-4-4V8c0-2.21 1.79-4 4-4s4 1.79 4 4v8zm-5-9h2v4h-2V7z')
+		svg.appendChild(path)
+		hud.appendChild(svg)
 		this.#cursor.appendChild(hud)
 		this.#scrollHud = hud
 	}

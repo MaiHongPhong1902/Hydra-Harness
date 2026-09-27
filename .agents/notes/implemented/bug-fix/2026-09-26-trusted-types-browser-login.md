@@ -8,7 +8,7 @@ Google and Facebook login pages can enforce Trusted Types. The Hydra PageAgent o
 
 ## Decision
 
-The PageAgent patch builds the scroll indicator with `createElementNS`, `setAttribute`, and `appendChild`. The committed Electron preload is regenerated from that patch. A native Electron test serves a Trusted Types login form and verifies that a password can be entered.
+The local BrowserAgent `SimulatorMask` builds the scroll indicator with `createElementNS`, `setAttribute`, and `appendChild`. The committed Electron preload is regenerated from that source. A native Electron test serves a Trusted Types login form and verifies that a password can be entered.
 
 ## Alternatives considered
 
@@ -18,4 +18,4 @@ The PageAgent patch builds the scroll indicator with `createElementNS`, `setAttr
 
 ## Consequences
 
-Credential entry keeps working on pages that reject string HTML assignments. The generated preload must be rebuilt whenever the PageAgent patch changes.
+Credential entry keeps working on pages that reject string HTML assignments. The generated preload must be rebuilt whenever the local BrowserAgent source changes.
