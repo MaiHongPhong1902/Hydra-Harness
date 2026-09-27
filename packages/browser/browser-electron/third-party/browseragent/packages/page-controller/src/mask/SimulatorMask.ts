@@ -267,7 +267,10 @@ export class SimulatorMask extends EventTarget {
 			}
 		}
 
-		requestAnimationFrame(() => this.#moveCursorToTarget())
+		// Timers continue to advance in hidden Electron views where Chromium may
+		// throttle requestAnimationFrame; the cursor remains visible feedback in
+		// both headed and headless browser actions.
+		setTimeout(() => this.#moveCursorToTarget(), 16)
 	}
 
 	setCursorMode(mode: 'default' | 'ibeam' | 'pointer') {
