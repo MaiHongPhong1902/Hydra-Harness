@@ -118,13 +118,13 @@ export function apply(ctx: Context) {
 ```
 
 Loading prints:
-```
+```text output
 plugin loading
 effect registered
 ```
 
 Unloading prints:
-```
+```text output
 effect cleaned up
 ```
 

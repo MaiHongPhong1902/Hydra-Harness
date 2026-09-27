@@ -36,7 +36,7 @@ node --import tsx ../../vendor/cordis/bin.js
 
 Expected output:
 
-```
+```text output
 hello from my first plugin
 ```
 

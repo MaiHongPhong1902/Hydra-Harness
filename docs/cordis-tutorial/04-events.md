@@ -67,7 +67,7 @@ The `import type {} from './stats.ts'` line imports nothing at runtime; it exist
 - name: './reporter.ts'
 ```
 
-```
+```text output
 [stats] tool_call -> 1
 [stats] tool_call -> 2
 [stats] prompt -> 1
@@ -126,7 +126,7 @@ export function apply(ctx: Context) {
 
 Point `cordis.yml` at just this file and run:
 
-```
+```text output
 HELLO
 ** BLOCKED **
 ```

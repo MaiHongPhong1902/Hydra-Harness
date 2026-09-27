@@ -48,7 +48,7 @@ Point `cordis.yml` at it:
 
 Run (`node --import tsx ../../vendor/cordis/bin.js`) and you get:
 
-```
+```text output
 heartbeat plugin loading
 tick
 tick

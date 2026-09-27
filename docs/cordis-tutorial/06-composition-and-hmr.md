@@ -47,7 +47,7 @@ node --import tsx ../../vendor/cordis/bin.js
 
 Now edit `hello.ts` — change the log message — and save:
 
-```
+```text output
 hello from my first plugin
 2026-07-22 15:44:36 [I] hmr watching [ '.' ]
 2026-07-22 15:44:39 [I] hmr reload plugin at hello.ts
@@ -100,7 +100,7 @@ export function apply(ctx: Context) {
 
 Run it (plain `node --import tsx ../../vendor/cordis/bin.js`; stop with Ctrl-C):
 
-```
+```text output
 needs-timer is PENDING — a required service is missing
 ```
 

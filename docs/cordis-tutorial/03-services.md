@@ -63,7 +63,7 @@ Compose and run:
 - name: './consumer.ts'
 ```
 
-```
+```text output
 Hello, world!
 ```
 

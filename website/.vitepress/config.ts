@@ -7,6 +7,7 @@ import type { ViteDevServer } from 'vite'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import { collections, landingLink, orderedPages, routeLink, sectionSpec, type DocsPage, type DocsSidebar } from '../docs.ts'
 import { docsSourceFiles, emitRawMarkdownPages, llmsTxt, projectDocs, rawMarkdownRoute } from '../../scripts/project-doc-site.ts'
+import { codeBlockKind, decorateFenceHtml, normalizeCommand } from './code-blocks.ts'
 
 projectDocs()
 
@@ -457,6 +458,71 @@ const siteStyle = `
   .VPSidebar { scrollbar-width: thin; scrollbar-color: transparent transparent; }
   .VPSidebar[data-scrolling] { scrollbar-color: var(--vp-c-text-3) transparent; }
 }
+
+.vp-doc .hydra-command-block,
+.vp-doc .hydra-output-block {
+  position: relative;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0, 18, 63, 0.08);
+}
+.vp-doc .hydra-command-block {
+  border-color: rgba(0, 154, 252, 0.45);
+  background: var(--vp-c-bg-soft);
+}
+.vp-doc .hydra-command-block::before,
+.vp-doc .hydra-output-block::before {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  z-index: 1;
+  color: var(--vp-c-text-2);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1;
+}
+.vp-doc .hydra-command-block::before { content: 'COMMAND'; color: var(--vp-c-brand-1); }
+.vp-doc .hydra-output-block::before { content: 'TERMINAL OUTPUT'; }
+.vp-doc .hydra-command-block > pre { padding-top: 44px; }
+.vp-doc .hydra-output-block > pre { padding-top: 40px; }
+.vp-doc .hydra-command-block > span.lang,
+.vp-doc .hydra-output-block > span.lang { display: none; }
+.vp-doc .hydra-command-block > button.copy {
+  top: 10px;
+  right: 10px;
+  width: auto;
+  min-width: 74px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 7px;
+  background-color: var(--vp-c-bg);
+  background-image: none;
+  color: var(--vp-c-text-1);
+  opacity: 1;
+}
+.vp-doc .hydra-command-block > button.copy:hover {
+  border-color: var(--vp-c-brand-1);
+  color: var(--vp-c-brand-1);
+}
+.vp-doc .hydra-command-block > button.copy::after { content: 'Copy'; }
+.vp-doc .hydra-command-block > button.copy.copied::before,
+.vp-doc .hydra-command-block > button.copy:hover.copied::before {
+  display: none !important;
+  content: none !important;
+}
+.vp-doc .hydra-command-block > button.copy.copied::after { content: 'Copied'; }
+.vp-doc .hydra-command-block > button.copy.copied {
+  border-color: var(--vp-c-brand-1);
+  background-image: none !important;
+  color: var(--vp-c-brand-1);
+}
+.vp-doc .hydra-output-block > button.copy { display: none; }
+@media (max-width: 639px) {
+  .vp-doc .hydra-command-block,
+  .vp-doc .hydra-output-block { border-radius: 8px; }
+}
 `
 
 /**
@@ -590,6 +656,23 @@ export default withMermaid({
         // Mermaid output embeds the token position, and VitePress snippets resolve source files during rendering.
         if (['mermaid', 'mmd'].includes(token.info.trim().split(/\s+/, 1)[0] ?? '')) return renderFence(...args)
         if (Reflect.get(token, 'src') !== undefined) return renderFence(...args)
+        const kind = codeBlockKind(token.info)
+        if (kind !== undefined) {
+          // Prompt removal happens before VitePress highlights the block and its built-in
+          // Clipboard handler reads the resulting text, so the copied value stays raw.
+          const key = JSON.stringify([token.content, token.info, token.markup, token.attrs, kind])
+          const cached = renderedFences.get(key)
+          if (cached !== undefined) return cached
+          const originalContent = token.content
+          try {
+            if (kind === 'command') token.content = normalizeCommand(originalContent)
+            const html = decorateFenceHtml(renderFence(...args), kind)
+            if (process.env.NODE_ENV === 'production') renderedFences.set(key, html)
+            return html
+          } finally {
+            token.content = originalContent
+          }
+        }
         // Keep the cache build-local; a dev renderer can survive many HMR updates.
         if (process.env.NODE_ENV !== 'production') return renderFence(...args)
         const key = JSON.stringify([token.content, token.info, token.markup, token.attrs])

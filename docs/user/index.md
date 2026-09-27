@@ -92,7 +92,11 @@ pnpm run build
 pnpm hydra web
 ```
 
-For one headless task, run `pnpm hydra --profile headless "summarize this repository"`.
+For one headless task, run:
+
+```sh
+pnpm hydra --profile headless "summarize this repository"
+```
 
 ## What Hydra can do
 

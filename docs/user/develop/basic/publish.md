@@ -105,7 +105,11 @@ hydra --profile demo --dump-config   # shows a "# == hydra-hello-plugin" layer
 hydra --profile demo
 ```
 
-`hydra plugin --profile demo remove hydra-hello-plugin` removes both the dependency and the layer.
+Remove both the dependency and the layer:
+
+```sh
+hydra plugin --profile demo remove hydra-hello-plugin
+```
 
 ## The loading order
 

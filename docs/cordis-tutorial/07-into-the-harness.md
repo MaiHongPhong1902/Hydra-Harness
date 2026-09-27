@@ -84,7 +84,7 @@ The `import type {} from '@hydra/harness-tools'` line pulls in the package's dec
 node --import tsx ../../vendor/cordis/bin.js
 ```
 
-```
+```text output
 [tool-logger] greet -> Hello, Cordis!
 tool replied: [{"type":"text","text":"Hello, Cordis!"}]
 ```

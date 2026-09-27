@@ -41,7 +41,7 @@ Configure it:
 
 Run:
 
-```
+```text output
 Hello, alpha!
 Hello, beta!
 ```
@@ -58,7 +58,7 @@ Now feed it something invalid:
     targets: 'not-an-array'
 ```
 
-```
+```text output
 ValidationError: invalid config:
   - $.targets expected array but got not-an-array (at targets)
 ```
