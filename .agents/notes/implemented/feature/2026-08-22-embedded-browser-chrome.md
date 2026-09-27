@@ -12,6 +12,8 @@ Add a sandboxed static `WebContentsView` above the controlled page views. It own
 
 The chrome has its own preload with private IPC and no `contextBridge`. The controlled page stays in its existing `PageController` preload, so all `browser_*` DOM automation remains unchanged.
 
+The desktop panel re-sends its native rectangle on layout, window, and visual-viewport changes, so the chrome and page continue to fill the current agent view after resize or scale changes.
+
 ## Alternatives considered
 
 **Use the webpage for browser UI.** Rejected because an external page cannot safely own browser navigation controls or access the private Electron IPC channel.
@@ -22,7 +24,7 @@ The chrome remains separate from page-agent and cannot give a hostile page acces
 
 ## Testing
 
-The real-Electron fixture confirms the selected `PageController` view remains below the native chrome and all existing DOM actions still work.
+The real-Electron fixture confirms the selected `PageController` view remains below the native chrome and all existing DOM actions still work. The client regression test covers bounds remeasurement after a visual-viewport resize.
 
 ## Related
 

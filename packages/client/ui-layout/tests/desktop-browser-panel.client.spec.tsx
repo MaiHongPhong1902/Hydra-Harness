@@ -61,6 +61,12 @@ function stubPanelObservers(): void {
   vi.stubGlobal('cancelAnimationFrame', (id: number) => { window.clearTimeout(id) })
 }
 
+function stubVisualViewport(): EventTarget {
+  const visualViewport = new EventTarget()
+  vi.stubGlobal('visualViewport', visualViewport)
+  return visualViewport
+}
+
 afterEach(() => {
   cleanup()
   delete window.hydraDesktop
@@ -184,6 +190,29 @@ describe('DesktopBrowserPanel', () => {
       <PanelHarness open={false} createSideSession={createSideSession} renderSideChat={renderSideChat} />,
     )
     await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith(absentBounds) })
+  })
+
+  it('re-measures native bounds when the visual viewport changes', async () => {
+    const setBounds = vi.fn()
+    window.hydraDesktop = { browser: { setBounds } }
+    stubPanelObservers()
+    const visualViewport = stubVisualViewport()
+    let width = 500
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(() => ({
+      x: 700, y: 72, left: 700, top: 72, right: 700 + width, bottom: 800,
+      width, height: 728, toJSON: () => ({}),
+    }))
+
+    render(<PanelHarness createSideSession={async () => 'side-1' as SessionId} renderSideChat={() => null} />)
+    await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith({
+      x: 700, y: 72, width: 500, height: 728, visible: true, present: true,
+    }) })
+
+    width = 640
+    act(() => { visualViewport.dispatchEvent(new Event('resize')) })
+    await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith({
+      x: 700, y: 72, width: 640, height: 728, visible: true, present: true,
+    }) })
   })
 
   it('opens Review from the panel options once and reopens the same tab after closing', () => {

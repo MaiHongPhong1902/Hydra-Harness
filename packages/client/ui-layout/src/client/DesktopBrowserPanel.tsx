@@ -606,12 +606,17 @@ export function DesktopBrowserPanel(props: {
       childList: true,
       subtree: true,
     })
+    const visualViewport = window.visualViewport
     window.addEventListener('resize', schedule)
+    visualViewport?.addEventListener('resize', schedule)
+    visualViewport?.addEventListener('scroll', schedule)
     schedule()
     return () => {
       observer.disconnect()
       modalObserver.disconnect()
       window.removeEventListener('resize', schedule)
+      visualViewport?.removeEventListener('resize', schedule)
+      visualViewport?.removeEventListener('scroll', schedule)
       if (frame !== undefined) cancelAnimationFrame(frame)
       api.setBounds({ x: 0, y: 0, width: 0, height: 0, visible: false, present: browserPresent })
     }
