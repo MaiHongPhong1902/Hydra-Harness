@@ -72,6 +72,8 @@ In standalone use, `BrowserSessionService` talks to its Electron child in NDJSON
 
 ## BrowserAgent source
 
+The simulator cursor uses DOM APIs to construct its SVG indicator so pages enforcing Trusted Types can initialize the browser controller and accept form input. The [Trusted Types decision](../../../.agents/notes/implemented/bug-fix/2026-09-26-trusted-types-browser-login.md) owns the rationale.
+
 `pnpm install` links the private `@hydra/harness-browseragent-core`, `@hydra/harness-browseragent-llms`, and `@hydra/harness-browseragent-page-controller` packages from the tracked [`third-party/browseragent`](third-party/browseragent) source. No submodule or external checkout is required. The source retains its upstream MIT license and attribution in [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
 
 ## Rebuilding the preload

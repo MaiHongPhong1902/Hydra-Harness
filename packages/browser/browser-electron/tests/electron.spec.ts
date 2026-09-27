@@ -113,6 +113,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   let downloadUrl: string
   let mediaFrameHost: string
   let strictCspFixture: string
+  let strictTrustedTypesFixture: string
   let autofillFixture: string
   let policyFixture: string
   let redirectFixture: string
@@ -128,6 +129,9 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       if (request.url === '/strict-csp') {
         response.setHeader('content-security-policy', "default-src 'self'; style-src 'self'")
         response.end('<!doctype html><title>Strict CSP</title><button id="target">Target</button>')
+      } else if (request.url === '/strict-trusted-types') {
+        response.setHeader('content-security-policy', "default-src 'self'; style-src 'self'; require-trusted-types-for 'script'; trusted-types default")
+        response.end('<!doctype html><title>Trusted Types login</title><form><label for="email">Email</label><input id="email" type="text"><label for="password">Password</label><input id="password" type="password"><button id="login" type="submit">Log in</button></form>')
       } else if (request.url === '/autofill') {
         response.end(readFileSync(AUTOFILL_FIXTURE_FILE))
       } else if (request.url === '/sso-start') {
@@ -191,6 +195,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     downloadUrl = `http://127.0.0.1:${address.port}/download`
     mediaFrameHost = `http://127.0.0.1:${address.port}/media-frame-host`
     strictCspFixture = `http://127.0.0.1:${address.port}/strict-csp`
+    strictTrustedTypesFixture = `http://127.0.0.1:${address.port}/strict-trusted-types`
     autofillFixture = `http://127.0.0.1:${address.port}/autofill`
     policyFixture = `http://127.0.0.1:${address.port}/policy`
     redirectFixture = `http://127.0.0.1:${address.port}/redirect-cross`
@@ -637,6 +642,20 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     }) as ActionResult
     expect(result.success).toBe(true)
     expect(result.message).toContain('fixed')
+  }, 30_000)
+
+  it('keeps password entry working on pages enforcing Trusted Types', async () => {
+    await child.call('navigate', { url: strictTrustedTypesFixture })
+    const before = await child.call('get_browser_state', {}) as BrowserState
+    expect(before.content).toContain('id=password')
+    const password = indexOf(before.content, 'id=password')
+    expect(await child.call('input_text', { index: password, text: 'fixture-password' }))
+      .toMatchObject({ success: true })
+    const value = await child.call('execute_javascript', {
+      script: 'return document.getElementById("password")?.value',
+    }) as ActionResult
+    expect(value.success).toBe(true)
+    expect(value.message).toContain('fixture-password')
   }, 30_000)
 
   it('moves the virtual cursor for real Playwright hover, click, and fill actions', async () => {
