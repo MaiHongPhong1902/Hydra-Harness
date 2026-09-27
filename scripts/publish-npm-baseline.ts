@@ -469,8 +469,19 @@ class InstalledBundleSmoke {
           + `expected ${this.bundle.manifest.version}`,
         )
       }
+      const bare = this.runner.result(
+        process.execPath,
+        [bin],
+        consumerRoot,
+        { ...environment, CI: '1' },
+      )
+      if (bare.status !== 1 || bare.stdout !== '' || !bare.stderr.includes('requires an interactive terminal')) {
+        throw new Error(
+          `installed hydra bare launcher did not report the non-interactive guidance:\n${bare.stdout}\n${bare.stderr}`,
+        )
+      }
       this.probeWeb(bin, consumerRoot, environment)
-      console.log('publish-npm-baseline: installed hydra entry and Web startup probes passed')
+      console.log('publish-npm-baseline: installed hydra entry, bare launcher, and Web startup probes passed')
     } finally {
       rmSync(consumerRoot, { recursive: true, force: true })
     }

@@ -618,7 +618,7 @@ export class ImportedPluginRuntime extends Service {
    * Set one MCP tool's approval mode.
    * @param identityOrName - Owning plugin identity or unambiguous name.
    * @param server - Manifest MCP server name.
-   * @param tool - Raw MCP tool name.
+   * @param tool - Raw MCP tool name or host-qualified public tool name.
    * @param approval - Independent per-tool approval mode.
    * @returns Refreshed installed-plugin projection.
    */
@@ -877,7 +877,7 @@ export class ImportedPluginRuntime extends Service {
       const entry = await this.require(identity)
       const state = entry.mcp[matching]
       const override = Object.entries(state?.toolApproval ?? {})
-        .find(([raw]) => publicToolName(mcpServerName(identity, matching), raw) === exec.name)
+        .find(([raw]) => raw === exec.name || publicToolName(mcpServerName(identity, matching), raw) === exec.name)
       const toolName = override?.[0] ?? exec.name
       const approval = override?.[1] ?? state?.defaultToolsApprovalMode ?? 'ask'
       if (approval === 'allow') return await next()

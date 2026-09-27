@@ -626,7 +626,7 @@ describe('web e2e: workspace management (create / rename / flat view / hover aff
     // Browser aria goldens are this spec's owned artifacts; the seed it reuses
     // is owned (and inventory-guarded) by seeded-history.
     await assertFixtureInventory(SNAPSHOT_DIR, [
-      '.gitkeep', 'directory-browser.expected.md', 'ungrouped-delete-dialog.expected.md', 'ungrouped-menu.expected.md',
+      'directory-browser.expected.md', 'ungrouped-delete-dialog.expected.md', 'ungrouped-menu.expected.md',
     ])
   })
 })

@@ -48,11 +48,13 @@ async function bench(served?: string[], isLoopback = true) {
   const setInventoryEnabled = vi.fn(async () => ({ ok: true as const, value: inventory }))
   const listImported = vi.fn(async () => ({ ok: true as const, value: imported }))
   const setImportedEnabled = vi.fn(async () => ({ ok: true as const, value: imported }))
+  const setImportedToolApproval = vi.fn(async () => ({ ok: true as const, value: imported }))
   const pluginInventory = {
     list: listInventory,
     setEnabled: setInventoryEnabled,
     listImportedPlugins: listImported,
     setPluginMcpServerEnabled: setImportedEnabled,
+    setPluginMcpToolApproval: setImportedToolApproval,
     listMcpServers: vi.fn(async () => ({ ok: true as const, value: { servers: [] } })),
     defineMcpServer: vi.fn(async () => ({ ok: true as const, value: { servers: [] } })),
     setMcpServerEnabled: vi.fn(async () => ({ ok: true as const, value: { servers: [] } })),
@@ -100,6 +102,7 @@ describe('ui-settings-plugins apply', () => {
     const requests: Array<[() => Promise<unknown>, keyof typeof pluginInventory, unknown]> = [
       [() => mcp.importedMcp!.list(), 'listImportedPlugins', undefined],
       [() => mcp.importedMcp!.setEnabled('plugin', 'server', true), 'setPluginMcpServerEnabled', { identity: 'plugin', server: 'server', enabled: true }],
+      [() => mcp.importedMcp!.setToolApproval!('plugin', 'server', 'mcp__plugin__read', 'deny'), 'setPluginMcpToolApproval', { identity: 'plugin', server: 'server', tool: 'mcp__plugin__read', approval: 'deny' }],
       [() => mcp.nativeMcp!.list(), 'list', undefined],
       [() => mcp.userMcp!.list(), 'listMcpServers', undefined],
       [() => mcp.userMcp!.define({ mode: 'create', name: 'server', transport: 'stdio', command: 'node' }), 'defineMcpServer', { mode: 'create', name: 'server', transport: 'stdio', command: 'node' }],

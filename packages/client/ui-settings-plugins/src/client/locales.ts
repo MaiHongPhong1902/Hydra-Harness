@@ -20,7 +20,7 @@ export type PluginsSettingsLocaleKey =
   | 'webSearchBaseUrl' | 'webSearchBaseUrlHint' | 'webSearchMaxUses' | 'webSearchMaxUsesHint'
   | 'mcpTitle' | 'mcpDescription' | 'mcpUnavailable'
   | 'mcpLoading' | 'mcpEnabled' | 'mcpToggleFailed' | 'mcpServerNotStarted' | 'mcpServerStarting' | 'mcpServerConnected' | 'mcpServerFailed'
-  | 'importedMcpTitle' | 'importedMcpEmpty' | 'importedMcpEmptySearch' | 'enable' | 'disable' | 'disabled'
+  | 'importedMcpTitle' | 'importedMcpEmpty' | 'importedMcpEmptySearch' | 'mcpToolApproval' | 'mcpApprovalAsk' | 'mcpApprovalAllow' | 'mcpApprovalDeny' | 'enable' | 'disable' | 'disabled'
   | 'mcpApiKey' | 'mcpApiKeyHint' | 'mcpApiKeySet' | 'mcpApiKeyUnset'
   | 'userMcpTitle' | 'userMcpDescription' | 'userMcpAdd' | 'userMcpAddTitle' | 'userMcpEditTitle'
   | 'userMcpFormDescription' | 'userMcpEmpty' | 'userMcpEmptySearch' | 'userMcpLoadError' | 'userMcpRetry'
@@ -118,6 +118,10 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   importedMcpTitle: 'Imported OpenAI/Codex MCP servers',
   importedMcpEmpty: 'No imported plugins provide MCP servers.',
   importedMcpEmptySearch: 'No imported MCP servers match this search.',
+  mcpToolApproval: 'Approval for tool',
+  mcpApprovalAsk: 'Ask each time',
+  mcpApprovalAllow: 'Always allow',
+  mcpApprovalDeny: 'Always deny',
   enable: 'Enable',
   disable: 'Disable',
   disabled: 'Disabled',

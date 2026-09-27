@@ -8,7 +8,7 @@ Every `browser_*` result can put up to 16k characters of text DOM into the sessi
 
 ## Decision
 
-Hydra is the only reasoning loop. Vendored page-agent is PageController: a numbered text DOM and indexed or named clicks, typing, and scrolls. `third-party/page-agent/` stays verbatim. `browser_page_agent_run` remains an explicit tool and is demoted in the prompt; Hydra is not told to poll it. `PageAgentCore` is constructed only when that tool runs.
+Hydra is the only reasoning loop. The locally owned BrowserAgent source provides PageController: a numbered text DOM and indexed or named clicks, typing, and scrolls. `third-party/browseragent/` keeps the upstream APIs and attribution while carrying Hydra's mask changes. `browser_page_agent_run` remains an explicit tool and is demoted in the prompt; Hydra is not told to poll it. `PageAgentCore` is constructed only when that tool runs.
 
 `@hydra/harness-tool-browser` returns a full snapshot only for `browser_state` and `browser_navigate`. Every other action result is compact: the Hydra preload ranks `*[` lines, then typical form controls, then the rest, without changing PageController indices; the consumer cuts that ranked list to 4k characters, shortens the header, and uses a one-line tab summary when only one tab is open.
 
@@ -22,7 +22,7 @@ This does not reverse the text-DOM decision in [embedded-browser-page-agent](../
 
 **PageAgentCore as the default executor.** Rejected: it is a second agent on the same model, adds poll latency, and still dumps a full snapshot into Hydra's session log whenever Hydra checks status. The inner loop never enters the session, but the outer poll does, so the default path would be more expensive than Hydra-owned indexed tools.
 
-**Forking `third-party/page-agent/packages/page-controller`.** Rejected: ranking, name resolution, find, and fill belong in the Hydra preload wrapper. A local fork turns the next upstream sync into a merge.
+**Moving ranking and name resolution into PageController.** Rejected: ranking, name resolution, find, and fill belong in the Hydra preload wrapper. The local BrowserAgent copy owns only the DOM controller and mask runtime.
 
 **Screenshot-as-control.** Rejected on the same cost and precision grounds as the original text-DOM decision: vision tokens, a vision-capable model as a hard requirement, and no stable name for one of two identical buttons.
 

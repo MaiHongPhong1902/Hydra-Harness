@@ -146,6 +146,35 @@
   font-size: 12px;
 }
 
+.importedMcpTools {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 6px 0 0 12px;
+  list-style: none;
+  border-top: 1px solid var(--dsw-alias-border-l2);
+}
+
+.importedMcpTool {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.importedMcpTool code,
+.importedMcpTool span {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.importedMcpTool select {
+  min-width: 92px;
+}
+
 .switchControl {
   display: inline-flex;
   align-items: center;

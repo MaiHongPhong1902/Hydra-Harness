@@ -15,7 +15,7 @@
   ],
   "ignoreWorkspaces": [
     "vendor/*",
-    "packages/browser/browser-electron/third-party/page-agent/packages/*",
+    "packages/browser/browser-electron/third-party/browseragent/packages/*",
     "python/sdk-runtime"
   ],
   "ignoreDependencies": [

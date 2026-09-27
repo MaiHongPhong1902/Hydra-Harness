@@ -377,6 +377,7 @@ describe('connection node half', () => {
       'pluginInventory/enablePlugin',
       'pluginInventory/disablePlugin',
       'pluginInventory/setPluginMcpServerEnabled',
+      'pluginInventory/setPluginMcpToolApproval',
       'pluginInventory/trustPlugin',
       'pluginInventory/untrustPlugin',
       'pluginInventory/removePlugin',

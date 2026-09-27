@@ -116,3 +116,12 @@ export interface ImportedPluginMcpServerEnablementRequest {
   readonly server: string
   readonly enabled: boolean
 }
+
+/** Set one imported MCP tool's approval mode. */
+export interface ImportedPluginMcpToolApprovalRequest {
+  readonly identity: string
+  readonly server: string
+  /** Raw MCP name or its host-qualified public tool name. */
+  readonly tool: string
+  readonly approval: 'ask' | 'allow' | 'deny'
+}

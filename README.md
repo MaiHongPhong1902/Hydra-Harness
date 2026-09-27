@@ -26,14 +26,14 @@ Use Node.js **22.19 or later in the 22.x line, or 24 and newer**. Building from 
 ### Run from source
 
 ```sh
-git clone --recurse-submodules https://github.com/MaiHongPhong1902/Hydra-Harness.git
+git clone https://github.com/MaiHongPhong1902/Hydra-Harness.git
 cd Hydra-Harness
 pnpm install
 pnpm run build
 pnpm hydra web
 ```
 
-The clone includes the PageAgent submodule required by `pnpm install`. For an existing checkout or a missing `@page-agent/core` / `@page-agent/page-controller` error, follow [Checking out PageAgent](packages/browser/browser-electron/README.md#checking-out-pageagent). Build after source changes; `pnpm hydra web` uses the built artifacts without rebuilding them.
+The repository includes the locally owned BrowserAgent source required by `pnpm install`. Build after source changes; `pnpm hydra web` uses the built artifacts without rebuilding them.
 
 To open the desktop app after building:
 
@@ -44,10 +44,17 @@ pnpm run desktop
 ### Run from npm
 
 ```sh
-npx @hydra/harness web
+npx @hydra/harness
 ```
 
-The Web UI starts at `http://127.0.0.1:3080` by default. Local launches open your browser automatically; SSH launches print the host URL so your SSH client or editor can handle forwarding. Pass `--no-open` to start the server without opening a browser.
+The interactive launcher lets you choose Web, Headless, or Desktop. Web starts at `http://127.0.0.1:3080` and local launches open your browser automatically; SSH launches print the host URL so your SSH client or editor can handle forwarding. Choose Desktop only to see the source-checkout instructions: the npm package does not yet ship a supported Electron Desktop artifact.
+
+For scripts, CI, or redirected input, use an explicit command instead of the menu:
+
+```sh
+npx @hydra/harness web --no-open
+npx @hydra/harness --profile headless "summarize this repository"
+```
 
 ### Start your first task
 

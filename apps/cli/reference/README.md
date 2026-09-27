@@ -1,6 +1,10 @@
 # `hydra` CLI behavior reference
 
-This reference defines the profile, web-alias, plugin-management, and config-dump command modes. Argv is parsed once through [`src/args.ts`](../src/args.ts), and [`src/bin.ts`](../src/bin.ts) dynamically imports only the selected runner.
+This reference defines the interactive menu, profile, web-alias, plugin-management, and config-dump command modes. Argv is parsed once through [`src/args.ts`](../src/args.ts), and [`src/bin.ts`](../src/bin.ts) dynamically imports only the selected runner.
+
+## Interactive menu
+
+A bare `hydra` invocation requires TTY stdin and stdout and no non-empty `CI` value. It presents Web, Headless, and Desktop choices. Web maps to the `web` profile, Headless prompts for one task and maps to the `headless` profile, and Desktop prints the source-checkout workflow without launching Electron because the npm artifact does not yet support Desktop. Use `hydra web` or `hydra --profile headless "task"` in scripts, CI, and redirected input; a non-interactive bare invocation exits 1 with those commands on stderr.
 
 ## Profile boot
 

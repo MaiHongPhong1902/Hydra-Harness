@@ -19,6 +19,20 @@ export type McpSettingsTabProps =
 const OBSIDIAN_MCP_MODULE = '@hydra/harness-obsidian-knowledge'
 
 type ImportedMcpStartupState = ImportedPluginSnapshot['plugins'][number]['mcpServers'][number]['startupState']
+type ImportedMcpApproval = 'ask' | 'allow' | 'deny'
+
+function importedMcpApprovalLabel(
+  approval: ImportedMcpApproval,
+  t: McpSettingsTabProps['t'],
+): string {
+  switch (approval) {
+    case 'allow': return t('mcpApprovalAllow')
+    case 'deny': return t('mcpApprovalDeny')
+    case 'ask': return t('mcpApprovalAsk')
+    /* v8 ignore next -- every ImportedMcpApproval member is handled above. */
+    default: return approval
+  }
+}
 
 function importedMcpStatusLabel(
   state: ImportedMcpStartupState,
@@ -39,6 +53,12 @@ export interface ImportedMcpSettingsFace {
   importedMcp?: {
     list: () => Promise<ImportedPluginSnapshot>
     setEnabled: (identity: string, server: string, enabled: boolean) => Promise<ImportedPluginSnapshot>
+    setToolApproval?: (
+      identity: string,
+      server: string,
+      tool: string,
+      approval: 'ask' | 'allow' | 'deny',
+    ) => Promise<ImportedPluginSnapshot>
   }
 }
 
@@ -95,6 +115,24 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
     setImportedMutating(`${identity}:${server}`)
     setImportedFailed(false)
     void props.importedMcp.setEnabled(identity, server, enabled).then(
+      setImported,
+      () => { setImportedFailed(true); setRequest(value => value + 1) },
+    ).finally(() => { setImportedMutating(undefined) })
+  }
+
+  const setImportedToolApproval = (
+    identity: string,
+    server: string,
+    tool: string,
+    approval: ImportedMcpApproval,
+  ): void => {
+    const action = props.importedMcp?.setToolApproval
+    /* v8 ignore if -- approval controls render only when the setter is supplied. */
+    if (action === undefined) return
+    const mutation = `${identity}:${server}:${tool}`
+    setImportedMutating(mutation)
+    setImportedFailed(false)
+    void action(identity, server, tool, approval).then(
       setImported,
       () => { setImportedFailed(true); setRequest(value => value + 1) },
     ).finally(() => { setImportedMutating(undefined) })
@@ -173,6 +211,36 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
                   onClick={() => { setImportedEnabled(plugin.identity, server.name, !server.enabled) }}
                 />
               </label>
+              {props.importedMcp?.setToolApproval === undefined || server.tools.length === 0 ? null : (
+                <ul className={css.importedMcpTools}>
+                  {server.tools.map((tool) => {
+                    const approval = server.toolApproval[tool] ?? server.defaultToolsApprovalMode
+                    const mutation = `${plugin.identity}:${server.name}:${tool}`
+                    return (
+                      <li key={tool} className={css.importedMcpTool}>
+                        <code>{tool}</code>
+                        <label>
+                          <span className={css.visuallyHidden}>{t('mcpToolApproval')} {tool}</span>
+                          <select
+                            data-hydra-control="field"
+                            aria-label={`${t('mcpToolApproval')} ${tool}`}
+                            value={approval}
+                            disabled={importedMutating !== undefined}
+                            onChange={(event) => {
+                              setImportedToolApproval(plugin.identity, server.name, tool, event.currentTarget.value as ImportedMcpApproval)
+                            }}
+                          >
+                            {(['ask', 'allow', 'deny'] as const).map(value => (
+                              <option key={value} value={value}>{importedMcpApprovalLabel(value, t)}</option>
+                            ))}
+                          </select>
+                        </label>
+                        {importedMutating === mutation ? <span>{t('saving')}</span> : null}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
             </div>
           ))}
         </section>

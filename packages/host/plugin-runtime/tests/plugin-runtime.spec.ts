@@ -1414,6 +1414,12 @@ describe('PluginStore', () => {
         expect(denied.isError).toBe(true)
         expect(denied.content).toEqual([{ type: 'text', text: `Error: MCP tool ${raw} is disabled by its plugin policy` }])
       }
+      const publicPolicyRaw = 'image'
+      const publicPolicyName = publicToolName(serverName, publicPolicyRaw)
+      await plugins.setMcpToolApproval(identity, 'local', publicPolicyName, 'allow')
+      expect((await execute(publicPolicyRaw)).isError).toBe(false)
+      await plugins.setMcpToolApproval(identity, 'local', publicPolicyName, 'deny')
+      expect((await execute(publicPolicyRaw)).isError).toBe(true)
       expect((await plugins.info(identity)).mcpServers[0]?.startupState).toBe('started')
       await plugins.setMcpServerEnabled(identity, 'local', false)
       expect(ctx.tools.schemas()).toEqual([])

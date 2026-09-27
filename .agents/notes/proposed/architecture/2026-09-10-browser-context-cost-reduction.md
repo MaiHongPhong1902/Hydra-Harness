@@ -6,7 +6,7 @@ Status: proposed
 
 A long browsing run pays for the page on every step. Each `browser_*` call returns a trailing snapshot — the full element list bounded by `maxStateChars` (default 16,000) or, after an ordinary action, a ranked compact list bounded near 4,000 characters. Hydra already trims that cost: only visible viewport controls are listed, compact results rank newly appeared and typical form controls first, `browser_find`, named click/type/select, `browser_fill`, and trailing state reads reduce round-trips, and two model-visible reductions have shipped — an ignored-node filter and an `unchanged` reuse flag ([browser ignored-node filtering](../../implemented/feature/2026-09-10-browser-ignored-node-filtering.md)).
 
-What is missing is not another trim. It is measurement and structure: no baseline or telemetry records snapshot size, round-trips, or stale-index failures, so the two shipped reductions have no before/after numbers; the projection still hands the model PageController's raw line format rather than a named field set; a repeated snapshot is only ever suppressed when it is byte-identical; and nothing prunes browser results once they are in the trajectory. Any further change risks trading a real control or a valid index for tokens without evidence it helped.
+What remains is measurement-led structure: the repository now has an offline six-scenario benchmark with committed baseline/current measurements, and ordinary actions can return a per-tab structural diff. The projection still follows PageController's indexed snapshot contract, trajectory pruning remains separate work, and snapshot offload or conditional vision still lack evidence that they justify their lifecycle cost. Any further change risks trading a real control or a valid index for tokens without evidence it helped.
 
 The reduction must preserve the element indices, `tabId`, and `BrowserState` contract; the full session log and replay; current security behavior; action accuracy and the fallback for pages without usable accessibility signals.
 
@@ -14,7 +14,7 @@ The reduction must preserve the element indices, `tabId`, and `BrowserState` con
 
 Seven phases, executed in this order: baseline and telemetry (retrofit); prefix stability and cache verification; snapshot projection and downsampling; per-tab state diff; browser-aware trajectory pruning; snapshot offload; conditional vision. Each ships as one small PR with regression tests and a keyless snapshot; every model-visible change updates `docs/subsystems/browser.md`, the tool catalog, and the owning Agent Note.
 
-The full specification — corpus, metrics, data shapes, interfaces, per-phase tests, and acceptance criteria — is [the browser context-cost spec](../../../../BROWSER_CONTEXT_COST_SPEC.md). This note records the decision and the scope corrections; the spec carries the detail and is the file to keep current as the phases land.
+The standalone specification is retired; this note carries the rationale, scope corrections, alternatives, remaining phases, and acceptance criteria. Shipped behavior and measurements live in the [browser subsystem reference](../../../../docs/subsystems/browser.md) and the [browser benchmark](../../../../examples/acp-agent/browser-bench), and the removal decision is recorded in the [spec removal note](../../implemented/simplification/2026-09-27-remove-browser-context-cost-spec.md).
 
 ### Scope corrections
 

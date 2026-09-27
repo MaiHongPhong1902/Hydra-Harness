@@ -42,15 +42,27 @@ const MAX_VALUE_LENGTH = 4_096
 
 /** Remove URL userinfo before an endpoint crosses the Host/browser projection. */
 function redactUrlUserinfo(value: string): string {
+  // Strip a leading userinfo segment before parsing. URL accepts values such as
+  // `user:password@host` as a custom-scheme URL, so parsing first would echo it.
+  const withoutUserinfo = value.replace(/^((?:[a-z][a-z\d+.-]*:)?\/\/)?[^/?#@]*@/iu, '$1')
+  if (withoutUserinfo !== value) {
+    try {
+      return new URL(withoutUserinfo).toString()
+    } catch {
+      // Keep the non-sensitive remainder visible so the UI can still identify
+      // the hand-edited endpoint as invalid from its status and detail.
+      return withoutUserinfo
+    }
+  }
   try {
     const parsed = new URL(value)
     parsed.username = ''
     parsed.password = ''
     return parsed.toString()
   } catch {
-    // A malformed hand-edited value can still contain credentials. Do not echo
-    // the userinfo even when the URL parser cannot produce a structured view.
-    return value.replace(/^([a-z][a-z\d+.-]*:\/\/)[^/?#@]*@/iu, '$1')
+    // A malformed value without a detectable userinfo segment is not a
+    // credential-bearing URL we can safely normalize; preserve it for detail.
+    return value
   }
 }
 
@@ -83,7 +95,10 @@ const StoredServerSchema: z<StoredServer> = z.object({
   // and the registry's own writes preserve what the document already holds.
   env: z.dict(z.string()).role('secret').default({}),
   cwd: z.string().default(''),
-  url: z.string().default(''),
+  // An endpoint may carry credentials in legacy userinfo or a query string;
+  // keep the whole URL out of generic settings descriptors, while the registry
+  // projection still exposes a credential-free endpoint to its dedicated UI.
+  url: z.string().role('secret').default(''),
   headers: z.dict(z.string()).role('secret').default({}),
   toolCallTimeoutMs: z.number().step(1).min(1).default(DEFAULT_TOOL_CALL_TIMEOUT_MS),
   enabled: z.boolean().default(false),

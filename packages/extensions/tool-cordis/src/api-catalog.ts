@@ -1146,7 +1146,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async setMcpToolApproval( identityOrName: string, server: string, tool: string, approval: \'ask\' | \'allow\' | \'deny\', ): Promise<ImportedPluginSnapshot>',
         description: 'Set one MCP tool\'s approval mode.',
-        parameters: [{ name: 'identityOrName', description: 'Owning plugin identity or unambiguous name.' }, { name: 'server', description: 'Manifest MCP server name.' }, { name: 'tool', description: 'Raw MCP tool name.' }, { name: 'approval', description: 'Independent per-tool approval mode.' }],
+        parameters: [{ name: 'identityOrName', description: 'Owning plugin identity or unambiguous name.' }, { name: 'server', description: 'Manifest MCP server name.' }, { name: 'tool', description: 'Raw MCP tool name or host-qualified public tool name.' }, { name: 'approval', description: 'Independent per-tool approval mode.' }],
         returns: 'Refreshed installed-plugin projection.',
       },
       {

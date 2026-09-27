@@ -287,6 +287,31 @@ describe('McpSettingsTab', () => {
     await vi.waitFor(() => { expect(setEnabled).toHaveBeenCalledWith('toolkit@local', 'toolkit-mcp', false) })
   })
 
+  it('edits per-tool approval for an imported MCP server', async () => {
+    const tool = 'mcp__toolkit@local__read'
+    const snapshot = {
+      plugins: [{
+        identity: 'toolkit@local', name: 'Toolkit', version: '4.9.0', enabled: true,
+        mcpServers: [{
+          name: 'toolkit-mcp', enabled: true, startupState: 'started',
+          authenticationState: 'not-applicable', defaultToolsApprovalMode: 'ask', toolApproval: {}, tools: [tool],
+        }],
+      }],
+    } as never
+    const setToolApproval = vi.fn(async () => snapshot)
+    renderTab({}, {
+      list: vi.fn(async () => snapshot),
+      setEnabled: vi.fn(),
+      setToolApproval,
+    })
+
+    const approval = await screen.findByRole('combobox', { name: `${en.mcpToolApproval} ${tool}` })
+    fireEvent.change(approval, { target: { value: 'deny' } })
+    await vi.waitFor(() => {
+      expect(setToolApproval).toHaveBeenCalledWith('toolkit@local', 'toolkit-mcp', tool, 'deny')
+    })
+  })
+
   it('filters imported MCP server rows by the shared search query', async () => {
     const snapshot = {
       plugins: [{

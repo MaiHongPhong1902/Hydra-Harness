@@ -22,7 +22,7 @@ import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
 import { releaseFamily } from './families.ts'
-import { capture, isEntry } from './process.ts'
+import { attempt, capture, isEntry } from './process.ts'
 import { packedIdentity } from './tarball.ts'
 
 /**
@@ -113,6 +113,14 @@ function main(): void {
       throw new Error(`installed ${entry.packageName} --version reported ${JSON.stringify(version)}, expected ${expected.version}`)
     }
     console.log(`release verify-packed-install: installed ${entry.packageName} reports ${version}`)
+    const bare = attempt(process.execPath, [bin], {
+      cwd: consumerRoot,
+      env: { ...environment, CI: '1' },
+    })
+    if (bare.status !== 1 || bare.stdout !== '' || !bare.stderr.includes('requires an interactive terminal')) {
+      throw new Error(`installed ${entry.packageName} bare launcher did not report the non-interactive guidance:\n${bare.stdout}\n${bare.stderr}`)
+    }
+    console.log('release verify-packed-install: bare launcher rejected non-interactive input as expected')
   } finally {
     rmSync(consumerRoot, { recursive: true, force: true })
   }

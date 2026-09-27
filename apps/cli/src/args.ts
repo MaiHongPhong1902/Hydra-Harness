@@ -17,6 +17,11 @@
 
 import { Command, CommanderError } from 'commander'
 
+/** Show the interactive mode selector for a bare launcher invocation. */
+export interface MenuInvocation {
+  mode: 'menu'
+}
+
 /** Boot a named profile and hand it the invocation's inner arguments. */
 interface ProfileInvocation {
   mode: 'profile'
@@ -45,7 +50,7 @@ interface PluginInvocation {
 }
 
 /** The resolved `hydra` invocation. Help, version, and errors exit inside {@link parseHydraArgs}. */
-export type HydraInvocation = ProfileInvocation | DumpConfigInvocation | PluginInvocation
+export type HydraInvocation = MenuInvocation | ProfileInvocation | DumpConfigInvocation | PluginInvocation
 
 /** Launcher flags shared by the default command and the `web` alias. */
 interface BootOptions {
@@ -63,6 +68,7 @@ const collect = (value: string, previous: string[] = []): string[] => [...previo
 /** The launcher's own help text; each app prints its own. */
 const HELP_EXAMPLES = `
 Examples:
+  hydra                                           choose Web, Headless, or Desktop interactively
   hydra --profile web                          boot the web profile (same as: hydra web)
   hydra --profile headless "run the tests"     answer one task, print the result, and exit
   hydra --profile tui --patch ./extra.yml      boot a custom profile with one extra overlay
@@ -110,6 +116,7 @@ function resolveBoot(program: Command, profile: string, options: BootOptions, ar
  * @returns the resolved invocation.
  */
 export function parseHydraArgs(argv: readonly string[], version: string): HydraInvocation {
+  if (argv.length === 0) return { mode: 'menu' }
   let resolved: HydraInvocation | undefined
   // Annotated, not inferred: the actions below call back into `program`, and an
   // inferred type would be circular through its own chain.

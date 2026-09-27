@@ -13,13 +13,7 @@ The setup tutorial takes a new contributor from prerequisites to a checked check
 
 ### First-time setup
 
-The checkout must include the PageAgent git submodule at `packages/browser/browser-electron/third-party/page-agent`. From a clone that omitted `--recurse-submodules`:
-
-```sh
-git submodule update --init --recursive
-```
-
-If that fails because GitHub does not advertise the gitlink SHA, follow [Checking out PageAgent](../packages/browser/browser-electron/README.md#checking-out-pageagent).
+The checkout includes the locally owned BrowserAgent source at `packages/browser/browser-electron/third-party/browseragent`.
 
 Install dependencies from the repo root:
 

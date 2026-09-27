@@ -304,6 +304,7 @@ describe('PluginInventoryGateway', () => {
       { method: 'enablePlugin', invocation: { kind: 'direct' } },
       { method: 'disablePlugin', invocation: { kind: 'direct' } },
       { method: 'setPluginMcpServerEnabled', invocation: { kind: 'direct' } },
+      { method: 'setPluginMcpToolApproval', invocation: { kind: 'direct' } },
       { method: 'trustPlugin', invocation: { kind: 'direct' } },
       { method: 'untrustPlugin', invocation: { kind: 'direct' } },
       { method: 'removePlugin', invocation: { kind: 'direct' } },

@@ -32,7 +32,7 @@ jobs:
       contents: read
       pages: read
     steps:
-      # The generated documentation reads vendored sources from the submodules.
+      # The generated documentation reads vendored sources from the checkout.
       - uses: actions/checkout@v6
         with:
           fetch-depth: 1

@@ -1,13 +1,10 @@
 packages:
   - vendor/*
   - packages/*/*
-  # PageAgent stays an upstream-pinned submodule because the Electron preload
-  # bundles its real runtime rather than maintaining a local lookalike.
-  - packages/browser/browser-electron/third-party/page-agent/packages/core
-  - packages/browser/browser-electron/third-party/page-agent/packages/llms
-  - packages/browser/browser-electron/third-party/page-agent/packages/page-agent
-  - packages/browser/browser-electron/third-party/page-agent/packages/page-controller
-  - packages/browser/browser-electron/third-party/page-agent/packages/ui
+  # BrowserAgent is owned source; keep only the packages in the preload closure.
+  - packages/browser/browser-electron/third-party/browseragent/packages/core
+  - packages/browser/browser-electron/third-party/browseragent/packages/llms
+  - packages/browser/browser-electron/third-party/browseragent/packages/page-controller
   # The Landlock launcher is developed with its harness consumers but keeps
   # its native build and publication scripts under native/landlock-run.
   - native/landlock-run

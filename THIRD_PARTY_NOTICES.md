@@ -27,11 +27,11 @@ The Cordis framework and its foundation libraries are source-vendored into this 
 
 ## Vendored source in packages (`third-party/`)
 
-Source kept as an upstream-pinned git submodule rather than republished under the `@hydra` scope, because it must be bundled into the sandboxed preload. Each directory preserves its upstream `LICENSE`; its gitlink records the exact upstream commit.
+Source copies tracked inside the repository and bundled into the sandboxed preload. Each directory preserves its upstream `LICENSE`; package manifests use private `@hydra` names and the upstream project remains credited in the table below.
 
 | Directory | Upstream name | Upstream | License | Role |
 | --- | --- | --- | --- | --- |
-| [`packages/browser/browser-electron/third-party/page-agent`](packages/browser/browser-electron/third-party/page-agent) | `page-agent` | [github.com/alibaba/page-agent](https://github.com/alibaba/page-agent) | MIT | Complete PageAgent runtime (Core ReAct loop, LLM client, PageController, Panel, and simulator mask) bundled into the Electron preload. The DOM-extraction implementation derives from [browser-use](https://github.com/browser-use/browser-use) (MIT, Gregor Zunic), whose attribution rides along. |
+| [`packages/browser/browser-electron/third-party/browseragent`](packages/browser/browser-electron/third-party/browseragent) | `page-agent` | [github.com/alibaba/page-agent](https://github.com/alibaba/page-agent) | MIT | BrowserAgent source derived from Alibaba PageAgent v1.12.4 (Core ReAct loop, LLM client, PageController, and simulator mask), with the Electron integration, private package namespace, and cursor/mask changes maintained by the Hydra fork of DeepSeek Harness (DSH). The DOM-extraction implementation also derives from [browser-use](https://github.com/browser-use/browser-use) (MIT, Gregor Zunic), whose attribution rides along. |
 
 ## Runtime npm dependencies
 
@@ -167,6 +167,7 @@ External packages **directly declared** only by repository tooling, test infrast
 | [`eslint-plugin-sonarjs`](https://github.com/SonarSource/SonarJS) | LGPL-3.0-only |
 | [`execa`](https://github.com/sindresorhus/execa) | MIT |
 | [`fast-check`](https://github.com/dubzzz/fast-check) | MIT |
+| [`happy-dom`](https://github.com/capricorn86/happy-dom) | MIT |
 | [`istanbul-lib-report`](https://github.com/istanbuljs/istanbuljs) | BSD-3-Clause |
 | [`jscpd`](https://github.com/kucherenko/jscpd) | MIT |
 | [`jsdom`](https://github.com/jsdom/jsdom) | MIT |

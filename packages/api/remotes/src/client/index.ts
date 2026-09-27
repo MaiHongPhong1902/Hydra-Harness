@@ -15,6 +15,7 @@ export type {
   AddPluginMarketplaceRequest,
   ImportedPluginEntry,
   ImportedPluginMcpServerEnablementRequest,
+  ImportedPluginMcpToolApprovalRequest,
   ImportedPluginSnapshot,
   PluginImportSource,
   PluginEnablementResult,

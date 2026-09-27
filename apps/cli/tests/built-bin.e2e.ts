@@ -310,11 +310,12 @@ function startStartupProfile(fixture: StartupFixture, args: readonly string[]) {
 }
 
 describe.skipIf(!existsSync(hydraBin))('hydra BUILT bin (node lib/bin.js, no tsx)', () => {
-  it('requires --profile and rejects removed commands', async () => {
-    const bare = await runBuiltBin()
+  it('reports explicit commands for a non-interactive bare launch and rejects removed commands', async () => {
+    const bare = await runBuiltBin([], { CI: '1' })
     expect(bare.code).toBe(1)
     expect(bare.stdout).toBe('')
-    expect(bare.stderr).toContain('--profile <name> is required')
+    expect(bare.stderr).toContain('requires an interactive terminal')
+    expect(bare.stderr).toContain('npx @hydra/harness web')
     const help = await runBuiltBin(['--help'])
     expect(help.code).toBe(0)
     expect(help.stdout).toContain('hydra --profile web')

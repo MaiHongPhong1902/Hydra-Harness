@@ -88,6 +88,11 @@ export function apply(ctx: ClientContext): void {
       if (!result.ok) throw new Error(`pluginInventory.setPluginMcpServerEnabled failed: ${result.error.code}: ${result.error.message}`)
       return result.value
     },
+    setToolApproval: async (identity, server, tool, approval) => {
+      const result = await ctx.remote.pluginInventory.setPluginMcpToolApproval({ identity, server, tool, approval })
+      if (!result.ok) throw new Error(`pluginInventory.setPluginMcpToolApproval failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
   } : undefined
   const nativeMcp: NativeMcpSettingsFace['nativeMcp'] = connection.isLoopback ? {
     list: async () => {

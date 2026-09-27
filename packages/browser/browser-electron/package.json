@@ -73,8 +73,8 @@
     "@hydra/harness-user-approval": "workspace:^",
     "@hydra/harness-user-questions": "workspace:^",
     "@hydra/schemastery": "workspace:^",
-    "@page-agent/core": "workspace:^",
-    "@page-agent/page-controller": "workspace:^",
+    "@hydra/harness-browseragent-core": "workspace:^",
+    "@hydra/harness-browseragent-page-controller": "workspace:^",
     "electron": "^43.4.1",
     "vite": "^6.0.0"
   },

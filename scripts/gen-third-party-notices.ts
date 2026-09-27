@@ -405,11 +405,11 @@ interface PackageVendored {
 
 const PACKAGE_VENDORED: PackageVendored[] = [
   {
-    dir: 'packages/browser/browser-electron/third-party/page-agent',
+    dir: 'packages/browser/browser-electron/third-party/browseragent',
     upstreamName: 'page-agent',
     upstream: 'https://github.com/alibaba/page-agent',
     license: 'MIT',
-    role: 'Complete PageAgent runtime (Core ReAct loop, LLM client, PageController, Panel, and simulator mask) bundled into the Electron preload. The DOM-extraction implementation derives from [browser-use](https://github.com/browser-use/browser-use) (MIT, Gregor Zunic), whose attribution rides along.',
+    role: 'BrowserAgent source derived from Alibaba PageAgent v1.12.4 (Core ReAct loop, LLM client, PageController, and simulator mask), with the Electron integration, private package namespace, and cursor/mask changes maintained by the Hydra fork of DeepSeek Harness (DSH). The DOM-extraction implementation also derives from [browser-use](https://github.com/browser-use/browser-use) (MIT, Gregor Zunic), whose attribution rides along.',
   },
 ]
 
@@ -763,7 +763,7 @@ ${vendored.map(row => `| \`${row.npmName}\` | \`${row.upstreamName}\` | [${row.u
 
 ## Vendored source in packages (\`third-party/\`)
 
-Source kept as an upstream-pinned git submodule rather than republished under the \`@hydra\` scope, because it must be bundled into the sandboxed preload. Each directory preserves its upstream \`LICENSE\`; its gitlink records the exact upstream commit.
+Source copies tracked inside the repository and bundled into the sandboxed preload. Each directory preserves its upstream \`LICENSE\`; package manifests use private \`@hydra\` names and the upstream project remains credited in the table below.
 
 | Directory | Upstream name | Upstream | License | Role |
 | --- | --- | --- | --- | --- |

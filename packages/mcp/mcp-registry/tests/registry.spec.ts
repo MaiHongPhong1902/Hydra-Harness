@@ -237,6 +237,48 @@ describe('stored records', () => {
     })
   })
 
+  it.each(['//user:password@mcp.example.test/v1', 'user:password@mcp.example.test/v1'])
+  ('does not echo credentials from a malformed HTTP URL projection: %s', async (url) => {
+    const root = await mkdtemp(join(tmpdir(), 'hydra-mcp-registry-malformed-url-'))
+    directories.push(root)
+    const settingsPath = join(root, 'settings.yaml')
+    await writeFile(settingsPath, [
+      'mcp-servers:',
+      '  servers:',
+      '    - name: malformed',
+      '      transport: streamable-http',
+      `      url: "${url}"`,
+      '      enabled: false',
+      '',
+    ].join('\n'))
+
+    const ctx = await mount(settingsPath)
+
+    expect(ctx.mcpServers.list().servers[0]?.url).not.toContain('password')
+  })
+
+  it('redacts MCP URLs from the generic settings descriptor', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'hydra-mcp-registry-descriptor-'))
+    directories.push(root)
+    const settingsPath = join(root, 'settings.yaml')
+    await writeFile(settingsPath, [
+      'mcp-servers:',
+      '  servers:',
+      '    - name: legacy',
+      '      transport: streamable-http',
+      '      url: "https://user:password@mcp.example.test/v1"',
+      '      enabled: false',
+      '',
+    ].join('\n'))
+
+    const ctx = await mount(settingsPath)
+    const descriptor = ctx.settings.describe({ redactSecrets: true })
+      .find(namespace => namespace.ns === MCP_SERVERS_SETTINGS_NAMESPACE)
+
+    expect(JSON.stringify(descriptor)).not.toContain('user:password')
+    expect(descriptor?.secrets).toContainEqual({ path: ['servers', '0', 'url'], set: true })
+  })
+
   it('replaces one record wholesale but keeps the credential-shaped maps it cannot restate', async () => {
     const { registry } = await harness()
     await registry.define(STDIO)

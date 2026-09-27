@@ -1,17 +1,17 @@
 # Use the desktop app
 
-Hydra Desktop is a Windows-first Electron shell around the same Hydra Host and Web renderer. It runs from a source checkout during the developer preview; the repository does not publish an installer or an `npx` desktop command.
+Hydra Desktop is a Windows-first Electron shell around the same Hydra Host and Web renderer. The bare `npx @hydra/harness` menu lists Desktop so users can find this workflow, but selecting it does not launch Electron: the repository does not publish an installer, supported npm Desktop artifact, or an `npx` desktop command. Desktop runs from a source checkout during the developer preview.
 
 ## Prerequisites
 
-Install Node.js **22.19 or later in the 22.x line, or 24 and newer**, Git, and pnpm. Clone the repository with its submodules because the desktop browser uses the pinned PageAgent checkout.
+Install Node.js **22.19 or later in the 22.x line, or 24 and newer**, Git, and pnpm. The desktop browser includes its locally owned BrowserAgent source.
 
 ## Build and launch
 
 From the repository root, run:
 
 ```sh
-git clone --recurse-submodules https://github.com/MaiHongPhong1902/Hydra-Harness.git
+git clone https://github.com/MaiHongPhong1902/Hydra-Harness.git
 cd Hydra-Harness
 pnpm install
 pnpm run build
@@ -33,7 +33,7 @@ Desktop-specific Electron data is stored below `$HYDRA_HOME/desktop-electron`. W
 ## Troubleshooting
 
 - **`Desktop Host is not built`** — run `pnpm run build` from the repository root, then run `pnpm run desktop` again.
-- **PageAgent package errors during install** — initialize the submodule with `git submodule update --init --recursive`, then run `pnpm install` again.
+- **BrowserAgent package errors during install** — confirm the tracked `packages/browser/browser-electron/third-party/browseragent` source is present, then run `pnpm install` again.
 - **You want a downloadable installer** — packaging, signing, and auto-update are not available in the current developer preview; use the source launch above.
 
 ## Continue

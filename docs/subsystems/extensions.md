@@ -370,7 +370,7 @@ async setMcpServerEnabled(identityOrName: string, server: string, enabled: boole
  * Set one MCP tool's approval mode.
  * @param identityOrName - Owning plugin identity or unambiguous name.
  * @param server - Manifest MCP server name.
- * @param tool - Raw MCP tool name.
+ * @param tool - Raw MCP tool name or host-qualified public tool name.
  * @param approval - Independent per-tool approval mode.
  * @returns Refreshed installed-plugin projection.
  */

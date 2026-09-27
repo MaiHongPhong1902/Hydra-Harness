@@ -140,6 +140,7 @@ const PRIVILEGED_METHODS = new Set([
   'pluginInventory/enablePlugin',
   'pluginInventory/disablePlugin',
   'pluginInventory/setPluginMcpServerEnabled',
+  'pluginInventory/setPluginMcpToolApproval',
   'pluginInventory/trustPlugin',
   'pluginInventory/untrustPlugin',
   'pluginInventory/removePlugin',

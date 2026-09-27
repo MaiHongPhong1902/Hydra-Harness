@@ -27,6 +27,7 @@ import { z as zod } from 'zod'
 import type {
   AddPluginMarketplaceRequest,
   ImportedPluginMcpServerEnablementRequest,
+  ImportedPluginMcpToolApprovalRequest,
   PluginEnablementRequest,
   PluginEnablementResult,
   PluginEntryId,
@@ -948,6 +949,18 @@ export class PluginInventoryGateway extends TypertRemoteService {
     request: ImportedPluginMcpServerEnablementRequest,
   ): Promise<ImportedPluginSnapshot> {
     return this.importedPlugins().setMcpServerEnabled(request.identity, request.server, request.enabled)
+  }
+
+  /**
+   * Set one imported MCP tool's approval mode without changing server enablement.
+   * @param request - Plugin identity, server, tool, and approval mode.
+   * @returns Current imported-plugin projection.
+   */
+  @Remote('setPluginMcpToolApproval')
+  setPluginMcpToolApproval(
+    request: ImportedPluginMcpToolApprovalRequest,
+  ): Promise<ImportedPluginSnapshot> {
+    return this.importedPlugins().setMcpToolApproval(request.identity, request.server, request.tool, request.approval)
   }
 
   /**

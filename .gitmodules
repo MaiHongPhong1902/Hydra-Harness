@@ -1,3 +1,0 @@
-[submodule "packages/browser/browser-electron/third-party/page-agent"]
-	path = packages/browser/browser-electron/third-party/page-agent
-	url = https://github.com/alibaba/page-agent.git

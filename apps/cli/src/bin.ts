@@ -11,7 +11,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { loadLayeredEnv } from '@hydra/harness-app-boot'
-import { parseHydraArgs } from './args.ts'
+import { parseHydraArgs, type HydraInvocation } from './args.ts'
 
 // Both the source tree (apps/cli/src) and the bundled bin (apps/cli/lib) sit
 // one directory under apps/cli, so the checked-in manifest resolves with the
@@ -25,38 +25,53 @@ function readVersion(): string {
 }
 
 const invocation = parseHydraArgs(process.argv.slice(2), readVersion())
+type RunnableInvocation = Exclude<HydraInvocation, { mode: 'menu' }>
 
-switch (invocation.mode) {
-  case 'profile': {
-    const { runProfile } = await import('./profile-boot.ts')
-    const running = await runProfile({
-      environment: loadLayeredEnv('hydra'),
-      profile: invocation.profile,
-      patchFiles: invocation.patches,
-      args: invocation.args,
-    })
-    const parentPort = (process as NodeJS.Process & {
-      parentPort?: { on(event: 'message', listener: (event: unknown) => void): void }
-    }).parentPort
-    parentPort?.on('message', (event) => {
-      const message = typeof event === 'object' && event !== null && 'data' in event ? event.data : event
-      if (typeof message === 'object' && message !== null && 'type' in message && message.type === 'shutdown') {
-        running.shutdown.interrupt(0)
-      }
-    })
-    break
+async function dispatch(invocation: RunnableInvocation): Promise<void> {
+  switch (invocation.mode) {
+    case 'profile': {
+      const { runProfile } = await import('./profile-boot.ts')
+      const running = await runProfile({
+        environment: loadLayeredEnv('hydra'),
+        profile: invocation.profile,
+        patchFiles: invocation.patches,
+        args: invocation.args,
+      })
+      const parentPort = (process as NodeJS.Process & {
+        parentPort?: { on(event: 'message', listener: (event: unknown) => void): void }
+      }).parentPort
+      parentPort?.on('message', (event) => {
+        const message = typeof event === 'object' && event !== null && 'data' in event ? event.data : event
+        if (typeof message === 'object' && message !== null && 'type' in message && message.type === 'shutdown') {
+          running.shutdown.interrupt(0)
+        }
+      })
+      break
+    }
+    case 'plugin': {
+      const { runPlugin } = await import('./plugin.ts')
+      process.exit(runPlugin(invocation.profile, invocation.args))
+      break
+    }
+    case 'dump-config': {
+      const { runDumpConfig } = await import('./dump-config.ts')
+      runDumpConfig(invocation.profile, invocation.defaultOnly, invocation.patches)
+      break
+    }
+    default:
+      invocation satisfies never
+      throw new Error(`hydra: unhandled invocation mode ${JSON.stringify(invocation)}`)
   }
-  case 'plugin': {
-    const { runPlugin } = await import('./plugin.ts')
-    process.exit(runPlugin(invocation.profile, invocation.args))
-    break
+}
+
+if (invocation.mode === 'menu') {
+  const { runModeMenu } = await import('./mode-menu.ts')
+  const selection = await runModeMenu()
+  if (selection.kind === 'profile') {
+    await dispatch({ mode: 'profile', profile: selection.profile, patches: [], args: selection.args })
+  } else {
+    process.exitCode = selection.code
   }
-  case 'dump-config': {
-    const { runDumpConfig } = await import('./dump-config.ts')
-    runDumpConfig(invocation.profile, invocation.defaultOnly, invocation.patches)
-    break
-  }
-  default:
-    invocation satisfies never
-    throw new Error(`hydra: unhandled invocation mode ${JSON.stringify(invocation)}`)
+} else {
+  await dispatch(invocation)
 }

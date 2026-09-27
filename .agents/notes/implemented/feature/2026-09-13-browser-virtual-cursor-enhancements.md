@@ -28,7 +28,7 @@ Automated actions in the browser view present realistic human-like pointer inter
 
 The tool result schema declares `action.selectedText`; the assembled `browser-tool-turn` snapshot executes selection through the real tool runtime to catch output-validation failures.
 
-The parent repository tracks Hydra's cursor changes in `page-agent.patch`; preload builds read it through a temporary Git index against the pinned upstream PageAgent v1.12.4 submodule. The submodule worktree and index stay unchanged, the patch preserves upstream's `getBoundingClientRect()` reflow before click animation, and conflicting source changes fail the build. Upstream updates include a regenerated `electron-app/preload.cjs`.
+The parent repository tracks the local BrowserAgent cursor source directly at `third-party/browseragent/packages/page-controller`. The preload bundles that source directly, so cursor changes and the regenerated `electron-app/preload.cjs` stay together without a submodule or patch overlay.
 
 Real Electron tests in `electron.spec.ts` measure multiple intermediate cursor positions and final element-center coordinates for native hover, click, and typing. They also cover scroll HUD direction rendering, virtual cursor style CSP resilience, native cursor coexistence, complete multiline selection, partial DOM/input/textarea ranges, reverse drags, empty and unsupported inputs, and stable cursor endpoints.
 

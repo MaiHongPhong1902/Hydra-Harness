@@ -70,8 +70,8 @@ describe('parseHydraArgs', () => {
       .toEqual({ mode: 'dump-config', profile: 'web', defaultOnly: true, patches: [] })
   })
 
-  it('rejects missing profile, removed flags, and contradictory inputs', () => {
-    expect(exitCode([])).toBe(1)
+  it('routes a bare invocation to the interactive menu and rejects invalid inputs', () => {
+    expect(parse([])).toEqual({ mode: 'menu' })
     expect(exitCode(['tui'])).toBe(1) // an app argument without --profile has no app to reach
     expect(exitCode(['--config', 'c.yml'])).toBe(1) // removed
     expect(exitCode(['-p', 'task'])).toBe(1) // removed

@@ -7,6 +7,3 @@
 * text=auto eol=lf
 
 *.pdf binary
-
-# Unified diff context preserves leading spaces and tabs from upstream source.
-packages/browser/browser-electron/page-agent.patch -whitespace

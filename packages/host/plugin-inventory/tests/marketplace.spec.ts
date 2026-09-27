@@ -126,7 +126,8 @@ describe('OpenAI/Codex marketplace sources', () => {
     const runtime = fakeImportedPluginsRuntime('market')
     const snapshot = await runtime.list()
     const imported = { ...runtime, import: vi.fn(async () => snapshot), info: vi.fn(async () => snapshot.plugins[0]!),
-      setMcpServerEnabled: vi.fn(async () => snapshot), trustHooks: vi.fn(async () => snapshot), untrustHooks: vi.fn(async () => snapshot) }
+      setMcpServerEnabled: vi.fn(async () => snapshot), setMcpToolApproval: vi.fn(async () => snapshot),
+      trustHooks: vi.fn(async () => snapshot), untrustHooks: vi.fn(async () => snapshot) }
     const mcp = { list: vi.fn(() => ({ servers: [] })), define: vi.fn(async () => ({ servers: [] })),
       setEnabled: vi.fn(async () => ({ servers: [] })), remove: vi.fn(async () => ({ servers: [] })) }
     const hooks = { list: vi.fn(() => ({ records: [] })), define: vi.fn(async () => ({ records: [] })),
@@ -147,6 +148,8 @@ describe('OpenAI/Codex marketplace sources', () => {
       [() => inventory.untrustPlugin('plugin'), imported.untrustHooks, ['plugin']],
       [() => inventory.setPluginMcpServerEnabled({ identity: 'plugin', server: 'server', enabled: true }),
         imported.setMcpServerEnabled, ['plugin', 'server', true]],
+      [() => inventory.setPluginMcpToolApproval({ identity: 'plugin', server: 'server', tool: 'read', approval: 'deny' }),
+        imported.setMcpToolApproval, ['plugin', 'server', 'read', 'deny']],
       [() => inventory.listMcpServers(), mcp.list, []],
       [() => inventory.defineMcpServer(server), mcp.define, [server]],
       [() => inventory.setMcpServerEnabled({ name: 'server', enabled: true }), mcp.setEnabled, [{ name: 'server', enabled: true }]],

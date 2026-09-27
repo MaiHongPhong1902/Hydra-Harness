@@ -18,4 +18,4 @@ The documentation site publishes `docs/user/guide/desktop.md` at `/guide/desktop
 
 ## Consequences
 
-Readers can reach a runnable desktop setup from the website without mistaking the source launch for an installable desktop release. Future installer or auto-update work needs a separate guide update when those artifacts exist.
+Readers can reach a runnable desktop setup from the website without mistaking the source launch for an installable desktop release. Future installer or auto-update work follows the [desktop packaging and release roadmap](../../proposed/process/2026-09-27-desktop-packaging-and-release-roadmap.md) and needs a separate guide update when those artifacts exist.

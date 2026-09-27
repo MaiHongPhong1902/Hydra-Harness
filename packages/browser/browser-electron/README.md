@@ -2,6 +2,10 @@
 
 Owner-scoped embedded browser. `BrowserSessionService` registers as `ctx.browsers`, starts one Electron window per `Agent` on that agent's first action, and closes it with the agent. Its native chrome lets the user add, select, and close tabs, follows the desktop light/dark theme, and shows an agent status line, HTTPS lock, loading spinner, and tab favicons. Hydra owns the reasoning loop: each controlled page exposes a Playwright-style accessibility snapshot with numbered refs; PageController remains the private DOM execution fallback for those refs. `PageAgentCore` is constructed only when an explicit `page_agent_run` arrives. Hydra harness keeps the upstream Panel out of the webpage and hides PageController's index boxes and labels while retaining the simulator cursor and explicit annotation selection. The gradient follows pending browser commands, including activity received before document initialization; the virtual cursor remains visible during manual browsing without blocking input. The native toolbar fits narrow panels, overflowing tabs scroll horizontally, and the page viewport follows the panel dimensions. Playwright pointer and form actions await the simulator cursor movement through the preload before executing the native action. Indexed clicks reject when their viewport point is covered by another page element, so actions cannot click through popups or headers.
 
+## Provenance
+
+Hydra is a public fork of DeepSeek Harness (DSH). The Electron browser integration, Hydra preload bridge, package ownership, and cursor/mask changes are maintained in this fork. The BrowserAgent Core, LLM client, and PageController source are derived from Alibaba PageAgent v1.12.4. The copied source keeps Alibaba's copyright and MIT license in [`third-party/browseragent/LICENSE`](third-party/browseragent/LICENSE); the repository-level [third-party notice](../../../THIRD_PARTY_NOTICES.md) records both the upstream source and Hydra's modifications.
+
 ## Contract
 
 `select_text` selects complete contents for a named or indexed element, including multiline text and input/textarea values. Four viewport coordinates select a partial range; input and textarea drags use Chromium native mouse input. The action resolves after the final selection update and returns the actual selected text. Empty selections and unsupported or password inputs do not report success.
@@ -57,8 +61,8 @@ electron-app/chrome.html      static tab strip, omnibox, and agent status HUD
 electron-app/chrome-preload.cjs sandboxed chrome IPC wiring
 electron-app/preload.entry.js source of the preload bundle
 electron-app/preload.cjs      committed build output — what Electron actually loads
-third-party/page-agent/       upstream-pinned PageAgent source submodule
-vite.preload.config.js        bundles the upstream runtime and preload into one CJS file
+third-party/browseragent/       locally owned BrowserAgent source copied from PageAgent
+vite.preload.config.js        bundles the local runtime and preload into one CJS file
 src/                          the Node half: service, child process, types
 ```
 
@@ -66,34 +70,19 @@ src/                          the Node half: service, child process, types
 
 In standalone use, `BrowserSessionService` talks to its Electron child in NDJSON over stdin/stdout — one JSON object per line, `{id, method, args}` out and `{id, ok, result|error}` back. No port is involved, and the channel dies with the process; `main.cjs` therefore sends diagnostics to stderr because stdout is the protocol. The desktop shell instead hosts the same controller in its Electron main process and exposes only narrow, validated preload/IPC operations for configuration and browser management.
 
-## Checking out PageAgent
+## BrowserAgent source
 
-`pnpm install` links `@page-agent/core` and `@page-agent/page-controller` from this package's [`third-party/page-agent`](third-party/page-agent) git submodule. An empty checkout produces `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`.
-
-From the repository root:
-
-```sh
-git submodule update --init packages/browser/browser-electron/third-party/page-agent
-```
-
-When GitHub does not advertise the gitlink SHA (`not our ref`), check out the public tag that matches the lockfile (`v1.12.4`):
-
-```sh
-rm -rf packages/browser/browser-electron/third-party/page-agent
-git clone --branch v1.12.4 --depth 1 https://github.com/alibaba/page-agent.git packages/browser/browser-electron/third-party/page-agent
-```
-
-Then rerun `pnpm install`. The licence is in [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
+`pnpm install` links the private `@hydra/harness-browseragent-core`, `@hydra/harness-browseragent-llms`, and `@hydra/harness-browseragent-page-controller` packages from the tracked [`third-party/browseragent`](third-party/browseragent) source. No submodule or external checkout is required. The source retains its upstream MIT license and attribution in [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
 
 ## Rebuilding the preload
 
-`electron-app/preload.cjs` is committed. Regenerate it only when the upstream submodule or `preload.entry.js` changes:
+`electron-app/preload.cjs` is committed. Regenerate it when the local BrowserAgent source or `preload.entry.js` changes:
 
 ```
 pnpm --filter @hydra/harness-browser-electron run build:preload
 ```
 
-Populate the submodule before that rebuild; see [Checking out PageAgent](#checking-out-pageagent). The build reads the versioned `page-agent.patch` through a temporary Git index, leaves the submodule worktree and index unchanged, and rejects conflicting local source changes. Cursor changes belong in that patch together with the rebuilt preload.
+The BrowserAgent source already contains Hydra's cursor and mask changes, so the build has no external checkout or patch overlay step.
 
 ## Installing the Electron binary behind a proxy
 

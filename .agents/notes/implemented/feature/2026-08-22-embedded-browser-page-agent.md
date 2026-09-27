@@ -22,7 +22,7 @@ Two packages under a new `browser/` family, and a vendored perception core.
 
 `@hydra/harness-tool-browser` owns everything the model sees: the `browser_*` schemas, the DOM-format prompt section, the character cap, the card titles, the origin approval. Nothing in it knows the browser is Electron.
 
-The page is perceived and driven by [page-agent](https://github.com/alibaba/page-agent)'s `PageController`, vendored verbatim at `packages/browser/browser-electron/third-party/page-agent/packages/page-controller/` and bundled into the view's preload. It turns the live DOM into a numbered element list — `[12]<button>Save</button>` — and acts by index. Its own header says it is "designed to be independent of LLM", and that is exactly the half taken. PageAgent's ReAct core is an explicit, demoted Hydra tool, not the default loop; see [Hydra-owned browser control](../architecture/2026-09-07-hydra-owned-browser-control.md).
+The page is perceived and driven by the locally owned BrowserAgent `PageController`, copied from [page-agent](https://github.com/alibaba/page-agent) at `packages/browser/browser-electron/third-party/browseragent/packages/page-controller/` and bundled into the view's preload. It turns the live DOM into a numbered element list — `[12]<button>Save</button>` — and acts by index. Its own header says it is "designed to be independent of LLM", and that is exactly the half taken. PageAgent's ReAct core is an explicit, demoted Hydra tool, not the default loop; see [Hydra-owned browser control](../architecture/2026-09-07-hydra-owned-browser-control.md).
 
 ### The extension, ported
 
@@ -72,13 +72,13 @@ The profile persists at `<harness-home>/browser-profile`, which is the point —
 
 **`contextIsolation: false` to reach the page's world.** Would have made an `execute_javascript` action possible and would have handed every page a path to `require`. Checked instead that `PageController` runs correctly in the isolated world — its React patch is plain `setAttribute`, and the MV3 extension already runs the same code there — so nothing was given up.
 
-**Depending on `@page-agent/page-controller` from npm.** The published build leaves `ai-motion` and its siblings as bare specifiers, and a preload with `sandbox: true` has no module resolver. A self-contained bundle needs the source, so the source is vendored, verbatim, with its provenance and licences recorded beside it.
+**Depending on an external PageController package.** The published build leaves `ai-motion` and its siblings as bare specifiers, and a preload with `sandbox: true` has no module resolver. A self-contained bundle needs the source, so the private `@hydra/harness-browseragent-page-controller` package is tracked here with its provenance and licenses recorded beside it.
 
 ## Consequences
 
 **Electron is optional, and that is load-bearing.** It is a `peerDependenciesMeta.optional` peer with a ~200 MB postinstall download and an `allowBuilds` entry in `pnpm-workspace.yaml`. Without it the plugin still loads, the tools still register, and every call fails with `BROWSER_UNAVAILABLE` — so the single-exe build, which cannot carry it, keeps the rest of the harness intact. Behind a corporate proxy the download needs `HTTPS_PROXY` set for `@electron/get`, which ignores npm's own proxy settings.
 
-**A vendored tree is a sync obligation.** `third-party/page-controller/` must stay verbatim; a local fix would turn the next upstream sync from a copy into a merge. `electron-app/preload.cjs` is a committed build artifact that has to be regenerated with it.
+**The BrowserAgent copy is an owned source surface.** `third-party/browseragent/` keeps upstream attribution and APIs while Hydra changes are committed directly beside the regenerated `electron-app/preload.cjs`.
 
 **One window, several tabs, with forward.** Each tab is a `WebContentsView`. `browser_forward` is a first-class model tool beside `browser_back`. Horizontal scroll and file upload are wired; iframe traversal is not.
 

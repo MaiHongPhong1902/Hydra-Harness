@@ -4,11 +4,14 @@ The `hydra` command is the product launcher for profiles: ordered stacks of plug
 
 ## Entry modes
 
+With no arguments, `hydra` opens a line-oriented menu for Web, Headless, or Desktop. The Desktop choice prints the source-checkout workflow because the published npm package does not yet contain a supported Electron artifact.
+
 | Command | Purpose |
 |---|---|
+| `hydra` | Choose Web, Headless, or Desktop interactively. Requires TTY stdin and stdout; CI and redirected input must use an explicit command. |
 | `hydra --profile <name>` | Boot the named profile under `$HYDRA_HOME/profiles/<name>`. |
 | `hydra --profile headless "job"` | Run one fresh persisted session, print the final answer, and exit. |
-| `hydra web` | Alias of `--profile web`. |
+| `hydra web` | Alias of `--profile web`; use this explicit form in scripts and CI. |
 | `hydra plugin --profile <name> <pnpm args>` | Manage a profile's plugins by forwarding to pnpm in the profile directory. |
 
 The invoking directory is the default workspace root. The `web` and `headless` profiles auto-initialize on first use from shipped templates; any other profile must be created through `hydra plugin`.

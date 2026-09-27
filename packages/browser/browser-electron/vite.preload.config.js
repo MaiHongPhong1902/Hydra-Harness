@@ -1,5 +1,5 @@
 // @ts-check
-// Bundles `electron-app/preload.entry.js` and the upstream PageAgent engine
+// Bundles `electron-app/preload.entry.js` and the locally owned BrowserAgent engine
 // into ONE self-contained CommonJS file, `electron-app/preload.cjs`.
 //
 // One file is not a preference: a preload running with `sandbox: true` has no
@@ -7,23 +7,19 @@
 // builtins and nothing else, so every other import must be inlined. `electron`
 // stays external for exactly that reason.
 //
-// The output is committed. This config runs only when the vendored source or
+// The output is committed. This config runs when the local BrowserAgent source or
 // entry changes. The PageAgent Panel stays excluded. The entry applies mask
 // styles as a constructed stylesheet because a sandboxed preload cannot load
 // Vite's emitted CSS asset.
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
-import { pageAgentPatch } from './page-agent-patch.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const pageAgent = resolve(here, 'third-party/page-agent')
-const patch = resolve(here, 'page-agent.patch')
-
 export default defineConfig({
   clearScreen: false,
   esbuild: { tsconfigRaw: { compilerOptions: { target: 'esnext' } } },
-  plugins: [pageAgentPatch(pageAgent, patch), {
+  plugins: [{
     name: 'discard-external-page-agent-css',
     enforce: 'post',
     generateBundle(_options, bundle) {
@@ -37,7 +33,7 @@ export default defineConfig({
   }],
   publicDir: false,
   build: {
-    // PageAgent's package tsconfig targets `es2025`, which the current esbuild
+    // BrowserAgent's package tsconfig targets `es2025`, which the current esbuild
     // does not name yet. Electron runs a current Chromium, so `esnext` is the
     // equivalent bundle target without per-source warnings.
     target: 'esnext',
