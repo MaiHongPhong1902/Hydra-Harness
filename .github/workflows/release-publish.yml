@@ -130,3 +130,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm run release:publish --family hydra --from dist/npm
+
+      # The entry tarball is self-contained, so bare npm installs must resolve
+      # the current CLI even while the release family is still a prerelease.
+      - name: Promote CLI for bare installs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cli_version=$(node -p "require('./apps/cli/package.json').version")
+          npm dist-tag add "@hydra1902/harness@$cli_version" latest
