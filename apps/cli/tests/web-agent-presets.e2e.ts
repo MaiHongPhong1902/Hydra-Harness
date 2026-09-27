@@ -50,6 +50,7 @@ async function bootWeb(
   extra: PatchOptions[] = [],
   profilePackages: readonly string[] = [],
   profileBundles?: readonly string[],
+  lspCommand?: string,
 ): Promise<Context> {
   const storageRoot = join(dirname(settingsFile), 'storages')
   const overrides: PatchOptions[] = [
@@ -78,6 +79,10 @@ async function bootWeb(
     // agent's capabilities, which is all this file asserts.
     { id: 'web-runtime', disabled: true },
     { id: 'session-telemetry-otel', disabled: true },
+    // Keep this composition assertion focused on the shipped preset catalog;
+    // browser and Obsidian tools are independent opt-in host integrations.
+    { id: 'obsidian-knowledge', disabled: true },
+    { id: 'tool-web', config: { fetch: false, searchTimeoutMs: 60000 } },
     // A deployment-level skill on the host registry's GLOBAL layer — the same
     // registration shape a repository plugin's skill root uses. The layered
     // skills test below proves it reaches preset-composed agents.
@@ -114,9 +119,13 @@ async function bootWeb(
   // upward walk. The flat fallback the preset boot maintains is what makes
   // them resolvable — the same mechanism, not a test-only shim.
   const home = dirname(settingsFile)
+  const previousHome = process.env.HYDRA_HOME
+  const previousLspCommand = process.env.HYDRA_LSP_COMMAND
+  process.env.HYDRA_HOME = home
+  if (lspCommand === undefined) delete process.env.HYDRA_LSP_COMMAND
+  else process.env.HYDRA_LSP_COMMAND = lspCommand
   // plugin-inventory validates the active include against the launcher's
   // managed profile root. Keep this isolated fixture under its temporary home.
-  process.env.HYDRA_HOME = home
   healProfilesModuleFallback(INSTALL_ANCHOR, home)
   const profileDir = join(home, 'profiles', 'spec')
   await mkdir(profileDir, { recursive: true })
@@ -152,30 +161,31 @@ async function bootWeb(
   }
   const rootConfig = join(profileDir, 'cordis.yml')
   await writeFile(rootConfig, '[]\n')
-  return await boot('hydra-test', rootConfig, [...bundlePatches, ...overrides], (bootCtx) => {
-    provideCmdline(bootCtx, { args: [], exit: () => {} })
-  })
+  try {
+    const context = await boot('hydra-test', rootConfig, [...bundlePatches, ...overrides], (bootCtx) => {
+      provideCmdline(bootCtx, { args: [], exit: () => {} })
+    })
+    // Browser support remains mounted so `tool-browser` has its declared
+    // dependency, but this catalog test does not start or enumerate that
+    // optional integration. Disable the preset row through its real settings
+    // path, which is the same switch the product uses.
+    const pluginEnablement = Object.fromEntries(
+      (await context.agentPresets.list()).map(preset => [preset.id, { 'tool-browser': false }]),
+    )
+    await context.settings.update(settingsNamespace(SETTINGS_NAMESPACE), { pluginEnablement })
+    return context
+  } finally {
+    if (previousHome === undefined) delete process.env.HYDRA_HOME
+    else process.env.HYDRA_HOME = previousHome
+    if (previousLspCommand === undefined) delete process.env.HYDRA_LSP_COMMAND
+    else process.env.HYDRA_LSP_COMMAND = previousLspCommand
+  }
 }
 
 const toolNames = (ctx: Context, agent?: Agent): string[] =>
   ctx.tools.schemas(agent).map(schema => schema.name).sort()
 
-const OPTIONAL_HOST_TOOLS = new Set([
-  'browser_back', 'browser_click', 'browser_click_at', 'browser_close', 'browser_close_tab',
-  'browser_console_messages', 'browser_drag', 'browser_drop', 'browser_file_upload', 'browser_fill',
-  'browser_fill_form', 'browser_find', 'browser_forward', 'browser_handle_dialog', 'browser_history_search',
-  'browser_hover', 'browser_navigate', 'browser_navigate_back', 'browser_network_request',
-  'browser_network_requests', 'browser_open_tab', 'browser_page_agent_run', 'browser_page_agent_status',
-  'browser_page_agent_stop', 'browser_press', 'browser_press_key', 'browser_resize', 'browser_screenshot',
-  'browser_scroll', 'browser_scroll_horizontally', 'browser_select_option', 'browser_select_text',
-  'browser_snapshot', 'browser_state', 'browser_switch_tab', 'browser_tabs', 'browser_take_screenshot',
-  'browser_type', 'browser_upload_file', 'browser_wait', 'browser_wait_for',
-  'obsidian_knowledge_read', 'obsidian_knowledge_recall', 'obsidian_knowledge_save_approved', 'web_fetch',
-])
-
-function coreToolNames(ctx: Context, agent?: Agent): string[] {
-  return toolNames(ctx, agent).filter(name => !OPTIONAL_HOST_TOOLS.has(name))
-}
+const coreToolNames = (ctx: Context, agent?: Agent): string[] => toolNames(ctx, agent)
 
 function toolParameterNames(ctx: Context, agent: Agent, toolName: string): string[] {
   const schema = ctx.tools.schemas(agent).find(tool => tool.name === toolName)
@@ -200,11 +210,19 @@ function enablePresetTool(composition: string, id: string): string {
 }
 
 let ctx: Context
+let ambientLspCommand: string | undefined
 beforeAll(async () => {
+  ambientLspCommand = process.env.HYDRA_LSP_COMMAND
+  delete process.env.HYDRA_LSP_COMMAND
   const settingsFile = join(await mkdtemp(join(tmpdir(), 'hydra-web-presets-')), 'settings.yaml')
   await writeFile(settingsFile, '{}\n')
   ctx = await bootWeb(settingsFile)
 }, 120_000)
+
+afterAll(() => {
+  if (ambientLspCommand === undefined) delete process.env.HYDRA_LSP_COMMAND
+  else process.env.HYDRA_LSP_COMMAND = ambientLspCommand
+})
 
 describe('the shipped Web composition', () => {
   it('leaves the global tool layer empty', () => {
@@ -268,7 +286,7 @@ describe('the shipped Web composition', () => {
       expect(coreToolNames(ctx, handle.agent).filter(name => name !== 'glob' && name !== 'grep')).toEqual([
         'ask_user_question', ...(process.platform === 'win32' ? [] : ['bash']), 'create_goal', 'edit', 'exit_plan_mode',
         'get_goal', 'interrupt_agent', 'job_kill', 'job_list', 'job_output', 'list_agents', ...(process.platform === 'win32' ? ['pwsh'] : []), 'ralph', 'read', 'read_image', 'send_message', 'skill', 'skill_search',
-        'subagent', 'subagent_fork', 'todo_write', 'update_goal', 'web_search',
+        'subagent', 'subagent_fork', 'todo_write', 'update_goal', 'web_fetch', 'web_search',
         'workflow', 'write',
       ])
     } finally {
@@ -286,7 +304,7 @@ describe('the shipped Web composition', () => {
       expect(assembly.sections).toEqual([
         { name: 'deployment:persona', text: MINIMAL_PROMPT },
       ])
-      expect(assembly.tools.map(tool => tool.name).filter(name => !OPTIONAL_HOST_TOOLS.has(name))).toEqual(process.platform === 'win32'
+      expect(assembly.tools.map(tool => tool.name)).toEqual(process.platform === 'win32'
         ? ['pwsh', 'str_replace_editor']
         : ['bash', 'str_replace_editor'])
       const shellTool = assembly.tools.find(tool => tool.name === (process.platform === 'win32' ? 'pwsh' : 'bash'))
@@ -385,6 +403,60 @@ describe('the shipped Web composition', () => {
       await coded.dispose()
     }
   })
+
+  it('keeps LSP absent by default and enables it for standard and code when configured', async () => {
+    await expect(ctx.lsp.query({
+      operation: 'hover',
+      filePath: 'probe.ts',
+      position: { line: 0, character: 0 },
+      workspaceRoot: process.cwd(),
+    })).rejects.toMatchObject({ code: 'LSP_UNAVAILABLE' })
+
+    const settingsFile = join(await mkdtemp(join(tmpdir(), 'hydra-web-lsp-')), 'settings.yaml')
+    await writeFile(settingsFile, '{}\n')
+    const previousLspCommand = process.env.HYDRA_LSP_COMMAND
+    process.env.HYDRA_LSP_COMMAND = process.execPath
+    let enabledCtx: Context | undefined
+    try {
+      enabledCtx = await bootWeb(settingsFile, [], [], undefined, process.execPath)
+      const context = enabledCtx
+      for (const id of ['standard', 'code'] as const) {
+        const handle = await context.agents.create({
+          sessionId: SessionId(`preset-lsp-${id}`),
+          setup: agentCtx => context.agentPresets.mount(agentCtx, id).then(() => undefined),
+        })
+        try {
+          expect(toolNames(context, handle.agent)).toContain('lsp')
+          const assembly = await context.systemPrompt.assemble({ scope: handle.agent })
+          if (id === 'standard') expect(assembly.tools.map(tool => tool.name)).toContain('lsp')
+          else expect(assembly.tools.map(tool => tool.name)).toEqual(['run_code'])
+        } finally {
+          await handle.dispose()
+        }
+      }
+
+      await writeFile(join(dirname(settingsFile), 'probe.ts'), 'const value = 1\n')
+      let failure: unknown
+      try {
+        await context.lsp.query({
+          operation: 'hover',
+          filePath: 'probe.ts',
+          position: { line: 0, character: 0 },
+          workspaceRoot: dirname(settingsFile),
+        })
+      } catch (error) {
+        failure = error
+      }
+      // The configured executable is intentionally only a lazy boot probe here;
+      // route selection must reach it before its non-LSP process exits.
+      expect(failure).toBeDefined()
+      expect((failure as { code?: unknown }).code).not.toBe('LSP_UNAVAILABLE')
+    } finally {
+      if (enabledCtx !== undefined) await enabledCtx.fiber.dispose()
+      if (previousLspCommand === undefined) delete process.env.HYDRA_LSP_COMMAND
+      else process.env.HYDRA_LSP_COMMAND = previousLspCommand
+    }
+  }, 120_000)
 
   it('keeps the self-referential toolset out of every other preset', async () => {
     const handle = await ctx.agents.create({

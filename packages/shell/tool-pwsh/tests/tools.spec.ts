@@ -346,6 +346,20 @@ describe('argument validation', () => {
     expect(text(await call(ctx, 'pwsh', { command: 'Write-Output hi', description: ' ' }))).toContain('expected a non-empty string')
     expect(text(await call(ctx, 'pwsh', { command: 'Write-Output hi', description: 'd', timeoutMs: -1 })))
       .toContain('invalid timeoutMs: expected a positive number')
+    expect(text(await call(ctx, 'pwsh', { command: 'Write-Output hi', description: 'd', changed_paths: [''] })))
+      .toContain('invalid changed_paths')
+  })
+
+  it('keeps declared changed paths on the real execution while publishing no presentation metadata', async () => {
+    const { ctx } = await setup()
+    let observed: { arguments: unknown; meta: unknown } | undefined
+    ctx.on('tools/result', (exec, result) => {
+      if (exec.name === 'pwsh') observed = { arguments: exec.arguments, meta: result.meta }
+    })
+    const args = { command: 'Set-Content src/a.ts', description: 'write file', changed_paths: [' src/a.ts '] }
+    const result = await call(ctx, 'pwsh', args)
+    expect(result.isError).toBe(false)
+    expect(observed).toEqual({ arguments: args, meta: undefined })
   })
 })
 
@@ -815,19 +829,6 @@ describe('background execution through the job runtime', () => {
 })
 
 describe('UI presentation', () => {
-  it('projects declared foreground changed paths for workspace instruction refresh', async () => {
-    const { ctx } = await setup()
-    const output = ctx.tools.get('pwsh')!.output
-    expect(output.presentationMeta?.(
-      { command: 'Set-Content src/a.ts', description: 'write file', changed_paths: [' src/a.ts '] },
-      { kind: 'foreground' },
-    )).toEqual({ changed_paths: ['src/a.ts'] })
-    expect(output.presentationMeta?.(
-      { command: 'Set-Content src/a.ts', description: 'write file', changed_paths: ['src/a.ts'], run_in_background: true },
-      { kind: 'background', jobId: 'job-1' },
-    )).toEqual({})
-  })
-
   it('a real execute presents a completed foreground run as a terminal card with the parsed exit pill', async () => {
     const { ctx, bash } = await setup()
     bash.handler = () => runResult('hi\n')

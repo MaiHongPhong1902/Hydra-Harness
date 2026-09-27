@@ -66,18 +66,26 @@ describe('minimal agent preset', () => {
     const stateDir = join(scaffold.workspaceCwd, 'persistent-state')
     await mkdir(stateDir)
     const signal = new AbortController().signal
+    const shell = process.platform === 'win32' ? 'pwsh' : 'bash'
+    const otherShell = shell === 'pwsh' ? 'bash' : 'pwsh'
+    const shellSetup = process.platform === 'win32'
+      ? `Set-Location -LiteralPath '${stateDir.replaceAll("'", "''")}'; $env:HYDRA_MINIMAL_STATE = 'PERSISTED'`
+      : `cd ${JSON.stringify(stateDir)} && export HYDRA_MINIMAL_STATE=PERSISTED`
+    const shellRead = process.platform === 'win32'
+      ? "Write-Output ($env:HYDRA_MINIMAL_STATE + ':' + $PWD.Path)"
+      : 'printf \'%s:%s\\n\' "$HYDRA_MINIMAL_STATE" "$PWD"'
     await scaffold.ctx.tools.execute({
       signal,
       callId: CallId('minimal-bash-state-setup'),
-      name: 'bash',
-      arguments: { command: `cd ${JSON.stringify(stateDir)} && export HYDRA_MINIMAL_STATE=PERSISTED` },
+      name: shell,
+      arguments: { command: shellSetup },
       agent: agentHandle.agent,
     })
-    const bash = await scaffold.ctx.tools.execute({
+    const shellResult = await scaffold.ctx.tools.execute({
       signal,
       callId: CallId('minimal-bash-state-read'),
-      name: 'bash',
-      arguments: { command: 'printf \'%s:%s\n\' "$HYDRA_MINIMAL_STATE" "$PWD"' },
+      name: shell,
+      arguments: { command: shellRead },
       agent: agentHandle.agent,
     })
     const seedPath = join(scaffold.workspaceCwd, 'preset-smoke.txt')
@@ -90,30 +98,34 @@ describe('minimal agent preset', () => {
       agent: agentHandle.agent,
     })
 
-    const text = (result: typeof bash): string => result.content
+    const text = (result: typeof shellResult): string => result.content
       .filter(block => block.type === 'text')
       .map(block => block.text)
       .join('')
       .replaceAll(scaffold.workspaceCwd, '{{cwd}}')
+      .replaceAll('\\', '/')
       .trimEnd()
 
+    const toolNames = requestHeader.tools?.map(tool => tool.name) ?? []
+    expect(toolNames).toContain(shell)
+    expect(toolNames).not.toContain(otherShell)
     expect({
       prompt: requestHeader.system,
-      tools: requestHeader.tools?.map(tool => tool.name),
-      bash: text(bash),
+      tools: toolNames.map(name => name === shell ? 'shell' : name).toSorted(),
+      shell: text(shellResult),
       editor: text(editor),
     }).toMatchInlineSnapshot(`
       {
-        "bash": "PERSISTED:{{cwd}}/persistent-state",
         "editor": "Here's the content of {{cwd}}/preset-smoke.txt with line numbers (which has a total of 2 lines):
            1  MINIMAL_EDITOR_OK
            2",
         "prompt": "You are a helpful software engineer assistant.",
+        "shell": "PERSISTED:{{cwd}}/persistent-state",
         "tools": [
-          "bash",
           "obsidian_knowledge_read",
           "obsidian_knowledge_recall",
           "obsidian_knowledge_save_approved",
+          "shell",
           "str_replace_editor",
         ],
       }

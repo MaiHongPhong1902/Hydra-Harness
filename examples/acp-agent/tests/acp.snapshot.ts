@@ -657,7 +657,7 @@ const SCENARIOS: Scenario[] = [
     configPath: CODE_MODE_IMAGE_CONFIG,
     posixOnly: true,
   },
-  // A nested fs dispatch inside run_code discovers workspace instructions. The
+  // A nested shell dispatch inside run_code declares a changed path. The
   // projection enters the inbox after the outer result and becomes model-visible
   // on the following step, retaining workspace provenance end to end.
   {
@@ -670,6 +670,7 @@ const SCENARIOS: Scenario[] = [
     systemPromptSource: 'code-mode-turn',
     toolSchemasSource: 'code-mode-turn',
     configPath: CODE_MODE_WORKSPACE_CONTEXT_CONFIG,
+    posixOnly: true,
   },
   // `both` owns its own expected prompt rather than sharing code-mode-turn's:
   // the two modes agree on every section except the run_code-only rule, which

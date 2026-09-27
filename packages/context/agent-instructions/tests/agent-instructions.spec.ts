@@ -22,7 +22,7 @@ import type {
 } from '@hydra/harness-fs'
 import LocalFileSystem from '@hydra/harness-fs-local'
 import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime, { defineContentToolFixture } from '@hydra/harness-tools'
+import ToolRuntime, { defineContentToolFixture, defineTool } from '@hydra/harness-tools'
 import type {
   ToolExecution,
   ToolExecutionToken,
@@ -4183,21 +4183,46 @@ describe('dynamic nested workspace context injection', () => {
     const home = await tempRepo()
     const ctx = new Context()
     try {
+      await ctx.plugin(SystemPrompt)
+      await ctx.plugin(ToolRuntime)
       await ctx.plugin(RecordingFileSystem)
       const fs = ctx.fs as RecordingFileSystem
       fs.entries.set(join(root, '.git'), { type: 'directory' })
-      fs.entries.set(join(root, 'pkg/AGENTS.md'), { type: 'file', content: 'shell-visible package rule' })
+      fs.entries.set(join(root, 'pkg/ spaced /AGENTS.md'), { type: 'file', content: 'shell-visible package rule' })
       const agent = stubAgent(root)
+      ctx.tools.register(defineTool({
+        name: 'bash',
+        description: 'Run a bash command.',
+        parameters: {
+          command: { type: 'string', required: true },
+          workdir: { type: 'string' },
+          changed_paths: { type: 'array', items: { type: 'string' } },
+          run_in_background: { type: 'boolean' },
+        },
+        output: {
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            properties: { kind: { type: 'string', required: true, const: 'foreground' } },
+          },
+          render: () => [{ type: 'text', text: 'ok' }],
+        },
+        async execute() {
+          return { kind: 'foreground' as const }
+        },
+      }))
       await ctx.plugin(workspaceContext, { hydraHome: home, maxBytes: 65536 })
 
-      ctx.emit('tools/result', stubToolExecution({
+      const result = await ctx.tools.execute({
         signal: testToolSignal,
         callId: CallId('bash-changed-paths'),
         name: 'bash',
-        arguments: { command: 'write file', changed_paths: ['pkg/generated.ts'] },
+        arguments: { command: 'write file', workdir: 'pkg', changed_paths: [' spaced /generated.ts'] },
         agent,
-      }), { content: [], isError: false, value: null, meta: { changed_paths: ['pkg/generated.ts'] } })
+      })
 
+      expect(result.isError).toBe(false)
+      expect(result.meta).toBeUndefined()
       expect(blocksText((await syncedWorkspaceContext(ctx, agent)).content))
         .toContain('shell-visible package rule')
     } finally {
@@ -4247,6 +4272,35 @@ describe('dynamic nested workspace context injection', () => {
         signal: testToolSignal,
         callId: CallId('non-fs'), name: 'composite', arguments: {}, agent,
       }), plainResult)
+      ctx.emit('tools/result', stubToolExecution({
+        signal: testToolSignal,
+        callId: CallId('shell-null-value'), name: 'bash', arguments: { changed_paths: [] }, agent,
+      }), plainResult)
+      ctx.emit('tools/result', stubToolExecution({
+        signal: testToolSignal,
+        callId: CallId('shell-background'), name: 'bash',
+        arguments: { run_in_background: true, changed_paths: ['background.ts'] }, agent,
+      }), { content: [], isError: false as const, value: { kind: 'foreground' } })
+      ctx.emit('tools/result', stubToolExecution({
+        signal: testToolSignal,
+        callId: CallId('shell-non-foreground'), name: 'bash',
+        arguments: { changed_paths: ['background.ts'] }, agent,
+      }), { content: [], isError: false as const, value: { kind: 'background' } })
+      ctx.emit('tools/result', stubToolExecution({
+        signal: testToolSignal,
+        callId: CallId('shell-null-arguments'), name: 'bash', arguments: null, agent,
+      }), { content: [], isError: false as const, value: { kind: 'foreground' } })
+      ctx.emit('tools/result', stubToolExecution({
+        signal: testToolSignal,
+        callId: CallId('shell-invalid-workdir'), name: 'bash',
+        arguments: { changed_paths: ['background.ts'], workdir: 42 }, agent,
+      }), { content: [], isError: false as const, value: { kind: 'foreground' } })
+      const cwdlessAgent = stubAgent()
+      ctx.emit('tools/result', stubToolExecution({
+        signal: testToolSignal,
+        callId: CallId('shell-cwd-fallback'), name: 'bash',
+        arguments: { changed_paths: [] }, agent: cwdlessAgent,
+      }), { content: [], isError: false as const, value: { kind: 'foreground' } })
 
       await Promise.resolve()
       expect(fs.signals).toEqual([])

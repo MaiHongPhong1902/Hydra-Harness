@@ -66,7 +66,7 @@ function validateBashArgs(args: BashToolArgs): void {
   // The escalation pairing (sandbox_permissions ⇔ justification, non-empty) is
   // the shared rule both enforcing families validate identically.
   validateEscalationArgs(args.sandbox_permissions, args.justification)
-  if (args.changed_paths?.some(path => typeof path !== 'string' || path.trim().length === 0)) {
+  if (args.changed_paths?.some(path => path.length === 0)) {
     throw new Error('invalid changed_paths: expected non-empty file paths')
   }
 }
@@ -331,12 +331,6 @@ export function apply(ctx: Context, config: Config = {}): void {
           ? `started background job ${value.jobId}`
           : renderResult(value as { kind: 'foreground' } & ShellRunResult, escalationModes),
       }],
-      presentationMeta: (args, value) => {
-        const call = args as BashToolArgs
-        return value.kind === 'foreground' && call.run_in_background !== true && call.changed_paths !== undefined
-          ? { changed_paths: call.changed_paths.map(path => path.trim()) }
-          : {}
-      },
     },
     async execute(args: BashToolArgs, exec) {
       validateBashArgs(args)

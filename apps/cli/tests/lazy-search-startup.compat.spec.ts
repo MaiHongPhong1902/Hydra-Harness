@@ -21,6 +21,7 @@ import { describe, expect, it } from 'vitest'
 const repoRoot = fileURLToPath(new URL('../../../', import.meta.url))
 const builtBin = join(repoRoot, 'apps/cli/lib/bin.js')
 const webDist = join(repoRoot, 'apps/web/dist/index.html')
+const windowsShutdownFixture = new URL('./fixtures/lazy-search-startup-shutdown.mjs', import.meta.url).href
 // Full-text session search ships off (`openAt: never` on both layers): the
 // base patch carries the default, and the web restatement must not re-enable it.
 const baseConfigPath = join(repoRoot, 'packages/bundle/base/cordis.patch.yml')
@@ -55,6 +56,7 @@ function runBuiltWeb(cwd: string): Promise<{ stdout: string; stderr: string; cod
     delete env.NODE_OPTIONS
     delete env.NODE_NO_WARNINGS
     const child = spawn(process.execPath, [
+      ...(process.platform === 'win32' ? ['--import', windowsShutdownFixture] : []),
       builtBin,
       'web',
       '--no-open',
@@ -76,7 +78,7 @@ function runBuiltWeb(cwd: string): Promise<{ stdout: string; stderr: string; cod
       stdout += chunk
       if (!settled && /hydra web: http:\/\/127\.0\.0\.1:\d+/u.test(stdout)) {
         settled = true
-        child.kill('SIGTERM')
+        if (process.platform !== 'win32') child.kill('SIGTERM')
       }
     })
     child.stderr.on('data', (chunk: string) => { stderr += chunk })

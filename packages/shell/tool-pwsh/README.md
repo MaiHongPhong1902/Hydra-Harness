@@ -33,6 +33,8 @@ Result text contains stdout, an optional `[stderr]` section, then applicable tru
 
 The canonical success is `{ kind: 'foreground', ...ShellRunResult }` for a completed foreground process (with the executor's `sandbox` facts — `mode`/`denied`, optional `enforcement`/`runnerFailed` — projected when present) or `{ kind: 'background', jobId }` for a published task. The renderer preserves exactly `started background job <id>` for background acks; programmatic consumers use the typed fields without parsing the rendered text.
 
+A foreground call may declare `changed_paths`. After a successful foreground result, `agent-instructions` resolves those exact strings against the effective workdir and uses them as context-refresh hints; it never infers paths from PowerShell text. Failed, aborted, and background calls do not refresh instructions, and these hints are not mutation records.
+
 When `run_in_background` is true, this plugin preflights `ctx.jobs.start()` before spawning, registers the calling agent as owner, and adapts the returned `ShellProcess` handle into generic cancel/done/incremental-output hooks. The job runtime owns ids, cross-session isolation, completion notices, waiting, and disposal cleanup; this plugin only maps pwsh exit facts into job output and outcome detail. `enableRunInBackground: false` removes the parameter and rejects a forced background call at execution time.
 
 ## UI presentation

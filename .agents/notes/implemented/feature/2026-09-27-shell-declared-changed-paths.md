@@ -8,7 +8,7 @@ Workspace instructions refreshed after `read`, `write`, and `edit` calls, but an
 
 ## Decision
 
-Add an optional `changed_paths` array to both foreground shell tools. The caller declares paths explicitly; successful foreground results persist the trimmed paths in presentation metadata, and `agent-instructions` projects them into the next workspace-context refresh. Failed, aborted, and background calls do not publish the metadata.
+Add an optional `changed_paths` array to both shell tools. The caller declares paths explicitly; after a successful foreground result, `agent-instructions` reads the validated arguments directly, resolves relative entries against the effective shell workdir (or session cwd), preserves each path string, and projects the entries into the next workspace-context refresh. Failed, aborted, and background calls do not publish a refresh hint, and no presentation metadata carries these paths.
 
 ## Alternatives considered
 
@@ -18,4 +18,4 @@ Add an optional `changed_paths` array to both foreground shell tools. The caller
 
 ## Consequences
 
-Models must name every changed file when a shell command should refresh scoped instructions. The metadata is a context-refresh hint only; it is not an authoritative mutation log or reversible review record.
+Models must name every changed file when a shell command should refresh scoped instructions. The declared paths are context-refresh hints only; they are not observed changes, an authoritative mutation log, or a reversible review record. Nested dispatches inherit successful foreground hints through their execution parent; an outer failure does not erase a completed nested result.

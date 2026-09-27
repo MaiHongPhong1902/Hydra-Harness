@@ -11,6 +11,7 @@
 
 import type { Context } from '@hydra/cordis'
 import { isDeepStrictEqual } from 'node:util'
+import { resolve as resolvePath } from 'node:path'
 import type { Agent, PreStepDecision } from '@hydra/harness-agent'
 import { createUserMessage } from '@hydra/harness-llm'
 import type { Session, UserMessage } from '@hydra/harness-session'
@@ -78,15 +79,21 @@ function filePathFromExecution(exec: ToolExecution): string | undefined {
   return filePath.length > 0 ? filePath : undefined
 }
 
-function changedPathsFromResult(exec: ToolExecution, result: ToolExecutionResult): string[] {
-  if (!SHELL_TOOL_NAMES.has(exec.name) || result.isError) return []
-  if (typeof exec.arguments !== 'object' || exec.arguments === null
-    || ('run_in_background' in exec.arguments && exec.arguments.run_in_background === true)) return []
-  if (typeof result.meta !== 'object' || result.meta === null || Array.isArray(result.meta)) return []
-  const paths = (result.meta as { changed_paths?: unknown }).changed_paths
-  if (!Array.isArray(paths)) return []
-  return paths.filter((path): path is string => typeof path === 'string' && path.trim().length > 0)
-    .map(path => path.trim())
+function changedPathsFromExecution(exec: ToolExecution, value: unknown, cwd: string): string[] {
+  if (!SHELL_TOOL_NAMES.has(exec.name)) return []
+  if (typeof value !== 'object' || value === null || Array.isArray(value)
+    || !('kind' in value) || value.kind !== 'foreground') return []
+  if (typeof exec.arguments !== 'object' || exec.arguments === null || Array.isArray(exec.arguments)) return []
+  const args = exec.arguments as {
+    changed_paths?: unknown
+    run_in_background?: unknown
+    workdir?: unknown
+  }
+  if (args.run_in_background === true || !Array.isArray(args.changed_paths)
+    || !args.changed_paths.every((path): path is string => typeof path === 'string' && path.length > 0)) return []
+  if (args.workdir !== undefined && typeof args.workdir !== 'string') return []
+  const workdir = typeof args.workdir === 'string' ? args.workdir : ''
+  return args.changed_paths.map(path => resolvePath(cwd, workdir, path))
 }
 
 export function apply(ctx: Context, config: Config): void {
@@ -365,7 +372,7 @@ export function apply(ctx: Context, config: Config): void {
     if (!result.isError && exec.agent !== undefined && !exec.signal.aborted) {
       const ownPath = filePathFromExecution(exec)
       if (ownPath !== undefined) touches.push({ agent: exec.agent, path: ownPath })
-      for (const path of changedPathsFromResult(exec, result)) {
+      for (const path of changedPathsFromExecution(exec, result.value, exec.agent.session.header.cwd ?? process.cwd())) {
         touches.push({ agent: exec.agent, path })
       }
     }

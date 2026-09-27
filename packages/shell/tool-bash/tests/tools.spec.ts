@@ -345,11 +345,24 @@ describe('bash tool', () => {
     [{ command: '  ', description: 'd' }, /invalid command/],
     [{ command: 'x', description: '   ' }, /invalid description/],
     [{ command: 'x', description: 'd', timeoutMs: -1 }, /invalid timeoutMs/],
+    [{ command: 'x', description: 'd', changed_paths: [''] }, /invalid changed_paths/],
   ])('rejects value-invalid args %j', async (args, pattern) => {
     const ctx = await setup()
     const result = await call(ctx, 'bash', args)
     expect(result.isError).toBe(true)
     expect(text(result)).toMatch(pattern)
+  })
+
+  it('keeps declared changed paths on the real execution while publishing no presentation metadata', async () => {
+    const ctx = await setup()
+    let observed: { arguments: unknown; meta: unknown } | undefined
+    ctx.on('tools/result', (exec, result) => {
+      if (exec.name === 'bash') observed = { arguments: exec.arguments, meta: result.meta }
+    })
+    const args = { command: 'touch src/a.ts', description: 'touch file', changed_paths: [' src/a.ts '] }
+    const result = await call(ctx, 'bash', args)
+    expect(result.isError).toBe(false)
+    expect(observed).toEqual({ arguments: args, meta: undefined })
   })
 
   it('rejects a non-JSON numeric argument before tool-specific validation', async () => {
@@ -907,19 +920,6 @@ describe('renderResult', () => {
 })
 
 describe('tool-owned UI presentation (presentCall / presentResult)', () => {
-  it('projects declared foreground changed paths for workspace instruction refresh', async () => {
-    const ctx = await setup()
-    const output = ctx.tools.get('bash')!.output
-    expect(output.presentationMeta?.(
-      { command: 'touch src/a.ts', description: 'touch file', changed_paths: [' src/a.ts '] },
-      { kind: 'foreground' },
-    )).toEqual({ changed_paths: ['src/a.ts'] })
-    expect(output.presentationMeta?.(
-      { command: 'touch src/a.ts', description: 'touch file', changed_paths: ['src/a.ts'], run_in_background: true },
-      { kind: 'background', jobId: 'job-1' },
-    )).toEqual({})
-  })
-
   it('bash presentCall: a foreground run is a terminal card (command title, description, workdir → cwd absolute or relative)', async () => {
     const ctx = await setup()
     // No explicit workdir → a terminal card with no cwd (the UI bridge fills the
