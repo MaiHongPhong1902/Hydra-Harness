@@ -1,6 +1,6 @@
 /** Published hydra web + pnpm dev:web → browser HMR, with no page reload. */
 
-import { existsSync, globSync } from 'node:fs'
+import { existsSync, globSync, statSync } from 'node:fs'
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -12,6 +12,22 @@ import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
 import type { SubprocessHandle, SubprocessSpawnSpec } from '@hydra1902/harness-subprocess'
 import { readClientBuildRecord } from '../../../scripts/client-build-environment.ts'
 import { REPO_ROOT } from './support.ts'
+
+const CLIENT_ARTIFACT_PATTERNS = [
+  'packages/*/*/lib/client.js',
+  'packages/*/*/lib/client.js.map',
+  'packages/client/ui-conversation/lib/types/**/*',
+  'packages/client/ui-conversation/lib/tsconfig.tsbuildinfo',
+  'tsconfig.client.tsbuildinfo',
+]
+
+/** Return generated client artifacts that the HMR watcher can rewrite. */
+function clientArtifactPaths(): string[] {
+  return globSync(CLIENT_ARTIFACT_PATTERNS, { cwd: REPO_ROOT })
+    .map(path => join(REPO_ROOT, path))
+    .filter(path => statSync(path).isFile())
+    .sort()
+}
 
 function pnpmArgv(args: readonly string[]): string[] {
   if (process.platform !== 'win32') return ['pnpm', ...args]
@@ -79,9 +95,9 @@ it('hot-reloads a real client-plugin source edit without refreshing the page', a
   const binPath = join(REPO_ROOT, 'apps/cli/lib/bin.js')
   if (!existsSync(binPath)) throw new Error('HMR browser test needs the built hydra bin; run pnpm run build first')
   const clientBuildEnvironment = readClientBuildRecord(REPO_ROOT).environment
-  const clientBundlePaths = globSync('packages/*/*/lib/client.js{,.map}', { cwd: REPO_ROOT })
-    .map(path => join(REPO_ROOT, path))
-  const originalClientBundles = await Promise.all(clientBundlePaths.map(async path => [path, await readFile(path)] as const))
+  const originalClientArtifacts = await Promise.all(clientArtifactPaths()
+    .map(async path => [path, await readFile(path)] as const))
+  const originalClientArtifactPaths = new Set(originalClientArtifacts.map(([path]) => path))
   const webDistPath = join(REPO_ROOT, 'apps/web/dist')
   const webDistBackupPath = join(world, 'original-web-dist')
   const webDistExisted = existsSync(webDistPath)
@@ -136,13 +152,17 @@ it('hot-reloads a real client-plugin source edit without refreshing the page', a
   } catch (error) {
     failures.push(error)
   } finally {
-    await writeFile(sourcePath, originalSource).catch((error: unknown) => failures.push(error))
     if (watcher !== undefined) await stopTree(watcher).catch((error: unknown) => failures.push(error))
     if (host !== undefined) await stopTree(host).catch((error: unknown) => failures.push(error))
     await browser?.close().catch((error: unknown) => failures.push(error))
-    await Promise.all(originalClientBundles.map(async ([path, content]) => {
-      await writeFile(path, content).catch((error: unknown) => failures.push(error))
-    }))
+    await writeFile(sourcePath, originalSource).catch((error: unknown) => failures.push(error))
+    await Promise.all(clientArtifactPaths()
+      .filter(path => !originalClientArtifactPaths.has(path))
+      .map(async (path) => { await rm(path, { force: true }) }))
+      .catch((error: unknown) => failures.push(error))
+    await Promise.all(originalClientArtifacts.map(async ([path, content]) => {
+      await writeFile(path, content)
+    })).catch((error: unknown) => failures.push(error))
     await rm(webDistPath, { recursive: true, force: true }).catch((error: unknown) => failures.push(error))
     if (webDistExisted) {
       await cp(webDistBackupPath, webDistPath, { recursive: true }).catch((error: unknown) => failures.push(error))
