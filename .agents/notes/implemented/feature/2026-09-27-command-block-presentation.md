@@ -10,7 +10,7 @@ Documentation readers could not reliably distinguish a command to run from sourc
 
 The VitePress fence renderer classifies shell-language fences as command blocks and explicit `output` fences as terminal output. Command content is normalized to remove leading `$`, `>`, and PowerShell prompts before highlighting, while VitePress's existing Clipboard API handler copies the resulting block and supplies its temporary copied state. Output blocks keep their text-only presentation and have no copy control.
 
-The site stylesheet gives command and output blocks distinct borders, backgrounds, labels, spacing, and rounded containers. Command fences use a visible text button with `Copy` and `Copied` states; source-code fences retain the stock VitePress presentation. Documentation marks captured stdout/stderr with `output` and promotes direct executable examples to shell fences.
+The site stylesheet gives command and output blocks distinct borders, backgrounds, labels, spacing, and rounded containers across both standard documentation pages (`.vp-doc`) and custom page layouts (`.VPPage`). Command fences use a visible text button with `Copy` and `Copied` states; source-code fences retain the stock VitePress presentation. Documentation marks captured stdout/stderr with `output` and promotes direct executable examples to shell fences.
 
 ## Alternatives considered
 

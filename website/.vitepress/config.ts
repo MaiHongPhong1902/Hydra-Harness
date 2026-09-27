@@ -255,6 +255,68 @@ const siteStyle = `
   .VPPage { padding: 12px 16px 48px; }
   .VPPage table { display: block; overflow-x: auto; }
 }
+.VPPage [class*='language-'] {
+  position: relative;
+  margin: 16px 0;
+  background-color: var(--vp-code-block-bg);
+  overflow-x: auto;
+  border-radius: 8px;
+}
+.VPPage [class*='language-'] pre {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 20px 0;
+  background: transparent;
+  overflow-x: auto;
+}
+.VPPage [class*='language-'] code {
+  display: block;
+  padding: 0 24px;
+  width: fit-content;
+  min-width: 100%;
+  line-height: var(--vp-code-line-height);
+  font-size: var(--vp-code-font-size);
+  color: var(--vp-code-block-color);
+}
+.VPPage [class*='language-'] > button.copy {
+  direction: ltr;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  border: 1px solid var(--vp-code-copy-code-border-color);
+  border-radius: 4px;
+  width: 40px;
+  height: 40px;
+  background-color: var(--vp-code-copy-code-bg);
+  opacity: 0;
+  cursor: pointer;
+  background-image: var(--vp-icon-copy);
+  background-position: 50%;
+  background-size: 20px;
+  background-repeat: no-repeat;
+  transition: border-color 0.25s, background-color 0.25s, opacity 0.25s;
+}
+.VPPage [class*='language-']:hover > button.copy,
+.VPPage [class*='language-'] > button.copy:focus {
+  opacity: 1;
+}
+.VPPage [class*='language-'] > span.lang {
+  position: absolute;
+  top: 2px;
+  right: 8px;
+  z-index: 2;
+  font-size: 12px;
+  font-weight: 500;
+  user-select: none;
+  color: var(--vp-code-lang-color);
+  transition: color 0.4s, opacity 0.4s;
+}
+.VPPage [class*='language-']:hover > button.copy + span.lang,
+.VPPage [class*='language-'] > button.copy:focus + span.lang {
+  opacity: 0;
+}
 
 .hydra-home-hero {
   position: relative;
@@ -459,19 +521,19 @@ const siteStyle = `
   .VPSidebar[data-scrolling] { scrollbar-color: var(--vp-c-text-3) transparent; }
 }
 
-.vp-doc .hydra-command-block,
-.vp-doc .hydra-output-block {
+:is(.vp-doc, .VPPage) .hydra-command-block,
+:is(.vp-doc, .VPPage) .hydra-output-block {
   position: relative;
   border: 1px solid var(--vp-c-divider);
   border-radius: 12px;
   box-shadow: 0 8px 22px rgba(0, 18, 63, 0.08);
 }
-.vp-doc .hydra-command-block {
+:is(.vp-doc, .VPPage) .hydra-command-block {
   border-color: rgba(0, 154, 252, 0.45);
   background: var(--vp-c-bg-soft);
 }
-.vp-doc .hydra-command-block::before,
-.vp-doc .hydra-output-block::before {
+:is(.vp-doc, .VPPage) .hydra-command-block::before,
+:is(.vp-doc, .VPPage) .hydra-output-block::before {
   position: absolute;
   top: 12px;
   left: 16px;
@@ -482,15 +544,17 @@ const siteStyle = `
   letter-spacing: 0.12em;
   line-height: 1;
 }
-.vp-doc .hydra-command-block::before { content: 'COMMAND'; color: var(--vp-c-brand-1); }
-.vp-doc .hydra-output-block::before { content: 'TERMINAL OUTPUT'; }
-.vp-doc .hydra-command-block > pre { padding-top: 44px; }
-.vp-doc .hydra-output-block > pre { padding-top: 40px; }
-.vp-doc .hydra-command-block > span.lang,
-.vp-doc .hydra-output-block > span.lang { display: none; }
-.vp-doc .hydra-command-block > button.copy {
+:is(.vp-doc, .VPPage) .hydra-command-block::before { content: 'COMMAND'; color: var(--vp-c-brand-1); }
+:is(.vp-doc, .VPPage) .hydra-output-block::before { content: 'TERMINAL OUTPUT'; }
+:is(.vp-doc, .VPPage) .hydra-command-block > pre { padding-top: 44px; }
+:is(.vp-doc, .VPPage) .hydra-output-block > pre { padding-top: 40px; }
+:is(.vp-doc, .VPPage) .hydra-command-block > span.lang,
+:is(.vp-doc, .VPPage) .hydra-output-block > span.lang { display: none; }
+:is(.vp-doc, .VPPage) .hydra-command-block > button.copy {
+  position: absolute;
   top: 10px;
   right: 10px;
+  z-index: 3;
   width: auto;
   min-width: 74px;
   height: 32px;
@@ -501,27 +565,28 @@ const siteStyle = `
   background-image: none;
   color: var(--vp-c-text-1);
   opacity: 1;
+  cursor: pointer;
 }
-.vp-doc .hydra-command-block > button.copy:hover {
+:is(.vp-doc, .VPPage) .hydra-command-block > button.copy:hover {
   border-color: var(--vp-c-brand-1);
   color: var(--vp-c-brand-1);
 }
-.vp-doc .hydra-command-block > button.copy::after { content: 'Copy'; }
-.vp-doc .hydra-command-block > button.copy.copied::before,
-.vp-doc .hydra-command-block > button.copy:hover.copied::before {
+:is(.vp-doc, .VPPage) .hydra-command-block > button.copy::after { content: 'Copy'; }
+:is(.vp-doc, .VPPage) .hydra-command-block > button.copy.copied::before,
+:is(.vp-doc, .VPPage) .hydra-command-block > button.copy:hover.copied::before {
   display: none !important;
   content: none !important;
 }
-.vp-doc .hydra-command-block > button.copy.copied::after { content: 'Copied'; }
-.vp-doc .hydra-command-block > button.copy.copied {
+:is(.vp-doc, .VPPage) .hydra-command-block > button.copy.copied::after { content: 'Copied'; }
+:is(.vp-doc, .VPPage) .hydra-command-block > button.copy.copied {
   border-color: var(--vp-c-brand-1);
   background-image: none !important;
   color: var(--vp-c-brand-1);
 }
-.vp-doc .hydra-output-block > button.copy { display: none; }
+:is(.vp-doc, .VPPage) .hydra-output-block > button.copy { display: none; }
 @media (max-width: 639px) {
-  .vp-doc .hydra-command-block,
-  .vp-doc .hydra-output-block { border-radius: 8px; }
+  :is(.vp-doc, .VPPage) .hydra-command-block,
+  :is(.vp-doc, .VPPage) .hydra-output-block { border-radius: 8px; }
 }
 `
 
