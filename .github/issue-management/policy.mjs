@@ -237,8 +237,22 @@ function stripIgnoredMarkdown(body) {
  * @returns {{all: number[], resolving: number[], related: number[]}} References.
  */
 export function parseReferences({ body, repository }) {
-  const source = stripIgnoredMarkdown(body)
   const expected = repository.toLowerCase()
+  const repositoryPattern = expected.replaceAll('.', '\\.').replaceAll('/', '\\/')
+  const sameRepositoryIssue = new RegExp(
+    '^https://github\\.com/' + repositoryPattern + '/issues/\\d+(?:[/\\s?#].*)?$',
+    'i',
+  )
+  const source = stripIgnoredMarkdown(body)
+    .replace(/\[([^\]]*)\]\((https?:\/\/[^)]+)\)/gi, (match, label, url) => (
+      sameRepositoryIssue.test(url) ? label + ' ' + url : ' '
+    ))
+    .replace(/<a\b[^>]*href=["'](https?:\/\/[^"']+)["'][^>]*>(.*?)<\/a>/gis, (match, url, label) => (
+      sameRepositoryIssue.test(url) ? label + ' ' + url : ' '
+    ))
+    .replace(/\b([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)#(\d+)\b/g, (match, ownerRepository) => (
+      ownerRepository.toLowerCase() === expected ? match : ' '
+    ))
   const all = new Set()
   const resolving = new Set()
   const reference =

@@ -245,6 +245,36 @@ test('separates resolving and informational references', () => {
   )
 })
 
+test('keeps same-repository issue links with URL suffixes', () => {
+  assert.deepEqual(
+    parseReferences({
+      body: 'Fixes [#12](https://github.com/hydraharness/hydra-test/issues/12/ "issue").',
+      repository: 'hydraharness/hydra-test',
+    }),
+    { all: [12], resolving: [12], related: [] },
+  )
+})
+
+test('ignores external release-note references', () => {
+  assert.deepEqual(
+    parseReferences({
+      body: 'Bumps [actions/cache#1760](https://redirect.github.com/actions/cache/pull/1760) and [#1775](https://github.com/actions/cache/pull/1775). Fixes #12.',
+      repository: 'hydraharness/hydra-test',
+    }),
+    { all: [12], resolving: [12], related: [] },
+  )
+})
+
+test('ignores external HTML release-note references', () => {
+  assert.deepEqual(
+    parseReferences({
+      body: '<a href="https://redirect.github.com/actions/cache/issues/1768">#1768</a> Fixes #12.',
+      repository: 'hydraharness/hydra-test',
+    }),
+    { all: [12], resolving: [12], related: [] },
+  )
+})
+
 test('does not treat pull request references as Issue associations', () => {
   const references = {
     all: [123, 1180, 1181],
