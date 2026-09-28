@@ -145,6 +145,14 @@ class Hmr extends Service {
       depth,
       ignored: undefined,
       ignoreInitial: false,
+      // Raw fs.watch can silently miss a change to this exact path when it
+      // follows closely after a prior reload's own file activity (observed
+      // in CI: a second patch-layer edit right after the first's reload
+      // never fired a 'change' event, hanging the reload indefinitely).
+      // This watch covers a handful of config files at most, so
+      // stat-polling's cost is negligible next to the reliability it buys.
+      usePolling: true,
+      interval: 100,
     })
     const registration = { watcher }
     this.configs.set(watchFilename, registration)
