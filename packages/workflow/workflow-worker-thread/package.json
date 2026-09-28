@@ -69,6 +69,6 @@
     "@hydraharness/harness-tools": "workspace:^",
     "@hydraharness/harness-workflow": "workspace:^",
     "@hydraharness/cordis": "workspace:^",
-    "tsx": "^4.19.2"
+    "tsx": "^4.23.12"
   }
 }
