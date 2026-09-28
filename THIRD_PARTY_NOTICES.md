@@ -11,23 +11,23 @@ The complete npm transitive closure, including the Landlock launcher workspace, 
 
 ## Vendored source (`vendor/`)
 
-The Cordis framework and its foundation libraries are source-vendored into this repository rather than consumed from npm, and republished under the `@hydra1902` scope. All are MIT-licensed; each directory preserves its upstream `LICENSE` file. Exact upstream commits and local modifications are recorded in [`vendor/README.md`](vendor/README.md).
+The Cordis framework and its foundation libraries are source-vendored into this repository rather than consumed from npm, and republished under the `@hydraharness` scope. All are MIT-licensed; each directory preserves its upstream `LICENSE` file. Exact upstream commits and local modifications are recorded in [`vendor/README.md`](vendor/README.md).
 
 | Package | Upstream name | Upstream | License |
 | --- | --- | --- | --- |
-| `@hydra1902/cosmokit` | `cosmokit` | [github.com/shigma/cosmokit](https://github.com/shigma/cosmokit) | MIT |
-| `@hydra1902/schemastery` | `schemastery` | [github.com/shigma/schemastery](https://github.com/shigma/schemastery) | MIT |
-| `@hydra1902/cordis` | `cordis` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
-| `@hydra1902/cordis-plugin-loader` | `@cordisjs/plugin-loader` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
-| `@hydra1902/cordis-plugin-include` | `@cordisjs/plugin-include` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
-| `@hydra1902/cordis-plugin-group` | `@cordisjs/plugin-group` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
-| `@hydra1902/cordis-plugin-timer` | `@cordisjs/plugin-timer` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
-| `@hydra1902/cordis-plugin-hmr` | `@cordisjs/plugin-hmr` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
-| `@hydra1902/cordis-plugin-logger-console` | `@cordisjs/plugin-logger-console` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydraharness/cosmokit` | `cosmokit` | [github.com/shigma/cosmokit](https://github.com/shigma/cosmokit) | MIT |
+| `@hydraharness/schemastery` | `schemastery` | [github.com/shigma/schemastery](https://github.com/shigma/schemastery) | MIT |
+| `@hydraharness/cordis` | `cordis` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydraharness/cordis-plugin-loader` | `@cordisjs/plugin-loader` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydraharness/cordis-plugin-include` | `@cordisjs/plugin-include` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydraharness/cordis-plugin-group` | `@cordisjs/plugin-group` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydraharness/cordis-plugin-timer` | `@cordisjs/plugin-timer` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydraharness/cordis-plugin-hmr` | `@cordisjs/plugin-hmr` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydraharness/cordis-plugin-logger-console` | `@cordisjs/plugin-logger-console` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
 
 ## Vendored source in packages (`third-party/`)
 
-Source copies tracked inside the repository and bundled into the sandboxed preload. Each directory preserves its upstream `LICENSE`; package manifests use private `@hydra1902` names and the upstream project remains credited in the table below.
+Source copies tracked inside the repository and bundled into the sandboxed preload. Each directory preserves its upstream `LICENSE`; package manifests use private `@hydraharness` names and the upstream project remains credited in the table below.
 
 | Directory | Upstream name | Upstream | License | Role |
 | --- | --- | --- | --- | --- |
@@ -209,4 +209,4 @@ Direct dependencies of the `pyproject.toml` manifests, plus `uv` as the developm
 
 ## First-party native packages
 
-`@hydra1902/node-addon-landlock-run` (and its platform packages) is built and released from this repository under BSD 3-Clause. It is listed here for completeness; it is first-party, not third-party.
+`@hydraharness/node-addon-landlock-run` (and its platform packages) is built and released from this repository under BSD 3-Clause. It is listed here for completeness; it is first-party, not third-party.

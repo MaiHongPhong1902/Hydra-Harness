@@ -1,11 +1,11 @@
 # Keyless provider-retry composition for the headless stream-json snapshot.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra1902/harness-llm-deepseek'
+        name: '@hydraharness/harness-llm-deepseek'
         disabled: true
       - insert:
           - id: retry-snapshot-backend

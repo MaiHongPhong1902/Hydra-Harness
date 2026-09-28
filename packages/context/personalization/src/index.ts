@@ -2,18 +2,18 @@
  * Local personalization: a settings-backed personality plus explicit local
  * memories. Global settings seed a chat's durable policy; `/memories` changes
  * only that chat.
- * @module @hydra1902/harness-personalization
+ * @module @hydraharness/harness-personalization
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type {} from '@hydra1902/harness-agent'
-import type {} from '@hydra1902/harness-commands'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { PreStepDecision } from '@hydra1902/harness-agent'
-import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
-import type {} from '@hydra1902/harness-system-prompt'
-import { resolveHydraHome } from '@hydra1902/harness-home-paths'
-import z from '@hydra1902/schemastery'
+import type { Context } from '@hydraharness/cordis'
+import type {} from '@hydraharness/harness-agent'
+import type {} from '@hydraharness/harness-commands'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { PreStepDecision } from '@hydraharness/harness-agent'
+import { installSettingsSection, settingsNamespace } from '@hydraharness/harness-settings'
+import type {} from '@hydraharness/harness-system-prompt'
+import { resolveHydraHome } from '@hydraharness/harness-home-paths'
+import z from '@hydraharness/schemastery'
 import {
   DEFAULT_MEMORY_POLICY, DEFAULT_PERSONALITY, hasLoggedMemoryPolicy, hasLoggedPersonality,
   PERSONALITIES, resolveMemoryPolicy, resolveSessionPersonality, type MemoryPolicy, type Personality,
@@ -27,14 +27,14 @@ export {
 export type { MemoryEntry } from './session.ts'
 export { LocalMemoryStore, redactMemorySecrets } from './memories.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     localMemories: LocalMemoryStore
   }
 }
 
 /** Cordis plugin name. */
-export const name = '@hydra1902/harness-personalization'
+export const name = '@hydraharness/harness-personalization'
 
 /** The prompt registry this plugin contributes to. */
 export const inject = ['systemPrompt']

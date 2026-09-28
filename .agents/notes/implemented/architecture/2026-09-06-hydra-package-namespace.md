@@ -8,7 +8,7 @@ The agent's displayed name and its npm package names need one product identity. 
 
 ## Decision
 
-Repository-owned npm packages use the `@hydra` scope. Harness packages use `@hydra/harness-<role>`, the CLI package is `@hydra/harness`, and the examples workspace is `@hydra/harness-examples`. Vendored framework and native launcher packages retain their descriptive names under the same scope. The [vendor rescope decision](../process/2026-08-10-vendor-package-rescope.md) continues to own upstream attribution, version preservation, and synchronization.
+Repository-owned npm packages use the `@hydraharness` scope. Harness packages use `@hydraharness/harness-<role>`, the CLI package is `@hydraharness/harness`, and the examples workspace is `@hydraharness/harness-examples`. Vendored framework and native launcher packages retain their descriptive names under the same scope. The [vendor rescope decision](../process/2026-08-10-vendor-package-rescope.md) continues to own upstream attribution, version preservation, and synchronization.
 
 Python distributions are `hydra-harness-sdk` and `hydra-harness-runtime-bin`. Their import modules are `hydra_harness` and `hydra_harness_runtime`; the public SDK entry is `HydraHarness`. Wheel staging, CI artifacts, runtime discovery, and examples use the same names. The JSON-RPC `serverInfo.name` remains the wire-stable `hydra-harness-sdk-runtime` identifier.
 

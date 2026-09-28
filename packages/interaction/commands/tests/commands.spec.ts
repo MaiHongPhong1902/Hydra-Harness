@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { createScope } from '@hydra1902/harness-scope'
-import type { Scope } from '@hydra1902/harness-scope'
-import type { Agent } from '@hydra1902/harness-agent'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import CommandRuntime, { parseCommand, type CommandDefinition } from '@hydra1902/harness-commands'
-import { AttachmentStore } from '@hydra1902/harness-attachment'
+import { Context } from '@hydraharness/cordis'
+import { createScope } from '@hydraharness/harness-scope'
+import type { Scope } from '@hydraharness/harness-scope'
+import type { Agent } from '@hydraharness/harness-agent'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import CommandRuntime, { parseCommand, type CommandDefinition } from '@hydraharness/harness-commands'
+import { AttachmentStore } from '@hydraharness/harness-attachment'
 
 function command(name: string, text = `ran:${name}`): CommandDefinition {
   return {

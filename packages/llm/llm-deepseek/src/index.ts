@@ -8,19 +8,19 @@
  * anything, while an in-flight stream keeps the facts it started with. The
  * one registration-captured fact — the retry policy — re-registers the route
  * in place when it changes.
- * @module @hydra1902/harness-llm-deepseek
+ * @module @hydraharness/harness-llm-deepseek
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { assertUsableApiKey, LlmError, resolveRetryPolicy, RetryPolicySchema } from '@hydra1902/harness-llm'
-import { normalizeHttpProxy } from '@hydra1902/harness-llm/proxy'
-import type { ModelModality, RetryPolicyConfig } from '@hydra1902/harness-llm'
-import { credentialRef } from '@hydra1902/harness-credentials'
-import { launchEnvironmentOf, type LaunchEnvironmentSnapshot } from '@hydra1902/harness-launch-environment'
-import { deepEqualJson, installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
-import { getOrCreateAnonymousUserId, type AnonymousUserId } from '@hydra1902/harness-anonymous-user-id'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { assertUsableApiKey, LlmError, resolveRetryPolicy, RetryPolicySchema } from '@hydraharness/harness-llm'
+import { normalizeHttpProxy } from '@hydraharness/harness-llm/proxy'
+import type { ModelModality, RetryPolicyConfig } from '@hydraharness/harness-llm'
+import { credentialRef } from '@hydraharness/harness-credentials'
+import { launchEnvironmentOf, type LaunchEnvironmentSnapshot } from '@hydraharness/harness-launch-environment'
+import { deepEqualJson, installSettingsSection, settingsNamespace } from '@hydraharness/harness-settings'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
+import { getOrCreateAnonymousUserId, type AnonymousUserId } from '@hydraharness/harness-anonymous-user-id'
 import {
   DEFAULT_CONTEXT_WINDOW,
   DEFAULT_MAX_REQUEST_IMAGE_BYTES,

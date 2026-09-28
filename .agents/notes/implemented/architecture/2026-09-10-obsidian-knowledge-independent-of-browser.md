@@ -4,9 +4,9 @@ Status: implemented
 
 ## Problem
 
-`@hydra/harness-obsidian-knowledge` had grown a second job: it observed every `browser_*` tool result, gated navigation to a configured `targetDomain`, denied bare-domain navigation, forced a live-verification turn, generated application-root URLs from note contents, and committed page/control/action notes as approved evidence. That coupled a knowledge-retrieval plugin to the browser seam's event stream and result shape, so the two could not be reasoned about or enabled separately: Obsidian's settings and approvals could block, steer, or write on behalf of browsing that had nothing to do with knowledge.
+`@hydraharness/harness-obsidian-knowledge` had grown a second job: it observed every `browser_*` tool result, gated navigation to a configured `targetDomain`, denied bare-domain navigation, forced a live-verification turn, generated application-root URLs from note contents, and committed page/control/action notes as approved evidence. That coupled a knowledge-retrieval plugin to the browser seam's event stream and result shape, so the two could not be reasoned about or enabled separately: Obsidian's settings and approvals could block, steer, or write on behalf of browsing that had nothing to do with knowledge.
 
-The coupling also ran one way only. `@hydra/harness-tool-browser` and `@hydra/harness-browser-electron` never referenced Obsidian; Obsidian reached into their results through `tools/pre-execute`, `tools/result`, `agent/pre-step`, and `agent/turn-stopping`. The dependency existed solely to serve the capture feature.
+The coupling also ran one way only. `@hydraharness/harness-tool-browser` and `@hydraharness/harness-browser-electron` never referenced Obsidian; Obsidian reached into their results through `tools/pre-execute`, `tools/result`, `agent/pre-step`, and `agent/turn-stopping`. The dependency existed solely to serve the capture feature.
 
 ## Decision
 
@@ -14,7 +14,7 @@ The two plugins are independent. Obsidian knowledge lives in the [knowledge pack
 
 Obsidian retains exactly three model-facing tools — `obsidian_knowledge_recall`, `obsidian_knowledge_read`, and `obsidian_knowledge_save_approved` — plus the host approval gate on the save tool, the MCP storage adapter, vault-identity verification, path containment, byte limits, and credential resolution. The save tool persists the approved title, content, and evidence; it no longer attaches browser observations.
 
-Removed from Obsidian: the `BrowserKnowledgeRecorder`, the `obsidian_knowledge_read_browser` tool, the `targetDomain` composition and user-settings field with `hostnameOf`/`matchesTargetDomain`/`normalizeTargetDomain`, `navigationCandidates`, the `navigationCandidates` result field, the browser-navigation prompt rules, the live-verification detection and reminder, the URL-deny policies, and the page/control/action note writers in the graph. `Approved Knowledge` notes now live directly under `Hydra Website Knowledge/` instead of under a per-domain folder. The preload no longer imports `@hydra/harness-tool-browser`.
+Removed from Obsidian: the `BrowserKnowledgeRecorder`, the `obsidian_knowledge_read_browser` tool, the `targetDomain` composition and user-settings field with `hostnameOf`/`matchesTargetDomain`/`normalizeTargetDomain`, `navigationCandidates`, the `navigationCandidates` result field, the browser-navigation prompt rules, the live-verification detection and reminder, the URL-deny policies, and the page/control/action note writers in the graph. `Approved Knowledge` notes now live directly under `Hydra Website Knowledge/` instead of under a per-domain folder. The preload no longer imports `@hydraharness/harness-tool-browser`.
 
 Website navigation limits are now decided by the existing browser policies alone. A settings document carrying the old `obsidian-knowledge.targetDomain` entry is ignored; no vault data moves and no migration runs, because the plugin never wrote outside the notes it generated.
 

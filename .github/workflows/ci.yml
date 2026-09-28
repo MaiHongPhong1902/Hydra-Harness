@@ -245,9 +245,9 @@ jobs:
                 && 'true' || 'false' }}
         run: |
           if [[ "$HYDRA_PLAYWRIGHT_FAILOVER" == 'true' ]]; then
-            pnpm --filter @hydra1902/harness-web-frontend exec playwright install chromium
+            pnpm --filter @hydraharness/harness-web-frontend exec playwright install chromium
           else
-            pnpm --filter @hydra1902/harness-web-frontend exec playwright install --with-deps chromium
+            pnpm --filter @hydraharness/harness-web-frontend exec playwright install --with-deps chromium
           fi
 
       - name: Run compatibility, snapshot, and artifact gates

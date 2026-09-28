@@ -2,7 +2,7 @@
   - heading "agent-instructions" [level=2]
   - button "Close plugin details":
     - img
-  - paragraph: "@hydra/harness-agent-instructions"
+  - paragraph: "@hydraharness/harness-agent-instructions"
   - table:
     - rowgroup:
       - row "Description Workspace context loader for AGENTS.md/CLAUDE.md instruction files":

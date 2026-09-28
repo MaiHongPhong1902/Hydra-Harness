@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-spill-local",
+  "name": "@hydraharness/harness-spill-local",
   "description": "Local-filesystem implementation of the Hydra harness spill storage seam (private session-scoped files)",
   "hydra": {
     "plugin": {
@@ -37,19 +37,19 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-spill": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-spill": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-spill": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-spill": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

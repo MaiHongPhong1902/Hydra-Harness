@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /** Test driver that sends two turns through one Headless Loader composition. */
 
-import { boot, resolveConfigPath } from '@hydra1902/harness-app-boot'
-import { runFixtureTurn } from '@hydra1902/harness-loader-smoke'
+import { boot, resolveConfigPath } from '@hydraharness/harness-app-boot'
+import { runFixtureTurn } from '@hydraharness/harness-loader-smoke'
 
 const configPath = process.argv[2]
 if (configPath === undefined) throw new Error('time-context driver requires a config path')

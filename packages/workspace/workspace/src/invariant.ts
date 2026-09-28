@@ -1,14 +1,14 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-workspace`.
- * @module @hydra1902/harness-workspace/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-workspace`.
+ * @module @hydraharness/harness-workspace/invariant
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
-import type { DomainChanged } from '@hydra1902/harness-storage-domain'
-import { WorkspaceId } from '@hydra1902/harness-workspace'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
+import type { DomainChanged } from '@hydraharness/harness-storage-domain'
+import { WorkspaceId } from '@hydraharness/harness-workspace'
 
-const PACKAGE_NAME = '@hydra1902/harness-workspace'
+const PACKAGE_NAME = '@hydraharness/harness-workspace'
 
 /** Cordis companion plugin name. */
 export const name = 'workspace-invariant'

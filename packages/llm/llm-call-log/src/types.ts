@@ -1,6 +1,6 @@
 /** Diagnostic model-call records; none contribute to conversation history. */
 
-import type { CallId, FinishReason, GenerateOptions, ReasoningEffortId, TokenUsage } from '@hydra1902/harness-llm'
+import type { CallId, FinishReason, GenerateOptions, ReasoningEffortId, TokenUsage } from '@hydraharness/harness-llm'
 
 /** One consumed LLM stream, before adapter work begins. */
 export interface LlmCallStart {
@@ -47,7 +47,7 @@ export interface LlmCallEnd {
   errorCode?: string
 }
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /** Diagnostic start of a session-associated model stream. */
     'llm/call-start': LlmCallStart

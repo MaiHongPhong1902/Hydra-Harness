@@ -1,6 +1,6 @@
 /** Citation evidence is derived from successful, preceding fetch results in the loaded transcript. */
-import type { ConversationNode, ToolCallBlock } from '@hydra1902/harness-client-runtime/client'
-import type { MarkdownCitations } from '@hydra1902/harness-client-ui-primitives'
+import type { ConversationNode, ToolCallBlock } from '@hydraharness/harness-client-runtime/client'
+import type { MarkdownCitations } from '@hydraharness/harness-client-ui-primitives'
 
 /**
  * Index source versions without a separate evidence database, including Code Mode subcalls.

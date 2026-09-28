@@ -1,5 +1,5 @@
-import type { Context } from '@hydra1902/cordis'
-import '@hydra1902/harness-user-questions'
+import type { Context } from '@hydraharness/cordis'
+import '@hydraharness/harness-user-questions'
 
 /** Snapshot-only provider whose invocation means the child guard failed. */
 export const name = 'child-question-tripwire'

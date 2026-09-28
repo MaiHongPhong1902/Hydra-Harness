@@ -10,17 +10,17 @@ import type {
   AssistantMessageNode, CommandNode, CompactionSummaryNode, ConversationNode, ConversationSnapshot,
   ModelRetryNode, RunningToolCall, SessionId, SessionListState, ToolCallBlock, ToolResultNode, TurnErrorNode,
   TurnMaxTokensNode, UserMessageNode, WorkspaceListState,
-} from '@hydra1902/harness-client-runtime/client'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+} from '@hydraharness/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
 import {
   createSnapshotStore, EMPTY_CONVERSATION_VIEWS, PendingWait,
-} from '@hydra1902/harness-client-runtime/client'
-import { RpcId } from '@hydra1902/harness-client-connection/client'
+} from '@hydraharness/harness-client-runtime/client'
+import { RpcId } from '@hydraharness/harness-client-connection/client'
 import type {
   ChatNode, ChatNodeOwnerProps, ChatNodeViewProps, ChatViewSlotProps, SelectionTarget, UseChatNodeTurnData,
-} from '@hydra1902/harness-client-ui-conversation/client'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+} from '@hydraharness/harness-client-ui-conversation/client'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 import { createChatStore } from '../src/client/stores.ts'
 import { ChatView } from '../src/client/chat/ChatView.tsx'
 import { en } from '../src/client/locales.ts'

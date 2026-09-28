@@ -1,10 +1,10 @@
-/** Package-owned LLM stream-protocol invariants. @module @hydra1902/harness-llm/invariant */
+/** Package-owned LLM stream-protocol invariants. @module @hydraharness/harness-llm/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 import type { ContentBlockType, StreamChunk } from './types.ts'
 
-const PACKAGE_NAME = '@hydra1902/harness-llm'
+const PACKAGE_NAME = '@hydraharness/harness-llm'
 
 /** Cordis companion plugin name. */
 export const name = 'llm-invariant'

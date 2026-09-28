@@ -10,11 +10,11 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import type { Session } from '@hydra1902/harness-session'
-import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
-import SessionTitleService from '@hydra1902/harness-session-title'
+import { Context } from '@hydraharness/cordis'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import type { Session } from '@hydraharness/harness-session'
+import SessionProjectionRegistry from '@hydraharness/harness-session-projection'
+import SessionTitleService from '@hydraharness/harness-session-title'
 
 const CONFIG = { fallbackMaxWords: 8, fallbackMaxBytes: 64, maxTitleBytes: 256 }
 

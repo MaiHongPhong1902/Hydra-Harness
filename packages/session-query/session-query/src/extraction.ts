@@ -1,6 +1,6 @@
 /** First-party semantic text extraction for session-query consumers. */
 
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type { SessionEvent } from '@hydraharness/harness-session'
 
 /**
  * Extract searchable semantic text from one first-party session event.

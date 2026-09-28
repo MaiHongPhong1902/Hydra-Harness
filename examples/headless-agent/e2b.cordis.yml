@@ -8,41 +8,41 @@
 # falls back to /home/user/workspace while Bash and PTY keep targeting the
 # host path, so every tool call fails with a remote spawn error.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./advanced.cordis.yml
     patches:
       - id: subprocess
-        name: '@hydra1902/harness-subprocess-local'
+        name: '@hydraharness/harness-subprocess-local'
         disabled: true
       - id: fs-local
-        name: '@hydra1902/harness-fs-local'
+        name: '@hydraharness/harness-fs-local'
         disabled: true
       - insert:
           - id: e2b
-            name: '@hydra1902/harness-e2b'
+            name: '@hydraharness/harness-e2b'
             config:
               cwd: !!js process.cwd()
               timeoutMs: 300000
           - id: subprocess-e2b
-            name: '@hydra1902/harness-subprocess-e2b'
+            name: '@hydraharness/harness-subprocess-e2b'
           - id: fs-e2b
-            name: '@hydra1902/harness-fs-e2b'
+            name: '@hydraharness/harness-fs-e2b'
           - id: sandbox-policy
-            name: '@hydra1902/harness-sandbox-policy'
+            name: '@hydraharness/harness-sandbox-policy'
             config:
               mode: danger-full-access
               workspaceRoot: !!js process.cwd()
           - id: pty
-            name: '@hydra1902/harness-terminal'
+            name: '@hydraharness/harness-terminal'
           - id: terminal-bash
-            name: '@hydra1902/harness-terminal-bash'
+            name: '@hydraharness/harness-terminal-bash'
           - id: tool-terminal
-            name: '@hydra1902/harness-tool-terminal'
+            name: '@hydraharness/harness-tool-terminal'
           - id: lsp
-            name: '@hydra1902/harness-lsp'
+            name: '@hydraharness/harness-lsp'
           - id: lsp-stdio
-            name: '@hydra1902/harness-lsp-stdio'
+            name: '@hydraharness/harness-lsp-stdio'
             config:
               servers:
                 typescript:
@@ -54,4 +54,4 @@
                     .js: javascript
                     .jsx: javascriptreact
           - id: tool-lsp
-            name: '@hydra1902/harness-tool-lsp'
+            name: '@hydraharness/harness-tool-lsp'

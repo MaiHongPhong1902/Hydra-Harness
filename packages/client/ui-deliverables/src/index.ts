@@ -5,8 +5,8 @@
  * hydra.client declaration.
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type {} from '@hydra1902/harness-system-prompt'
+import type { Context } from '@hydraharness/cordis'
+import type {} from '@hydraharness/harness-system-prompt'
 
 /** Services required for the model guidance paired with the browser renderer. */
 export const inject = ['systemPrompt']

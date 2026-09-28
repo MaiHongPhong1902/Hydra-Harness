@@ -1,12 +1,12 @@
-/** Verbatim content-addressed local file storage. @module @hydra1902/harness-attachment-local/file-store */
+/** Verbatim content-addressed local file storage. @module @hydraharness/harness-attachment-local/file-store */
 
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { join } from 'node:path'
-import { AttachmentError, AttachmentId } from '@hydra1902/harness-attachment'
+import { AttachmentError, AttachmentId } from '@hydraharness/harness-attachment'
 import type {
   FileAttachmentRef, SaveFileAttachment, SaveFileStreamAttachment,
-} from '@hydra1902/harness-attachment'
+} from '@hydraharness/harness-attachment'
 import {
   publishImmutableAlias, publishImmutableObject, publishImmutableObjectStream,
 } from './store.ts'

@@ -1,8 +1,8 @@
 /** General Settings row for the Composer's busy-state Enter preference. */
 import { useState } from 'react'
-import type { SnapshotStore } from '@hydra1902/harness-client-runtime/client'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
-import { IconChevronDownOutline14, Menu } from '@hydra1902/harness-client-ui-primitives'
+import type { SnapshotStore } from '@hydraharness/harness-client-runtime/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
+import { IconChevronDownOutline14, Menu } from '@hydraharness/harness-client-ui-primitives'
 import type { BusyEnterBehavior } from '../contract/composer-submission.ts'
 import type { ConversationKey } from '../locales.ts'
 import css from './EnterBehaviorRow.module.css'

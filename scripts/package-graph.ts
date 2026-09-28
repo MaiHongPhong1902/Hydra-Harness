@@ -8,11 +8,11 @@
 import { globSync, readFileSync } from 'node:fs'
 import { dirname, resolve, sep } from 'node:path'
 
-const SCOPE = '@hydra1902/harness-'
+const SCOPE = '@hydraharness/harness-'
 
 /** One harness package and its in-repo peer-dependency edges. */
 export interface PackageGraphNode {
-  /** Package name with the `@hydra1902/harness-` prefix removed. */
+  /** Package name with the `@hydraharness/harness-` prefix removed. */
   short: string
   /** Full npm package name. */
   name: string

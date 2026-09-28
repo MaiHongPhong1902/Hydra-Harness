@@ -13,12 +13,12 @@ import {
   tokenizeSessionFixtureCwd,
   type HarvestedLog,
   type NormalizeContext,
-} from '@hydra1902/harness-acp-snapshot'
-import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra1902/harness-loader-smoke'
+} from '@hydraharness/harness-acp-snapshot'
+import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydraharness/harness-loader-smoke'
 import {
   decompressZstdFrame,
   scanZstdFrames,
-} from '@hydra1902/harness-session-persistence-jsonl/src/zstd.ts'
+} from '@hydraharness/harness-session-persistence-jsonl/src/zstd.ts'
 import { describe, expect, it } from 'vitest'
 
 const snapshotsDir = join(dirname(fileURLToPath(import.meta.url)), 'snapshots')

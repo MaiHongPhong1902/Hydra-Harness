@@ -28,8 +28,8 @@ import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 // Type-only: pulls the plan/mode SessionEventMap merge so the discriminant
 // filter below types as the plan-mode event in the host aggregate.
-import type {} from '@hydra1902/harness-plan-mode'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type {} from '@hydraharness/harness-plan-mode'
+import type { SessionEvent } from '@hydraharness/harness-session'
 import {
   assertFixtureInventory, compareOrRefreshGolden,
   launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold,

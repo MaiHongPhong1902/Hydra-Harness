@@ -2,15 +2,15 @@
  * JSON storage backend: one human-readable file per unit under a configured
  * root, published by atomic whole-file rewrite. Registers as backend `json`
  * on the storage hub.
- * @module @hydra1902/harness-storage-json
+ * @module @hydraharness/harness-storage-json
  */
 
 import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { StorageError, UNIT_NAME_RE, storageBackendServiceKey } from '@hydra1902/harness-storage'
-import type { KvFacet, KvUnit, KvUnitDescriptor, StorageBackend } from '@hydra1902/harness-storage'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { StorageError, UNIT_NAME_RE, storageBackendServiceKey } from '@hydraharness/harness-storage'
+import type { KvFacet, KvUnit, KvUnitDescriptor, StorageBackend } from '@hydraharness/harness-storage'
 import { openJsonUnit } from './unit.ts'
 
 /** Cordis plugin name. */

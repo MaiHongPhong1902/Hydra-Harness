@@ -2,14 +2,14 @@
  * SQLite storage backend for the storage hub: one database file hosts every
  * routed unit, document-per-row (`key TEXT` / `value TEXT` JSON). Registers
  * as backend `sqlite`; the disposer unregisters first, then closes the medium.
- * @module @hydra1902/harness-storage-sqlite
+ * @module @hydraharness/harness-storage-sqlite
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
 import type { DatabaseSync } from 'node:sqlite'
-import { StorageError, UNIT_NAME_RE, storageBackendServiceKey } from '@hydra1902/harness-storage'
-import type { KvFacet, KvUnit, KvUnitDescriptor, StorageBackend } from '@hydra1902/harness-storage'
+import { StorageError, UNIT_NAME_RE, storageBackendServiceKey } from '@hydraharness/harness-storage'
+import type { KvFacet, KvUnit, KvUnitDescriptor, StorageBackend } from '@hydraharness/harness-storage'
 import { openDatabase, recordTableName, type JournalMode } from './schema.ts'
 import { SqliteKvUnit } from './unit.ts'
 

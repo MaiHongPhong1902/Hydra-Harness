@@ -1,6 +1,6 @@
 # File review
 
-`@hydra/harness-fs-review` provides `ctx.fileReview`: chronological, session-owned Write/Edit/Create evidence, Keep, and hash-guarded Undo. [PI source map](PI-SOURCE-MAP.md) records the implementation studied and explicit differences.
+`@hydraharness/harness-fs-review` provides `ctx.fileReview`: chronological, session-owned Write/Edit/Create evidence, Keep, and hash-guarded Undo. [PI source map](PI-SOURCE-MAP.md) records the implementation studied and explicit differences.
 
 Its client types also describe read-only `WorkspaceReview` Git comparisons. The host resolves these comparisons from the session cwd; this package owns their shared mode, file, hunk and metadata types, while Keep and Undo remain exclusive to persisted `ReviewChange` records.
 

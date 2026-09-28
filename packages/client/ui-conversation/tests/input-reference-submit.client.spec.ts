@@ -4,8 +4,8 @@
  * accepted prompt.
  */
 import { describe, expect, it, vi } from 'vitest'
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
-import type { InputTriggerController, SubmitOutcome } from '@hydra1902/harness-client-ui-input-trigger/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
+import type { InputTriggerController, SubmitOutcome } from '@hydraharness/harness-client-ui-input-trigger/client'
 import { SessionInputShell } from '../src/client/input/facade.ts'
 import type { DraftAttachmentId } from '../src/client/input/contract.ts'
 

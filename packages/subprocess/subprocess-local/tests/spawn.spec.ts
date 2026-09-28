@@ -9,8 +9,8 @@ import {
   spawnSubprocess,
   taskkillProcessTree,
 } from '../src/spawn.ts'
-import type { SubprocessHandle, SubprocessOutputReader } from '@hydra1902/harness-subprocess'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+import type { SubprocessHandle, SubprocessOutputReader } from '@hydraharness/harness-subprocess'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 
 /**
  * Translate the suite's POSIX command strings into node one-liners on Windows,
@@ -754,8 +754,8 @@ describe.skipIf(process.platform === 'win32')('tree-survivor escalation (termina
   })
 
   it('service teardown awaits tree survivors, not just handle settlement', async () => {
-    const { Context } = await import('@hydra1902/cordis')
-    const { default: LocalSubprocessRuntime } = await import('@hydra1902/harness-subprocess-local')
+    const { Context } = await import('@hydraharness/cordis')
+    const { default: LocalSubprocessRuntime } = await import('@hydraharness/harness-subprocess-local')
     const ctx = new Context()
     const fiber = await ctx.plugin(LocalSubprocessRuntime)
     ;(ctx.subprocess as InstanceType<typeof LocalSubprocessRuntime>).internals = { spillDir }

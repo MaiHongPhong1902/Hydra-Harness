@@ -1,10 +1,10 @@
-/** Package-owned subagent registry and lifecycle invariants. @module @hydra1902/harness-subagent/invariant */
+/** Package-owned subagent registry and lifecycle invariants. @module @hydraharness/harness-subagent/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 import type { SubagentProvider, SubagentRunEndInfo, SubagentRunInfo } from './types.ts'
 
-const PACKAGE_NAME = '@hydra1902/harness-subagent'
+const PACKAGE_NAME = '@hydraharness/harness-subagent'
 
 /** Cordis companion plugin name. */
 export const name = 'subagent-invariant'

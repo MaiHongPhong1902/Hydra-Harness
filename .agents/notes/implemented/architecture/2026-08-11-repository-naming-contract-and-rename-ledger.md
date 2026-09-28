@@ -22,7 +22,7 @@ No family exposes two public vocabularies.
 
 ### Use `SDK` for one thing
 
-`SDK` means the JSON-RPC-based client/server protocol used by the supported Python and TypeScript SDKs. The repository keeps `@hydra/harness-sdk-client`, `@hydra/harness-sdk-protocol`, and the wire identity `hydra-harness-sdk-runtime`; the JSON-RPC server belongs to the same family. Hydra harness itself is not an SDK, and the removed project generator, launcher, helper, and launcher telemetry packages stay absent.
+`SDK` means the JSON-RPC-based client/server protocol used by the supported Python and TypeScript SDKs. The repository keeps `@hydraharness/harness-sdk-client`, `@hydraharness/harness-sdk-protocol`, and the wire identity `hydra-harness-sdk-runtime`; the JSON-RPC server belongs to the same family. Hydra harness itself is not an SDK, and the removed project generator, launcher, helper, and launcher telemetry packages stay absent.
 
 This decision partially supersedes three active decisions. It replaces the retained `bash/`, `pty/`, and `self-modification/` group names and both deferred package targets in the [package-regrouping decision](2026-07-29-package-regrouping.md). It replaces only the repository-wide SDK claim in the [SDK project toolchain removal](../simplification/2026-08-11-remove-sdk-project-toolchain.md), which remains the owner of the deletion and the surviving runtime SDK. It replaces only the package-name rationale in the [tool-call timeout policy](2026-07-07-tool-call-timeout-policy.md); the timeout mechanism and its `guard/timeout-policy/` home remain unchanged.
 
@@ -70,7 +70,7 @@ Do not invent a `process sandbox` concept. The current `sandbox` family already 
 
 Use title case for initialisms inside PascalCase identifiers: `Ui`, `Llm`, `JsonRpc`, and `ApiProxy`. Use the conventional uppercase form in prose and package names where applicable: UI, LLM, JSON-RPC, and API. `Typert` is the exact product spelling in identifiers and prose; do not write `TypeRT`, `TypeRt`, or `Typert` with another internal split.
 
-Do not remove an intentional vendor qualifier to avoid repetition. `@hydra/harness-subagent-sdk` names the Hydra harness SDK provider and avoids confusion with another SDK. Its private class becomes `SdkSubagentProvider` because the class also needs to say what it provides.
+Do not remove an intentional vendor qualifier to avoid repetition. `@hydraharness/harness-subagent-sdk` names the Hydra harness SDK provider and avoids confusion with another SDK. Its private class becomes `SdkSubagentProvider` because the class also needs to say what it provides.
 
 ### Put the rule in project documentation
 
@@ -84,26 +84,26 @@ The tables record public and repository-wide renames. The `Current` column holds
 
 | Former | Current | Reason |
 |---|---|---|
-| `@hydra/harness-jsonrpc` | `@hydra/harness-sdk-jsonrpc-server` | It is the server half of the SDK protocol. `jsonrpc` alone names an encoding; `sdk-jsonrpc-server` gives the family, mechanism, and role. |
+| `@hydraharness/harness-jsonrpc` | `@hydraharness/harness-sdk-jsonrpc-server` | It is the server half of the SDK protocol. `jsonrpc` alone names an encoding; `sdk-jsonrpc-server` gives the family, mechanism, and role. |
 | `HarnessSdkServer` | `HarnessSdkJsonRpcServer` | The class is one JSON-RPC server implementation, not every possible SDK server. |
 
-Keep `@hydra/harness-sdk-client`, `@hydra/harness-sdk-protocol`, and `hydra-harness-sdk-runtime`. Exclude `@hydra/create-sdk`, `@hydra/harness-scripts`, `@hydra/harness-helper`, and `@hydra/harness-telemetry`; the separate removal decision deletes them and their support graph.
+Keep `@hydraharness/harness-sdk-client`, `@hydraharness/harness-sdk-protocol`, and `hydra-harness-sdk-runtime`. Exclude `@hydraharness/create-sdk`, `@hydraharness/harness-scripts`, `@hydraharness/harness-helper`, and `@hydraharness/harness-telemetry`; the separate removal decision deletes them and their support graph.
 
 ### Shell and terminal
 
 | Former | Current | Reason |
 |---|---|---|
 | `packages/bash/` | `packages/shell/` | The group contains the dialect-neutral executor seam, Bash and PowerShell implementations, environment support, and shell tools. |
-| `@hydra/harness-bash`, `ctx.bash` | `@hydra/harness-shell`, `ctx.shell` | PowerShell already implements this seam. The capability is shell execution, not Bash. |
+| `@hydraharness/harness-bash`, `ctx.bash` | `@hydraharness/harness-shell`, `ctx.shell` | PowerShell already implements this seam. The capability is shell execution, not Bash. |
 | Dialect-neutral `BashExecutor`, `BashExecRequest`, `BashExecSpec`, `BashProcess`, `BashRunResult`, `BashSandboxInfo`, `BashProcessRead`, and `BashProcessStatus` names | Corresponding `Shell*` names | These types cross both Bash and PowerShell implementations. Leaf types that describe Bash syntax or behavior keep `Bash`. |
 | `BASH_SETTINGS_NAMESPACE`, settings namespace `bash` | `SHELL_SETTINGS_NAMESPACE`, settings namespace `shell` | Both shell providers register this capability-owned settings section. The constant and durable namespace must use the capability name. |
-| `@hydra/harness-bash-env`, `ctx.bashEnv`, `BashEnvRegistry` | `@hydra/harness-shell-env`, `ctx.shellEnv`, `ShellEnvRegistry` | The environment registry is shared by Bash and PowerShell tools. |
+| `@hydraharness/harness-bash-env`, `ctx.bashEnv`, `BashEnvRegistry` | `@hydraharness/harness-shell-env`, `ctx.shellEnv`, `ShellEnvRegistry` | The environment registry is shared by Bash and PowerShell tools. |
 | `docs/subsystems/bash.md` | `docs/subsystems/shell.md` | The subsystem page documents the dialect-neutral capability. |
 | `packages/pty/` | `packages/terminal/` | The package family owns persistent terminal sessions. Raw PTY allocation remains in the subprocess layer. |
-| `@hydra/harness-pty`, `ctx.pty`, `PtyService` | `@hydra/harness-terminal`, `ctx.terminals`, `TerminalSessionService` | Callers manage multiple named terminal sessions. They do not allocate raw PTYs through this service. |
+| `@hydraharness/harness-pty`, `ctx.pty`, `PtyService` | `@hydraharness/harness-terminal`, `ctx.terminals`, `TerminalSessionService` | Callers manage multiple named terminal sessions. They do not allocate raw PTYs through this service. |
 | Public high-level `Pty*` session and backend names | `Terminal*` names | The public abstraction is a terminal session. Keep low-level `SubprocessTerminal*` names because they already name the substrate. |
-| `@hydra/harness-pty-local`, `LocalPtyBackend` | `@hydra/harness-terminal-bash`, `BashTerminalBackend` | The provider depends on Bash prompt and shell behavior. `local` hides the actual dialect. |
-| `@hydra/harness-tool-pty` | `@hydra/harness-tool-terminal` | The model-facing tools are already `terminal_*`; the package should use the same product noun. |
+| `@hydraharness/harness-pty-local`, `LocalPtyBackend` | `@hydraharness/harness-terminal-bash`, `BashTerminalBackend` | The provider depends on Bash prompt and shell behavior. `local` hides the actual dialect. |
+| `@hydraharness/harness-tool-pty` | `@hydraharness/harness-tool-terminal` | The model-facing tools are already `terminal_*`; the package should use the same product noun. |
 | `tool-bash-persistent` in the former PTY family | `shell/tool-bash-persistent/` | The tool is a Bash tool and belongs with shell tools. Keep its npm name: `persistent` distinguishes it from one-shot `bash`, while `bash-terminal` would blur the product tool with the terminal-session family. |
 | `docs/subsystems/pty.md` | `docs/subsystems/terminal.md` | The page documents terminal sessions, not raw PTY allocation. |
 
@@ -113,15 +113,15 @@ Keep the Bash- and PowerShell-specific leaf packages, plugin ids, types, and too
 
 | Former | Current | Reason |
 |---|---|---|
-| `@hydra/harness-lsp-local` | `@hydra/harness-lsp-stdio` | The provider speaks LSP over stdio through replaceable filesystem and subprocess services. It is not necessarily local. |
+| `@hydraharness/harness-lsp-local` | `@hydraharness/harness-lsp-stdio` | The provider speaks LSP over stdio through replaceable filesystem and subprocess services. It is not necessarily local. |
 | `packages/tasks/` | `packages/jobs/` | The family owns detached tool jobs. `jobs` is short and avoids collision with user task or todo concepts. |
-| `@hydra/harness-tasks`, `ctx.tasks`, `TaskService` | `@hydra/harness-jobs`, `ctx.jobs`, `JobRegistry` | The service registers, owns, observes, waits for, and cancels multiple background jobs. It is a registry, not a general task service. |
+| `@hydraharness/harness-tasks`, `ctx.tasks`, `TaskService` | `@hydraharness/harness-jobs`, `ctx.jobs`, `JobRegistry` | The service registers, owns, observes, waits for, and cancels multiple background jobs. It is a registry, not a general task service. |
 | Public `TaskId`, `TaskKindMap`, `TaskStart`, `TaskHooks`, `TaskOutcome`, `TaskSnapshot`, `TaskRead`, and `TaskDoneListener` names | Corresponding `Job*` names | These types belong to the renamed job domain. `JobId` is shorter and clearer than `BackgroundTaskId` or `BgTaskId`. |
-| `@hydra/harness-tasks-local`, `LocalTaskService` | `@hydra/harness-jobs-local`, `LocalJobRegistry` | This is the process-local provider of the job registry. Here `local` is meaningful because the jobs and callbacks live in one process. |
-| `@hydra/harness-tool-tasks` | `@hydra/harness-tool-jobs` | The consumer controls the job registry and should use the same domain noun. |
+| `@hydraharness/harness-tasks-local`, `LocalTaskService` | `@hydraharness/harness-jobs-local`, `LocalJobRegistry` | This is the process-local provider of the job registry. Here `local` is meaningful because the jobs and callbacks live in one process. |
+| `@hydraharness/harness-tool-tasks` | `@hydraharness/harness-tool-jobs` | The consumer controls the job registry and should use the same domain noun. |
 | `ToolTasks`, `toolTasks`, `ToolTasksConfigSchema`, `PublicTaskSnapshot`, `publicTask`, `validateTaskId` | Corresponding `*Jobs`, `*Job*`, and `validateJobId` names | Imports, forwarded config, public tool values, and helpers are part of the same job domain. Keeping `Task` after the package rename would create a second vocabulary for one feature. |
 | `task_output`, `task_list`, `task_kill` | `job_output`, `job_list`, `job_kill` | These model tools act on jobs, not user tasks. `run_in_background` returns a `JobId`. |
-| `@hydra/harness-client-ui-task`, `client/ui-task/` | `@hydra/harness-client-ui-jobs`, `client/ui-jobs/` | The client package presents the background-job collection. It is not one user task. |
+| `@hydraharness/harness-client-ui-task`, `client/ui-task/` | `@hydraharness/harness-client-ui-jobs`, `client/ui-jobs/` | The client package presents the background-job collection. It is not one user task. |
 | `TaskView`, wire frame `session/tasks`, `tasksBySession` | `JobView`, wire frame `session/jobs`, `jobsBySession` | The browser contract and its mirror expose the same job domain as the registry and tools. |
 | `docs/subsystems/tasks.md` | `docs/subsystems/jobs.md` | The subsystem page must use the public job vocabulary. |
 
@@ -131,15 +131,15 @@ Keep the base LSP package, `ctx.lsp`, LSP protocol types, and the LSP tool. The 
 
 | Former | Current | Reason |
 |---|---|---|
-| `@hydra/harness-client-ui-slash`, `ui-slash/` | `@hydra/harness-client-ui-input-trigger`, `ui-input-trigger/` | The client handles `/`, `@`, keyboard arbitration, candidate menus, and programmatic launch. It is not only slash commands. |
+| `@hydraharness/harness-client-ui-slash`, `ui-slash/` | `@hydraharness/harness-client-ui-input-trigger`, `ui-input-trigger/` | The client handles `/`, `@`, keyboard arbitration, candidate menus, and programmatic launch. It is not only slash commands. |
 | `ctx.slash`, `SlashService`, `SlashController`, `SlashSource` | `ctx.inputTriggers`, `InputTriggerService`, `InputTriggerController`, `InputTriggerSource` | The names cover every supported trigger and keep the existing service, controller, and source roles. Coupled locale and public type names follow `InputTrigger`. |
-| `@hydra/harness-agent-tool-mode`, plugin `tool-mode` | `@hydra/harness-agent-tool-presentation`, plugin `tool-presentation` | The plugin changes how tools are presented to the model. It does not change execution behavior. Keep local `Config.mode` and `ToolPresentationMode`. |
+| `@hydraharness/harness-agent-tool-mode`, plugin `tool-mode` | `@hydraharness/harness-agent-tool-presentation`, plugin `tool-presentation` | The plugin changes how tools are presented to the model. It does not change execution behavior. Keep local `Config.mode` and `ToolPresentationMode`. |
 | `packages/interaction/permission/` | `packages/interaction/permission-presets/` | The package owns named combinations of sandbox and approval settings, not permission enforcement. |
-| `@hydra/harness-permission`, `ctx.permission`, `PermissionService` | `@hydra/harness-permission-presets`, `ctx.permissionPresets`, `PermissionPresetService` | The service selects and persists presets. Sandbox and approval services enforce the result. |
-| `@hydra/harness-client-ui-permission` | `@hydra/harness-client-ui-permission-presets` | The UI edits and selects permission presets. |
+| `@hydraharness/harness-permission`, `ctx.permission`, `PermissionService` | `@hydraharness/harness-permission-presets`, `ctx.permissionPresets`, `PermissionPresetService` | The service selects and persists presets. Sandbox and approval services enforce the result. |
+| `@hydraharness/harness-client-ui-permission` | `@hydraharness/harness-client-ui-permission-presets` | The UI edits and selects permission presets. |
 | `docs/subsystems/permission.md` | `docs/subsystems/permission-presets.md` | The page documents preset selection, not permission enforcement. |
-| `@hydra/harness-user-interaction`, `user-interaction/` | `@hydra/harness-user-questions`, `user-questions/` | The seam supports question batches and answers only. Approval, commands, and directory picking are separate interaction seams. |
-| `ctx.userInteraction`, `UserInteractionService`, `UserInteractionProvider`, `UserInteractionError` | `ctx.userQuestions`, `UserQuestionService`, `UserQuestionProvider`, `UserQuestionError` | These names state the one supported interaction form. Keep `AskUserQuestion*`, the `ask_user_question` tool, and `@hydra/harness-tool-ask-user`. |
+| `@hydraharness/harness-user-interaction`, `user-interaction/` | `@hydraharness/harness-user-questions`, `user-questions/` | The seam supports question batches and answers only. Approval, commands, and directory picking are separate interaction seams. |
+| `ctx.userInteraction`, `UserInteractionService`, `UserInteractionProvider`, `UserInteractionError` | `ctx.userQuestions`, `UserQuestionService`, `UserQuestionProvider`, `UserQuestionError` | These names state the one supported interaction form. Keep `AskUserQuestion*`, the `ask_user_question` tool, and `@hydraharness/harness-tool-ask-user`. |
 | `docs/subsystems/user-interaction.md` | `docs/subsystems/user-questions.md` | The page documents questions and answers only. |
 
 Keep `/permission`, the `permissions` projection, the `permission` settings namespace, and `permission/preset`; they are accurate product or durable vocabulary. Keep the full `PermissionPresetSettingsController` name. Dropping `Preset` would remove the word that limits its authority. Removal of the `both` tool-presentation mode remains deferred to a separate proposal; this rename does not remove behavior.
@@ -148,7 +148,7 @@ Keep `/permission`, the `permissions` projection, the `permission` settings name
 
 | Former | Current | Reason |
 |---|---|---|
-| `packages/typert/type-meta/`, `@hydra/harness-type-meta` | `typert/protocol/`, `@hydra/harness-typert-protocol` | The package owns the Typert Remote protocol, decorators, bindings, codecs, lookups, and context contracts. It is not generic type metadata. |
+| `packages/typert/type-meta/`, `@hydraharness/harness-type-meta` | `typert/protocol/`, `@hydraharness/harness-typert-protocol` | The package owns the Typert Remote protocol, decorators, bindings, codecs, lookups, and context contracts. It is not generic type metadata. |
 | `GatewayService` in the protocol package | `TypertRemoteService` | The base class marks a same-process service for Remote export. It is not the API gateway. |
 | `bindTypeRTGateway`, `typertGateway` binding | `bindTypertRemote`, `typertRemote` | These bindings expose Typert Remote services, not the concrete API gateway service. |
 | Public `TypeRT*` and camel-case `typeRT*` identifiers | `Typert*` and `typert*` | `Typert` is the one canonical product spelling. |
@@ -156,24 +156,24 @@ Keep `/permission`, the `permissions` projection, the `permission` settings name
 | `ToolRegistry` | `ToolRuntime` | The class owns presentation, approval and guard policy, dispatch, cancellation, validation, finalization, and observation. Registration is only one internal part. |
 | `ToolRegistryScheduler`, `TOOL_REGISTRY_SCHEDULER` | `ToolRuntimeScheduler`, `TOOL_RUNTIME_SCHEDULER` | The scheduler controls runtime dispatch, not registration. |
 
-Keep `@hydra/harness-tools` and `ctx.tools`. Keep `@hydra/harness-api-gateway`, its `gateway/` folder, `ctx.typertGateway`, and `TypertGatewayService`; that service is a real API gateway. Its internal `TypeRT*` identifiers still follow the `Typert*` spelling rule.
+Keep `@hydraharness/harness-tools` and `ctx.tools`. Keep `@hydraharness/harness-api-gateway`, its `gateway/` folder, `ctx.typertGateway`, and `TypertGatewayService`; that service is a real API gateway. Its internal `TypeRT*` identifiers still follow the `Typert*` spelling rule.
 
 ### Workspace instructions, telemetry, identity, and launch environment
 
 | Former | Current | Reason |
 |---|---|---|
-| Host `ctx.workspace` | Host `ctx.workspaceRegistry` | `WorkspaceRegistry` owns multiple workspaces, but Client `ctx.workspaces` already has an incompatible type. Both declarations merge into the same Cordis `Context` interface at compile time even though their runtime contexts are separate. The role suffix states the host service and avoids that collision. Keep `@hydra/harness-workspace`, `WorkspaceRegistry`, `Workspace`, and `workspace.*` wire names. |
-| `@hydra/harness-workspace-context`, `context/workspace-context/` | `@hydra/harness-agent-instructions`, `context/agent-instructions/` | The package loads hierarchical `AGENTS.md` and `CLAUDE.md` files for the agent. It is not general workspace context. |
+| Host `ctx.workspace` | Host `ctx.workspaceRegistry` | `WorkspaceRegistry` owns multiple workspaces, but Client `ctx.workspaces` already has an incompatible type. Both declarations merge into the same Cordis `Context` interface at compile time even though their runtime contexts are separate. The role suffix states the host service and avoids that collision. Keep `@hydraharness/harness-workspace`, `WorkspaceRegistry`, `Workspace`, and `workspace.*` wire names. |
+| `@hydraharness/harness-workspace-context`, `context/workspace-context/` | `@hydraharness/harness-agent-instructions`, `context/agent-instructions/` | The package loads hierarchical `AGENTS.md` and `CLAUDE.md` files for the agent. It is not general workspace context. |
 | Plugin and durable source names `workspace-context` and `workspace-instructions` | `agent-instructions` | The recorded source is a specific class of agent instructions. `AgentInstruction*` replaces public `WorkspaceInstruction*` names. This term does not include system, developer, or user messages. |
 | `ctx.telemetry`, abstract `Telemetry` | `ctx.sessionTelemetry`, `SessionTelemetryBackend` | The service captures session-ledger telemetry and hands it to a reporting backend. It is not a repository-wide metrics or tracing service. |
 | `TelemetryBackend` | `SessionTelemetrySink` | This lower layer receives emitted records. `Sink` distinguishes it from the coordinating backend service. |
 | `TelemetryCoordinator`, `TelemetryRecord`, `TelemetrySeverity`, `TelemetrySharingStatus`, and `TelemetryCapture` | Corresponding `SessionTelemetry*` names | These public types belong only to session telemetry. |
 | `telemetry/record` | `session-telemetry/record` | The event name must state its owning domain. |
-| `TelemetryOtel`, `TelemetryMode`, plugin `telemetry-otel` | `OpenTelemetrySessionBackend`, `SessionTelemetryMode`, plugin `session-telemetry-otel` | The provider name states both the OpenTelemetry mechanism and session scope. Keep the package names `@hydra/harness-session-telemetry` and `@hydra/harness-session-telemetry-otel`. |
+| `TelemetryOtel`, `TelemetryMode`, plugin `telemetry-otel` | `OpenTelemetrySessionBackend`, `SessionTelemetryMode`, plugin `session-telemetry-otel` | The provider name states both the OpenTelemetry mechanism and session scope. Keep the package names `@hydraharness/harness-session-telemetry` and `@hydraharness/harness-session-telemetry-otel`. |
 | `docs/subsystems/telemetry.md` | `docs/subsystems/session-telemetry.md` | The page documents session telemetry, not repository-wide observability. |
-| `session/user-id/`, `@hydra/harness-user-id` | `identity/anonymous-user-id/`, `@hydra/harness-anonymous-user-id` | The value is a random correlation id shared by telemetry, feedback, and DeepSeek requests. It is neither a Session concern nor an authenticated user identity. |
+| `session/user-id/`, `@hydraharness/harness-user-id` | `identity/anonymous-user-id/`, `@hydraharness/harness-anonymous-user-id` | The value is a random correlation id shared by telemetry, feedback, and DeepSeek requests. It is neither a Session concern nor an authenticated user identity. |
 | `USER_ID_FILE_NAME`, `.userid`, feedback label `User` | `ANONYMOUS_USER_ID_FILE_NAME`, `.anonymous-user-id`, feedback label `Anonymous user` | The file and UI must not imply account identity. Keep the existing `AnonymousUserId` functions and the standard OTel attribute `user.id`. |
-| `util/environment/`, `@hydra/harness-environment` | `util/launch-environment/`, `@hydra/harness-launch-environment` | The package captures one immutable layered snapshot at launch. It is not a general environment API. |
+| `util/environment/`, `@hydraharness/harness-environment` | `util/launch-environment/`, `@hydraharness/harness-launch-environment` | The package captures one immutable layered snapshot at launch. It is not a general environment API. |
 | Public `Environment*`, `createEnvironmentSnapshot`, `environmentOf`, `HYDRA_ENVIRONMENT_KEY` | `LaunchEnvironment*`, `createLaunchEnvironmentSnapshot`, `launchEnvironmentOf`, `HYDRA_LAUNCH_ENVIRONMENT_KEY` | The names state the snapshot's lifetime and purpose. |
 | `ctx.launcherEnvironment` | `ctx.launchEnvironment` | The value describes the application launch, not only a launcher component. Keep source labels `process`, `project-env`, and `user-env`. |
 
@@ -181,16 +181,16 @@ Keep `@hydra/harness-tools` and `ctx.tools`. Keep `@hydra/harness-api-gateway`, 
 
 | Former | Current | Reason |
 |---|---|---|
-| `@hydra/harness-tool-schedule`, `schedule/tool-schedule/`, plugin `tool-schedule` | `@hydra/harness-schedule`, `schedule/schedule/`, plugin `schedule` | The package owns the durable Schedule domain, persistence barriers, management tools, timers, follow-ups, and runtime lifecycle. `tool-` describes only one part. |
+| `@hydraharness/harness-tool-schedule`, `schedule/tool-schedule/`, plugin `tool-schedule` | `@hydraharness/harness-schedule`, `schedule/schedule/`, plugin `schedule` | The package owns the durable Schedule domain, persistence barriers, management tools, timers, follow-ups, and runtime lifecycle. `tool-` describes only one part. |
 | `ScheduleOwner` | `ScheduleRuntime` | The per-agent object runs live timers, durable projection, dispatch, idle waits, and disposal. `Owner` does not state that execution role. Coupled private `owner*` names follow `runtime*`. |
-| `WorkflowService`, `ctx.workflows` | `WorkflowEngine`, `ctx.workflowEngine` | One engine parses and executes workflow programs. The plural key wrongly suggests a registry. Keep `@hydra/harness-workflow` and workflow events and tools. |
-| `@hydra/harness-workflow-workerthread`, `WorkerWorkflowEngine` | `@hydra/harness-workflow-worker-thread`, `WorkerThreadWorkflowEngine` | `worker thread` is the precise Node mechanism and the repository spelling uses the full words. |
-| `@hydra/harness-goal-session`, `goal/goal-session/` | `@hydra/harness-goal-round-driver`, `goal/goal-round-driver/` | The plugin drives same-session Goal Rounds. It neither stores goals nor defines sessions. Keep `GoalService`, goal source, events, and contracts. |
+| `WorkflowService`, `ctx.workflows` | `WorkflowEngine`, `ctx.workflowEngine` | One engine parses and executes workflow programs. The plural key wrongly suggests a registry. Keep `@hydraharness/harness-workflow` and workflow events and tools. |
+| `@hydraharness/harness-workflow-workerthread`, `WorkerWorkflowEngine` | `@hydraharness/harness-workflow-worker-thread`, `WorkerThreadWorkflowEngine` | `worker thread` is the precise Node mechanism and the repository spelling uses the full words. |
+| `@hydraharness/harness-goal-session`, `goal/goal-session/` | `@hydraharness/harness-goal-round-driver`, `goal/goal-round-driver/` | The plugin drives same-session Goal Rounds. It neither stores goals nor defines sessions. Keep `GoalService`, goal source, events, and contracts. |
 | `packages/compact/` | `packages/compaction/` | The group is a noun-domain family. `compact` remains the user command verb. |
-| `@hydra/harness-compact`, `ctx.compact`, `CompactService` | `@hydra/harness-compaction`, `ctx.compaction`, `CompactionEngine` | The object runs the compaction algorithm and lifecycle. It is an engine, not a generic service. |
+| `@hydraharness/harness-compact`, `ctx.compact`, `CompactService` | `@hydraharness/harness-compaction`, `ctx.compaction`, `CompactionEngine` | The object runs the compaction algorithm and lifecycle. It is an engine, not a generic service. |
 | `compact/*` events and public domain prefixes | `compaction/*` | Events and domain types use the noun. Keep verb-shaped operations such as `compactNow`, `compactRegion`, and `compactIfNeeded`. |
-| `@hydra/harness-compact-basic`, `BasicCompactService`, public `BasicCompact*` | `@hydra/harness-compaction-basic`, `BasicCompactionEngine`, corresponding `BasicCompaction*` | `basic` is plain but honest. `compaction-llm` adds no information because LLM use is already part of the current implementation family. |
-| `@hydra/harness-compact-tool-result-prune`, `ToolResultPruneService`, `ctx.toolResultPrune` | `@hydra/harness-compaction-tool-result-pruner`, `ToolResultPruner`, `ctx.toolResultPruner` | The plugin is an actor that prunes tool results. The noun `pruner` names that role. |
+| `@hydraharness/harness-compact-basic`, `BasicCompactService`, public `BasicCompact*` | `@hydraharness/harness-compaction-basic`, `BasicCompactionEngine`, corresponding `BasicCompaction*` | `basic` is plain but honest. `compaction-llm` adds no information because LLM use is already part of the current implementation family. |
+| `@hydraharness/harness-compact-tool-result-prune`, `ToolResultPruneService`, `ctx.toolResultPrune` | `@hydraharness/harness-compaction-tool-result-pruner`, `ToolResultPruner`, `ctx.toolResultPruner` | The plugin is an actor that prunes tool results. The noun `pruner` names that role. |
 
 Keep `/compact`, the command package, and the separate compaction definition and provider packages. Merging those packages remains rejected. The rename changes vocabulary, not that package boundary.
 
@@ -199,14 +199,14 @@ Keep `/compact`, the command package, and the separate compaction definition and
 | Former | Current | Reason |
 |---|---|---|
 | Abstract `Settings` | `SettingsProvider` | The class supplies settings through a replaceable capability. Keep the package, key, and events. |
-| `@hydra/harness-settings-local`, `SettingsLocal` | `@hydra/harness-settings-file`, `FileSettingsProvider` | The implementation is file-backed through the filesystem seam. `file` states the mechanism; `local` does not. |
+| `@hydraharness/harness-settings-local`, `SettingsLocal` | `@hydraharness/harness-settings-file`, `FileSettingsProvider` | The implementation is file-backed through the filesystem seam. `file` states the mechanism; `local` does not. |
 | Abstract `Credentials` | `CredentialProvider` | The class resolves credential references. Keep package names, keys, and events. |
 | `CredentialsLocal` | `LocalCredentialProvider` | This provider reads the host process and `.env` state, so local execution is part of its contract. |
 | `ClientModuleHostService`, `ctx.clientModuleHost` | `ClientModuleRegistry`, `ctx.clientModules` | The service owns multiple registered client modules. Keep the package and the browser `ClientModuleLoader`. |
 | `AgentDefaultModelService` | `AgentDefaultModelConfig` | The object stores one default model selection. It does not run a service or general registry. Keep its package, key, settings namespace, and type. |
 | `SessionReferenceService`, `ctx.sessionReferences` | `SessionReferenceResolver`, `ctx.sessionReferenceResolver` | It resolves one session reference from a URI or input. It does not own a reference collection. |
 | `SessionQueryService`, `SessionQuerySqlite` | `SessionQueryEngine`, `SqliteSessionQueryEngine` | The classes execute a query model and its SQLite implementation. Keep package names, key, and tool. |
-| `@hydra/harness-session-export`, `session-export/`, Loader id `session-export`, `ctx.sessionExport` | `@hydra/harness-session-log-export`, `session-log-export/`, Loader id `session-log-download`, `ctx.sessionLogDownload` | The npm package names the Session-log export because npm rejects `download` in package names. The Loader id and browser API retain `download` because they describe the browser side effect. |
+| `@hydraharness/harness-session-export`, `session-export/`, Loader id `session-export`, `ctx.sessionExport` | `@hydraharness/harness-session-log-export`, `session-log-export/`, Loader id `session-log-download`, `ctx.sessionLogDownload` | The npm package names the Session-log export because npm rejects `download` in package names. The Loader id and browser API retain `download` because they describe the browser side effect. |
 | `SessionExportDownloadController`, other `SessionExport*` browser types, `useSessionExport`, `SessionExportHeader` | `SessionLogDownloadController`, corresponding `SessionLogDownload*` types, `useSessionLogDownload`, `SessionLogDownloadHeaderAction` | The controller owns preflight, duplicate-request collapse, modal state, and browser save. `ExportDownload` repeats the action, and the component contributes one Header action rather than the Header. |
 | `CommandService` in the host command package | `CommandRuntime` | The object registers and executes host commands across live calls. Keep its package, key, types, and events. |
 | `TokenMeterService` | `TokenMeter` | The object measures token use. `Service` adds no scope. |
@@ -216,13 +216,13 @@ Keep `/compact`, the command package, and the separate compaction definition and
 
 | Former | Current | Reason |
 |---|---|---|
-| `HttpServerService`, `ctx.httpServer` | `WebServer`, `ctx.webServer` | The server owns HTTP routes and WebSocket upgrade routes. `Web` leaves room for both; `Http` is too narrow here. Keep `packages/host/webserver`, `@hydra/harness-host-webserver`, `WebRoute`, and `WebUpgradeRoute`. |
+| `HttpServerService`, `ctx.httpServer` | `WebServer`, `ctx.webServer` | The server owns HTTP routes and WebSocket upgrade routes. `Web` leaves room for both; `Http` is too narrow here. Keep `packages/host/webserver`, `@hydraharness/harness-host-webserver`, `WebRoute`, and `WebUpgradeRoute`. |
 | Documentation subsystem label `http-server` | `web-server` | The subsystem must use the same scope as the service. |
 | `SessionPersistenceJsonl` | `JsonlSessionPersistence` | Put the implementation qualifier first and keep the capability role intact. |
 | `SessionPersistenceSqlite` | `SqliteSessionPersistence` | Use the same provider naming order as JSONL. |
-| `@hydra/harness-session-title-first-message-llm`, cadence `first-message` | `@hydra/harness-session-title-first-prompt-llm`, cadence `first-prompt` | The trigger is the first user prompt, not any message in the session log. |
-| `@hydra/harness-session-title-all-messages-llm`, cadence `all-user-messages` | `@hydra/harness-session-title-all-prompts-llm`, cadence `all-prompts` | The backend refreshes from user prompts. `all messages` wrongly includes assistant and tool events. |
-| `@hydra/harness-code-runtime-worker`, `WorkerCodeRuntime` | `@hydra/harness-code-runtime-worker-thread`, `WorkerThreadCodeRuntime` | The implementation uses a Node worker thread. `worker` alone is too broad. |
+| `@hydraharness/harness-session-title-first-message-llm`, cadence `first-message` | `@hydraharness/harness-session-title-first-prompt-llm`, cadence `first-prompt` | The trigger is the first user prompt, not any message in the session log. |
+| `@hydraharness/harness-session-title-all-messages-llm`, cadence `all-user-messages` | `@hydraharness/harness-session-title-all-prompts-llm`, cadence `all-prompts` | The backend refreshes from user prompts. `all messages` wrongly includes assistant and tool events. |
+| `@hydraharness/harness-code-runtime-worker`, `WorkerCodeRuntime` | `@hydraharness/harness-code-runtime-worker-thread`, `WorkerThreadCodeRuntime` | The implementation uses a Node worker thread. `worker` alone is too broad. |
 | `SubprocessService` | `SubprocessRuntime` | The service owns live child-process execution and lifecycle. Keep its package and key. |
 | `LocalSubprocessService` | `LocalSubprocessRuntime` | The provider runs same-host processes and process trees. |
 | `E2BSubprocessService` | `E2BSubprocessRuntime` | The provider runs subprocesses in the E2B runtime. |
@@ -233,32 +233,32 @@ Keep the complete session projection family and `SessionProjection*` vocabulary.
 
 | Former | Current | Reason |
 |---|---|---|
-| `@hydra/harness-fs-policy` | `@hydra/harness-fs-observation-policy` | The package defines which filesystem observations authorize later effects. It is not the complete filesystem or sandbox policy. |
+| `@hydraharness/harness-fs-policy` | `@hydraharness/harness-fs-observation-policy` | The package defines which filesystem observations authorize later effects. It is not the complete filesystem or sandbox policy. |
 | `FsPolicyExec` | `FsObservationActor` | The value names the actor whose observations and effects the policy relates. It does not execute the policy itself. |
 | `SkillService` | `SkillRegistry` | The service registers providers and resolves skills from their catalogs. |
-| `@hydra/harness-skill-local`, `LocalSkillProvider`, provider id `local` | `@hydra/harness-skill-filesystem`, `FileSystemSkillProvider`, provider id `filesystem` | The provider discovers skill files through `ctx.fs`, which can be local or remote. The mechanism is filesystem access, not locality. |
+| `@hydraharness/harness-skill-local`, `LocalSkillProvider`, provider id `local` | `@hydraharness/harness-skill-filesystem`, `FileSystemSkillProvider`, provider id `filesystem` | The provider discovers skill files through `ctx.fs`, which can be local or remote. The mechanism is filesystem access, not locality. |
 | `SubagentService` | `SubagentRuntime` | The service selects providers and owns live spawn, resume, follow-up, cancellation, and settlement behavior. |
-| `@hydra/harness-subagent-spawn`, `SpawnProvider` | `@hydra/harness-subagent-spawn-in-process`, `SpawnInProcessProvider` | This provider starts a child agent in the current process. The configured provider id remains `spawn`. |
-| `@hydra/harness-subagent-fork`, `ForkProvider` | `@hydra/harness-subagent-fork-in-process`, `ForkInProcessProvider` | This provider forks an agent in the current process. The configured provider id remains `fork`. |
-| `@hydra/harness-subagent-inprocess`, `subagent-inprocess/` | `@hydra/harness-subagent-in-process-driver`, `subagent-in-process-driver/` | The package contains common in-process driving logic, not a third provider. |
-| Private `SdkProvider` in `@hydra/harness-subagent-sdk` | `SdkSubagentProvider` | The repeated package qualifier is intentional, and the class must say that it provides subagents through the SDK. |
+| `@hydraharness/harness-subagent-spawn`, `SpawnProvider` | `@hydraharness/harness-subagent-spawn-in-process`, `SpawnInProcessProvider` | This provider starts a child agent in the current process. The configured provider id remains `spawn`. |
+| `@hydraharness/harness-subagent-fork`, `ForkProvider` | `@hydraharness/harness-subagent-fork-in-process`, `ForkInProcessProvider` | This provider forks an agent in the current process. The configured provider id remains `fork`. |
+| `@hydraharness/harness-subagent-inprocess`, `subagent-inprocess/` | `@hydraharness/harness-subagent-in-process-driver`, `subagent-in-process-driver/` | The package contains common in-process driving logic, not a third provider. |
+| Private `SdkProvider` in `@hydraharness/harness-subagent-sdk` | `SdkSubagentProvider` | The repeated package qualifier is intentional, and the class must say that it provides subagents through the SDK. |
 | `WebService`, `WebServiceConfig` | `WebRuntime`, `WebRuntimeConfig` | The object selects providers and runs live search and fetch operations. Keep the package, key, provider packages, and model tool. |
-| `@hydra/harness-web-fetch-local`, `LocalFetchProvider`, `LocalFetchLimits`, provider id `local-http` | `@hydra/harness-web-fetch-http`, `HttpFetchProvider`, `HttpFetchLimits`, provider id `http` | This provider performs direct HTTP fetches. `local` says where code happens to run, not which mechanism it provides. |
+| `@hydraharness/harness-web-fetch-local`, `LocalFetchProvider`, `LocalFetchLimits`, provider id `local-http` | `@hydraharness/harness-web-fetch-http`, `HttpFetchProvider`, `HttpFetchLimits`, provider id `http` | This provider performs direct HTTP fetches. `local` says where code happens to run, not which mechanism it provides. |
 
-Keep `@hydra/harness-subagent-sdk`, its provider id `hydra-sdk`, external ACP, Codex, and Claude Code provider families, the subagent tool package names, the main filesystem package and backends, filesystem tools and events, and the skill badge and tool packages.
+Keep `@hydraharness/harness-subagent-sdk`, its provider id `hydra-sdk`, external ACP, Codex, and Claude Code provider families, the subagent tool package names, the main filesystem package and backends, filesystem tools and events, and the skill badge and tool packages.
 
 ### Hooks, guards, plan mode, extensions, and diagnostics
 
 | Former | Current | Reason |
 |---|---|---|
-| `@hydra/harness-hooks-claude`, `ClaudeHookConfig`, `parseClaudeConfig`, dialect `claude` | `@hydra/harness-hooks-claude-code`, `ClaudeCodeHookConfig`, `parseClaudeCodeConfig`, dialect `claude-code` | The hook bridge targets Claude Code, not every Anthropic or Claude product. |
-| `@hydra/harness-repeat-tool-guard`, plugin/source `repeat-tool-guard` | `@hydra/harness-repeat-tool-reminder`, plugin/source `repeat-tool-reminder` | The plugin adds a model reminder. It does not block or enforce a guard decision. |
-| `@hydra/harness-timeout-policy` | `@hydra/harness-tool-call-timeout-policy` | The full `tool-call` qualifier names what the policy limits without calling the plugin a model-facing tool. Keep its `guard/timeout-policy/` directory and plugin id `timeout-policy`; the `packages/*/tool-*` catalog convention still applies only to packages that register tools. |
+| `@hydraharness/harness-hooks-claude`, `ClaudeHookConfig`, `parseClaudeConfig`, dialect `claude` | `@hydraharness/harness-hooks-claude-code`, `ClaudeCodeHookConfig`, `parseClaudeCodeConfig`, dialect `claude-code` | The hook bridge targets Claude Code, not every Anthropic or Claude product. |
+| `@hydraharness/harness-repeat-tool-guard`, plugin/source `repeat-tool-guard` | `@hydraharness/harness-repeat-tool-reminder`, plugin/source `repeat-tool-reminder` | The plugin adds a model reminder. It does not block or enforce a guard decision. |
+| `@hydraharness/harness-timeout-policy` | `@hydraharness/harness-tool-call-timeout-policy` | The full `tool-call` qualifier names what the policy limits without calling the plugin a model-facing tool. Keep its `guard/timeout-policy/` directory and plugin id `timeout-policy`; the `packages/*/tool-*` catalog convention still applies only to packages that register tools. |
 | `PlanModeService` | `PlanModeController` | The object controls transitions into and out of plan mode. It is not a general execution runtime. |
 | `packages/self-modification/` | `packages/extensions/` | The group contains repository plugin inspection and mounting tools. `extensions` states the stable package role without asserting that the agent modifies itself. Keep the package names `tool-cordis` and repository-plugin names. |
 | `packages/support/` | `packages/test-support/` | The group is test-only infrastructure. Its path must say so. |
 | `invariants/` in the former support family | `runtime-diagnostics/invariants/` | Invariants can run in production diagnostics even though shipped presets omit them. They are not test support. |
-| `InvariantService` | `InvariantRegistry` | The object owns registered invariant checks. Keep `@hydra/harness-invariants` and `ctx.invariants`. |
+| `InvariantService` | `InvariantRegistry` | The object owns registered invariant checks. Keep `@hydraharness/harness-invariants` and `ctx.invariants`. |
 | `packages/client/test-runtime/` | `packages/test-support/client-runtime/` | The package is client test infrastructure. Keep its npm name if it already states that contract. |
 
 Keep MCP, Todo, and the Plan Mode package, key, events, and tool names. This decision renames the controller class, not the product feature.
@@ -267,15 +267,15 @@ Keep MCP, Todo, and the Plan Mode package, key, events, and tool names. This dec
 
 | Former | Current | Reason |
 |---|---|---|
-| `util/paths/`, `@hydra/harness-paths` | `util/home-paths/`, `@hydra/harness-home-paths` | The helpers resolve paths under the Harness home. They are not a general path library. Keep the individual function names when they already state the returned path. |
-| `util/retention/`, `@hydra/harness-retention` | `util/output-retention/`, `@hydra/harness-output-retention` | The policy retains command and tool output. It is not a general data-retention framework. |
-| `E2BSandboxService` | `E2BRuntime` | The class creates, reuses, and disposes the E2B execution environment used by filesystem and subprocess adapters. It is broader than one sandbox handle and narrower than a generic owner. Keep `@hydra/harness-e2b`, `ctx.e2b`, and the `e2b/` group. |
-| `@hydra/harness-frontend-static` | `@hydra/harness-host-frontend-static` | The package is the Host plugin that serves the frontend assets. The prefix distinguishes it from frontend application code. |
+| `util/paths/`, `@hydraharness/harness-paths` | `util/home-paths/`, `@hydraharness/harness-home-paths` | The helpers resolve paths under the Harness home. They are not a general path library. Keep the individual function names when they already state the returned path. |
+| `util/retention/`, `@hydraharness/harness-retention` | `util/output-retention/`, `@hydraharness/harness-output-retention` | The policy retains command and tool output. It is not a general data-retention framework. |
+| `E2BSandboxService` | `E2BRuntime` | The class creates, reuses, and disposes the E2B execution environment used by filesystem and subprocess adapters. It is broader than one sandbox handle and narrower than a generic owner. Keep `@hydraharness/harness-e2b`, `ctx.e2b`, and the `e2b/` group. |
+| `@hydraharness/harness-frontend-static` | `@hydraharness/harness-host-frontend-static` | The package is the Host plugin that serves the frontend assets. The prefix distinguishes it from frontend application code. |
 | `PluginInventoryService` | `PluginInventoryGateway` | The class is a Remote adapter from the live Loader tree to the `pluginInventory` RPC namespace. It owns no same-process service, cache, or history; profile-persisted enablement remains a gateway operation over Loader and Include. `Gateway` states the role that exists. |
-| `@hydra/harness-jsonrpc-demo` | `@hydra/harness-sdk-jsonrpc-demo` | The example demonstrates the runtime SDK over JSON-RPC. It belongs to the one SDK meaning. |
-| `@hydra/harness-frontend` | `@hydra/harness-web-frontend` | The application is the web frontend. Keep its physical `apps/web/` folder. |
+| `@hydraharness/harness-jsonrpc-demo` | `@hydraharness/harness-sdk-jsonrpc-demo` | The example demonstrates the runtime SDK over JSON-RPC. It belongs to the one SDK meaning. |
+| `@hydraharness/harness-frontend` | `@hydraharness/harness-web-frontend` | The application is the web frontend. Keep its physical `apps/web/` folder. |
 
-Keep atomic-write, brand, native-command, timeout utility, directory-picker, `@hydra/harness-base`, `@hydra/harness-web-app`, app boot, CLI names, and the `headless` package, bundle, and example identity. `headless` is the intended product essence and may later support more than one-shot execution.
+Keep atomic-write, brand, native-command, timeout utility, directory-picker, `@hydraharness/harness-base`, `@hydraharness/harness-web-app`, app boot, CLI names, and the `headless` package, bundle, and example identity. `headless` is the intended product essence and may later support more than one-shot execution.
 
 ### Client runtime and UI
 
@@ -288,21 +288,21 @@ Keep atomic-write, brand, native-command, timeout utility, directory-picker, `@h
 | `LocaleService` | `LocaleRuntime` | The object coordinates locale definitions, selection, persistence, and change publication. |
 | `ThemeService` | `ThemeRuntime` | The object coordinates themes, preference resolution, system sensing, and change publication. |
 | `LayoutService` | `LayoutController` | The object controls the current UI layout state. |
-| `@hydra/harness-client-ui-model` | `@hydra/harness-client-ui-model-selection` | The package controls the model selection for a session. The singular `model` name is too broad. |
+| `@hydraharness/harness-client-ui-model` | `@hydraharness/harness-client-ui-model-selection` | The package controls the model selection for a session. The singular `model` name is too broad. |
 | `ModelService`, `ctx.models` | `ModelDirectoryResolver`, `ctx.modelDirectories` | Its only public operation, `directoryFor(sessionId)`, resolves and retains one directory per live session. It has no registration API, so `Registry` would be false. Each `ModelDirectory` remains the consumer-facing catalog of selectable models. |
 | `SettingsScopeService` | `SettingsScopeBinder` | Its sole operation binds one namespace specification to the caller's transport and lifecycle and returns a `SettingsScopeController`. Keep `ctx.settingsScope`; it names the singular binding capability, not a collection of scopes. |
-| `@hydra/harness-client-ui-models` | `@hydra/harness-client-ui-settings-models` | This package owns the Models settings panel. Keep `ModelsSettingsStore`; it holds one settings view model with data operations and subscriptions and is a real store. |
-| `@hydra/harness-client-ui-plugin-config`, `client/ui-plugin-config/` | `@hydra/harness-client-ui-settings-plugins`, `client/ui-settings-plugins/` | This package owns the Plugins settings section, not a general plugin-configuration system. The target joins the `ui-settings-*` family and uses the section's plural product name. |
+| `@hydraharness/harness-client-ui-models` | `@hydraharness/harness-client-ui-settings-models` | This package owns the Models settings panel. Keep `ModelsSettingsStore`; it holds one settings view model with data operations and subscriptions and is a real store. |
+| `@hydraharness/harness-client-ui-plugin-config`, `client/ui-plugin-config/` | `@hydraharness/harness-client-ui-settings-plugins`, `client/ui-settings-plugins/` | This package owns the Plugins settings section, not a general plugin-configuration system. The target joins the `ui-settings-*` family and uses the section's plural product name. |
 | `PluginConfigSection`, `PluginConfigSectionProps`, `PluginConfigSectionInjected`, `PluginSettingsTabRow`, `PluginConfigKey`, `settings.pluginConfig` | `PluginsSettingsSection`, `PluginsSettingsSectionProps`, `PluginsSettingsSectionInjected`, `PluginsSettingsTabEntry`, `PluginsSettingsLocaleKey`, `settings.plugins` | The section owns the Plugins settings presentation and tab ledger. The metadata value is one slot entry, not a rendered row. Each card still edits one plugin's configuration. |
-| `@hydra/harness-client-ui-plugins`, `client/ui-plugins/`, Loader id `ui-plugins`, `client-ui-plugins-invariant` | `@hydra/harness-client-ui-settings-plugin-inventory`, `client/ui-settings-plugin-inventory/`, Loader id `ui-settings-plugin-inventory`, `client-ui-settings-plugin-inventory-invariant` | This later package owns the Plugin Inventory tab and its enablement controls in the Plugins settings section. `ui-plugins` is too broad and does not distinguish the inventory from editable plugin settings. |
+| `@hydraharness/harness-client-ui-plugins`, `client/ui-plugins/`, Loader id `ui-plugins`, `client-ui-plugins-invariant` | `@hydraharness/harness-client-ui-settings-plugin-inventory`, `client/ui-settings-plugin-inventory/`, Loader id `ui-settings-plugin-inventory`, `client-ui-settings-plugin-inventory-invariant` | This later package owns the Plugin Inventory tab and its enablement controls in the Plugins settings section. `ui-plugins` is too broad and does not distinguish the inventory from editable plugin settings. |
 | `PluginSettingsSection`, `PluginSettingsSectionProps`, `PluginSettingsSectionInjected`, `PluginsKey`, `settings.plugins` in the former `ui-plugins` package | `PluginInventorySettingsTab`, `PluginInventorySettingsTabProps`, `PluginInventorySettingsTabInjected`, `PluginInventoryLocaleKey`, `settings.pluginInventory` | The component is now a tab contribution, not a settings section. The other names state the inventory subject and avoid colliding with `PluginsSettingsSection` and its `settings.plugins` locale namespace. Keep the shared `settings.plugins.tab` slot name; both tabs contribute to the Plugins section through that slot. |
-| `@hydra/harness-client-ui-feedback`, `client/ui-feedback/`, Loader id `ui-feedback`, `client-ui-feedback-invariant` | `@hydra/harness-client-ui-message-feedback`, `client/ui-message-feedback/`, Loader id `ui-message-feedback`, `client-ui-message-feedback-invariant` | This package presents ratings and notes for assistant messages through the `messageFeedback` Remote. The old name also appears to cover command feedback and any later feedback UI. It does not. |
+| `@hydraharness/harness-client-ui-feedback`, `client/ui-feedback/`, Loader id `ui-feedback`, `client-ui-feedback-invariant` | `@hydraharness/harness-client-ui-message-feedback`, `client/ui-message-feedback/`, Loader id `ui-message-feedback`, `client-ui-message-feedback-invariant` | This package presents ratings and notes for assistant messages through the `messageFeedback` Remote. The old name also appears to cover command feedback and any later feedback UI. It does not. |
 | `FeedbackController`, `FeedbackStatus`, `FeedbackView`, `FeedbackActionResult`, `FeedbackInjected`, `FeedbackActionProps`, `FeedbackActions`, `FeedbackKey` in the former `ui-feedback` package | `MessageFeedbackController`, `MessageFeedbackStatus`, `MessageFeedbackView`, `MessageFeedbackActionResult`, `MessageFeedbackInjected`, `MessageFeedbackActionProps`, `MessageFeedbackActions`, `MessageFeedbackKey` | These are exported Client names. The `Message` qualifier prevents them from claiming every feedback domain. Keep `Controller`: the object accepts rating and note actions and coordinates one Session's load, mutation, conflict, reconnect, and disposal state. |
 | `agent-loop-store.ts`, `bash-store.ts`, `web-search-store.ts` | `agent-loop-card-controller.ts`, `bash-card-controller.ts`, `web-search-card-controller.ts` | Each module exports a card controller. A private `SnapshotStore` field does not make the module a store. |
 | `card-store.ts` | `card-form.ts` | The module owns the staged form, field conversion, and form actions. The snapshot stores it returns are presentation adapters, not the module's main role. |
-| `@hydra/harness-client-ui-question` | `@hydra/harness-client-ui-user-questions` | The UI presents the user-question seam, not an arbitrary question domain. |
-| `@hydra/harness-client-ui-command`, `ui-command/` | `@hydra/harness-client-ui-commands`, `ui-commands/` | The package presents and runs a collection of commands. |
-| `@hydra/harness-client-ui-directory-picker`, `client/ui-directory-picker/`, Loader id `ui-directory-picker`, `client-ui-directory-picker-invariant` | `@hydra/harness-client-ui-directory-picker-browse`, `client/ui-directory-picker-browse/`, Loader id `ui-directory-picker-browse`, `client-ui-directory-picker-browse-invariant` | The Client packages now contain separate `browse` and `native` directory-picker presentations. The unqualified package is the browse implementation, not their shared definition. The target matches the Host backend family and changes no boundary. |
+| `@hydraharness/harness-client-ui-question` | `@hydraharness/harness-client-ui-user-questions` | The UI presents the user-question seam, not an arbitrary question domain. |
+| `@hydraharness/harness-client-ui-command`, `ui-command/` | `@hydraharness/harness-client-ui-commands`, `ui-commands/` | The package presents and runs a collection of commands. |
+| `@hydraharness/harness-client-ui-directory-picker`, `client/ui-directory-picker/`, Loader id `ui-directory-picker`, `client-ui-directory-picker-invariant` | `@hydraharness/harness-client-ui-directory-picker-browse`, `client/ui-directory-picker-browse/`, Loader id `ui-directory-picker-browse`, `client-ui-directory-picker-browse-invariant` | The Client packages now contain separate `browse` and `native` directory-picker presentations. The unqualified package is the browse implementation, not their shared definition. The target matches the Host backend family and changes no boundary. |
 | Client `ctx.command`, `CommandService`, `CommandServiceContract` | `ctx.commandUi`, `CommandUiRuntime`, `CommandUiContract` | The host already owns `ctx.commands`. The client service is the UI runtime for command discovery and execution. Existing `CommandUiSpec` fixes the `Ui` casing. |
 | `ConversationService` | `ConversationController` | The object controls the active conversation state and user actions. |
 | `InputService` | `SessionInputResolver` | The interface resolves the input facade for one session scope. It is neither a global input registry nor an execution service. Keep `InputHub` as the concrete hub and `ctx.conversation.input` as the published face. |
@@ -314,25 +314,25 @@ Use `Ui`, not `UI`, inside PascalCase identifiers. Keep the remaining client pac
 The following debated names stay unchanged because the current scope is accurate or a rename would create a false concept:
 
 - Keep the complete sandbox family and `ctx.sandbox`. Do not introduce `processSandbox`.
-- Keep `@hydra/harness-api-gateway`, `ctx.typertGateway`, and `TypertGatewayService`.
+- Keep `@hydraharness/harness-api-gateway`, `ctx.typertGateway`, and `TypertGatewayService`.
 - Keep session projection names. A projection is not only a reducer function.
-- Keep `@hydra/harness-session-stats`, `sessionStats`, and `SessionStatsProjection`. They accurately name whole-session statistics and the maintained read model that carries them.
+- Keep `@hydraharness/harness-session-stats`, `sessionStats`, and `SessionStatsProjection`. They accurately name whole-session statistics and the maintained read model that carries them.
 - Keep `GoalService`; it owns the goal state machine, authority, compare-and-set behavior, events, and remote operations. It is not just a store.
 - Keep `SessionTitleService`; its role is a domain service shared by title providers.
 - Keep `PermissionPresetSettingsController` even though it is long. Every word limits the role.
 - Keep `ModelsSettingsStore`; its main contract is one settings data model with store operations.
 - Keep `InputHub`; it is the concrete hub that backs `SessionInputResolver`.
-- Keep `@hydra/harness-subagent-sdk` and provider id `hydra-sdk`; the repeated qualifier prevents ambiguity.
+- Keep `@hydraharness/harness-subagent-sdk` and provider id `hydra-sdk`; the repeated qualifier prevents ambiguity.
 - Keep `headless`; the product identity is accurate even if the runtime later supports more than one-shot use.
 - Keep deprecated Host `ApiProxy` and client connection names until the API replacement removes them.
 - Keep `Web` for the Host server and the provider-neutral web capability. Use `HTTP` only for the direct fetch provider.
 - Keep `E2B`, not `E2B sandbox`, as the package and context name.
 - Keep MCP, Todo, app boot, base bundle, web-app bundle, and CLI names. Keep the directory-picker capability and Host backend names; only the unqualified Client `browse` presentation is renamed.
-- Keep `@hydra/harness-client-ui-directory-picker-native`; its suffix names the native-chooser presentation beside the renamed `-browse` variant. Keep `SURFACE_PACKAGES`; within the directory-picker auto selector it is the package map for the Client presentation half, contrasted with `BACKEND_PACKAGES`.
-- Keep `@hydra/harness-host-plugin-inventory`, `ctx.pluginInventory`, the `pluginInventory` Remote namespace, and the `PluginInventory*` payload types. They accurately name the Host-owned inventory and enablement boundary; only the adapter class and the overly broad Client presentation names change.
+- Keep `@hydraharness/harness-client-ui-directory-picker-native`; its suffix names the native-chooser presentation beside the renamed `-browse` variant. Keep `SURFACE_PACKAGES`; within the directory-picker auto selector it is the package map for the Client presentation half, contrasted with `BACKEND_PACKAGES`.
+- Keep `@hydraharness/harness-host-plugin-inventory`, `ctx.pluginInventory`, the `pluginInventory` Remote namespace, and the `PluginInventory*` payload types. They accurately name the Host-owned inventory and enablement boundary; only the adapter class and the overly broad Client presentation names change.
 - Keep `ConfigurablePluginsTab`. It is the tab that renders plugins with editable configuration; it does not own the complete Plugins settings section.
 - Keep the shared `settings.plugins.tab` slot. It belongs to the Plugins settings section. The inventory package changes its own locale namespace to `settings.pluginInventory`; it does not create a separate tab slot.
-- Keep the `@hydra/harness-message-feedback` capability, `messageFeedback` Remote, assistant-action entry id `feedback`, hook key `feedback`, and locale namespace `feedback`. Their surrounding interfaces already limit them to message feedback or to the local assistant-message slot. Only the broad Client package and exported UI names change.
+- Keep the `@hydraharness/harness-message-feedback` capability, `messageFeedback` Remote, assistant-action entry id `feedback`, hook key `feedback`, and locale namespace `feedback`. Their surrounding interfaces already limit them to message feedback or to the local assistant-message slot. Only the broad Client package and exported UI names change.
 - Keep `RemoteFailure`, `RemoteResult`, and `SessionRemotes`. The first two are Typert carrier-result values, while the last is the set of Remote namespaces used by the Client Session cluster. None is a store, controller, registry, or runtime.
 - Keep the `/export` human command, `/api/session.export` Host route, `DownloadsApi`, and its `sessionLog` operation. The command names the user action, the Host route exports the archive, and the API groups direct HTTP downloads. The renamed Client controller owns the separate browser-download step.
 - Keep `.client` and `.host` in test filenames. They identify the compiler face each test enters and do not claim a product role.

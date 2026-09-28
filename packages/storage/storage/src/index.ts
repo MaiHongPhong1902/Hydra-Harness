@@ -2,10 +2,10 @@
  * Storage hub (`ctx.storage`): a named backend registry plus mounted
  * data-form facilities. The hub itself performs no IO — backends own media,
  * data forms (the domain layer first) own semantics.
- * @module @hydra1902/harness-storage
+ * @module @hydraharness/harness-storage
  */
 
-import { Context, Service } from '@hydra1902/cordis'
+import { Context, Service } from '@hydraharness/cordis'
 import { StorageError } from './error.ts'
 import { BackendRegistry } from './registry.ts'
 
@@ -27,7 +27,7 @@ export function storageBackendServiceKey(name: string): string {
   return `storage.backend.${name}`
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     storage: Storage
   }

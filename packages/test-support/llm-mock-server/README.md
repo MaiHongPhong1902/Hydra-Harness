@@ -1,4 +1,4 @@
-# `@hydra/harness-llm-mock-server`
+# `@hydraharness/harness-llm-mock-server`
 
 A scriptable OpenAI-compatible HTTP/SSE server for exercising real LLM adapters, the agent loop, and recovery policy without a provider key. It accepts `POST /chat/completions` and `POST /v1/chat/completions`; each accepted request consumes one configured behavior in arrival order. Invalid methods, paths, bearer tokens, and JSON do not consume the script.
 

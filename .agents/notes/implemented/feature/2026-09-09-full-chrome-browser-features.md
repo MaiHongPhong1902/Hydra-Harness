@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-The embedded browser in `@hydra/harness-browser-electron` previously provided only basic tab strip and navigation buttons. It lacked everyday browser capabilities such as a New Tab page, bookmarks persistence and toolbar, audible/muted indicators on tabs, tab context menus, site security details, in-page search (Find in page), Chrome menu (⋮), standard context menus, and Chrome keyboard shortcuts.
+The embedded browser in `@hydraharness/harness-browser-electron` previously provided only basic tab strip and navigation buttons. It lacked everyday browser capabilities such as a New Tab page, bookmarks persistence and toolbar, audible/muted indicators on tabs, tab context menus, site security details, in-page search (Find in page), Chrome menu (⋮), standard context menus, and Chrome keyboard shortcuts.
 
 ## Decision
 
@@ -28,4 +28,4 @@ Interactive users benefit from a familiar, feature-complete Chrome experience di
 
 ## Testing
 
-The real-Electron test driver `chrome-ui.cjs` verifies layout responsiveness across 320px, 480px, 768px, and 1024px viewports, tab lifecycle operations, site permissions, and navigation flows (`ok: true`). The vitest test suite for `@hydra/harness-browser-electron` passes 91/91 tests across 6 files.
+The real-Electron test driver `chrome-ui.cjs` verifies layout responsiveness across 320px, 480px, 768px, and 1024px viewports, tab lifecycle operations, site permissions, and navigation flows (`ok: true`). The vitest test suite for `@hydraharness/harness-browser-electron` passes 91/91 tests across 6 files.

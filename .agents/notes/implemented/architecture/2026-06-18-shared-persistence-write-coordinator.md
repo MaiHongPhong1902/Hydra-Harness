@@ -4,11 +4,11 @@ Status: implemented
 
 ## Problem
 
-`@hydra/harness-session-persistence-jsonl` and `@hydra/harness-session-persistence-sqlite` intentionally prove the same `SessionPersistence` contract over different storage media, but their write-path orchestration was duplicated: per-session state, `session/created` adoption, backend-specific prefix reads, write-behind control, per-id operation serialization, HMR seeding, and dispose drains. The pure seed-prefix collision and serializability guards had already moved into the Service Definition package; the remaining orchestration was still correctness-heavy and received the same fixes twice. Only the storage primitives (write bytes vs. INSERT rows) differed.
+`@hydraharness/harness-session-persistence-jsonl` and `@hydraharness/harness-session-persistence-sqlite` intentionally prove the same `SessionPersistence` contract over different storage media, but their write-path orchestration was duplicated: per-session state, `session/created` adoption, backend-specific prefix reads, write-behind control, per-id operation serialization, HMR seeding, and dispose drains. The pure seed-prefix collision and serializability guards had already moved into the Service Definition package; the remaining orchestration was still correctness-heavy and received the same fixes twice. Only the storage primitives (write bytes vs. INSERT rows) differed.
 
 ## Decision
 
-Extract a backend-agnostic `PersistenceCoordinator` into `@hydra/harness-session-persistence`. The coordinator owns the orchestration once; each first-party backend composes one (`new PersistenceCoordinator(ctx, this)`), implements a small `PersistenceBackend` hook interface, and delegates its stateful public methods (`create`/`append`/`prepare`/`load`/`inspect`/`readFrom`) to it. Backend-owned metadata and revision listing bypass the coordinator.
+Extract a backend-agnostic `PersistenceCoordinator` into `@hydraharness/harness-session-persistence`. The coordinator owns the orchestration once; each first-party backend composes one (`new PersistenceCoordinator(ctx, this)`), implements a small `PersistenceBackend` hook interface, and delegates its stateful public methods (`create`/`append`/`prepare`/`load`/`inspect`/`readFrom`) to it. Backend-owned metadata and revision listing bypass the coordinator.
 
 Composition, not inheritance. The coordinator is a concrete class the backend holds, not a base class the backend extends. The risk that a coordinator makes unusual backends fight an inheritance hierarchy is avoided: a backend exposes only the hooks and cannot reach the coordinator's private orchestration state. A third-party backend MAY still implement the abstract service directly without the coordinator, including immutable logical inspection and the default preparation fallback through `load`.
 
@@ -33,7 +33,7 @@ Five required members plus an optional lifecycle hook form the only boundary bet
 
 ### The opaque torn marker
 
-The single design choice that keeps the seam clean: the crash-repair "where is the torn tail" token is OPAQUE to the coordinator. The coordinator computes the synthetic closers (it owns `interruptedTurnClosers` from `@hydra/harness-session`), but it only ever tests `tornMarker !== undefined` and passes the value straight back to `commitRepair` — it never inspects it. Each backend picks its own marker type: JSONL carries the byte offset to truncate to plus any complete events decoded from an incomplete final frame, while SQLite carries the seq to delete from. The coordinator therefore knows neither byte lengths nor frame recovery state.
+The single design choice that keeps the seam clean: the crash-repair "where is the torn tail" token is OPAQUE to the coordinator. The coordinator computes the synthetic closers (it owns `interruptedTurnClosers` from `@hydraharness/harness-session`), but it only ever tests `tornMarker !== undefined` and passes the value straight back to `commitRepair` — it never inspects it. Each backend picks its own marker type: JSONL carries the byte offset to truncate to plus any complete events decoded from an incomplete final frame, while SQLite carries the seq to delete from. The coordinator therefore knows neither byte lengths nor frame recovery state.
 
 ## Testing
 

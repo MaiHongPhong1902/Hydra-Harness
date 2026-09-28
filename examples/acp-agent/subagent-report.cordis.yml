@@ -2,7 +2,7 @@
 # holding the parent in maintenance until settlement follows the default
 # next-step report. The resumed parent claims both notices in causal order.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
 

@@ -1,6 +1,6 @@
 /** Render durable review hunks in unified or paired side-by-side form. @module */
 import type { ReactNode } from 'react'
-import type { ReviewHunk } from '@hydra1902/harness-fs-review/client'
+import type { ReviewHunk } from '@hydraharness/harness-fs-review/client'
 import css from './DiffView.module.css'
 
 type DiffMode = 'unified' | 'split'

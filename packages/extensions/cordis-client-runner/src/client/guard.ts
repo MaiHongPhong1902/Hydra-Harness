@@ -13,10 +13,10 @@
  * as trusted as the host process that accepted its definition.
  */
 
-import { Context } from '@hydra1902/cordis'
-import type { DynamicCordisPackage } from '@hydra1902/harness-api-remotes/client'
-import type { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
-import type { ThemeRuntime } from '@hydra1902/harness-client-ui-theme/client'
+import { Context } from '@hydraharness/cordis'
+import type { DynamicCordisPackage } from '@hydraharness/harness-api-remotes/client'
+import type { SlotRegistry } from '@hydraharness/harness-client-runtime/client'
+import type { ThemeRuntime } from '@hydraharness/harness-client-ui-theme/client'
 
 /** Facade verbs beyond declared services (host CTX_VERBS twin). */
 const CTX_VERBS = new Set([

@@ -8,22 +8,22 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { z } from 'zod'
-import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
-import { AttachmentStore } from '@hydra1902/harness-attachment'
-import type { Agent } from '@hydra1902/harness-agent'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import type { Session } from '@hydra1902/harness-session'
-import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
-import type { ProjectionDefinition } from '@hydra1902/harness-session-projection'
-import UserQuestionService from '@hydra1902/harness-user-questions'
-import type { MuxFrame, RpcRequest } from '@hydra1902/harness-host-apiproxy/api'
-import { RpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
-import { createApiProxy } from '@hydra1902/harness-host-apiproxy'
+import AgentRegistry, { Inbox } from '@hydraharness/harness-agent'
+import { AttachmentStore } from '@hydraharness/harness-attachment'
+import type { Agent } from '@hydraharness/harness-agent'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import type { Session } from '@hydraharness/harness-session'
+import SessionProjectionRegistry from '@hydraharness/harness-session-projection'
+import type { ProjectionDefinition } from '@hydraharness/harness-session-projection'
+import UserQuestionService from '@hydraharness/harness-user-questions'
+import type { MuxFrame, RpcRequest } from '@hydraharness/harness-host-apiproxy/api'
+import { RpcId } from '@hydraharness/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydraharness/harness-host-apiproxy'
 
-declare module '@hydra1902/harness-session-projection/types' {
+declare module '@hydraharness/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     'test/last-user': LastUserState
     'test/internal-count': number

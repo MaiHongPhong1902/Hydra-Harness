@@ -2,13 +2,13 @@
  * Concrete agent-loop plugin: creates scoped ReactLoopAgents, publishes them
  * through the agent/session registries, and owns their ordered teardown.
  *
- * @module @hydra1902/harness-agent-loop
+ * @module @hydraharness/harness-agent-loop
  */
 
-import { Context, FiberState, Service } from '@hydra1902/cordis'
+import { Context, FiberState, Service } from '@hydraharness/cordis'
 import { randomUUID } from 'node:crypto'
-import z from '@hydra1902/schemastery'
-import { emitAgentEvent } from '@hydra1902/harness-agent'
+import z from '@hydraharness/schemastery'
+import { emitAgentEvent } from '@hydraharness/harness-agent'
 import type {
   Agent,
   AgentFactory,
@@ -18,14 +18,14 @@ import type {
   CreateAgentOptions,
   ResumeAgentOptions,
   SessionStartSource,
-} from '@hydra1902/harness-agent'
-import { errorChain } from '@hydra1902/harness-llm'
-import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
-import { SessionId, SessionPreparation } from '@hydra1902/harness-session'
-import type { Session, SessionHeader } from '@hydra1902/harness-session'
-import type {} from '@hydra1902/harness-system-prompt'
-import type {} from '@hydra1902/harness-tools'
-import type { SessionPersistence } from '@hydra1902/harness-session-persistence'
+} from '@hydraharness/harness-agent'
+import { errorChain } from '@hydraharness/harness-llm'
+import { installSettingsSection, settingsNamespace } from '@hydraharness/harness-settings'
+import { SessionId, SessionPreparation } from '@hydraharness/harness-session'
+import type { Session, SessionHeader } from '@hydraharness/harness-session'
+import type {} from '@hydraharness/harness-system-prompt'
+import type {} from '@hydraharness/harness-tools'
+import type { SessionPersistence } from '@hydraharness/harness-session-persistence'
 import { ReactLoopAgent } from './agent.ts'
 import { DEFAULT_MAX_PARALLEL_TOOL_CALLS } from './constants.ts'
 
@@ -157,7 +157,7 @@ interface PreparedAgent {
   dispose(): Promise<void>
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     agentLoop: AgentLoop
     /**

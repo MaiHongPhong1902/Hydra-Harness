@@ -11,7 +11,7 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import type { ReplayOverrideDoc } from '@hydra1902/harness-llm-replay'
+import type { ReplayOverrideDoc } from '@hydraharness/harness-llm-replay'
 import {
   assertFixtureInventory,
   captureStableAria,

@@ -1,6 +1,6 @@
 /** Draft ownership across pending writes and section remounts. */
 import { expect, it, vi } from 'vitest'
-import type { RpcResponse } from '@hydra1902/harness-api-remotes/client'
+import type { RpcResponse } from '@hydraharness/harness-api-remotes/client'
 import { InstructionsController } from '../src/client/instructions-store.ts'
 
 const ok = (content: string, revision: string): RpcResponse<{ content: string; revision: string }> => ({

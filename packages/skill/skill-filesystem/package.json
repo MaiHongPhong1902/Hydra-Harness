@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-skill-filesystem",
+  "name": "@hydraharness/harness-skill-filesystem",
   "description": "Local filesystem skill provider for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -37,21 +37,21 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-fs": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-home-paths": "workspace:^",
-    "@hydra1902/harness-skill": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-fs": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-home-paths": "workspace:^",
+    "@hydraharness/harness-skill": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
     "chokidar": "^5.0.0",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-fs": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-home-paths": "workspace:^",
-    "@hydra1902/harness-skill": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-fs": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-home-paths": "workspace:^",
+    "@hydraharness/harness-skill": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

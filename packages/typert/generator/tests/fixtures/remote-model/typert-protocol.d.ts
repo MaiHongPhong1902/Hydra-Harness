@@ -1,4 +1,4 @@
-declare module '@hydra1902/harness-typert-protocol' {
+declare module '@hydraharness/harness-typert-protocol' {
   export interface TypertLookup<Host, Wire> {
     readonly host: Host
     readonly wire: Wire

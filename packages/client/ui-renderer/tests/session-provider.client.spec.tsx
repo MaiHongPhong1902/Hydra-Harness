@@ -9,8 +9,8 @@
 import { useEffect, useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { act, render } from '@testing-library/react'
-import type { SessionMaybeProvideInfo, StoredEntry } from '@hydra1902/harness-client-ui-slots'
-import type { SessionProvideInfo, SlotRendererHost } from '@hydra1902/harness-client-ui-renderer/client'
+import type { SessionMaybeProvideInfo, StoredEntry } from '@hydraharness/harness-client-ui-slots'
+import type { SessionProvideInfo, SlotRendererHost } from '@hydraharness/harness-client-ui-renderer/client'
 import { createSlotRenderer } from '../src/client/scoped-slots.tsx'
 import { SessionProvider } from '../src/client/session-provider.tsx'
 

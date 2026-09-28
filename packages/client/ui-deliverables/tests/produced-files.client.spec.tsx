@@ -5,20 +5,20 @@
  * and opener wiring, and the plugin registrations' fiber-teardown removal
  * (HMR safety) against the real SlotRegistry.
  */
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   ConversationEventRegistry, ConversationNodeAssembler, SlotRegistry,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type {
   ConversationEventInput, ConversationLocationDataStore, ConversationMatch, ConversationNodeDefinition,
   ConversationTimelineSnapshot, ConversationTurnDataMap, ConversationViewDefinition,
   ConversationViewNode, ToolResultNode, TurnLocation,
-} from '@hydra1902/harness-client-runtime/client'
-import { apply as applyLocale, inject as localeInject } from '@hydra1902/harness-client-locale/client'
-import type { ChatFileMentions, TurnTailOwnerProps } from '@hydra1902/harness-client-ui-conversation/client'
-import { makeTranslate, stubSettingsScope } from '@hydra1902/harness-client-test-runtime'
+} from '@hydraharness/harness-client-runtime/client'
+import { apply as applyLocale, inject as localeInject } from '@hydraharness/harness-client-locale/client'
+import type { ChatFileMentions, TurnTailOwnerProps } from '@hydraharness/harness-client-ui-conversation/client'
+import { makeTranslate, stubSettingsScope } from '@hydraharness/harness-client-test-runtime'
 import {
   fitProducedFiles, ProducedFiles, type ProducedFilesProps,
 } from '../src/client/ProducedFiles.tsx'
@@ -445,7 +445,7 @@ describe('package shells', () => {
       register: (pkg: string) => { registered.push(pkg); return () => {} },
     } as never)
     const dispose = await applyInvariant(ctx)
-    expect(registered).toEqual(['@hydra1902/harness-client-ui-deliverables'])
+    expect(registered).toEqual(['@hydraharness/harness-client-ui-deliverables'])
     expect(dispose).toBeTypeOf('function')
   })
 })

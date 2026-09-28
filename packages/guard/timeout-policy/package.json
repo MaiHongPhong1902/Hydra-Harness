@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-tool-call-timeout-policy",
+  "name": "@hydraharness/harness-tool-call-timeout-policy",
   "description": "Tool-call timeout policy: a tools/execute wrapper that arms a per-tool deadline on exec.signal and returns TOOL_TIMEOUT when it wins",
   "hydra": {
     "plugin": {
@@ -37,17 +37,17 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

@@ -1,11 +1,11 @@
 /**
  * Agent-scoped durable one-shot and fixed-rate reminders over the session event log.
- * @module @hydra1902/harness-schedule
+ * @module @hydraharness/harness-schedule
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
-import type {} from '@hydra1902/harness-session-persistence'
+import type { Context } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
+import type {} from '@hydraharness/harness-session-persistence'
 import { ScheduleRuntime } from './runtime.ts'
 import { registerScheduleTools } from './tools.ts'
 

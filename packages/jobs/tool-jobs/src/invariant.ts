@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-tool-jobs`.
- * @module @hydra1902/harness-tool-jobs/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-tool-jobs`.
+ * @module @hydraharness/harness-tool-jobs/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-tool-jobs'
+const PACKAGE_NAME = '@hydraharness/harness-tool-jobs'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-jobs-invariant'

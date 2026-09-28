@@ -4,9 +4,9 @@
  * slot like todo-row and ask-question-row.
  */
 
-import { IconBranchOutline16 } from '@hydra1902/harness-client-ui-primitives'
-import type { Context } from '@hydra1902/cordis'
-import type { PropsLocale } from '@hydra1902/harness-client-ui-slots'
+import { IconBranchOutline16 } from '@hydraharness/harness-client-ui-primitives'
+import type { Context } from '@hydraharness/cordis'
+import type { PropsLocale } from '@hydraharness/harness-client-ui-slots'
 import type { ToolCallViewProps } from '../../contract/slots.ts'
 import { toolRowModel } from '../models/tool-call-model.ts'
 import { ToolRow } from '../components/ToolRow.tsx'

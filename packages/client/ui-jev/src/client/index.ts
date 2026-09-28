@@ -1,9 +1,9 @@
 /** Browser contribution that adds Jev to the Models provider dropdown. */
 
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
-import type { ConnectionHandle } from '@hydra1902/harness-api-remotes/client'
-import type {} from '@hydra1902/harness-client-ui-settings-models/client'
-import type {} from '@hydra1902/harness-client-ui-settings/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
+import type { ConnectionHandle } from '@hydraharness/harness-api-remotes/client'
+import type {} from '@hydraharness/harness-client-ui-settings-models/client'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
 import { JevProviderOption } from './JevProviderOption.tsx'
 
 /** The client contribution only needs the slot registry. */

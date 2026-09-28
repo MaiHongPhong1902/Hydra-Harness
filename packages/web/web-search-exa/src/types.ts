@@ -4,7 +4,7 @@
  * URL, optional title, optional `publishedDate`, and (when highlights are
  * requested) a `highlights[]` array of salient sentences.
  *
- * @module @hydra1902/harness-web-search-exa/types
+ * @module @hydraharness/harness-web-search-exa/types
  */
 
 /** Request body sent to Exa's search endpoint. */

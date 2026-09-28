@@ -1,6 +1,6 @@
 # Use the desktop app
 
-Hydra Desktop is a Windows-first Electron shell around the same Hydra Host and Web renderer. The bare `npx @hydra/harness` menu lists Desktop so users can find this workflow, but selecting it does not launch Electron: the repository does not publish an installer, supported npm Desktop artifact, or an `npx` desktop command. Desktop runs from a source checkout during the developer preview.
+Hydra Desktop is a Windows-first Electron shell around the same Hydra Host and Web renderer. The bare `npx @hydraharness/harness` menu lists Desktop so users can find this workflow, but selecting it does not launch Electron: the repository does not publish an installer, supported npm Desktop artifact, or an `npx` desktop command. Desktop runs from a source checkout during the developer preview.
 
 ## Prerequisites
 

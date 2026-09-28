@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PROTOCOL_VERSION } from '@agentclientprotocol/sdk'
-import { AttachmentError } from '@hydra1902/harness-attachment'
-import { SessionId } from '@hydra1902/harness-session'
+import { AttachmentError } from '@hydraharness/harness-attachment'
+import { SessionId } from '@hydraharness/harness-session'
 import { makeBridgeHarness, textResponse, type BridgeHarness } from './harness.ts'
 
 describe('automation-only ACP bridge', () => {

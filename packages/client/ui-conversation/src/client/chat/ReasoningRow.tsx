@@ -1,6 +1,6 @@
 /** Assistant reasoning disclosure, independent of Tool-call presentation. */
 import { useEffect, useRef, useState } from 'react'
-import { DisclosureRow, IconThinkOutline14 } from '@hydra1902/harness-client-ui-primitives'
+import { DisclosureRow, IconThinkOutline14 } from '@hydraharness/harness-client-ui-primitives'
 import type { ChatViewSlotProps } from '../contract/slots.ts'
 import { useThrottledVisualUpdate } from './use-throttled-visual-update.ts'
 import a11yCss from './accessibility.module.css'

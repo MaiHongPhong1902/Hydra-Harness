@@ -1,4 +1,4 @@
-import { createUserMessage, createMessage } from '@hydra1902/harness-llm'
+import { createUserMessage, createMessage } from '@hydraharness/harness-llm'
 /**
  * Derived-message cache contract against a scratch oracle: project new nodes
  * once, rebuild on surface replacements, return fresh arrays over shared
@@ -6,7 +6,7 @@ import { createUserMessage, createMessage } from '@hydra1902/harness-llm'
  */
 
 import { describe, expect, it } from 'vitest'
-import { Session, SessionId } from '@hydra1902/harness-session'
+import { Session, SessionId } from '@hydraharness/harness-session'
 
 function userText(session: Session, text: string): void {
   session.append('user/message', createUserMessage({

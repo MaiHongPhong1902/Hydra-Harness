@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-page-memory",
+  "name": "@hydraharness/harness-page-memory",
   "description": "Verified task-specific page guidance with automatic browser recall and private local storage",
   "hydra": {
     "plugin": {
@@ -25,28 +25,28 @@
   "files": ["lib/index.js", "lib/invariant.js", "lib/types/**/*.d.ts"],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-browser-electron": "workspace:^",
-    "@hydra1902/harness-home-paths": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-browser-electron": "workspace:^",
+    "@hydraharness/harness-home-paths": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^"
   },
-  "dependencies": { "@hydra1902/schemastery": "workspace:^", "zod": "^4.4.3" },
+  "dependencies": { "@hydraharness/schemastery": "workspace:^", "zod": "^4.4.3" },
   "devDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-browser-electron": "workspace:^",
-    "@hydra1902/harness-home-paths": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-tool-browser": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-browser-electron": "workspace:^",
+    "@hydraharness/harness-home-paths": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-tool-browser": "workspace:^"
   }
 }

@@ -1,7 +1,7 @@
 /**
  * Rendering and traversal over the compiler-independent TypeGraph. Emitters
  * use this module instead of reaching back into TypeScript AST nodes.
- * @module @hydra1902/harness-typert-generator/renderer
+ * @module @hydraharness/harness-typert-generator/renderer
  */
 
 import { childTypeNodeIds } from './model.ts'

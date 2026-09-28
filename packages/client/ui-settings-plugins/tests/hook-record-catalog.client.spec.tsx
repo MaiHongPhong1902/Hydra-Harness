@@ -5,7 +5,7 @@
  * connection is not local.
  */
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { HookRecordSnapshot } from '@hydra1902/harness-api-remotes/client'
+import type { HookRecordSnapshot } from '@hydraharness/harness-api-remotes/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HookRecordCatalog, type UserHookControls } from '../src/client/HookRecordCatalog.tsx'
 import { HooksSettingsTab, type HooksSettingsTabProps } from '../src/client/HooksSettingsTab.tsx'

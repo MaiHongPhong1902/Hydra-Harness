@@ -6,7 +6,7 @@ import {
   MAX_TIMER_DELAY_MS,
   timeoutOf,
   TimeoutReason,
-} from '@hydra1902/harness-timeout'
+} from '@hydraharness/harness-timeout'
 
 describe('TimeoutReason', () => {
   it('is an Error carrying the code and elapsed ms', () => {

@@ -8,13 +8,13 @@
 
 import type {
   IApiClient, SettingsNamespaceView,
-} from '@hydra1902/harness-api-remotes/client'
+} from '@hydraharness/harness-api-remotes/client'
 import {
   createSnapshotStore, type SnapshotStore,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type {
   SchemaNode, SettingsDescribeFace, SettingsSchemaService,
-} from '@hydra1902/harness-client-ui-settings/client'
+} from '@hydraharness/harness-client-ui-settings/client'
 import { displayPermissionPreset } from './presentation.ts'
 
 /** Permission's settings namespace on the host wire. */

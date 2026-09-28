@@ -1,8 +1,8 @@
 /** Correlate diagnostic output and completion with their recorded model call. */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 import type {} from './types.ts'
 
 /** Cordis companion identity. */
@@ -59,4 +59,4 @@ const install: InvariantInstaller = Object.assign((ctx: Context, fail: Invariant
  * @returns disposer for the owned invariant registration.
  */
 export const apply = (ctx: Context): Promise<() => void> =>
-  Promise.resolve(ctx.invariants.register('@hydra1902/harness-llm-call-log', install))
+  Promise.resolve(ctx.invariants.register('@hydraharness/harness-llm-call-log', install))

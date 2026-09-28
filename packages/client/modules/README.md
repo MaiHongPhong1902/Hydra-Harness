@@ -1,4 +1,4 @@
-# @hydra/harness-client-modules
+# @hydraharness/harness-client-modules
 
 Client module system: the browser peer of Node's internal ESM loader, built as a lazy CJS table. The web shell mounts the vendored cordis Loader for entry governance (fiber lifecycle, inject waiting, update/refresh) and injects this package's `ClientModuleLoader` through its `internal` contract — the vendored side's only consumption point is `EntryTree.import`, so replacing `internal` replaces exactly "how plugin code arrives" and nothing else.
 
@@ -23,4 +23,4 @@ None; this package neither assembles nor sends a provider request.
 ## Known Limitations and Deferred Work
 
 - **Flat module graph by design** — every bundle is one module node whose edges point only at table leaves; the interface (`loadCache`/`edges`/`invalidate`) already supports a general module graph, so the externalization granularity can change without an interface change.
-- **No unload bookkeeping of its own** — style removal and fiber teardown ordering live with the HMR driver (`@hydra/harness-client-hmr`); the loader only inventories owned style tag ids per record.
+- **No unload bookkeeping of its own** — style removal and fiber teardown ordering live with the HMR driver (`@hydraharness/harness-client-hmr`); the loader only inventories owned style tag ids per record.

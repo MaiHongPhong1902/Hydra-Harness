@@ -8,20 +8,20 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import AgentRegistry from '@hydra1902/harness-agent'
-import type { Agent } from '@hydra1902/harness-agent'
-import SessionStore from '@hydra1902/harness-session'
-import type { Session } from '@hydra1902/harness-session'
-import UserQuestionService from '@hydra1902/harness-user-questions'
-import { CommandId } from '@hydra1902/harness-commands/brand'
+import { Context } from '@hydraharness/cordis'
+import AgentRegistry from '@hydraharness/harness-agent'
+import type { Agent } from '@hydraharness/harness-agent'
+import SessionStore from '@hydraharness/harness-session'
+import type { Session } from '@hydraharness/harness-session'
+import UserQuestionService from '@hydraharness/harness-user-questions'
+import { CommandId } from '@hydraharness/harness-commands/brand'
 // Side-effect type imports: the knob-event SessionEventMap merges.
-import type {} from '@hydra1902/harness-permission-presets'
-import type {} from '@hydra1902/harness-sandbox-policy'
-import type {} from '@hydra1902/harness-user-approval'
-import type { ApiProxy, RpcRequest } from '@hydra1902/harness-host-apiproxy/api'
-import { RpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
-import { createApiProxy } from '@hydra1902/harness-host-apiproxy'
+import type {} from '@hydraharness/harness-permission-presets'
+import type {} from '@hydraharness/harness-sandbox-policy'
+import type {} from '@hydraharness/harness-user-approval'
+import type { ApiProxy, RpcRequest } from '@hydraharness/harness-host-apiproxy/api'
+import { RpcId } from '@hydraharness/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydraharness/harness-host-apiproxy'
 
 let nextRpc = 1
 function request<P>(payload: P): RpcRequest<P> {

@@ -1,22 +1,22 @@
 /**
  * E2B Service Provider for the subprocess capability seam. Each handle starts through the
  * shared sandbox and retains command output/status paths in that remote world.
- * @module @hydra1902/harness-subprocess-e2b
+ * @module @hydraharness/harness-subprocess-e2b
  */
 
 import { randomUUID } from 'node:crypto'
 import { posix } from 'node:path'
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { SubprocessRuntime } from '@hydra1902/harness-subprocess'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { SubprocessRuntime } from '@hydraharness/harness-subprocess'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import type {
   SubprocessHandle,
   SubprocessSpawnSpec,
   SubprocessTerminalHandle,
   SubprocessTerminalSpawnSpec,
-} from '@hydra1902/harness-subprocess'
-import { e2bControlEnvs, quoteE2BShellArg } from '@hydra1902/harness-e2b'
+} from '@hydraharness/harness-subprocess'
+import { e2bControlEnvs, quoteE2BShellArg } from '@hydraharness/harness-e2b'
 import { E2BSubprocessHandle } from './process.ts'
 import { asError, signalOpts } from './remote.ts'
 import { spawnE2BTerminal } from './terminal.ts'

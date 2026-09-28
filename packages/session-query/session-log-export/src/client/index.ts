@@ -1,21 +1,21 @@
 /** Browser plugin owning Session export download state and its shared modal. */
 
-import type { ClientContext, SessionId } from '@hydra1902/harness-client-runtime/client'
-import type {} from '@hydra1902/harness-client-locale/client'
-import type {} from '@hydra1902/harness-client-ui-commands/client'
-import type {} from '@hydra1902/harness-client-ui-conversation/client'
+import type { ClientContext, SessionId } from '@hydraharness/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-client-locale/client'
+import type {} from '@hydraharness/harness-client-ui-commands/client'
+import type {} from '@hydraharness/harness-client-ui-conversation/client'
 import { SessionLogDownloadController } from './controller.ts'
 import type { SessionLogDownloadDialogInjected } from './Dialog.tsx'
 import { SessionLogDownloadHeaderAction } from './HeaderAction.tsx'
 import { en, NS, type SessionLogDownloadKey } from './locales.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     sessionLogDownload: SessionLogDownloadController
   }
 }
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     'session-log-download': SessionLogDownloadKey
   }

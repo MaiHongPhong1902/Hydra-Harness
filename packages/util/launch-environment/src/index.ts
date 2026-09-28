@@ -3,10 +3,10 @@
  * supplied each value. Harness consumers resolve through it instead of a flattened
  * `process.env`; launchers may still materialize accepted values for config
  * expressions and third-party libraries.
- * @module @hydra1902/harness-launch-environment
+ * @module @hydraharness/harness-launch-environment
  */
 
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 
 /**
  * Which layer supplied a value, from most to least trusted: the environment
@@ -116,7 +116,7 @@ export function launchEnvironmentOf(ctx: Context): LaunchEnvironmentSnapshot {
     ?? createLaunchEnvironmentSnapshot([{ source: 'process', values: process.env as Record<string, string> }])
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** Launcher-owned snapshot of this run's environment; absent in compositions the product CLI did not boot. */
     launchEnvironment?: LaunchEnvironmentSnapshot

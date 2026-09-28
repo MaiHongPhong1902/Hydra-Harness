@@ -61,15 +61,15 @@ describe('initProfile', () => {
   it('creates manifest, user patch layer, and pnpm workspace once, never overwriting', () => {
     const home = tmp()
     const dir = resolveProfileDir('tui', home)
-    initProfile(dir, ['@hydra1902/harness-base'])
+    initProfile(dir, ['@hydraharness/harness-base'])
     const manifest = readProfileManifest('t', dir)
-    expect(manifest.hydra?.profile?.bundles).toEqual(['@hydra1902/harness-base'])
+    expect(manifest.hydra?.profile?.bundles).toEqual(['@hydraharness/harness-base'])
     expect(readFileSync(join(dir, PROFILE_PATCH_FILENAME), 'utf8')).toContain('[]')
     expect(readFileSync(join(dir, 'pnpm-workspace.yaml'), 'utf8')).toContain('nodeLinker: hoisted')
     // Re-init keeps user edits.
     writeFileSync(join(dir, PROFILE_PATCH_FILENAME), '- id: x\n  config: {}\n')
     initProfile(dir, ['other'])
-    expect(readProfileManifest('t', dir).hydra?.profile?.bundles).toEqual(['@hydra1902/harness-base'])
+    expect(readProfileManifest('t', dir).hydra?.profile?.bundles).toEqual(['@hydraharness/harness-base'])
     expect(readFileSync(join(dir, PROFILE_PATCH_FILENAME), 'utf8')).toContain('- id: x')
   })
 })
@@ -166,8 +166,8 @@ describe('loadProfile', () => {
       .toThrow('profile "custom" does not exist')
     // The web template auto-initializes on first load. Bundle resolution
     // cannot be asserted to fail here: the source-plane test runner resolves
-    // @hydra1902/* through tsconfig paths regardless of the staged anchor.
-    expect(PROFILE_TEMPLATES.web).toContain('@hydra1902/harness-base')
+    // @hydraharness/* through tsconfig paths regardless of the staged anchor.
+    expect(PROFILE_TEMPLATES.web).toContain('@hydraharness/harness-base')
     try {
       loadProfile('t', 'web', anchor, home)
     } catch {
@@ -179,28 +179,28 @@ describe('loadProfile', () => {
 
   it('normalizes only the exact installation-owned headless bundle tuple', () => {
     const anchor = stageInstallation({
-      '@hydra1902/harness-base': { patch: '[]\n' },
-      '@hydra1902/harness-web-app': { patch: '[]\n' },
-      '@hydra1902/harness-headless': { patch: '[]\n' },
+      '@hydraharness/harness-base': { patch: '[]\n' },
+      '@hydraharness/harness-web-app': { patch: '[]\n' },
+      '@hydraharness/harness-headless': { patch: '[]\n' },
       'custom-bundle': { patch: '[]\n' },
     })
     const home = tmp()
     const stock = resolveProfileDir('headless', home)
     initProfile(stock, [
-      '@hydra1902/harness-base', '@hydra1902/harness-web-app', '@hydra1902/harness-headless',
+      '@hydraharness/harness-base', '@hydraharness/harness-web-app', '@hydraharness/harness-headless',
     ])
     loadProfile('t', 'headless', anchor, home)
     expect(readProfileManifest('t', stock).hydra?.profile?.bundles)
-      .toEqual(['@hydra1902/harness-base', '@hydra1902/harness-headless'])
+      .toEqual(['@hydraharness/harness-base', '@hydraharness/harness-headless'])
 
     const customHome = tmp()
     const custom = resolveProfileDir('headless', customHome)
     initProfile(custom, [
-      '@hydra1902/harness-base', '@hydra1902/harness-web-app', '@hydra1902/harness-headless', 'custom-bundle',
+      '@hydraharness/harness-base', '@hydraharness/harness-web-app', '@hydraharness/harness-headless', 'custom-bundle',
     ])
     loadProfile('t', 'headless', anchor, customHome)
     expect(readProfileManifest('t', custom).hydra?.profile?.bundles).toEqual([
-      '@hydra1902/harness-base', '@hydra1902/harness-web-app', '@hydra1902/harness-headless', 'custom-bundle',
+      '@hydraharness/harness-base', '@hydraharness/harness-web-app', '@hydraharness/harness-headless', 'custom-bundle',
     ])
   })
 

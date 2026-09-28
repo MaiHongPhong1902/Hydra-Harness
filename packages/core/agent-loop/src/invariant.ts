@@ -1,14 +1,14 @@
 /**
  * Package-owned request-reconstruction invariant for loop-built LLM calls.
- * @module @hydra1902/harness-agent-loop/invariant
+ * @module @hydraharness/harness-agent-loop/invariant
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { isAgentLoopRequest, type GenerateOptions } from '@hydra1902/harness-llm'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
-import { foldRequestHeader } from '@hydra1902/harness-session'
+import type { Context } from '@hydraharness/cordis'
+import { isAgentLoopRequest, type GenerateOptions } from '@hydraharness/harness-llm'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
+import { foldRequestHeader } from '@hydraharness/harness-session'
 
-const PACKAGE_NAME = '@hydra1902/harness-agent-loop'
+const PACKAGE_NAME = '@hydraharness/harness-agent-loop'
 
 /** Cordis companion plugin name. */
 export const name = 'agent-loop-invariant'

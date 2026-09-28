@@ -4,18 +4,18 @@
  * actor the `fs/*` events carry.
  *
  * The provider vocabulary (`FsTarget`, `FsVersion`, write/edit request types) is
- * re-used from `@hydra1902/harness-fs`; this package owns only the observed-state
+ * re-used from `@hydraharness/harness-fs`; this package owns only the observed-state
  * owner structure on top of it.
  *
- * @module @hydra1902/harness-fs-observation-policy/types
+ * @module @hydraharness/harness-fs-observation-policy/types
  */
 
 /**
  * Minimal structural view of a tool execution the policy plugin needs to derive
- * an observed-state owner. `@hydra1902/harness-tools`' `ToolExecution` contains
+ * an observed-state owner. `@hydraharness/harness-tools`' `ToolExecution` contains
  * these fields, so the tool passes its `exec` straight through as the opaque
  * `object` actor on the `fs/*` events; this plugin narrows that actor to
- * `FsObservationActor` without importing `@hydra1902/harness-tools`, `@hydra1902/harness-agent`, or `@hydra1902/harness-session`.
+ * `FsObservationActor` without importing `@hydraharness/harness-tools`, `@hydraharness/harness-agent`, or `@hydraharness/harness-session`.
  *
  * The owner is `agent.session` when present. It is treated as an opaque object
  * identity (a `WeakMap` key); this package never reads any of its fields.

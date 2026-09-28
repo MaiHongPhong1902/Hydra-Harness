@@ -1,4 +1,4 @@
-import { Formatter } from '@hydra1902/cordis'
+import { Formatter } from '@hydraharness/cordis'
 import { inspect } from 'node:util'
 import supportsColor from 'supports-color'
 import { ConsoleExporter as Base } from './shared.ts'

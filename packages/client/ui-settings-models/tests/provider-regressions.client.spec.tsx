@@ -2,8 +2,8 @@
 /** Provider retries and probes after removing stored overrides. */
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import Schema from '@hydra1902/schemastery'
-import type { RpcResponse } from '@hydra1902/harness-api-remotes/client'
+import Schema from '@hydraharness/schemastery'
+import type { RpcResponse } from '@hydraharness/harness-api-remotes/client'
 import { CustomProviderCard } from '../src/client/CustomProviderCard.tsx'
 import { ProviderEditor } from '../src/client/ProviderEditor.tsx'
 import { settingsSchema } from './settings-schema.client.ts'

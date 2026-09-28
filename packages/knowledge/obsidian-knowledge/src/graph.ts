@@ -7,7 +7,7 @@
 import { createHash } from 'node:crypto'
 import { mkdir, readdir, readFile, realpath, stat } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join, parse, posix, relative, resolve, sep } from 'node:path'
-import { writeFileAtomic } from '@hydra1902/harness-atomic-write'
+import { writeFileAtomic } from '@hydraharness/harness-atomic-write'
 
 /** Existing vault folder retained as the contained graph root. */
 export const GRAPH_ROOT = 'Hydra Website Knowledge'

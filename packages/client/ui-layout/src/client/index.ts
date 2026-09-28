@@ -8,10 +8,10 @@
  * presenter, which projects ctx.theme snapshots onto document.body. The same
  * desktop feature owner contributes Browser settings when its preload exists.
  */
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
-import type {} from '@hydra1902/harness-client-ui-theme/client'
-import type {} from '@hydra1902/harness-client-ui-settings/client'
-import type {} from '@hydra1902/harness-client-locale/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-client-ui-theme/client'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
+import type {} from '@hydraharness/harness-client-locale/client'
 import type { PanelActions } from './service.ts'
 import { AppFrame } from './AppFrame.tsx'
 import { BrowserSection, BROWSER_SETTINGS_NAMESPACE } from './BrowserSection.tsx'
@@ -67,14 +67,14 @@ function hasAutofillManagement(browser: DesktopBrowserApi): browser is AutofillM
 export { LayoutController } from './service.ts'
 export type { ILayout } from './service.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** The outward face only; the concrete service stays inside this plugin. */
     layout: import('./service.ts').ILayout
   }
 }
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Desktop Browser settings copy. */
     'settings.browser': BrowserKey

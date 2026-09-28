@@ -1,4 +1,4 @@
-# @hydra/harness-research-policy
+# @hydraharness/harness-research-policy
 
 Research admission policy for native and Code Mode tool calls. It charges search, fetch, and browser attempts to the live delegation root before execution. Descendants share the root's limits; failures and cancellations retain their charge. Durable `research/charge` events preserve cumulative counts across policy reload and session resume. A child with unavailable ancestry fails closed.
 

@@ -1,10 +1,10 @@
 /** Package-owned invariant companion for the workflow-run UI plugin. */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-client-ui-workflow-run'
+const PACKAGE_NAME = '@hydraharness/harness-client-ui-workflow-run'
 
 /** Cordis companion plugin name. */
 export const name = 'client-ui-workflow-run-invariant'

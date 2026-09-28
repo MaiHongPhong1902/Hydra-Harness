@@ -22,7 +22,7 @@ import {
   grantArgs,
   launcherPath,
   probe,
-} from '@hydra1902/node-addon-landlock-run';
+} from '@hydraharness/node-addon-landlock-run';
 
 const FATAL_PREFIX = 'landlock-run: ';
 const PARTIAL_NOTICE = 'landlock-run: partial enforcement (older Landlock ABI)';

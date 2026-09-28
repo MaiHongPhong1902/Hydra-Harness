@@ -8,7 +8,7 @@ Extract reusable logic into `packages/`, where per-file coverage and README gate
 
 Each example boots its real `cordis.yml` through the Loader, drives it without provider credentials, and asserts output and clean exit. This catches invalid Loader exports that hand-mounted tests miss ([postmortem](../docs/postmortem/0001-acp-default-export-drops-inject.md)). Recorded model scenarios replay keylessly; see [testing.md](../docs/testing.md).
 
-Keyless process smokes use `@hydra/harness-loader-smoke` for Loader launch resolution; terminal tests wrap that launch in a pseudo-terminal. Tests supply paths, environment, input, and assertions. Every checked-in test Cordis config lives under its corresponding `examples/<agent>/` leaf. Map a package-owned config to `examples/<agent>/tests/fixtures/<group>/<package>/cordis.yml`, keep its driver and assertions package-local, and declare every package it names in both root `tsconfig.json` references and `examples/package.json`.
+Keyless process smokes use `@hydraharness/harness-loader-smoke` for Loader launch resolution; terminal tests wrap that launch in a pseudo-terminal. Tests supply paths, environment, input, and assertions. Every checked-in test Cordis config lives under its corresponding `examples/<agent>/` leaf. Map a package-owned config to `examples/<agent>/tests/fixtures/<group>/<package>/cordis.yml`, keep its driver and assertions package-local, and declare every package it names in both root `tsconfig.json` references and `examples/package.json`.
 
 Do not inventory example tests here; the `tests/` trees and root scripts are authoritative.
 

@@ -1,20 +1,20 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import type { Agent } from '@hydra1902/harness-agent'
-import { createUserMessage, CallId  } from '@hydra1902/harness-llm'
+import type { Agent } from '@hydraharness/harness-agent'
+import { createUserMessage, CallId  } from '@hydraharness/harness-llm'
 import SessionStore, {
   SESSION_FORMAT_VERSION,
   SessionId,
   type Session,
-} from '@hydra1902/harness-session'
-import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
-import SqliteSessionQueryEngine from '@hydra1902/harness-session-query-sqlite'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime from '@hydra1902/harness-tools'
-import * as ToolSessionQuery from '@hydra1902/harness-tool-session-query'
+} from '@hydraharness/harness-session'
+import JsonlSessionPersistence from '@hydraharness/harness-session-persistence-jsonl'
+import SqliteSessionQueryEngine from '@hydraharness/harness-session-query-sqlite'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime from '@hydraharness/harness-tools'
+import * as ToolSessionQuery from '@hydraharness/harness-tool-session-query'
 
 const temporaryDirectories: string[] = []
 const contexts: Context[] = []

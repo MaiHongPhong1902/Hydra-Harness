@@ -8,8 +8,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { SessionId } from '@hydra1902/harness-session'
-import type { SessionEvent, SessionHeader } from '@hydra1902/harness-session'
+import { SessionId } from '@hydraharness/harness-session'
+import type { SessionEvent, SessionHeader } from '@hydraharness/harness-session'
 import { resolveSessionPreset } from '../src/session.ts'
 
 /** A header carrying the creation-time preset, if any. */

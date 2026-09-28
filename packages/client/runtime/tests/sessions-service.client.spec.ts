@@ -6,9 +6,9 @@
  * deferral — the stage follows list.current), binding identity, breadcrumb
  * projection, create.
  */
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { ConversationRevision, SessionId } from '@hydra1902/harness-api-remotes/client'
+import type { ConversationRevision, SessionId } from '@hydraharness/harness-api-remotes/client'
 import { SessionCreateError, SessionRuntime, scopeOf } from '../src/client/sessions/service.ts'
 import { conversationVersions, conversationRepresentatives } from '../src/client/sessions/conversation-versions.ts'
 import { FakeApiClient, deferred, err, fakeRemote, ok } from './fake-api.client.ts'

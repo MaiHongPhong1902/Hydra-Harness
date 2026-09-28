@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { CodeJsonValue } from '@hydra1902/harness-code-runtime'
+import type { CodeJsonValue } from '@hydraharness/harness-code-runtime'
 import { jsonStringBytesUpTo, jsonValueBytesUpTo, truncateJsonStringBytes } from '../src/output-json.ts'
 
 describe('truncateJsonStringBytes', () => {

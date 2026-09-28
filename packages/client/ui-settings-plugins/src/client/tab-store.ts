@@ -10,9 +10,9 @@
  * trace and does not count toward the empty line.
  */
 
-import type { SettingsDescribeFace } from '@hydra1902/harness-client-ui-settings/client'
-import type { StoredEntry } from '@hydra1902/harness-client-ui-slots'
-import { createSnapshotStore, type SnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { SettingsDescribeFace } from '@hydraharness/harness-client-ui-settings/client'
+import type { StoredEntry } from '@hydraharness/harness-client-ui-slots'
+import { createSnapshotStore, type SnapshotStore } from '@hydraharness/harness-client-runtime/client'
 
 /** What the section renders. */
 export interface ConfigurablePluginsTabState {

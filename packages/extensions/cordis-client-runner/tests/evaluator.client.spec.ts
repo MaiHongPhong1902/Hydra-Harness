@@ -7,7 +7,7 @@
  */
 import * as React from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import type { CordisDynamicPluginId } from '@hydra1902/harness-api-remotes/client'
+import type { CordisDynamicPluginId } from '@hydraharness/harness-api-remotes/client'
 import {
   DynamicCordisStyles,
   DYNAMIC_CLIENT_REDIRECTS,

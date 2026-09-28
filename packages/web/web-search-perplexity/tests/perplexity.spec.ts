@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import WebRuntime from '@hydra1902/harness-web'
+import { Context } from '@hydraharness/cordis'
+import WebRuntime from '@hydraharness/harness-web'
 import {
   PerplexitySearchProvider,
   PERPLEXITY_PROVIDER_ID,
-} from '@hydra1902/harness-web-search-perplexity'
-import * as perplexityPlugin from '@hydra1902/harness-web-search-perplexity'
+} from '@hydraharness/harness-web-search-perplexity'
+import * as perplexityPlugin from '@hydraharness/harness-web-search-perplexity'
 import { mapPerplexityResponse } from '../src/provider.ts'
 
 const options = { apiKey: 'pplx-key', baseURL: 'https://api.perplexity.test', model: 'sonar', maxTokens: 1024 }

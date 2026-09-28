@@ -1,5 +1,5 @@
-import type { Context } from '@hydra1902/cordis'
-import { LlmAdapter, type StreamChunk } from '@hydra1902/harness-llm'
+import type { Context } from '@hydraharness/cordis'
+import { LlmAdapter, type StreamChunk } from '@hydraharness/harness-llm'
 
 /** Deterministic one-step adapter for the time-context Loader fixture. */
 class TimeContextMockAdapter extends LlmAdapter {

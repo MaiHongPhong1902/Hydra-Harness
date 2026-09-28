@@ -1,5 +1,5 @@
-import type { GenerateOptions, LlmModelReasoningInfo, LlmResolvedModelInfo, StreamChunk } from '@hydra1902/harness-llm'
-import { CallId, LlmAdapter } from '@hydra1902/harness-llm'
+import type { GenerateOptions, LlmModelReasoningInfo, LlmResolvedModelInfo, StreamChunk } from '@hydraharness/harness-llm'
+import { CallId, LlmAdapter } from '@hydraharness/harness-llm'
 
 /** Helpers to write scripted responses tersely. */
 export function textResponse(text: string): StreamChunk[] {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { SessionId } from '@hydra1902/harness-client-runtime/client'
+import type { SessionId } from '@hydraharness/harness-client-runtime/client'
 import { DeleteSessionDialog } from '../src/client/DeleteSessionDialog.tsx'
 import type { WorkspaceBrowserProps } from '../src/client/contract/slots.ts'
 import { en } from '../src/client/locales.ts'

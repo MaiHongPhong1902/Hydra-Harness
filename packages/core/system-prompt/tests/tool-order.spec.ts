@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SystemPrompt, { PromptAssembly, TOOL_ORDER_REST } from '@hydra1902/harness-system-prompt'
-import type { ToolSchema } from '@hydra1902/harness-llm'
+import { Context } from '@hydraharness/cordis'
+import SystemPrompt, { PromptAssembly, TOOL_ORDER_REST } from '@hydraharness/harness-system-prompt'
+import type { ToolSchema } from '@hydraharness/harness-llm'
 
 function tool(name: string, description = name): ToolSchema {
   return { name, description, parameters: { type: 'object', properties: {} } }

@@ -1,4 +1,4 @@
-# @hydra/harness-goal-round-driver
+# @hydraharness/harness-goal-round-driver
 
 Same-session continuation driver for [`ctx.goals`](../goal/README.md). It turns an active, armed goal into sequential [goal rounds](../../../docs/glossary.md#goal-round) through the public `Agent` and session services; the [same-session driver Agent Note](../../../.agents/notes/implemented/feature/2026-07-19-same-session-goal-round-driver.md) owns the race and lifecycle rationale.
 
@@ -6,16 +6,16 @@ Same-session continuation driver for [`ctx.goals`](../goal/README.md). It turns 
 
 ```yaml
 - id: goal
-  name: '@hydra1902/harness-goal'
+  name: '@hydraharness/harness-goal'
 
 - id: tool-goal
-  name: '@hydra1902/harness-tool-goal'
+  name: '@hydraharness/harness-tool-goal'
 
 - id: goal-round-driver
-  name: '@hydra1902/harness-goal-round-driver'
+  name: '@hydraharness/harness-goal-round-driver'
 ```
 
-The plugin has no tunable configuration. `maxGoalRounds` belongs to the goal definition, while the model-facing blocked threshold belongs to [`@hydra/harness-tool-goal`](../tool-goal/README.md); duplicating either value in the driver could produce divergent policy.
+The plugin has no tunable configuration. `maxGoalRounds` belongs to the goal definition, while the model-facing blocked threshold belongs to [`@hydraharness/harness-tool-goal`](../tool-goal/README.md); duplicating either value in the driver could produce divergent policy.
 
 ## Round contract
 
@@ -23,7 +23,7 @@ When an exact live agent is idle with an active, armed goal and remaining capaci
 
 `MessageId` identifies the reserved message through durable inbox insertion and claim; it does not identify a turn result. Human messages do not consume the goal cap. If human work enters the inbox before a reservation or joins its pending batch, automatic work yields until the agent becomes idle; a pending automatic prompt in a mixed batch is rejected and re-reserved only after that checkpoint.
 
-The retained prompt names the JSON-quoted objective and `round/maxGoalRounds`, treats the current workspace, tool results, and durable session state as authoritative, requires evidence before completion, and tells the model to leave the goal active when work remains. Quoting preserves multiline or tag-like objective text as data. Goal lifecycle mutations still require the independent authority checks in `@hydra/harness-tool-goal`.
+The retained prompt names the JSON-quoted objective and `round/maxGoalRounds`, treats the current workspace, tool results, and durable session state as authoritative, requires evidence before completion, and tells the model to leave the goal active when work remains. Quoting preserves multiline or tag-like objective text as data. Goal lifecycle mutations still require the independent authority checks in `@hydraharness/harness-tool-goal`.
 
 ## Idle checkpoint
 

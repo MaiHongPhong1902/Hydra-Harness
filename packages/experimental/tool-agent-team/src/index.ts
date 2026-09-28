@@ -1,12 +1,12 @@
 /** Scoped model-facing tools for the opt-in Agent Teams runtime. */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { Agent } from '@hydra1902/harness-agent'
-import { TeamTaskId } from '@hydra1902/harness-experimental-agent-team'
-import type { TeamMemberView } from '@hydra1902/harness-experimental-agent-team'
-import { defineTool } from '@hydra1902/harness-tools'
-import type { InferValue, ValueSchemaSpec } from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { Agent } from '@hydraharness/harness-agent'
+import { TeamTaskId } from '@hydraharness/harness-experimental-agent-team'
+import type { TeamMemberView } from '@hydraharness/harness-experimental-agent-team'
+import { defineTool } from '@hydraharness/harness-tools'
+import type { InferValue, ValueSchemaSpec } from '@hydraharness/harness-tools'
 
 /** Cordis plugin name. */
 export const name = 'tool-agent-team'

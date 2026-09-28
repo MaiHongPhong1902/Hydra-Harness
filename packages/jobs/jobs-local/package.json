@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-jobs-local",
+  "name": "@hydraharness/harness-jobs-local",
   "description": "Process-local implementation of the Hydra harness background job registry seam",
   "hydra": {
     "plugin": {
@@ -37,26 +37,26 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-scope": "workspace:^",
-    "@hydra1902/harness-jobs": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-scope": "workspace:^",
+    "@hydraharness/harness-jobs": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis-plugin-include": "workspace:^",
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-scope": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-jobs": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis-plugin-include": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-scope": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-jobs": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

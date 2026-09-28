@@ -7,14 +7,14 @@
 
 import { randomBytes } from 'node:crypto'
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { unzipSync, strFromU8 } from 'fflate'
-import type { FileAttachmentRef, ImageAttachmentRef } from '@hydra1902/harness-attachment'
-import UserQuestionService from '@hydra1902/harness-user-questions'
-import type { SessionHeader, SessionId } from '@hydra1902/harness-session'
-import type { SessionLineageNode } from '@hydra1902/harness-session-query'
-import type { SessionRawArtifact } from '@hydra1902/harness-session-persistence'
-import ApiProxyService, { createApiProxy, toFetchHandler } from '@hydra1902/harness-host-apiproxy'
+import type { FileAttachmentRef, ImageAttachmentRef } from '@hydraharness/harness-attachment'
+import UserQuestionService from '@hydraharness/harness-user-questions'
+import type { SessionHeader, SessionId } from '@hydraharness/harness-session'
+import type { SessionLineageNode } from '@hydraharness/harness-session-query'
+import type { SessionRawArtifact } from '@hydraharness/harness-session-persistence'
+import ApiProxyService, { createApiProxy, toFetchHandler } from '@hydraharness/harness-host-apiproxy'
 
 const sid = (id: string): SessionId => id as SessionId
 

@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { createUserMessage, CallId, createMessage, createToolResultMessage, MessageId, ReasoningEffortId } from '@hydra1902/harness-llm'
+import { Context } from '@hydraharness/cordis'
+import { createUserMessage, CallId, createMessage, createToolResultMessage, MessageId, ReasoningEffortId } from '@hydraharness/harness-llm'
 import SessionStore, {
   adoptSessionEvent,
   SESSION_FORMAT_VERSION,
@@ -8,8 +8,8 @@ import SessionStore, {
   SessionEvent,
   SessionId,
   snapshotSessionEvent,
-} from '@hydra1902/harness-session'
-import type { CreateSessionOptions, SessionEventType, SessionHeader, SessionSurface, TodoItem } from '@hydra1902/harness-session'
+} from '@hydraharness/harness-session'
+import type { CreateSessionOptions, SessionEventType, SessionHeader, SessionSurface, TodoItem } from '@hydraharness/harness-session'
 
 describe('Session', () => {
   it('exposes one stable readonly surface view', () => {

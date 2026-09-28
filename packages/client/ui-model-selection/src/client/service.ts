@@ -6,19 +6,19 @@
  *
  * Per-session storage follows the client service pattern (InputTriggerService /
  * CommandUiRuntime): a lazy service-internal map whose entry is deleted by the
- * owning scope's disposer. The host `@hydra1902/harness-scope` ScopedLayers registry does
+ * owning scope's disposer. The host `@hydraharness/harness-scope` ScopedLayers registry does
  * does not belong here: it derives scope from the host carrier mechanism
  * (object-keyed), while client scopes tag contexts with branded SessionId
  * strings, and it models global+shadow named registries — this is a
  * per-session singleton with no global layer to merge.
  */
-import { Service } from '@hydra1902/cordis'
-import type { Context } from '@hydra1902/cordis'
-import type { ConnectionHandle, SessionId } from '@hydra1902/harness-api-remotes/client'
-import type { SessionRuntime } from '@hydra1902/harness-client-runtime/client'
+import { Service } from '@hydraharness/cordis'
+import type { Context } from '@hydraharness/cordis'
+import type { ConnectionHandle, SessionId } from '@hydraharness/harness-api-remotes/client'
+import type { SessionRuntime } from '@hydraharness/harness-client-runtime/client'
 import { ModelDirectory } from './directory.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     modelDirectories: ModelDirectoryResolver
   }

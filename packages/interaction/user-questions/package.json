@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-user-questions",
+  "name": "@hydraharness/harness-user-questions",
   "description": "Abstract user-questions seam (ctx.userQuestions) for asking the human during agent runs",
   "hydra": {
     "plugin": {
@@ -42,15 +42,15 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

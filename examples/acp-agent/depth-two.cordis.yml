@@ -1,12 +1,12 @@
 # Depth-limit snapshot overlay: keep the default composition and allow two
 # generations of spawn children before runtime enforcement rejects another.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: tool-subagent
-        name: '@hydra1902/harness-tool-subagent'
+        name: '@hydraharness/harness-tool-subagent'
         config:
           provider: spawn
           toolName: subagent

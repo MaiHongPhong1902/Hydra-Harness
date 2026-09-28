@@ -8,8 +8,8 @@ import { useId } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import {
   HydraLogo, IconChevronDownOutline14, IconFolderClose16, IconFolderOpen16,
-} from '@hydra1902/harness-client-ui-primitives'
-import { workspaceTitleOf } from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-ui-primitives'
+import { workspaceTitleOf } from '@hydraharness/harness-client-runtime/client'
 import type { ConversationSlotProps } from '../contract/slots.ts'
 import css from './HeroShell.module.css'
 

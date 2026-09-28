@@ -8,7 +8,7 @@ The `standard`, `code`, and `cordis` presets exposed both the `read`/`write`/`ed
 
 ## Decision
 
-The `standard`, `code`, and `cordis` preset configurations mount `@hydra/harness-tool-fs` and `@hydra/harness-tool-fs-search`, but do not mount `@hydra/harness-tool-str-replace-editor`. Code Mode therefore omits `str_replace_editor` from both its registry and generated SDK. The `minimal` preset continues to mount `@hydra/harness-tool-str-replace-editor`, and deployments or user-authored presets may still mount the plugin explicitly.
+The `standard`, `code`, and `cordis` preset configurations mount `@hydraharness/harness-tool-fs` and `@hydraharness/harness-tool-fs-search`, but do not mount `@hydraharness/harness-tool-str-replace-editor`. Code Mode therefore omits `str_replace_editor` from both its registry and generated SDK. The `minimal` preset continues to mount `@hydraharness/harness-tool-str-replace-editor`, and deployments or user-authored presets may still mount the plugin explicitly.
 
 This decision narrows the preset roster rather than removing the tool package or its Python runtime support. The earlier [shared-roster decision](../feature/2026-07-31-even-out-shipped-tool-rosters.md) continues to own why surface-neutral tools live in preset composition; this note owns the editor exception.
 

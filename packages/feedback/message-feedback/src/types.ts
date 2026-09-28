@@ -2,12 +2,12 @@
  * Public request, value, and failure vocabulary for per-message feedback.
  * This module contains types only so generated Remote clients can consume it
  * without importing Host runtime code.
- * @module @hydra1902/harness-message-feedback/types
+ * @module @hydraharness/harness-message-feedback/types
  */
 
-import type { Branded } from '@hydra1902/harness-brand'
-import type { MessageId } from '@hydra1902/harness-llm/brand'
-import type { SessionId } from '@hydra1902/harness-session/types'
+import type { Branded } from '@hydraharness/harness-brand'
+import type { MessageId } from '@hydraharness/harness-llm/brand'
+import type { SessionId } from '@hydraharness/harness-session/types'
 
 /** Opaque compare-and-set token for one exact feedback item revision. */
 export type MessageFeedbackVersion = Branded<'MessageFeedbackVersion'>

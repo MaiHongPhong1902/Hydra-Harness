@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
-import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+import { SlotRegistry } from '@hydraharness/harness-client-runtime/client'
 import { apply, inject } from '../src/client/index.ts'
 import { OfficialBrandMark, OfficialBrandName } from '../src/client/Brand.tsx'
 

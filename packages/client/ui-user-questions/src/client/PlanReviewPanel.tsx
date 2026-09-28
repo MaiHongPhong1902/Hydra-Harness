@@ -14,7 +14,7 @@
 // answer, not an escape hatch.
 
 import { useState } from 'react'
-import { Button, IconEditOutline16, MarkdownText } from '@hydra1902/harness-client-ui-primitives'
+import { Button, IconEditOutline16, MarkdownText } from '@hydraharness/harness-client-ui-primitives'
 import type { PendingQuestion, PlanReview, QuestionComposerProps } from './contract/slots.ts'
 import css from './PlanReviewPanel.module.css'
 

@@ -1,8 +1,8 @@
-# @hydra/harness-skill-filesystem
+# @hydraharness/harness-skill-filesystem
 
 Local filesystem provider for the `ctx.skills` registry.
 
-This package implements one skill source. It scans local project, custom, and user skill roots, parses `SKILL.md` or flat Markdown skill files through the shared `parseSkillDocument` parser, and registers the provider on `ctx.skills`. The registry and document parser remain in `@hydra/harness-skill`; bounded model-facing search and exact loading remain in `@hydra/harness-tool-skill`.
+This package implements one skill source. It scans local project, custom, and user skill roots, parses `SKILL.md` or flat Markdown skill files through the shared `parseSkillDocument` parser, and registers the provider on `ctx.skills`. The registry and document parser remain in `@hydraharness/harness-skill`; bounded model-facing search and exact loading remain in `@hydraharness/harness-tool-skill`.
 
 ## Plugin
 
@@ -14,7 +14,7 @@ Requires `ctx.skills` (`inject: ['skills']`).
 |---|---|---|
 | `providerName` | `filesystem` | Unique name used to register this provider on `ctx.skills`. |
 | `includeDefaultRoots` | `true` | Include project and user roots around `customSkillDirs`; set false for an isolated custom-root provider. |
-| `hydraHome` | `$HYDRA_HOME` or `~/.hydra` | Hydra harness config root resolved by [`@hydra/harness-home-paths`](../../util/home-paths/README.md); scans `skills` under this directory. |
+| `hydraHome` | `$HYDRA_HOME` or `~/.hydra` | Hydra harness config root resolved by [`@hydraharness/harness-home-paths`](../../util/home-paths/README.md); scans `skills` under this directory. |
 | `agentsHome` | `$HYDRA_AGENTS_HOME` or `~/.agents` | Shared agent config root scanned for compatible skills. |
 | `customSkillDirs` | `[]` | Additional local skill roots scanned after project roots and before user roots. |
 | `watch` | `true` | Watch host-local roots and invalidate the local provider when catalog membership or frontmatter may have changed. |
@@ -58,7 +58,7 @@ Metadata and body have separate lifecycles. Discovery parses frontmatter to prod
 
 ## Model Experience
 
-Indirectly, through `@hydra/harness-tool-skill`, which returns bounded matching metadata on demand and a selected current instruction body plus resource-base guidance in retained tool history while paths, provider ranks, and disabled skills remain hidden.
+Indirectly, through `@hydraharness/harness-tool-skill`, which returns bounded matching metadata on demand and a selected current instruction body plus resource-base guidance in retained tool history while paths, provider ranks, and disabled skills remain hidden.
 
 #### KV Cache effect
 

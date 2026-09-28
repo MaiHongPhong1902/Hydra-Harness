@@ -1,9 +1,9 @@
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import { describe, expect, it } from 'vitest'
 import type {
   ConversationEventInput, ConversationNodeDefinition, ConversationViewDefinition,
-} from '@hydra1902/harness-client-runtime/client'
-import { ConversationNodeAssembler } from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
+import { ConversationNodeAssembler } from '@hydraharness/harness-client-runtime/client'
 import { registerTrajectoryAssistantDefinition } from '../src/client/trajectory-assistant-definition.ts'
 import { registerTrajectoryCompactionDefinitions } from '../src/client/trajectory-compaction-definition.ts'
 import type { TrajectorySnapshot } from '../src/client/trajectory-contract.ts'

@@ -1,16 +1,16 @@
 /**
  * Registry for ordered system sections, dynamic context, tool schemas, and prompt variables.
  *
- * @module @hydra1902/harness-system-prompt
+ * @module @hydraharness/harness-system-prompt
  */
 
-import { Context, Service } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { AnonymousEntries, NamedEntries, ScopedLayers, scopeTarget } from '@hydra1902/harness-scope'
-import type { ScopeKey, ScopeLayer, Scoped } from '@hydra1902/harness-scope'
-import type { ContextSnapshotSection, ToolSchema } from '@hydra1902/harness-llm'
+import { Context, Service } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { AnonymousEntries, NamedEntries, ScopedLayers, scopeTarget } from '@hydraharness/harness-scope'
+import type { ScopeKey, ScopeLayer, Scoped } from '@hydraharness/harness-scope'
+import type { ContextSnapshotSection, ToolSchema } from '@hydraharness/harness-llm'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     systemPrompt: SystemPrompt
   }
@@ -18,7 +18,7 @@ declare module '@hydra1902/cordis' {
   interface Events {
     /**
      * Expert waterfall over the assembled sections, contexts, tools, and variables.
-     * Scope-filtered dispatch (`@hydra1902/harness-scope`): scoped listeners
+     * Scope-filtered dispatch (`@hydraharness/harness-scope`): scoped listeners
      * receive only that scope's assemblies. The returned value is authoritative.
      * A supplied signal controls only this explicit assembly request and must not
      * be retained to control later turns. A registered complete section is

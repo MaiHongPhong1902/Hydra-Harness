@@ -7,12 +7,12 @@
  * payload, the scoped consume-token dispatch, per-session popupFor
  * lifecycle, and the directory invalidation event subscriptions.
  */
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import type { CommandResult } from '@hydra1902/harness-commands/types'
-import { createScope, scopeOf } from '@hydra1902/harness-client-runtime/client'
-import type { SessionId } from '@hydra1902/harness-client-runtime/client'
-import type { ClientSessionContext, ConsumeTokenRequest, InputTriggerPick, InputTriggerSource, SubmitImageAttachment } from '@hydra1902/harness-client-ui-input-trigger/client'
+import type { CommandResult } from '@hydraharness/harness-commands/types'
+import { createScope, scopeOf } from '@hydraharness/harness-client-runtime/client'
+import type { SessionId } from '@hydraharness/harness-client-runtime/client'
+import type { ClientSessionContext, ConsumeTokenRequest, InputTriggerPick, InputTriggerSource, SubmitImageAttachment } from '@hydraharness/harness-client-ui-input-trigger/client'
 import type { CommandContribution, CommandDecoration, CommandUiSpec, SelectOption } from '../src/client/contract.ts'
 import type { CommandDescriptor } from '../src/client/directory.ts'
 import { CommandUiRuntime } from '../src/client/service.ts'

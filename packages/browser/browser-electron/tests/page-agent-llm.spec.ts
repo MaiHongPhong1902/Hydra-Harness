@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { Agent } from '@hydra1902/harness-agent'
-import type { GenerateOptions, StreamChunk } from '@hydra1902/harness-llm'
+import type { Agent } from '@hydraharness/harness-agent'
+import type { GenerateOptions, StreamChunk } from '@hydraharness/harness-llm'
 import { executePageAgentLlm } from '../src/page-agent-llm.ts'
 
 describe('executePageAgentLlm', () => {

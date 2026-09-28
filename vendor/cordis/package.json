@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/cordis",
+  "name": "@hydraharness/cordis",
   "description": "Meta-Framework for Modern JavaScript Applications",
   "version": "4.0.1",
   "publishConfig": {
@@ -33,19 +33,19 @@
   "author": "Shigma <shigma10826@gmail.com>",
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/cordis-plugin-include": "workspace:^",
-    "@hydra1902/cordis-plugin-loader": "workspace:^"
+    "@hydraharness/cordis-plugin-include": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^"
   },
   "peerDependenciesMeta": {
-    "@hydra1902/cordis-plugin-include": {
+    "@hydraharness/cordis-plugin-include": {
       "optional": true
     },
-    "@hydra1902/cordis-plugin-loader": {
+    "@hydraharness/cordis-plugin-loader": {
       "optional": true
     }
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
-    "@hydra1902/cosmokit": "workspace:^"
+    "@hydraharness/cosmokit": "workspace:^"
   }
 }

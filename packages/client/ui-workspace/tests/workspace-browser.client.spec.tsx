@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, createEvent, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
 import type {
   SessionId, SessionListState, SessionSummary, WorkspaceId, WorkspaceListState, WorkspaceView,
-} from '@hydra1902/harness-client-runtime/client'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+} from '@hydraharness/harness-client-runtime/client'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 import type { WorkspaceBrowserProps } from '../src/client/contract/slots.ts'
 import { createWorkspaceViewStore, FLAT_SESSION_ORDER_KEY } from '../src/client/stores.ts'
 import { UNGROUPED_KEY } from '../src/client/tree.ts'

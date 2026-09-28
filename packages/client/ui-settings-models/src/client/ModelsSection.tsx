@@ -6,9 +6,9 @@
 
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import type { IApiClient } from '@hydra1902/harness-api-remotes/client'
-import { Button, IconPlusOutline16, Modal } from '@hydra1902/harness-client-ui-primitives'
-import type { HostObservable, InjectFace, PropsRenderSlots } from '@hydra1902/harness-client-ui-slots'
+import type { IApiClient } from '@hydraharness/harness-api-remotes/client'
+import { Button, IconPlusOutline16, Modal } from '@hydraharness/harness-client-ui-primitives'
+import type { HostObservable, InjectFace, PropsRenderSlots } from '@hydraharness/harness-client-ui-slots'
 import { isManagedFallbackRef } from './FallbackKeysEditor.tsx'
 import { CustomProviderCard } from './CustomProviderCard.tsx'
 import {

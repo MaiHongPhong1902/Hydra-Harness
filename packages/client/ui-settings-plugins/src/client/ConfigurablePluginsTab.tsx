@@ -8,7 +8,7 @@
  */
 
 import { Fragment } from 'react'
-import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
 import type {} from './slot-contract.ts'
 import type { ConfigurablePluginsTabFace } from './tab-store.ts'
 import css from './PluginsSettingsSection.module.css'

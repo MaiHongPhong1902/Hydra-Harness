@@ -16,7 +16,7 @@ interface CssPlugin {
 
 function cssPlugin(name: 'hydra-css-modules-inline' | 'hydra-css-global-inline' | 'hydra-css-text-inline'): CssPlugin {
   const configs = clientBundle(
-    '@hydra1902/harness-client-test',
+    '@hydraharness/harness-client-test',
     ['lib/types/index.js', 'lib/types/invariant.js'],
   )({ env: { HYDRA_BUILD_FACE: 'client' } })
   const client = configs.find(config => config.platform === 'browser')

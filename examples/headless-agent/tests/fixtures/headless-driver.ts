@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /** Snapshot-only Loader driver: stream one fixture turn as canonical JSONL. */
 
-import type { Context } from '@hydra1902/cordis'
-import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@hydra1902/harness-app-boot'
-import { runFixtureTurn } from '@hydra1902/harness-loader-smoke'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type { Context } from '@hydraharness/cordis'
+import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@hydraharness/harness-app-boot'
+import { runFixtureTurn } from '@hydraharness/harness-loader-smoke'
+import type { SessionEvent } from '@hydraharness/harness-session'
 
 const NAME = 'headless-test-driver'
 const [configPath, ...taskParts] = process.argv.slice(2)

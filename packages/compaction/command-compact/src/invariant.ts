@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-command-compact`.
- * @module @hydra1902/harness-command-compact/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-command-compact`.
+ * @module @hydraharness/harness-command-compact/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-command-compact'
+const PACKAGE_NAME = '@hydraharness/harness-command-compact'
 
 /** Cordis companion plugin name. */
 export const name = 'command-compact-invariant'

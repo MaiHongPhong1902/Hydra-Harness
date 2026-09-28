@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-subagent-in-process-driver`.
- * @module @hydra1902/harness-subagent-in-process-driver/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-subagent-in-process-driver`.
+ * @module @hydraharness/harness-subagent-in-process-driver/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-subagent-in-process-driver'
+const PACKAGE_NAME = '@hydraharness/harness-subagent-in-process-driver'
 
 /** Cordis companion plugin name. */
 export const name = 'subagent-in-process-driver-invariant'

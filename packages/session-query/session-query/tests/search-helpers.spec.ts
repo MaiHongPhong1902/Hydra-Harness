@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { createUserMessage, CallId , createMessage, createToolResultMessage } from '@hydra1902/harness-llm'
+import { Context } from '@hydraharness/cordis'
+import { createUserMessage, CallId , createMessage, createToolResultMessage } from '@hydraharness/harness-llm'
 import SessionStore, {
   SESSION_FORMAT_VERSION,
   SessionId,
-} from '@hydra1902/harness-session'
-import type { SessionEvent, SessionHeader } from '@hydra1902/harness-session'
+} from '@hydraharness/harness-session'
+import type { SessionEvent, SessionHeader } from '@hydraharness/harness-session'
 import {
   buildSessionEventRecords,
   buildSessionEventSearchDocuments,
@@ -16,7 +16,7 @@ import {
   materializeSessionEventResultFilters,
   materializeSessionResultFilters,
   type SessionQueryErrorCode,
-} from '@hydra1902/harness-session-query'
+} from '@hydraharness/harness-session-query'
 import { TestSessionQueryEngine } from './test-service.ts'
 
 const id = SessionId('session')

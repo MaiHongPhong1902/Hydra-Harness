@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /** Test driver: one delegation turn through a headless Loader composition. */
 
-import { boot, resolveConfigPath } from '@hydra1902/harness-app-boot'
-import { runFixtureTurn } from '@hydra1902/harness-loader-smoke'
+import { boot, resolveConfigPath } from '@hydraharness/harness-app-boot'
+import { runFixtureTurn } from '@hydraharness/harness-loader-smoke'
 
 const configPath = process.argv[2]
 if (configPath === undefined) throw new Error('sdk-subagent cwd driver requires a config path')

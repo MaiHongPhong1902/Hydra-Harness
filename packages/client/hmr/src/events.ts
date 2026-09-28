@@ -5,7 +5,7 @@
  * the two ends from drifting, not from parsing.
  */
 
-import type { WebBootGraph } from '@hydra1902/harness-client-modules'
+import type { WebBootGraph } from '@hydraharness/harness-client-modules'
 
 /** One SSE frame: the full graph on connect, or one rebuilt bundle notice. */
 export type PluginsEventFrame =

@@ -9,8 +9,8 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { canonicalPath } from '@hydra1902/harness-sandbox'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import { canonicalPath } from '@hydraharness/harness-sandbox'
+import type { SessionEvent } from '@hydraharness/harness-session'
 import {
   assertFixtureInventory, fixtureUserPrompts, launchWebScaffold, recordFixture,
   watchConsole, webSnapshotMode, type WebScaffold,
@@ -41,7 +41,7 @@ function runtimeContexts(events: readonly SessionEvent[]): string[] {
   return events.flatMap((event) => {
     if (event.type !== 'user/message'
       || event.data.source.kind !== 'plugin'
-      || event.data.source.plugin !== '@hydra1902/harness-system-prompt') return []
+      || event.data.source.plugin !== '@hydraharness/harness-system-prompt') return []
     return event.data.content.flatMap(block => block.type === 'text' ? [block.text] : [])
   })
 }

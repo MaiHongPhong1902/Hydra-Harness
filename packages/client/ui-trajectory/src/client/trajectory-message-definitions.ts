@@ -1,12 +1,12 @@
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   ContextMessageNode, ConversationNodeDefinition, ConversationPreviousContext,
   SteeringMessageNode, UserMessageNode,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import {
   contextForm, contextProvenance,
-} from '@hydra1902/harness-client-runtime/client'
-import type {} from '@hydra1902/harness-agent/types'
+} from '@hydraharness/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-agent/types'
 import { trajectoryNode } from './trajectory-definition-common.ts'
 
 /* jscpd:ignore-start -- Target-owned Definitions intentionally keep their event

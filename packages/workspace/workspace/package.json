@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-workspace",
+  "name": "@hydraharness/harness-workspace",
   "description": "Workspace entity registry (ctx.workspaceRegistry): durable workspace records with validated session attachment over the domain data form for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -42,24 +42,24 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-storage-domain": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence": "workspace:^",
-    "@hydra1902/harness-storage": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-storage-domain": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence": "workspace:^",
+    "@hydraharness/harness-storage": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-storage-domain": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence": "workspace:^",
-    "@hydra1902/harness-storage": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-storage-domain": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence": "workspace:^",
+    "@hydraharness/harness-storage": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

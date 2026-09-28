@@ -2,9 +2,9 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { expect, it } from 'vitest'
-import type {} from '@hydra1902/harness-skill'
-import { SessionId } from '@hydra1902/harness-session'
-import type {} from '@hydra1902/harness-agent-presets'
+import type {} from '@hydraharness/harness-skill'
+import { SessionId } from '@hydraharness/harness-session'
+import type {} from '@hydraharness/harness-agent-presets'
 import { launchWebScaffold, type WebScaffold } from './scaffold.ts'
 
 async function writeSkill(root: string, name: string): Promise<void> {

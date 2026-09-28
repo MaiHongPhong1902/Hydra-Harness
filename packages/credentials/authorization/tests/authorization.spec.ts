@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { credentialKey } from '@hydra1902/harness-credentials'
+import { Context } from '@hydraharness/cordis'
+import { credentialKey } from '@hydraharness/harness-credentials'
 import AuthorizationService, {
   AuthorizationDeclinedError,
   authorizationAccountId,
   type AuthorizationFlow,
   type AuthorizationInteraction,
   type AuthorizationSession,
-} from '@hydra1902/harness-authorization'
+} from '@hydraharness/harness-authorization'
 import { MemoryCredentials } from './memory.ts'
 
 const KEY = credentialKey('llm-pi-ai', 'openai-codex')

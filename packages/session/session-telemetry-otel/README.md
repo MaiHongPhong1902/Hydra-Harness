@@ -1,12 +1,12 @@
-# @hydra/harness-session-telemetry-otel
+# @hydraharness/harness-session-telemetry-otel
 
-The OpenTelemetry backend for [the telemetry seam](../session-telemetry/) — the only entry a deployment loads. Its `mode` decides whether the seam follows session events live, replays the canonical log only at recorded feedback, or keeps telemetry local. Uploading modes compose the OTel JS SDK as-is (`LoggerProvider` → `BatchLogRecordProcessor` → OTLP/HTTP log exporter) and map each handed-over record onto `logger.emit()`, under two instrumentation scopes: ledger records on `@hydra/harness-session-sessionTelemetry-otel`, operational records on `@hydra/harness-session-sessionTelemetry-otel/ops`. Resource identity contains `service.name`/`service.version` from `@hydra/harness-llm`'s `APP_IDENTITY` plus this package's anonymous `user.id` (`$HYDRA_HOME/.anonymous-user-id`, a random UUID created on first use and reset by deleting the file), carried once per export batch rather than per record.
+The OpenTelemetry backend for [the telemetry seam](../session-telemetry/) — the only entry a deployment loads. Its `mode` decides whether the seam follows session events live, replays the canonical log only at recorded feedback, or keeps telemetry local. Uploading modes compose the OTel JS SDK as-is (`LoggerProvider` → `BatchLogRecordProcessor` → OTLP/HTTP log exporter) and map each handed-over record onto `logger.emit()`, under two instrumentation scopes: ledger records on `@hydraharness/harness-session-sessionTelemetry-otel`, operational records on `@hydraharness/harness-session-sessionTelemetry-otel/ops`. Resource identity contains `service.name`/`service.version` from `@hydraharness/harness-llm`'s `APP_IDENTITY` plus this package's anonymous `user.id` (`$HYDRA_HOME/.anonymous-user-id`, a random UUID created on first use and reset by deleting the file), carried once per export batch rather than per record.
 
 ## Config
 
 ```yaml
 - id: sessionTelemetry-otel
-  name: '@hydra1902/harness-session-sessionTelemetry-otel'
+  name: '@hydraharness/harness-session-sessionTelemetry-otel'
   config:
     mode: FULL                # explicit opt-in; default: DISABLED
     shutdownTimeoutMillis: 3000 # optional; defaults to 3000

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { RpcResponse, SettingsNamespaceView } from '@hydra1902/harness-api-remotes/client'
+import type { RpcResponse, SettingsNamespaceView } from '@hydraharness/harness-api-remotes/client'
 import { SettingsDescribeMirror, type SettingsDescribeView } from '../src/client/settings-mirror.ts'
 
 let rpc = 0

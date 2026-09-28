@@ -10,12 +10,12 @@
   name: './mock-delegating-llm.ts'
 
 - id: subagent
-  name: '@hydra1902/harness-subagent'
+  name: '@hydraharness/harness-subagent'
 
 # providerName is omitted: the composition exercises the shipped default
 # (`hydra-sdk`) through the real Loader.
 - id: subagent-sdk
-  name: '@hydra1902/harness-subagent-sdk'
+  name: '@hydraharness/harness-subagent-sdk'
   config:
     command: !!js process.env.HYDRA_TEST_CHILD_COMMAND
     args: !!js JSON.parse(process.env.HYDRA_TEST_CHILD_ARGS ?? '[]')
@@ -24,7 +24,7 @@
     env: !!js JSON.parse(process.env.HYDRA_TEST_CHILD_ENV ?? '{}')
 
 - id: tool-subagent
-  name: '@hydra1902/harness-tool-subagent'
+  name: '@hydraharness/harness-tool-subagent'
   config:
     provider: hydra-sdk
     toolName: subagent
@@ -33,7 +33,7 @@
     maxDepth: 'provider-managed'
 
 - id: agent-spine
-  name: '@hydra1902/harness-agent-spine-demo'
+  name: '@hydraharness/harness-agent-spine-demo'
   config:
     agents:
       - id: main
@@ -44,10 +44,10 @@
     workspaceContext: false
 
 - id: persistence
-  name: '@hydra1902/harness-session-persistence-jsonl'
+  name: '@hydraharness/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: 'none'
 
 - id: checkpoint-policy
-  name: '@hydra1902/harness-session-checkpoint-policy'
+  name: '@hydraharness/harness-session-checkpoint-policy'

@@ -2,15 +2,15 @@
 // plus the shared estimator's pricing branches.
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { createMessage, createUserMessage } from '@hydra1902/harness-llm'
-import type { ContentBlock, ToolSchema } from '@hydra1902/harness-llm'
-import SessionStore from '@hydra1902/harness-session'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
-import TokenMeter from '@hydra1902/harness-token-meter'
-import type { ContextBreakdownProjection } from '@hydra1902/harness-token-meter/client'
-import { CompactionId } from '@hydra1902/harness-compaction'
+import { Context } from '@hydraharness/cordis'
+import { createMessage, createUserMessage } from '@hydraharness/harness-llm'
+import type { ContentBlock, ToolSchema } from '@hydraharness/harness-llm'
+import SessionStore from '@hydraharness/harness-session'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import SessionProjectionRegistry from '@hydraharness/harness-session-projection'
+import TokenMeter from '@hydraharness/harness-token-meter'
+import type { ContextBreakdownProjection } from '@hydraharness/harness-token-meter/client'
+import { CompactionId } from '@hydraharness/harness-compaction'
 import { contextBreakdownProjectionDefinition } from '../src/breakdown-projection.ts'
 import {
   estimateContent,

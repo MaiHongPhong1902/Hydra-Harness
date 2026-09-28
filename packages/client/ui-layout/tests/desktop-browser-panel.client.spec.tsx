@@ -2,15 +2,15 @@
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, waitFor, within } from '@testing-library/react'
-import type { SessionId, WorkspaceId } from '@hydra1902/harness-client-runtime/client'
+import type { SessionId, WorkspaceId } from '@hydraharness/harness-client-runtime/client'
 import {
   DesktopBrowserPanel,
   DesktopPanelControls,
-} from '@hydra1902/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
+} from '@hydraharness/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
 import type {
   DesktopBrowserApi, DesktopPanelShortcut, DesktopTerminalApi, DesktopTerminalId,
-} from '@hydra1902/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
-import { DesktopFilesPanel } from '@hydra1902/harness-client-ui-layout/src/client/DesktopFilesPanel.tsx'
+} from '@hydraharness/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
+import { DesktopFilesPanel } from '@hydraharness/harness-client-ui-layout/src/client/DesktopFilesPanel.tsx'
 
 vi.mock('@xterm/xterm', () => ({
   Terminal: vi.fn(function MockTerminal() { return {

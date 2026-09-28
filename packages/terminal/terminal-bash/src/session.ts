@@ -5,8 +5,8 @@ import type {
   SubprocessOutcome,
   SubprocessTerminalForeground,
   SubprocessTerminalHandle,
-} from '@hydra1902/harness-subprocess'
-import { TerminalError } from '@hydra1902/harness-terminal'
+} from '@hydraharness/harness-subprocess'
+import { TerminalError } from '@hydraharness/harness-terminal'
 import type {
   TerminalBackendSession,
   TerminalReadRequest,
@@ -19,7 +19,7 @@ import type {
   TerminalSignal,
   TerminalSignalResult,
   TerminalWaitReason,
-} from '@hydra1902/harness-terminal'
+} from '@hydraharness/harness-terminal'
 import type { ResolvedConfig } from './config.ts'
 import { CONTROLLED_PROMPT, TerminalSanitizer } from './sanitize.ts'
 

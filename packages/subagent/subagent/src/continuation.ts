@@ -18,24 +18,24 @@
  * disposed by then, and the release that wakes the parent's own settlement
  * watcher has already run. See {@link SubagentContinuationManager.notifySettlement}.
  *
- * @module @hydra1902/harness-subagent
+ * @module @hydraharness/harness-subagent
  */
 
 import { randomUUID } from 'node:crypto'
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   Agent,
   AgentHandle,
   AgentOptions,
   AgentSetupCommit,
   CreateAgentOptions,
-} from '@hydra1902/harness-agent'
-import { boundContextSummary, createUserMessage, errorChain } from '@hydra1902/harness-llm'
-import type { ContentBlock, MessageId, MessageSource } from '@hydra1902/harness-llm'
-import { SessionId } from '@hydra1902/harness-session'
-import type { SessionEvent } from '@hydra1902/harness-session'
-import type { SessionPersistence } from '@hydra1902/harness-session-persistence'
-import type { ToolRestriction } from '@hydra1902/harness-tools'
+} from '@hydraharness/harness-agent'
+import { boundContextSummary, createUserMessage, errorChain } from '@hydraharness/harness-llm'
+import type { ContentBlock, MessageId, MessageSource } from '@hydraharness/harness-llm'
+import { SessionId } from '@hydraharness/harness-session'
+import type { SessionEvent } from '@hydraharness/harness-session'
+import type { SessionPersistence } from '@hydraharness/harness-session-persistence'
+import type { ToolRestriction } from '@hydraharness/harness-tools'
 import { foldSubagentDescriptor, snapshotSubagentDescriptor } from './descriptor.ts'
 import type { SubagentDescriptorData } from './descriptor.ts'
 import {
@@ -89,7 +89,7 @@ export interface SubagentSettledMessageSource {
   readonly senderSessionId: SessionId
 }
 
-declare module '@hydra1902/harness-llm' {
+declare module '@hydraharness/harness-llm' {
   interface MessageSourceMap {
     coordinator: CoordinatorMessageSource
     'subagent-report': SubagentReportMessageSource

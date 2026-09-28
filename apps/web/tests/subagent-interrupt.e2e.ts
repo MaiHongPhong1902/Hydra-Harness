@@ -10,8 +10,8 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { SessionId as sessionId, type SessionId } from '@hydra1902/harness-session'
-import type {} from '@hydra1902/harness-agent'
+import { SessionId as sessionId, type SessionId } from '@hydraharness/harness-session'
+import type {} from '@hydraharness/harness-agent'
 import { launchWebScaffold, webSnapshotMode, type WebScaffold } from './scaffold.ts'
 
 const MODE = webSnapshotMode()

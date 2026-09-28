@@ -1,6 +1,6 @@
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import type { SessionId } from '@hydra1902/harness-api-remotes/client'
+import type { SessionId } from '@hydraharness/harness-api-remotes/client'
 import { ConversationEventRegistry } from '../src/client/conversation/event-registry.ts'
 import { ConversationViewRegistry } from '../src/client/conversation/view-registry.ts'
 import type {

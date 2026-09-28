@@ -13,13 +13,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import Include from '@hydra1902/cordis-plugin-include'
-import LlmRuntime, { createMessage, createUserMessage } from '@hydra1902/harness-llm'
-import LocalCredentialProvider from '@hydra1902/harness-credentials-local'
-import FileSettingsProvider from '@hydra1902/harness-settings-file'
-import * as LlmPiAi from '@hydra1902/harness-llm-pi-ai'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import Include from '@hydraharness/cordis-plugin-include'
+import LlmRuntime, { createMessage, createUserMessage } from '@hydraharness/harness-llm'
+import LocalCredentialProvider from '@hydraharness/harness-credentials-local'
+import FileSettingsProvider from '@hydraharness/harness-settings-file'
+import * as LlmPiAi from '@hydraharness/harness-llm-pi-ai'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 
@@ -56,17 +56,17 @@ async function loadComposition(): Promise<{ ctx: Context; settingsPath: string }
     '- id: llm',
     "  name: 'test-llm-service'",
     '- id: settings',
-    "  name: '@hydra1902/harness-settings-file'",
+    "  name: '@hydraharness/harness-settings-file'",
     '  config:',
     `    path: ${JSON.stringify(settingsPath)}`,
     '    debounceMs: 10',
     '- id: credentials',
-    "  name: '@hydra1902/harness-credentials-local'",
+    "  name: '@hydraharness/harness-credentials-local'",
     '  config:',
     `    path: ${JSON.stringify(join(root, '.credentials.yaml'))}`,
     '    debounceMs: 10',
     '- id: llm-pi-ai',
-    "  name: '@hydra1902/harness-llm-pi-ai'",
+    "  name: '@hydraharness/harness-llm-pi-ai'",
     '',
   ].join('\n'))
 
@@ -77,9 +77,9 @@ async function loadComposition(): Promise<{ ctx: Context; settingsPath: string }
   ctx.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
     ['test-llm-service', LlmRuntime],
-    ['@hydra1902/harness-settings-file', FileSettingsProvider],
-    ['@hydra1902/harness-credentials-local', LocalCredentialProvider],
-    ['@hydra1902/harness-llm-pi-ai', LlmPiAi],
+    ['@hydraharness/harness-settings-file', FileSettingsProvider],
+    ['@hydraharness/harness-credentials-local', LocalCredentialProvider],
+    ['@hydraharness/harness-llm-pi-ai', LlmPiAi],
   ])
   ctx.loader.internal = {
     version: 'v2',

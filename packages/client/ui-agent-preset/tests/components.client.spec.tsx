@@ -9,8 +9,8 @@
 
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
-import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
+import { createSnapshotStore } from '@hydraharness/harness-client-runtime/client'
 import { AgentPresetLabel } from '../src/client/AgentPresetLabel.tsx'
 import type { AgentPresetLabelProps } from '../src/client/AgentPresetLabel.tsx'
 import { AgentPresetRow } from '../src/client/AgentPresetRow.tsx'

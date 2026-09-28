@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { SANDBOX_UNAVAILABLE, SandboxUnavailableError } from '@hydra1902/harness-sandbox'
+import { SANDBOX_UNAVAILABLE, SandboxUnavailableError } from '@hydraharness/harness-sandbox'
 
 describe('SandboxUnavailableError', () => {
   it('carries the structured { name, code } identity consumers key on', () => {

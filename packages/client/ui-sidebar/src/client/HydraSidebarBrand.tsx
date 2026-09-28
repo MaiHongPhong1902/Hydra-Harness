@@ -1,4 +1,4 @@
-import { BrandWordmark } from '@hydra1902/harness-client-ui-primitives'
+import { BrandWordmark } from '@hydraharness/harness-client-ui-primitives'
 
 /**
  * Render the Hydra harness name and mark in the sidebar.

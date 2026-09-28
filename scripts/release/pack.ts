@@ -60,7 +60,7 @@ function main(): void {
   const order: string[] = []
   for (const member of members) order.push(packMember(family, member, destination))
   if (family.id === 'hydra' && values.vendor !== undefined) {
-    const cli = members.find(member => member.name === '@hydra1902/harness')
+    const cli = members.find(member => member.name === '@hydraharness/harness')
     if (cli === undefined) throw new Error('hydra release family has no CLI entry package')
     const filename = packCliBundle(destination, cli, resolve(root, values.vendor))
     const index = order.indexOf(filename)

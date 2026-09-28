@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-session-stats`.
- * @module @hydra1902/harness-session-stats/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-session-stats`.
+ * @module @hydraharness/harness-session-stats/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-session-stats'
+const PACKAGE_NAME = '@hydraharness/harness-session-stats'
 
 /** Cordis companion plugin name. */
 export const name = 'session-stats-invariant'
@@ -20,7 +20,7 @@ export const inject = ['invariants']
  * snapshot and change-feed emission, and the event relations the fold relies
  * on (`step/end` exactly once per entered step, monotonic host-assigned turn
  * numbers, chunk and tool events carrying their step coordinates and call
- * ids) are owned and runtime-checked by @hydra1902/harness-agent-loop and the session
+ * ids) are owned and runtime-checked by @hydraharness/harness-agent-loop and the session
  * surface, not here.
  */
 const install: InvariantInstaller = () => {}

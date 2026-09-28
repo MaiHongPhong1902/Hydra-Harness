@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { DynamicCordisLivePackage } from '@hydra1902/harness-cordis-client-runner/client'
+import type { DynamicCordisLivePackage } from '@hydraharness/harness-cordis-client-runner/client'
 import type {
   CordisDynamicPackageId, CordisDynamicPluginId, CordisDynamicPluginRunId,
   DynamicCordisInventoryRow,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import { resolveProfiles, type AccountProviderProfile } from '../src/config.ts'
 
 describe('account provider settings', () => {

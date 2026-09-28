@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import type { JsonValue } from '@hydra1902/harness-session'
+import type { JsonValue } from '@hydraharness/harness-session'
 import {
   globSearchMeta,
   grepSearchMeta,

@@ -1,13 +1,13 @@
 /** The `web-search-deepseek` settings section layered over the composition entry. */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import type { Fiber } from '@hydra1902/cordis'
-import { SettingsProvider } from '@hydra1902/harness-settings'
-import type { SettingsNamespace } from '@hydra1902/harness-settings'
-import WebRuntime from '@hydra1902/harness-web'
-import * as deepseekPlugin from '@hydra1902/harness-web-search-deepseek'
-import { WEB_SEARCH_DEEPSEEK_SETTINGS_NAMESPACE } from '@hydra1902/harness-web-search-deepseek'
+import { Context } from '@hydraharness/cordis'
+import type { Fiber } from '@hydraharness/cordis'
+import { SettingsProvider } from '@hydraharness/harness-settings'
+import type { SettingsNamespace } from '@hydraharness/harness-settings'
+import WebRuntime from '@hydraharness/harness-web'
+import * as deepseekPlugin from '@hydraharness/harness-web-search-deepseek'
+import { WEB_SEARCH_DEEPSEEK_SETTINGS_NAMESPACE } from '@hydraharness/harness-web-search-deepseek'
 
 /** The smallest real provider: one in-memory document, always writable. */
 class MemorySettings extends SettingsProvider {

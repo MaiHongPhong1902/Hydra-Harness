@@ -10,11 +10,11 @@
  */
 import { statSync } from 'node:fs'
 import type { ServerResponse } from 'node:http'
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
 // Empty type imports carry the clientModuleHost/webServer Context merges.
-import type {} from '@hydra1902/harness-client-modules'
-import type {} from '@hydra1902/harness-host-webserver'
+import type {} from '@hydraharness/harness-client-modules'
+import type {} from '@hydraharness/harness-host-webserver'
 import type { PluginsEventFrame } from './events.ts'
 import { EVENTS_ENDPOINT } from './events.ts'
 

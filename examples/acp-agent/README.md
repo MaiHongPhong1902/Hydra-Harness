@@ -11,9 +11,9 @@ The leaf loads the ACP app, DeepSeek adapter, sandboxed bash and filesystem stac
 
 ## Protocol channel
 
-Stdout carries only newline-delimited ACP JSON-RPC. `@hydra/harness-acp-demo` installs no stdout logger; leaf additions must use stderr for diagnostics.
+Stdout carries only newline-delimited ACP JSON-RPC. `@hydraharness/harness-acp-demo` installs no stdout logger; leaf additions must use stderr for diagnostics.
 
-The automation contract — supported methods, baseline prompt content, committed-text output, and the intentionally absent UI surfaces — lives in [`@hydra/harness-acp`](../../packages/acp/acp/README.md).
+The automation contract — supported methods, baseline prompt content, committed-text output, and the intentionally absent UI surfaces — lives in [`@hydraharness/harness-acp`](../../packages/acp/acp/README.md).
 
 ## Session workspaces and permissions
 

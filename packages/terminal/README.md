@@ -4,9 +4,9 @@
 
 | Package | Role | ctx key |
 |---|---|---|
-| [`pty`](terminal/README.md) (`@hydra/harness-terminal`) | Backend registry, branded ids, exact-Agent ownership, session operations, and awaited cleanup | `ctx.terminals` |
-| `terminal-bash` (`@hydra/harness-terminal-bash`) | Shell backend over `ctx.subprocess.spawnTerminal`: readiness detection, bounded terminal state, sandbox policy, and session operations | registers on `ctx.terminals` |
-| `tool-terminal` (`@hydra/harness-tool-terminal`) | Six model-facing tools and generic task integration for background sends | registers on `ctx.tools` |
+| [`pty`](terminal/README.md) (`@hydraharness/harness-terminal`) | Backend registry, branded ids, exact-Agent ownership, session operations, and awaited cleanup | `ctx.terminals` |
+| `terminal-bash` (`@hydraharness/harness-terminal-bash`) | Shell backend over `ctx.subprocess.spawnTerminal`: readiness detection, bounded terminal state, sandbox policy, and session operations | registers on `ctx.terminals` |
+| `tool-terminal` (`@hydraharness/harness-tool-terminal`) | Six model-facing tools and generic task integration for background sends | registers on `ctx.tools` |
 
 The design and deferred boundaries live in the [persistent PTY Agent Note](../../.agents/notes/implemented/feature/2026-07-16-persistent-pty-sessions.md).
 

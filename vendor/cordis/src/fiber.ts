@@ -1,5 +1,5 @@
-import { defineProperty, isNullable } from '@hydra1902/cosmokit'
-import type { Awaitable, Dict } from '@hydra1902/cosmokit'
+import { defineProperty, isNullable } from '@hydraharness/cosmokit'
+import type { Awaitable, Dict } from '@hydraharness/cosmokit'
 import { Context } from './context.ts'
 import type { Plugin } from './registry.ts'
 import { buildOuterStack, composeError, DisposableList, getTraceable, isConstructor, isObject, symbols } from './utils.ts'

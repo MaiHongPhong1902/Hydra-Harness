@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import type { StreamChunk } from '@hydra1902/harness-api-remotes/client'
+import type { StreamChunk } from '@hydraharness/harness-api-remotes/client'
 import { PartialAccumulator } from '../src/client/sessions/partial.ts'
 
 const chunk = (c: Record<string, unknown>): StreamChunk => c as unknown as StreamChunk

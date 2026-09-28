@@ -1,16 +1,16 @@
 /**
- * `@hydra1902/harness-web-search-perplexity`: registers a Perplexity-backed
+ * `@hydraharness/harness-web-search-perplexity`: registers a Perplexity-backed
  * `WebSearchProvider` with `ctx.web`. A function/namespace plugin (NOT a
  * default-export service): it registers INTO the seam's provider registry, like
- * `@hydra1902/harness-llm-deepseek` registers an adapter into `ctx.llm`.
+ * `@hydraharness/harness-llm-deepseek` registers an adapter into `ctx.llm`.
  *
- * @module @hydra1902/harness-web-search-perplexity
+ * @module @hydraharness/harness-web-search-perplexity
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { launchEnvironmentOf } from '@hydra1902/harness-launch-environment'
-import z from '@hydra1902/schemastery'
-import type {} from '@hydra1902/harness-web'
+import type { Context } from '@hydraharness/cordis'
+import { launchEnvironmentOf } from '@hydraharness/harness-launch-environment'
+import z from '@hydraharness/schemastery'
+import type {} from '@hydraharness/harness-web'
 import { PerplexitySearchProvider, PERPLEXITY_DEFAULT_BASE_URL, PERPLEXITY_DEFAULT_MAX_TOKENS, PERPLEXITY_DEFAULT_MODEL } from './provider.ts'
 
 export {

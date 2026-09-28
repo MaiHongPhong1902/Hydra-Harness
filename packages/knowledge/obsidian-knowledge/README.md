@@ -1,4 +1,4 @@
-# @hydra/harness-obsidian-knowledge
+# @hydraharness/harness-obsidian-knowledge
 
 Provides token-bounded graph memory over an Obsidian vault. Production reads and writes use Obsidian Local REST API's built-in MCP server; raw MCP tools are never exposed to the model. Graph notes live under `Hydra Website Knowledge/`.
 
@@ -8,7 +8,7 @@ Mount the plugin in a Hydra profile or patch:
 
 ```yaml
 - id: obsidian-knowledge
-  name: '@hydra1902/harness-obsidian-knowledge'
+  name: '@hydraharness/harness-obsidian-knowledge'
 ```
 
 Recall, exact reads, and approval-gated saves work with no user-facing settings. The settings document intentionally contains no vault path, MCP URL, or token.

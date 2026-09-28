@@ -1,8 +1,8 @@
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   ConversationMatch, ConversationNodeDefinition, ConversationPromptSnapshot,
   RequestPromptChange,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import { trajectoryNode } from './trajectory-definition-common.ts'
 import type { TrajectoryRequestHeaderState } from './trajectory-contract.ts'
 

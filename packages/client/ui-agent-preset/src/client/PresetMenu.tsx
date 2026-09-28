@@ -9,7 +9,7 @@
  * label marks it rather than presenting every preset as shipped and vetted.
  */
 
-import { IconChevronDownOutline14, Menu } from '@hydra1902/harness-client-ui-primitives'
+import { IconChevronDownOutline14, Menu } from '@hydraharness/harness-client-ui-primitives'
 import type { AgentPresetOption } from './settings-store.ts'
 import { presetDisplayText, type AgentPresetSettingsKey } from './locales.ts'
 

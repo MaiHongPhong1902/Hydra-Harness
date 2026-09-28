@@ -20,8 +20,8 @@ import {
   type ResolvedRetryPolicy,
   type StreamChunk,
   resolveRetryPolicy,
-} from '@hydra1902/harness-llm'
-import type { PiAiAdapter, ResolvedPiAiProviderProfile } from '@hydra1902/harness-llm-pi-ai'
+} from '@hydraharness/harness-llm'
+import type { PiAiAdapter, ResolvedPiAiProviderProfile } from '@hydraharness/harness-llm-pi-ai'
 
 /** A provider profile lookup that follows live settings changes. */
 export type AccountProfileLookup = () => AccountProviderProfile | undefined
@@ -35,7 +35,7 @@ export interface ChatGptAdapterOptions {
   /** Build the current profile on first model use. */
   loadProfile?: () => Promise<ResolvedPiAiProviderProfile | undefined>
   /** Resolve the optional durable attachment service. */
-  resolveAttachments?: () => import('@hydra1902/harness-attachment').AttachmentStore | undefined
+  resolveAttachments?: () => import('@hydraharness/harness-attachment').AttachmentStore | undefined
 }
 
 /** Inputs for the Antigravity account adapter. */
@@ -45,7 +45,7 @@ export interface AntigravityAdapterOptions {
   /** Current settings profile. */
   profile: AccountProfileLookup
   /** Resolve the optional durable attachment service. */
-  resolveAttachments?: () => import('@hydra1902/harness-attachment').AttachmentStore | undefined
+  resolveAttachments?: () => import('@hydraharness/harness-attachment').AttachmentStore | undefined
 }
 
 function visible(chunk: StreamChunk): boolean {
@@ -272,7 +272,7 @@ export class ChatGptAccountAdapter extends LlmAdapter {
 
   private async ensureDelegate(): Promise<PiAiAdapter> {
     await this.ensureProfile()
-    this.delegatePromise ??= import('@hydra1902/harness-llm-pi-ai').then(({ PiAiAdapter }) => new PiAiAdapter({
+    this.delegatePromise ??= import('@hydraharness/harness-llm-pi-ai').then(({ PiAiAdapter }) => new PiAiAdapter({
       profiles: () => {
         const profile = this.config.profile() ?? this.loadedProfile
         /* v8 ignore next -- ensureProfile stores a profile before creating the delegate and loadedProfile is never cleared. */

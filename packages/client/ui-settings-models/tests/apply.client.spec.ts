@@ -1,12 +1,12 @@
 /** Models section registration: slot declaration injection, the locale-following label thunk, and HMR recovery. */
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { resolveSlotLabel } from '@hydra1902/harness-client-ui-slots'
-import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
-import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
-import { TestRemote } from '@hydra1902/harness-client-test-runtime'
-import { apply as settingsApply, inject as settingsInject } from '@hydra1902/harness-client-ui-settings/client'
-import { apply, inject, refreshIfLoaded } from '@hydra1902/harness-client-ui-settings-models/client'
+import { resolveSlotLabel } from '@hydraharness/harness-client-ui-slots'
+import { SlotRegistry } from '@hydraharness/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydraharness/harness-client-locale/client'
+import { TestRemote } from '@hydraharness/harness-client-test-runtime'
+import { apply as settingsApply, inject as settingsInject } from '@hydraharness/harness-client-ui-settings/client'
+import { apply, inject, refreshIfLoaded } from '@hydraharness/harness-client-ui-settings-models/client'
 import {
   WELCOME_NOTICE_ACK_FIELD, WELCOME_NOTICE_SETTINGS_NAMESPACE, WELCOME_NOTICE_VERSION,
 } from '../src/onboarding-copy.ts'

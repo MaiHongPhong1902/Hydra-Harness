@@ -3,14 +3,14 @@
 import { EventEmitter } from 'node:events'
 import { createInterface } from 'node:readline'
 import { PassThrough } from 'node:stream'
-import type { Agent } from '@hydra1902/harness-agent'
-import { SettingsProvider } from '@hydra1902/harness-settings'
-import type { SettingsNamespace } from '@hydra1902/harness-settings'
-import { Context } from '@hydra1902/cordis'
-import type { Fiber } from '@hydra1902/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
+import { SettingsProvider } from '@hydraharness/harness-settings'
+import type { SettingsNamespace } from '@hydraharness/harness-settings'
+import { Context } from '@hydraharness/cordis'
+import type { Fiber } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import BrowserSessionService, { BROWSER_SETTINGS_NAMESPACE } from '@hydra1902/harness-browser-electron'
-import type { BrowserChildProcess } from '@hydra1902/harness-browser-electron'
+import BrowserSessionService, { BROWSER_SETTINGS_NAMESPACE } from '@hydraharness/harness-browser-electron'
+import type { BrowserChildProcess } from '@hydraharness/harness-browser-electron'
 
 /** Small writable provider used to exercise the real settings registration. */
 class MemorySettings extends SettingsProvider {

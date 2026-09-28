@@ -8,7 +8,7 @@ The read-only JSON inspector used by the [trajectory ledger](../feature/2026-07-
 
 ## Decision
 
-`JsonTree` owns its recursive presentation in `@hydra/harness-client-ui-primitives`.
+`JsonTree` owns its recursive presentation in `@hydraharness/harness-client-ui-primitives`.
 
 - Each rendered row receives its value and property path directly. Object keys and array indexes extend that path during recursion, so copy actions never recover application data from rendered DOM text.
 - Expandable rows render the compact preview locally and mount child rows only while expanded. `expandTopLevel` selects between a fixed-open bracket frame and a collapsible root node without changing the public component contract.

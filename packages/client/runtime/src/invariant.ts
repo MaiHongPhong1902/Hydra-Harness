@@ -1,6 +1,6 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-client-runtime`.
- * @module @hydra1902/harness-client-runtime/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-client-runtime`.
+ * @module @hydraharness/harness-client-runtime/invariant
  */
 
 /* jscpd:ignore-start */
@@ -8,11 +8,11 @@
  * `keyof SlotMap & string` is the declare-merge key pattern: SlotMap is empty
  * in this compilation unit (intersection reads `never`) but consumers merge
  * keys in; the rule fires on the empty-map view, not on real redundancy. */
-import type { Context } from '@hydra1902/cordis'
-import type { SlotMap } from '@hydra1902/harness-client-ui-slots'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { SlotMap } from '@hydraharness/harness-client-ui-slots'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-client-runtime'
+const PACKAGE_NAME = '@hydraharness/harness-client-runtime'
 
 /** Cordis companion plugin name. */
 export const name = 'client-runtime-invariant'

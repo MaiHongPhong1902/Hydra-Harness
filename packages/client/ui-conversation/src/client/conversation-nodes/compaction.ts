@@ -1,12 +1,12 @@
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   CompactionSummaryNode, ConversationMatch, ConversationNodeContext, ConversationNodeDefinition,
-} from '@hydra1902/harness-client-runtime/client'
-import type {} from '@hydra1902/harness-compaction/types'
+} from '@hydraharness/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-compaction/types'
 import { chatNode } from './common.ts'
 import { compactSource, compactSummary, updateCompactionState } from './command.ts'
 
-declare module '@hydra1902/harness-client-ui-conversation/client' {
+declare module '@hydraharness/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Automatic compaction checkpoint marker. */
     compaction: CompactionSummaryNode

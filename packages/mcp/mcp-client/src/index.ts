@@ -10,16 +10,16 @@
  * disposing the old instance and creating a new one; identical `serverName`
  * reproduces identical public tool names.
  *
- * @module @hydra1902/harness-mcp-client
+ * @module @hydraharness/harness-mcp-client
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import { RECONNECT_DEFAULTS, resolveReconnectPolicy, startConnection } from './connection.ts'
 import type { ReconnectConfig } from './connection.ts'
 // Side-effect type import: declaration-merges `ctx.tools` onto Context.
-import type {} from '@hydra1902/harness-tools'
+import type {} from '@hydraharness/harness-tools'
 
 export type { McpResult } from './tools.ts'
 export { publicToolName } from './tools.ts'

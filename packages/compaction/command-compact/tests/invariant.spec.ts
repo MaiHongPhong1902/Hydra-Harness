@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import * as invariant from '@hydra1902/harness-command-compact/invariant'
+import * as invariant from '@hydraharness/harness-command-compact/invariant'
 
 describe('command-compact invariant companion', () => {
   it('registers the package-owned no-op installer', async () => {
@@ -8,7 +8,7 @@ describe('command-compact invariant companion', () => {
     const dispose = await invariant.apply(ctx)
     expect(invariant.name).toBe('command-compact-invariant')
     expect(invariant.inject).toEqual(['invariants'])
-    expect(register).toHaveBeenCalledWith('@hydra1902/harness-command-compact', expect.any(Function))
+    expect(register).toHaveBeenCalledWith('@hydraharness/harness-command-compact', expect.any(Function))
     expect(() => {
       const install = register.mock.calls[0]![1] as () => void
       install()

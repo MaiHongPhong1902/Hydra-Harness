@@ -1,16 +1,16 @@
 /** The `agent-loop` settings section layered over the composition entry. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import type { Fiber } from '@hydra1902/cordis'
-import LlmRuntime from '@hydra1902/harness-llm'
-import SessionStore from '@hydra1902/harness-session'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime from '@hydra1902/harness-tools'
-import AgentRegistry from '@hydra1902/harness-agent'
-import { SettingsProvider } from '@hydra1902/harness-settings'
-import type { SettingsNamespace } from '@hydra1902/harness-settings'
-import AgentLoop, { AGENT_LOOP_SETTINGS_NAMESPACE } from '@hydra1902/harness-agent-loop'
+import { Context } from '@hydraharness/cordis'
+import type { Fiber } from '@hydraharness/cordis'
+import LlmRuntime from '@hydraharness/harness-llm'
+import SessionStore from '@hydraharness/harness-session'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime from '@hydraharness/harness-tools'
+import AgentRegistry from '@hydraharness/harness-agent'
+import { SettingsProvider } from '@hydraharness/harness-settings'
+import type { SettingsNamespace } from '@hydraharness/harness-settings'
+import AgentLoop, { AGENT_LOOP_SETTINGS_NAMESPACE } from '@hydraharness/harness-agent-loop'
 
 /** The smallest real provider: one in-memory document, always writable. */
 class MemorySettings extends SettingsProvider {

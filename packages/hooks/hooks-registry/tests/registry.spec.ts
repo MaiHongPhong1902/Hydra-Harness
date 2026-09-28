@@ -7,15 +7,15 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context, Service } from '@hydra1902/cordis'
-import FileSettingsProvider from '@hydra1902/harness-settings-file'
-import { SettingsConflictError } from '@hydra1902/harness-settings'
-import HookRecordRegistry, { HOOKS_SETTINGS_NAMESPACE } from '@hydra1902/harness-hooks-registry/src/index.ts'
-import type { HookRecordSnapshot } from '@hydra1902/harness-hooks-registry/src/types.ts'
-import * as CodexHooks from '@hydra1902/harness-hooks-codex'
+import { Context, Service } from '@hydraharness/cordis'
+import FileSettingsProvider from '@hydraharness/harness-settings-file'
+import { SettingsConflictError } from '@hydraharness/harness-settings'
+import HookRecordRegistry, { HOOKS_SETTINGS_NAMESPACE } from '@hydraharness/harness-hooks-registry/src/index.ts'
+import type { HookRecordSnapshot } from '@hydraharness/harness-hooks-registry/src/types.ts'
+import * as CodexHooks from '@hydraharness/harness-hooks-codex'
 
-vi.mock('@hydra1902/harness-hooks-codex', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@hydra1902/harness-hooks-codex')>()
+vi.mock('@hydraharness/harness-hooks-codex', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@hydraharness/harness-hooks-codex')>()
   return { ...original, apply: vi.fn(original.apply) }
 })
 

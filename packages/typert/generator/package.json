@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-typert-generator",
+  "name": "@hydraharness/harness-typert-generator",
   "description": "TypeScript project analyzer and model-driven Typert artifact generator",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -41,14 +41,14 @@
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-tool-cordis": "workspace:^",
-    "@hydra1902/harness-typert-registry": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-tool-cordis": "workspace:^",
+    "@hydraharness/harness-typert-registry": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
     "zod": "^4.4.3"
   }
 }

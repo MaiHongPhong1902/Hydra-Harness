@@ -4,13 +4,13 @@
  * product methods, current thread/turn association, unattended approval
  * responses, and terminal-answer selection.
  *
- * @module @hydra1902/harness-subagent-codex/wire
+ * @module @hydraharness/harness-subagent-codex/wire
  */
 
 import type { Readable, Writable } from 'node:stream'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import type { SubagentResult } from '@hydra1902/harness-subagent'
-import { JsonRpcLineTransport } from '@hydra1902/harness-sdk-protocol'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import type { SubagentResult } from '@hydraharness/harness-subagent'
+import { JsonRpcLineTransport } from '@hydraharness/harness-sdk-protocol'
 import type { CodexPermissionMode } from './run.ts'
 
 type JsonObject = Record<string, unknown>

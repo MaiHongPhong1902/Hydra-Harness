@@ -10,10 +10,10 @@
  * deployment default again, matching the workspace picker beside it.
  */
 
-import type { IApiClient } from '@hydra1902/harness-api-remotes/client'
+import type { IApiClient } from '@hydraharness/harness-api-remotes/client'
 import {
   createSnapshotStore, type SessionId, type SnapshotStore,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import { messageOf, presetOptions } from './settings-store.ts'
 import type { AgentPresetOption } from './settings-store.ts'
 

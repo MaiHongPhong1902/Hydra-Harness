@@ -2,8 +2,8 @@
 
 import type {
   IApiClient, RpcResult, WorkspaceView,
-} from '@hydra1902/harness-api-remotes/client'
-import { transportError } from '@hydra1902/harness-host-apiproxy/api'
+} from '@hydraharness/harness-api-remotes/client'
+import { transportError } from '@hydraharness/harness-host-apiproxy/api'
 import type { ObservableSnapshot } from '../contract/store.ts'
 import { Notifier } from '../sessions/notifier.ts'
 

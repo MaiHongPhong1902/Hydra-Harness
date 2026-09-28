@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-subagent",
+  "name": "@hydraharness/harness-subagent",
   "description": "Abstract subagent seam (ctx.subagents): named-provider registry for delegating to child agents",
   "hydra": {
     "plugin": {
@@ -43,70 +43,70 @@
   "license": "MIT",
   "dependencies": {
     "zod": "^4.4.3",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-agent-presets": "workspace:^",
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-sandbox": "workspace:^",
-    "@hydra1902/harness-sandbox-policy": "workspace:^",
-    "@hydra1902/harness-scope": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence": "workspace:^",
-    "@hydra1902/harness-session-projection": "workspace:^",
-    "@hydra1902/harness-session-projection-cache": "workspace:^",
-    "@hydra1902/harness-jobs": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-user-approval": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-agent-presets": "workspace:^",
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-sandbox": "workspace:^",
+    "@hydraharness/harness-sandbox-policy": "workspace:^",
+    "@hydraharness/harness-scope": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence": "workspace:^",
+    "@hydraharness/harness-session-projection": "workspace:^",
+    "@hydraharness/harness-session-projection-cache": "workspace:^",
+    "@hydraharness/harness-jobs": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-user-approval": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "peerDependenciesMeta": {
-    "@hydra1902/harness-agent-presets": {
+    "@hydraharness/harness-agent-presets": {
       "optional": true
     },
-    "@hydra1902/harness-sandbox": {
+    "@hydraharness/harness-sandbox": {
       "optional": true
     },
-    "@hydra1902/harness-sandbox-policy": {
+    "@hydraharness/harness-sandbox-policy": {
       "optional": true
     },
-    "@hydra1902/harness-session-persistence": {
+    "@hydraharness/harness-session-persistence": {
       "optional": true
     },
-    "@hydra1902/harness-session-projection": {
+    "@hydraharness/harness-session-projection": {
       "optional": true
     },
-    "@hydra1902/harness-session-projection-cache": {
+    "@hydraharness/harness-session-projection-cache": {
       "optional": true
     },
-    "@hydra1902/harness-jobs": {
+    "@hydraharness/harness-jobs": {
       "optional": true
     },
-    "@hydra1902/harness-user-approval": {
+    "@hydraharness/harness-user-approval": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-agent-presets": "workspace:^",
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-sandbox": "workspace:^",
-    "@hydra1902/harness-sandbox-policy": "workspace:^",
-    "@hydra1902/harness-scope": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence": "workspace:^",
-    "@hydra1902/harness-session-projection": "workspace:^",
-    "@hydra1902/harness-session-projection-cache": "workspace:^",
-    "@hydra1902/harness-storage": "workspace:^",
-    "@hydra1902/harness-storage-domain": "workspace:^",
-    "@hydra1902/harness-jobs": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-user-approval": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-agent-presets": "workspace:^",
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-sandbox": "workspace:^",
+    "@hydraharness/harness-sandbox-policy": "workspace:^",
+    "@hydraharness/harness-scope": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence": "workspace:^",
+    "@hydraharness/harness-session-projection": "workspace:^",
+    "@hydraharness/harness-session-projection-cache": "workspace:^",
+    "@hydraharness/harness-storage": "workspace:^",
+    "@hydraharness/harness-storage-domain": "workspace:^",
+    "@hydraharness/harness-jobs": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-user-approval": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

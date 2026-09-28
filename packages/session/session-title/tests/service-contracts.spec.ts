@@ -1,14 +1,14 @@
-import { createUserMessage } from '@hydra1902/harness-llm'
-import { Context, type Fiber } from '@hydra1902/cordis'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import { Context, type Fiber } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import SessionStore, { Session, SessionId } from '@hydra1902/harness-session'
+import SessionStore, { Session, SessionId } from '@hydraharness/harness-session'
 import SessionTitleService, {
   SessionTitleProviderId,
   type Config,
   type SessionTitleProvider,
   type SessionTitleProviderRequest,
   type SessionTitleProviderResult,
-} from '@hydra1902/harness-session-title'
+} from '@hydraharness/harness-session-title'
 
 const CONFIG = {
   fallbackMaxWords: 5,

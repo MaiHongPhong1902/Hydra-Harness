@@ -1,8 +1,8 @@
-# @hydra/harness-web-search-deepseek
+# @hydraharness/harness-web-search-deepseek
 
 A [DeepSeek](https://deepseek.com)-backed `WebSearchProvider` for the harness [web capability seam](../web/README.md) (`ctx.web`). It calls DeepSeek's **Anthropic-compatible Messages API** (`POST {baseURL}/messages`) with the native `web_search_20250305` server tool enabled, and maps the structured `web_search_tool_result` blocks DeepSeek returns into the seam's normalized `WebSearchResult`.
 
-This is an **implementation** package: it registers a provider into `ctx.web`, resolves its credential for each search through the optional `ctx.credentials` seam, records the auxiliary request in the initiating Agent session when one exists, and does not register a model-facing tool. Like `@hydra/harness-llm-deepseek`, it is a function/namespace plugin (`inject: ['web']`). The Anthropic wire shape is a provider-private detail — it does **not** make this provider depend on `ctx.llm`.
+This is an **implementation** package: it registers a provider into `ctx.web`, resolves its credential for each search through the optional `ctx.credentials` seam, records the auxiliary request in the initiating Agent session when one exists, and does not register a model-facing tool. Like `@hydraharness/harness-llm-deepseek`, it is a function/namespace plugin (`inject: ['web']`). The Anthropic wire shape is a provider-private detail — it does **not** make this provider depend on `ctx.llm`.
 
 ## How it differs from a dedicated search endpoint
 
@@ -26,7 +26,7 @@ It reuses the `DEEPSEEK_API_KEY` credential reference (no new secret) but **not*
 
 ```yaml
 - id: web-search-deepseek
-  name: '@hydra1902/harness-web-search-deepseek'
+  name: '@hydraharness/harness-web-search-deepseek'
   config:
     apiKeyEnv: DEEPSEEK_API_KEY
     baseURL: https://gateway.internal/anthropic/v1
@@ -68,7 +68,7 @@ Independent of the conversation request cache. The auxiliary instruction and nat
 
 #### What the model sees
 
-Through [`@hydra/harness-tool-web`](../tool-web/README.md), the conversation model sees normalized sources with URLs, titles, dates, provider attribution, and citation snippets. Missing credentials and provider failures use safe shared diagnostics, never upstream messages.
+Through [`@hydraharness/harness-tool-web`](../tool-web/README.md), the conversation model sees normalized sources with URLs, titles, dates, provider attribution, and citation snippets. Missing credentials and provider failures use safe shared diagnostics, never upstream messages.
 
 #### Token effect
 

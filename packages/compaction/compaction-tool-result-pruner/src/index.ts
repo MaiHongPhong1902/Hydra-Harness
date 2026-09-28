@@ -1,18 +1,18 @@
 /**
  * Replay-safe, model-free tool-result pruning service.
  *
- * @module @hydra1902/harness-compaction-tool-result-pruner
+ * @module @hydraharness/harness-compaction-tool-result-pruner
  */
 
-import { Context, Service } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { freezeMessage } from '@hydra1902/harness-llm'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import type { Session, SessionEvent, ToolResultMessage } from '@hydra1902/harness-session'
+import { Context, Service } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { freezeMessage } from '@hydraharness/harness-llm'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import type { Session, SessionEvent, ToolResultMessage } from '@hydraharness/harness-session'
 // Type-only: the `compaction/*` SessionEventMap merges (the shadow-price event).
-import type {} from '@hydra1902/harness-compaction'
+import type {} from '@hydraharness/harness-compaction'
 // Type-only: the `ctx.tokenMeter` Context merge for the declared injection.
-import type {} from '@hydra1902/harness-token-meter'
+import type {} from '@hydraharness/harness-token-meter'
 import { codePointLength, DEFAULTS, PRUNE_MARKER, resolveConfig } from './config.ts'
 import type {
   PrunedEntry,
@@ -29,7 +29,7 @@ export type {
   ToolResultPruneConfig,
 } from './types.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     toolResultPruner: ToolResultPruner
   }

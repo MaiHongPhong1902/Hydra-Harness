@@ -1,4 +1,4 @@
-import { InvokeError, InvokeErrorTypes } from '@hydra1902/harness-browseragent-llms'
+import { InvokeError, InvokeErrorTypes } from '@hydraharness/harness-browseragent-llms'
 import chalk from 'chalk'
 import * as z from 'zod/v4'
 

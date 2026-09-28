@@ -4,11 +4,11 @@ Status: implemented
 
 ## Problem
 
-`apps/cli/config/tui.cordis.yml` gained the `@hydra/harness-tui/prompt` entry without a matching tsconfig `paths` mapping. The generic `@hydra/harness-*` wildcard substitutes `tui/prompt` whole into its `<group>/*/src` candidates, none of which exist, so the [tsx source launch](../architecture/2026-07-29-hydra-source-launch-tsx-esm.md) fell back to package `exports` and resolved `lib/prompt.js` — an artifact-plane file. Every environment with a built `lib/` (developer trees after `pnpm build`) booted fine, and the e2e workflow runs the keyless TUI PTY smoke in `lib` mode (`HYDRA_EXAMPLE_MODE=lib`, built bin under plain Node) so CI never exercises the source vector at all — while every clean checkout failed `pnpm hydra` at startup with `plugin(s) failed to load: @hydra/harness-tui/prompt`. No gate checked the source plane, so the breakage shipped silently and surfaced only in fresh worktrees.
+`apps/cli/config/tui.cordis.yml` gained the `@hydraharness/harness-tui/prompt` entry without a matching tsconfig `paths` mapping. The generic `@hydraharness/harness-*` wildcard substitutes `tui/prompt` whole into its `<group>/*/src` candidates, none of which exist, so the [tsx source launch](../architecture/2026-07-29-hydra-source-launch-tsx-esm.md) fell back to package `exports` and resolved `lib/prompt.js` — an artifact-plane file. Every environment with a built `lib/` (developer trees after `pnpm build`) booted fine, and the e2e workflow runs the keyless TUI PTY smoke in `lib` mode (`HYDRA_EXAMPLE_MODE=lib`, built bin under plain Node) so CI never exercises the source vector at all — while every clean checkout failed `pnpm hydra` at startup with `plugin(s) failed to load: @hydraharness/harness-tui/prompt`. No gate checked the source plane, so the breakage shipped silently and surfaced only in fresh worktrees.
 
 ## Decision
 
-`scripts/verify-cordis-config.ts` (`validateSourcePlaneResolution`) requires every configured specifier of a local workspace package — harness packages and vendored Cordis alike — to resolve through the `tsconfig.base.json` `paths` facade to a `.ts`/`.tsx` source file, using `ts.resolveModuleName` from the repository root. A failed resolution or a `.d.ts` hit (the `exports` fallback into built `lib/types`) fails `verify-cordis-config`, naming the config files and the specifier. The missing `@hydra/harness-tui/prompt` mapping is added next to the other explicit subpath entries; removing it reproduces the gate failure.
+`scripts/verify-cordis-config.ts` (`validateSourcePlaneResolution`) requires every configured specifier of a local workspace package — harness packages and vendored Cordis alike — to resolve through the `tsconfig.base.json` `paths` facade to a `.ts`/`.tsx` source file, using `ts.resolveModuleName` from the repository root. A failed resolution or a `.d.ts` hit (the `exports` fallback into built `lib/types`) fails `verify-cordis-config`, naming the config files and the specifier. The missing `@hydraharness/harness-tui/prompt` mapping is added next to the other explicit subpath entries; removing it reproduces the gate failure.
 
 ## Alternatives considered
 
@@ -16,7 +16,7 @@ Status: implemented
 
 **Broaden the `hydra-source-launch-smoke` compat test to full boot.** The node-compat smoke asserts only the TTY refusal, which happens before plugin loading. A full keyless boot per matrix line duplicates the PTY smoke at higher cost and, like it, proves one composition rather than every shipped and example config.
 
-**A `@hydra/harness-*/prompt`-style wildcard mapping.** Fixes this one subpath but not the class; the next single-file subpath export (`/surface`, `/message`, …) regresses identically. The static gate covers all current and future configured specifiers.
+**A `@hydraharness/harness-*/prompt`-style wildcard mapping.** Fixes this one subpath but not the class; the next single-file subpath export (`/surface`, `/message`, …) regresses identically. The static gate covers all current and future configured specifiers.
 
 ## Consequences
 

@@ -3,20 +3,20 @@
  * cancellation-grace expiry owns settlement and closes message admission.
  * Pending starts share one abort signal; published children share idempotent
  * cleanup, and quiescence waits for both while synthesizing any missing end events.
- * @module @hydra1902/harness-workflow-worker-thread/host
+ * @module @hydraharness/harness-workflow-worker-thread/host
  */
 
 import { tmpdir } from 'node:os'
 import { Worker } from 'node:worker_threads'
 import type { WorkerOptions } from 'node:worker_threads'
 import { fileURLToPath } from 'node:url'
-import type { Context } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
-import { assertNever } from '@hydra1902/harness-llm'
-import { snapshotJsonValue } from '@hydra1902/harness-session'
-import type SubagentRuntime from '@hydra1902/harness-subagent'
-import type { SubagentRun } from '@hydra1902/harness-subagent'
-import type { WorkflowAgentEndInfo, WorkflowAgentInfo, WorkflowMeta, WorkflowResult, WorkflowRun, WorkflowRunId } from '@hydra1902/harness-workflow'
+import type { Context } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
+import { assertNever } from '@hydraharness/harness-llm'
+import { snapshotJsonValue } from '@hydraharness/harness-session'
+import type SubagentRuntime from '@hydraharness/harness-subagent'
+import type { SubagentRun } from '@hydraharness/harness-subagent'
+import type { WorkflowAgentEndInfo, WorkflowAgentInfo, WorkflowMeta, WorkflowResult, WorkflowRun, WorkflowRunId } from '@hydraharness/harness-workflow'
 import { renderThrown } from './realm.ts'
 import type { ExecutionObserver } from './runtime.ts'
 import { HostToWorkerType, WorkerToHostType } from './protocol.ts'

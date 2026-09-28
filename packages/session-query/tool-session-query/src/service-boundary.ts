@@ -1,15 +1,15 @@
 /**
  * Session-query service error containment and model-safe translation.
  *
- * @module @hydra1902/harness-tool-session-query/service-boundary
+ * @module @hydraharness/harness-tool-session-query/service-boundary
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { HarnessError } from '@hydra1902/harness-llm'
+import type { Context } from '@hydraharness/cordis'
+import { HarnessError } from '@hydraharness/harness-llm'
 import {
   SessionQueryError,
   type SessionQueryErrorCode,
-} from '@hydra1902/harness-session-query'
+} from '@hydraharness/harness-session-query'
 
 interface ModelSafeServiceFailure {
   readonly code: SessionQueryErrorCode | 'SESSION_QUERY_TOOL_FAILED'

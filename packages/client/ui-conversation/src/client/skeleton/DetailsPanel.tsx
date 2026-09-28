@@ -7,9 +7,9 @@
 // session snapshot — no data of its own.
 
 import { Fragment } from 'react'
-import { CodeBlock } from '@hydra1902/harness-client-ui-primitives'
-import { shallowEqual } from '@hydra1902/harness-client-runtime/client'
-import type { ConversationSnapshot, RunningToolCall, ToolCallBlock, ToolResultNode } from '@hydra1902/harness-client-runtime/client'
+import { CodeBlock } from '@hydraharness/harness-client-ui-primitives'
+import { shallowEqual } from '@hydraharness/harness-client-runtime/client'
+import type { ConversationSnapshot, RunningToolCall, ToolCallBlock, ToolResultNode } from '@hydraharness/harness-client-runtime/client'
 import type { DetailsSlotProps } from '../contract/slots.ts'
 import { findToolCall } from '../chat/tool-node-reader.ts'
 import css from './DetailsPanel.module.css'

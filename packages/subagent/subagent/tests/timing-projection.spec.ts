@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SessionStore from '@hydra1902/harness-session'
-import type { SessionEvent } from '@hydra1902/harness-session'
-import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
+import { Context } from '@hydraharness/cordis'
+import SessionStore from '@hydraharness/harness-session'
+import type { SessionEvent } from '@hydraharness/harness-session'
+import SessionProjectionRegistry from '@hydraharness/harness-session-projection'
 import SubagentRuntime from '../src/index.ts'
 import { subagentTimingProjectionDefinition, type TimingState } from '../src/projection.ts'
 

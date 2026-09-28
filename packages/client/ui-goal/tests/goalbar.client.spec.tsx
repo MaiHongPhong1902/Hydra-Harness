@@ -5,9 +5,9 @@
 
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { GoalSnapshot } from '@hydra1902/harness-goal/client'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+import type { GoalSnapshot } from '@hydraharness/harness-goal/client'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 import { GoalBar } from '../src/client/GoalBar.tsx'
 import type { GoalActionResult, GoalBarActions } from '../src/client/slots.ts'
 import { en } from '../src/client/locales.ts'

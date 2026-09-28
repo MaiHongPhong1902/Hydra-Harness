@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { Context } from '@hydra1902/cordis'
-import { bindSnapshotSelector, makeTranslate, stubSettingsScope } from '@hydra1902/harness-client-test-runtime'
-import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
-import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
-import { ThemeRuntime, type ThemeSettings } from '@hydra1902/harness-client-ui-theme/client'
-import { resolveSlotLabel } from '@hydra1902/harness-client-ui-slots'
-import { apply, inject } from '@hydra1902/harness-client-ui-layout/client'
+import { Context } from '@hydraharness/cordis'
+import { bindSnapshotSelector, makeTranslate, stubSettingsScope } from '@hydraharness/harness-client-test-runtime'
+import { SlotRegistry } from '@hydraharness/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydraharness/harness-client-locale/client'
+import { ThemeRuntime, type ThemeSettings } from '@hydraharness/harness-client-ui-theme/client'
+import { resolveSlotLabel } from '@hydraharness/harness-client-ui-slots'
+import { apply, inject } from '@hydraharness/harness-client-ui-layout/client'
 import { BrowserSection } from '../src/client/BrowserSection.tsx'
 import type {
   BrowserSectionInjected, BrowserSectionProps, BrowserSettings,

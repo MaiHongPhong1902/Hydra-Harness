@@ -1,11 +1,11 @@
 /** Execution-time authority checks for the model-facing goal tools. */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
-import type { GoalView } from '@hydra1902/harness-goal'
-import { HarnessError } from '@hydra1902/harness-llm'
-import type { SessionEvent } from '@hydra1902/harness-session'
-import type { ToolRunContext } from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
+import type { GoalView } from '@hydraharness/harness-goal'
+import { HarnessError } from '@hydraharness/harness-llm'
+import type { SessionEvent } from '@hydraharness/harness-session'
+import type { ToolRunContext } from '@hydraharness/harness-tools'
 
 type TurnStartEvent = Extract<SessionEvent, { type: 'turn/start' }>
 

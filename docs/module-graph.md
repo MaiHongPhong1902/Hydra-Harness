@@ -3,7 +3,7 @@
 
 # Module dependency graph
 
-Inter-package dependencies among the `@hydra1902/harness-*` harness packages, derived from each package's `peerDependencies` (the canonical runtime-dependency signal) and grouped by the `packages/<group>/<pkg>` hierarchy. An edge `a --> b` means package `a` depends on package `b`. Names have the `@hydra1902/harness-` prefix stripped.
+Inter-package dependencies among the `@hydraharness/harness-*` harness packages, derived from each package's `peerDependencies` (the canonical runtime-dependency signal) and grouped by the `packages/<group>/<pkg>` hierarchy. An edge `a --> b` means package `a` depends on package `b`. Names have the `@hydraharness/harness-` prefix stripped.
 
 ```mermaid
 flowchart TD

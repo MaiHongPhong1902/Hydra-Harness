@@ -1,6 +1,6 @@
 import type {
   ConversationLocation, ConversationNodeContext,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type {
   ChatNode, ChatNodeDataMap, ChatNodeKind,
 } from '../contract/chat-nodes.ts'

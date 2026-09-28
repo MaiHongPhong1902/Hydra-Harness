@@ -14,8 +14,8 @@ import {
   escalationHintMarker,
   sandboxDenialMarker,
   validateEscalationArgs,
-} from '@hydra1902/harness-sandbox'
-import type { EscalationApprover, EscalationOutcome } from '@hydra1902/harness-sandbox'
+} from '@hydraharness/harness-sandbox'
+import type { EscalationApprover, EscalationOutcome } from '@hydraharness/harness-sandbox'
 
 describe('the strictly-wider ladder', () => {
   it('read-only escalates to either wider mode; workspace-write only to full access', () => {

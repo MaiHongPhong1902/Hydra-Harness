@@ -1,4 +1,4 @@
-import { valueMap } from '@hydra1902/cosmokit'
+import { valueMap } from '@hydraharness/cosmokit'
 
 // eslint-disable-next-line no-new-func
 /** Evaluate a JavaScript expression against a loader context scope. */

@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-tool-skill",
+  "name": "@hydraharness/harness-tool-skill",
   "description": "Bounded automatic skill routing, model-facing search, and exact loading for Hydra harness",
   "hydra": {
     "plugin": {
@@ -37,25 +37,25 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-skill": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-skill": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-scope": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-skill": "workspace:^",
-    "@hydra1902/harness-skill-filesystem": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-scope": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-skill": "workspace:^",
+    "@hydraharness/harness-skill-filesystem": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

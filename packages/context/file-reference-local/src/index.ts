@@ -1,18 +1,18 @@
 /**
  * Local-filesystem implementation of `ctx.fileReferences`.
  *
- * @module @hydra1902/harness-file-reference-local
+ * @module @hydraharness/harness-file-reference-local
  */
 
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { Agent } from '@hydra1902/harness-agent'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { Agent } from '@hydraharness/harness-agent'
 import FileReferenceService, {
   FILE_REFERENCE_PROMPT,
   type FileReferenceCandidate,
-} from '@hydra1902/harness-file-reference'
-import type {} from '@hydra1902/harness-system-prompt'
-import type {} from '@hydra1902/harness-tools'
+} from '@hydraharness/harness-file-reference'
+import type {} from '@hydraharness/harness-system-prompt'
+import type {} from '@hydraharness/harness-tools'
 import {
   DEFAULT_FILE_SEARCH_EXCLUDED_DIRECTORIES,
   DEFAULT_FILE_SEARCH_MAX_ENTRIES,
@@ -28,8 +28,8 @@ export {
   WorkspaceFileSearch,
 } from './search.ts'
 export type { FileSearchConfig } from './search.ts'
-export { FILE_REFERENCE_PROMPT } from '@hydra1902/harness-file-reference'
-export { activeAtToken, formatFileMention } from '@hydra1902/harness-file-reference/grammar'
+export { FILE_REFERENCE_PROMPT } from '@hydraharness/harness-file-reference'
+export { activeAtToken, formatFileMention } from '@hydraharness/harness-file-reference/grammar'
 
 /** Local file-reference discovery configuration. */
 export interface Config {

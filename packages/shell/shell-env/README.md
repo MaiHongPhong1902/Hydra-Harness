@@ -1,6 +1,6 @@
-# @hydra/harness-shell-env
+# @hydraharness/harness-shell-env
 
-The tool-independent shell environment plugin: owns the `ctx.shellEnv` registry of trusted, per-execution `HYDRA_*` variables that the model-facing shell tools (`@hydra/harness-tool-bash`, `@hydra/harness-tool-pwsh`) collect into every shell call's environment. Built-in shell facts (`HYDRA_HOME`, `HYDRA_SHELL=1`, `HYDRA_SESSION_ID`) are owned by the registry itself; other plugins register additional enumerable facts with effect-scoped disposal, and duplicate ownership or undeclared runtime keys fail loudly.
+The tool-independent shell environment plugin: owns the `ctx.shellEnv` registry of trusted, per-execution `HYDRA_*` variables that the model-facing shell tools (`@hydraharness/harness-tool-bash`, `@hydraharness/harness-tool-pwsh`) collect into every shell call's environment. Built-in shell facts (`HYDRA_HOME`, `HYDRA_SHELL=1`, `HYDRA_SESSION_ID`) are owned by the registry itself; other plugins register additional enumerable facts with effect-scoped disposal, and duplicate ownership or undeclared runtime keys fail loudly.
 
 The package root exports the Cordis plugin contract (`name`, `inject`, `Config`, `apply`) plus the `ShellEnvRegistry` service class and its contributor types; consumers use `ctx.shellEnv` after loading this plugin.
 
@@ -8,20 +8,20 @@ The package root exports the Cordis plugin contract (`name`, `inject`, `Config`,
 
 ```yaml
 - id: shell-env
-  name: '@hydra1902/harness-shell-env'
+  name: '@hydraharness/harness-shell-env'
   config:
     hydraHome: C:\Users\me\.hydra   # default: $HYDRA_HOME, then ~/.hydra
 ```
 
 ## Managed environment
 
-Every foreground and background model shell call receives a newly collected trusted `HYDRA_*` environment. `HYDRA_HOME` is the absolute Harness home resolved by [`@hydra/harness-home-paths`](../../util/home-paths/README.md) (`hydraHome` config, then ambient `$HYDRA_HOME`, then `~/.hydra`) and `HYDRA_SHELL=1` identifies the managed child. Agent calls additionally receive `HYDRA_SESSION_ID=agent.session.header.id`; when the active persistence seam locates a JSONL artifact they also receive `HYDRA_SESSION_JSONL=<absolute target path>`. The JSONL path is a location hint: it may not exist before the first flush or contain the current buffered turn, and it is not an authorization credential.
+Every foreground and background model shell call receives a newly collected trusted `HYDRA_*` environment. `HYDRA_HOME` is the absolute Harness home resolved by [`@hydraharness/harness-home-paths`](../../util/home-paths/README.md) (`hydraHome` config, then ambient `$HYDRA_HOME`, then `~/.hydra`) and `HYDRA_SHELL=1` identifies the managed child. Agent calls additionally receive `HYDRA_SESSION_ID=agent.session.header.id`; when the active persistence seam locates a JSONL artifact they also receive `HYDRA_SESSION_JSONL=<absolute target path>`. The JSONL path is a location hint: it may not exist before the first flush or contain the current buffered turn, and it is not an authorization credential.
 
 `ctx.shellEnv` owns collection. Other plugins can register an effect-scoped contributor with a stable name, declared keys/descriptions, and `resolve(execution: ToolExecution)`; duplicate ownership and undeclared runtime keys fail loudly, while `list()` enumerates declarations without executing providers. Harness built-ins reserve `HYDRA_HOME`, `HYDRA_SHELL`, and `HYDRA_SESSION_ID`; this plugin's persistence translator owns `HYDRA_SESSION_JSONL` by reading the backend-neutral `sessionPersistence.locate()` seam.
 
 ```ts
-import type { Context } from '@hydra1902/cordis'
-import type {} from '@hydra1902/harness-shell-env'
+import type { Context } from '@hydraharness/cordis'
+import type {} from '@hydraharness/harness-shell-env'
 
 export const inject = ['shellEnv']
 
@@ -38,7 +38,7 @@ The overlay is computed from the current `ToolExecution` and passed through the 
 
 ## Model Experience
 
-Indirectly, through the shell tools (`@hydra/harness-tool-bash`, `@hydra/harness-tool-pwsh`), which collect this registry's managed `HYDRA_*` snapshot into every shell-tool call.
+Indirectly, through the shell tools (`@hydraharness/harness-tool-bash`, `@hydraharness/harness-tool-pwsh`), which collect this registry's managed `HYDRA_*` snapshot into every shell-tool call.
 
 #### KV Cache effect
 

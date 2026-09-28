@@ -7,7 +7,7 @@
  * removed or bundle-less dependency leaves it). Reconciling by installed
  * state, not by dependency diff, means `update` activates a package that
  * gained its `hydra.bundle` declaration in a newer version.
- * @module @hydra1902/harness/plugin
+ * @module @hydraharness/harness/plugin
  */
 
 import { spawnSync } from 'node:child_process'
@@ -22,7 +22,7 @@ import {
   resolveProfileDir,
   writeProfileManifest,
   type ProfileManifest,
-} from '@hydra1902/harness-app-boot'
+} from '@hydraharness/harness-app-boot'
 import { INSTALL_ANCHOR } from './profile-boot.ts'
 
 const NAME = 'hydra'
@@ -77,7 +77,7 @@ function reconcilePlugins(before: ProfileManifest, profileDir: string): void {
   const dependencySet = new Set(dependencies)
   for (const packageName of [...plugins]) {
     // Only dependency-managed entries are subject to removal; template
-    // bundles (@hydra1902/harness-base and friends) are not dependencies.
+    // bundles (@hydraharness/harness-base and friends) are not dependencies.
     const wasDependency = beforeDeps.has(packageName) || dependencySet.has(packageName)
     const stillBundle = dependencySet.has(packageName) && exportsPatch(packageName, profileDir)
     if (wasDependency && !stillBundle) {

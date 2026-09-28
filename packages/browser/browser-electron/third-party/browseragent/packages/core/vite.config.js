@@ -39,7 +39,7 @@ export default defineConfig({
 				'zod',
 				'zod/v4',
 				// all the internal packages
-				/^@hydra1902/harness-browseragent-/,
+				/^@hydraharness/harness-browseragent-/,
 			],
 		},
 		minify: false,

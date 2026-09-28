@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+import { Context } from '@hydraharness/cordis'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 import { credentialRef } from '../src/index.ts'
 import * as CredentialsInvariant from '../src/invariant.ts'
 import { MemoryCredentials } from './memory.ts'
@@ -22,7 +22,7 @@ describe('credentials invariant companion', () => {
     await ctx.plugin(InvariantRegistry)
     await ctx.plugin(CredentialsInvariant)
 
-    expect(() => { ctx.emit('credentials/reference-updated', REF) }).toThrow(/invariant violated by "@hydra1902\/harness-credentials"/)
+    expect(() => { ctx.emit('credentials/reference-updated', REF) }).toThrow(/invariant violated by "@hydraharness\/harness-credentials"/)
   })
 
   it('reserves the package name against duplicate registration', async () => {
@@ -31,7 +31,7 @@ describe('credentials invariant companion', () => {
     await ctx.plugin(CredentialsInvariant)
 
     expect(() => {
-      ctx.invariants.register('@hydra1902/harness-credentials', () => {})
+      ctx.invariants.register('@hydraharness/harness-credentials', () => {})
     }).toThrow(/already registered/)
   })
 })

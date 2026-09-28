@@ -16,7 +16,7 @@ The implementing PR should update the [capability seams](../../implemented/archi
 
 ## Acceptance criteria
 
-- `@hydra/harness-session-persistence` is removed as a package.
+- `@hydraharness/harness-session-persistence` is removed as a package.
 - `hydra-session` exports the persistence service type, coordinator, and contract helpers.
 - JSONL and SQLite backend packages depend on `hydra-session` directly.
 - `agent-loop` resume uses the session-owned service key.

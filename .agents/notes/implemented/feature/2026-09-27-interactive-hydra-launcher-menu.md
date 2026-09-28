@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-The published `@hydra/harness` executable required an explicit profile or `web` alias, so a user invoking the package without arguments received a profile error instead of a unified entry point. Desktop is discoverable as a product surface but remains source-checkout-only and cannot safely be presented as an npm launch mode.
+The published `@hydraharness/harness` executable required an explicit profile or `web` alias, so a user invoking the package without arguments received a profile error instead of a unified entry point. Desktop is discoverable as a product surface but remains source-checkout-only and cannot safely be presented as an npm launch mode.
 
 ## Decision
 

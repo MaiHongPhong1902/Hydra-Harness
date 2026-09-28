@@ -1,12 +1,12 @@
 /** Host registry for model-visible, read-only Cordis capability queries. */
 
-import { Service } from '@hydra1902/cordis'
-import type { Context } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
-import { snapshotJsonValue } from '@hydra1902/harness-session'
-import type { JsonValue } from '@hydra1902/harness-session/types'
-import { assertSupportedJsonSchema, validateJsonSchemaValue } from '@hydra1902/harness-tools'
-import type { JsonSchemaNode } from '@hydra1902/harness-tools'
+import { Service } from '@hydraharness/cordis'
+import type { Context } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
+import { snapshotJsonValue } from '@hydraharness/harness-session'
+import type { JsonValue } from '@hydraharness/harness-session/types'
+import { assertSupportedJsonSchema, validateJsonSchemaValue } from '@hydraharness/harness-tools'
+import type { JsonSchemaNode } from '@hydraharness/harness-tools'
 import type {
   CordisInspectMethodManifest, CordisInspectPlatform, CordisInspectProviderManifest,
   CordisInspectProviderView, CordisInspectQueryRequest, CordisInspectQueryResolution,
@@ -35,7 +35,7 @@ interface PendingClientQuery {
   settle(resolution: CordisInspectQueryResolution): void
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** Host registry for Cordis inspect providers and Client manifest/query routing. */
     cordisInspect: CordisInspectRegistryService

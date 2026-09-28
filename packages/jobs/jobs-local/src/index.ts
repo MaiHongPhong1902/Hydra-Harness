@@ -6,20 +6,20 @@
  * Registrations outlive producer and controller fibers. Agent or service
  * disposal cancels live work and awaits compliant producers; a throwing
  * teardown cancel force-fails only the record and reports a possible orphan.
- * @module @hydra1902/harness-jobs-local
+ * @module @hydraharness/harness-jobs-local
  */
 
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { Agent } from '@hydra1902/harness-agent'
-import { AnonymousEntries, ScopedLayers, scopeOf } from '@hydra1902/harness-scope'
-import type { ScopeLayer } from '@hydra1902/harness-scope'
-import { deadline, timeoutOf } from '@hydra1902/harness-timeout'
-import { JobRegistry, JobId } from '@hydra1902/harness-jobs'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { Agent } from '@hydraharness/harness-agent'
+import { AnonymousEntries, ScopedLayers, scopeOf } from '@hydraharness/harness-scope'
+import type { ScopeLayer } from '@hydraharness/harness-scope'
+import { deadline, timeoutOf } from '@hydraharness/harness-timeout'
+import { JobRegistry, JobId } from '@hydraharness/harness-jobs'
 import type {
   JobDoneListener, JobKind, JobOutcome, JobRead, JobSnapshot, JobStart, JobStatus,
   JobsChangedListener,
-} from '@hydra1902/harness-jobs'
+} from '@hydraharness/harness-jobs'
 
 /** Timeout code that distinguishes a bounded wait from caller cancellation. */
 export const TASK_WAIT_TIMEOUT = 'TASK_WAIT_TIMEOUT'
@@ -85,7 +85,7 @@ class JobLayer implements ScopeLayer {
 
 /**
  * The in-memory `jobs` registry. See the Service Definition contract in
- * `@hydra1902/harness-jobs` for the ownership, isolation, and lifecycle
+ * `@hydraharness/harness-jobs` for the ownership, isolation, and lifecycle
  * semantics this implementation honors.
  */
 export class LocalJobRegistry extends JobRegistry {
@@ -130,7 +130,7 @@ export class LocalJobRegistry extends JobRegistry {
 
   start(spec: JobStart): JobId {
     if (!this.servesOwner(spec.owner)) {
-      throw new Error('background jobs unavailable: no job controller serves this agent (load @hydra1902/harness-tool-jobs in its composition)')
+      throw new Error('background jobs unavailable: no job controller serves this agent (load @hydraharness/harness-tool-jobs in its composition)')
     }
     if (spec.kind.length === 0) throw new Error('invalid job kind: expected a non-empty string')
     if (spec.label.length === 0) throw new Error('invalid job label: expected a non-empty string')
@@ -449,7 +449,7 @@ export class LocalJobRegistry extends JobRegistry {
     const ownerId = owner.id
     const agents = this.selfCtx.get('agents')
     if (agents === undefined) {
-      throw new Error('background job ownership requires the agent registry (load @hydra1902/harness-agent)')
+      throw new Error('background job ownership requires the agent registry (load @hydraharness/harness-agent)')
     }
     if (agents.get(ownerId) !== owner) {
       throw new Error(`agent "${ownerId}" is not the registered agent instance (background job owner must be live)`)

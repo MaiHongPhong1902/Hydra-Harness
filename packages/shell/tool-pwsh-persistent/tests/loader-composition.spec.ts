@@ -4,23 +4,23 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import Include from '@hydra1902/cordis-plugin-include'
-import { CallId } from '@hydra1902/harness-llm'
-import { Session, SessionId } from '@hydra1902/harness-session'
-import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
-import type { Agent } from '@hydra1902/harness-agent'
-import TerminalSessionService from '@hydra1902/harness-terminal'
-import * as TerminalBash from '@hydra1902/harness-terminal-bash'
-import SandboxProvider from '@hydra1902/harness-sandbox'
-import type { ConfinedArgv, SandboxPolicy } from '@hydra1902/harness-sandbox'
-import SandboxPolicyService from '@hydra1902/harness-sandbox-policy'
-import LocalSubprocessService from '@hydra1902/harness-subprocess-local'
-import { resolvePwshPath } from '@hydra1902/harness-pwsh-local/src/resolve.ts'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRegistry from '@hydra1902/harness-tools'
-import * as ToolPwshPersistent from '@hydra1902/harness-tool-pwsh-persistent'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import Include from '@hydraharness/cordis-plugin-include'
+import { CallId } from '@hydraharness/harness-llm'
+import { Session, SessionId } from '@hydraharness/harness-session'
+import AgentRegistry, { Inbox } from '@hydraharness/harness-agent'
+import type { Agent } from '@hydraharness/harness-agent'
+import TerminalSessionService from '@hydraharness/harness-terminal'
+import * as TerminalBash from '@hydraharness/harness-terminal-bash'
+import SandboxProvider from '@hydraharness/harness-sandbox'
+import type { ConfinedArgv, SandboxPolicy } from '@hydraharness/harness-sandbox'
+import SandboxPolicyService from '@hydraharness/harness-sandbox-policy'
+import LocalSubprocessService from '@hydraharness/harness-subprocess-local'
+import { resolvePwshPath } from '@hydraharness/harness-pwsh-local/src/resolve.ts'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRegistry from '@hydraharness/harness-tools'
+import * as ToolPwshPersistent from '@hydraharness/harness-tool-pwsh-persistent'
 
 const hasPwsh = spawnSync(
   resolvePwshPath(), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', '$true'],
@@ -75,17 +75,17 @@ describe.skipIf(!hasPwsh)('persistent pwsh through a real cordis.yml Loader comp
     root = await mkdtemp(join(tmpdir(), 'hydra-persistent-pwsh-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@hydra1902/harness-agent'",
-      "- name: '@hydra1902/harness-system-prompt'",
-      "- name: '@hydra1902/harness-tools'",
-      "- name: '@hydra1902/harness-terminal'",
-      "- name: '@hydra1902/harness-test-sandbox'",
-      "- name: '@hydra1902/harness-sandbox-policy'",
+      "- name: '@hydraharness/harness-agent'",
+      "- name: '@hydraharness/harness-system-prompt'",
+      "- name: '@hydraharness/harness-tools'",
+      "- name: '@hydraharness/harness-terminal'",
+      "- name: '@hydraharness/harness-test-sandbox'",
+      "- name: '@hydraharness/harness-sandbox-policy'",
       '  config:',
       '    mode: danger-full-access',
       `    workspaceRoot: ${JSON.stringify(root)}`,
-      "- name: '@hydra1902/harness-subprocess-local'",
-      "- name: '@hydra1902/harness-terminal-bash'",
+      "- name: '@hydraharness/harness-subprocess-local'",
+      "- name: '@hydraharness/harness-terminal-bash'",
       '  config:',
       '    shellDialect: pwsh',
       '    pollIntervalMs: 10',
@@ -95,7 +95,7 @@ describe.skipIf(!hasPwsh)('persistent pwsh through a real cordis.yml Loader comp
       '    scrollbackLines: 20000',
       '    timeoutMs: 8000',
       '    disposeGraceMs: 500',
-      "- name: '@hydra1902/harness-tool-pwsh-persistent'",
+      "- name: '@hydraharness/harness-tool-pwsh-persistent'",
       '  config:',
       '    timeoutMs: 20000',
       '',
@@ -106,15 +106,15 @@ describe.skipIf(!hasPwsh)('persistent pwsh through a real cordis.yml Loader comp
     await context.plugin(Loader)
     context.loader.builtins.include = Include
     const modules = new Map<string, unknown>([
-      ['@hydra1902/harness-agent', AgentRegistry],
-      ['@hydra1902/harness-system-prompt', SystemPrompt],
-      ['@hydra1902/harness-tools', ToolRegistry],
-      ['@hydra1902/harness-terminal', TerminalSessionService],
-      ['@hydra1902/harness-test-sandbox', PassthroughSandbox],
-      ['@hydra1902/harness-sandbox-policy', SandboxPolicyService],
-      ['@hydra1902/harness-subprocess-local', LocalSubprocessService],
-      ['@hydra1902/harness-terminal-bash', TerminalBash],
-      ['@hydra1902/harness-tool-pwsh-persistent', ToolPwshPersistent],
+      ['@hydraharness/harness-agent', AgentRegistry],
+      ['@hydraharness/harness-system-prompt', SystemPrompt],
+      ['@hydraharness/harness-tools', ToolRegistry],
+      ['@hydraharness/harness-terminal', TerminalSessionService],
+      ['@hydraharness/harness-test-sandbox', PassthroughSandbox],
+      ['@hydraharness/harness-sandbox-policy', SandboxPolicyService],
+      ['@hydraharness/harness-subprocess-local', LocalSubprocessService],
+      ['@hydraharness/harness-terminal-bash', TerminalBash],
+      ['@hydraharness/harness-tool-pwsh-persistent', ToolPwshPersistent],
     ])
     context.loader.internal = {
       version: 'v2',

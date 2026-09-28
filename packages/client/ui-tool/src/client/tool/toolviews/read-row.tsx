@@ -7,9 +7,9 @@
 // yet) and a non-read result render the summary row alone: the read intent is
 // result-side only, so there is no running-state read card to draw.
 
-import type { Context } from '@hydra1902/cordis'
-import { IconBrowseOutline16 } from '@hydra1902/harness-client-ui-primitives'
-import type { PropsLocale } from '@hydra1902/harness-client-ui-slots'
+import type { Context } from '@hydraharness/cordis'
+import { IconBrowseOutline16 } from '@hydraharness/harness-client-ui-primitives'
+import type { PropsLocale } from '@hydraharness/harness-client-ui-slots'
 import type { ToolCallViewProps } from '../../contract/slots.ts'
 import { readCardModel } from '../models/read-card-model.ts'
 import { toolRowModel } from '../models/tool-call-model.ts'

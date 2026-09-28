@@ -1,7 +1,7 @@
 /**
  * One Electron child process and the NDJSON conversation with it. Knows
  * nothing about agents; the service owns who may talk to which child.
- * @module @hydra1902/harness-browser-electron/child
+ * @module @hydraharness/harness-browser-electron/child
  */
 
 import { spawn } from 'node:child_process'

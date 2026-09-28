@@ -3,9 +3,9 @@
 
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
-import { AttachmentId } from '@hydra1902/harness-attachment'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+import { AttachmentId } from '@hydraharness/harness-attachment'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 import { AssistantMarkdown } from '../src/client/chat/AssistantMarkdown.tsx'
 import type { RenderMessageImages } from '../src/client/contract/slots.ts'
 import { attachmentErrorText, imageSizeText } from '../src/client/image-labels.ts'

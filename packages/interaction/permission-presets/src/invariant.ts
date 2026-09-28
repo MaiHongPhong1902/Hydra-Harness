@@ -1,10 +1,10 @@
-/** Package-owned permission-preset event invariants. @module @hydra1902/harness-permission-presets/invariant */
+/** Package-owned permission-preset event invariants. @module @hydraharness/harness-permission-presets/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-permission-presets'
+const PACKAGE_NAME = '@hydraharness/harness-permission-presets'
 
 /** Cordis companion plugin name. */
 export const name = 'permission-presets-invariant'

@@ -1,9 +1,9 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { Session, SessionId } from '@hydra1902/harness-session'
-import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
-import type { Agent } from '@hydra1902/harness-agent'
-import TerminalSessionService, { TerminalBackendCleanupError, TerminalError, TerminalSessionId } from '@hydra1902/harness-terminal'
+import { Context } from '@hydraharness/cordis'
+import { Session, SessionId } from '@hydraharness/harness-session'
+import AgentRegistry, { Inbox } from '@hydraharness/harness-agent'
+import type { Agent } from '@hydraharness/harness-agent'
+import TerminalSessionService, { TerminalBackendCleanupError, TerminalError, TerminalSessionId } from '@hydraharness/harness-terminal'
 import type {
   TerminalBackend,
   TerminalBackendSession,
@@ -13,7 +13,7 @@ import type {
   TerminalSessionId as TerminalSessionIdType,
   TerminalSessionStatus,
   TerminalSignal,
-} from '@hydra1902/harness-terminal'
+} from '@hydraharness/harness-terminal'
 
 const agentScopeDisposers = new WeakMap<Agent, () => Promise<void>>()
 const ptyServiceDisposers = new WeakMap<Context, () => Promise<void>>()

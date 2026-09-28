@@ -1,5 +1,5 @@
 /**
- * Real-process tests for `@hydra1902/harness-pwsh-local`: the LOCAL subprocess
+ * Real-process tests for `@hydraharness/harness-pwsh-local`: the LOCAL subprocess
  * service plus a REAL pwsh executable, exercised through the executor seam
  * (`resolve` → `run`/`start`). These verify the world — actual PowerShell
  * runs, output capture, truncation and spill, deadlines, kill escalation, and
@@ -14,13 +14,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { PwshLocalExecutor, ENCODING_PREAMBLE, candidatePwshPaths, resolvePwshPath } from '@hydra1902/harness-pwsh-local'
-import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
-import SubprocessRuntime from '@hydra1902/harness-subprocess'
-import type { SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } from '@hydra1902/harness-subprocess'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
-import type { ShellProcess } from '@hydra1902/harness-shell'
+import { Context } from '@hydraharness/cordis'
+import { PwshLocalExecutor, ENCODING_PREAMBLE, candidatePwshPaths, resolvePwshPath } from '@hydraharness/harness-pwsh-local'
+import LocalSubprocessRuntime from '@hydraharness/harness-subprocess-local'
+import SubprocessRuntime from '@hydraharness/harness-subprocess'
+import type { SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } from '@hydraharness/harness-subprocess'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
+import type { ShellProcess } from '@hydraharness/harness-shell'
 
 const spillDir = mkdtempSync(join(tmpdir(), 'hydra-pwsh-exec-spec-'))
 

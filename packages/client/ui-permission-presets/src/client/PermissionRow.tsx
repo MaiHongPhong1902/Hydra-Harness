@@ -5,11 +5,11 @@
  */
 
 import { useEffect, useState } from 'react'
-import type { SnapshotStore } from '@hydra1902/harness-client-runtime/client'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import type { SnapshotStore } from '@hydraharness/harness-client-runtime/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
 import {
   IconChevronDownOutline14, Menu, RiskConfirmation,
-} from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-client-ui-primitives'
 import type { PermissionSettingsState } from './settings-store.ts'
 import type { PermissionSettingsKey } from './locales.ts'
 import { displayPermissionPreset, FULL_ACCESS_PRESET } from './presentation.ts'
@@ -126,7 +126,7 @@ export function PermissionRow({ load, select, usePermission, t }: PermissionRowP
   )
 }
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Permission row copy. */
     'settings.permission': PermissionSettingsKey

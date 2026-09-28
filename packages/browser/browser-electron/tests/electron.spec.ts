@@ -8,10 +8,10 @@ import { join } from 'node:path'
 import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { launchBrowser, resolveElectronPath } from '@hydra1902/harness-browser-electron'
+import { launchBrowser, resolveElectronPath } from '@hydraharness/harness-browser-electron'
 import type {
   ActionResult, BrowserCdpEventPage, BrowserChild, BrowserPageIdentity, BrowserScreenshot, BrowserState,
-} from '@hydra1902/harness-browser-electron'
+} from '@hydraharness/harness-browser-electron'
 
 /**
  * The embedded browser is an optional capability: the `electron` binary may not

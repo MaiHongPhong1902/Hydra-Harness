@@ -1,6 +1,6 @@
-# @hydra/harness-hooks-codex
+# @hydraharness/harness-hooks-codex
 
-A cordis plugin that runs the supported subset of a user's existing **Codex** hook config on the harness's canonical interception points. The **Codex dialect** half of the hooks subsystem. The dialect-agnostic primitives come from [`@hydra/harness-hook-protocol`](../hook-protocol/README.md); this bridge owns the Codex-shaped payloads, matcher mode, and decision mapping.
+A cordis plugin that runs the supported subset of a user's existing **Codex** hook config on the harness's canonical interception points. The **Codex dialect** half of the hooks subsystem. The dialect-agnostic primitives come from [`@hydraharness/harness-hook-protocol`](../hook-protocol/README.md); this bridge owns the Codex-shaped payloads, matcher mode, and decision mapping.
 
 This bridge implements a deliberate subset of Codex's current hook protocol:
 
@@ -15,7 +15,7 @@ A native cordis plugin could do everything this bridge does, more powerfully; th
 ## Config
 
 ```ts
-import type { Config } from '@hydra1902/harness-hooks-codex'
+import type { Config } from '@hydraharness/harness-hooks-codex'
 const config: Config = {
   configPath: '/path/to/.codex/hooks.json', // required
   model: 'deepseek-v4',                      // optional: stamped on every payload (Codex includes `model`)
@@ -32,7 +32,7 @@ In a `cordis.yml`:
     model: deepseek-v4
 ```
 
-The config is parsed **once** at load. `configPath` is **process-level** — a relative path resolves against the process launch cwd at load time, not per-session (`TODO(per-session-hook-config)`). A read/parse failure is contained (logs + registers nothing); an invalid regex matcher on an event that consumes matchers is one such failure and reports its pattern and event. Only sync `type: 'command'` hooks run — a non-command or `async: true` hook is parsed-and-skipped with a warning. A hook accepts `timeout` or the `timeoutSec` alias; one that sets neither runs under the protocol's reference default (`DEFAULT_HOOK_TIMEOUT_MS` from `@hydra/harness-hook-protocol`, 10 minutes). Events outside the seven bridge-supported points are dropped at parse.
+The config is parsed **once** at load. `configPath` is **process-level** — a relative path resolves against the process launch cwd at load time, not per-session (`TODO(per-session-hook-config)`). A read/parse failure is contained (logs + registers nothing); an invalid regex matcher on an event that consumes matchers is one such failure and reports its pattern and event. Only sync `type: 'command'` hooks run — a non-command or `async: true` hook is parsed-and-skipped with a warning. A hook accepts `timeout` or the `timeoutSec` alias; one that sets neither runs under the protocol's reference default (`DEFAULT_HOOK_TIMEOUT_MS` from `@hydraharness/harness-hook-protocol`, 10 minutes). Events outside the seven bridge-supported points are dropped at parse.
 
 The hooks themselves run in the agent's session workspace: for the agent-scoped points the bridge passes the session's `cwd` as the hook process's working directory, so a hook operates in the user's project tree, not the server launch dir.
 
@@ -52,7 +52,7 @@ A tool call's payload carries the real `tool_name` (the same value the matcher t
 
 Every agent-scoped stdin payload carries `session_id` and `transcript_path`. The bridge resolves the latter through `ctx.sessionPersistence.locate(session.header)` when available and otherwise sends `null`, preserving the Codex `string | null` shape. Lookup does not create or flush the artifact, so a path can be absent before the first turn-end checkpoint or omit the current open turn.
 
-`SessionStart` — the one emit point — runs detached; each run chain is tracked, and disposing the bridge aborts a still-running hook process, then drains the continuation before the dispose resolves (`createDetachedRuns` in `@hydra/harness-hook-protocol`).
+`SessionStart` — the one emit point — runs detached; each run chain is tracked, and disposing the bridge aborts a still-running hook process, then drains the continuation before the dispose resolves (`createDetachedRuns` in `@hydraharness/harness-hook-protocol`).
 
 ## Context source
 

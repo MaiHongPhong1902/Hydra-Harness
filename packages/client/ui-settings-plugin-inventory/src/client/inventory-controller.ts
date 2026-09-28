@@ -1,7 +1,7 @@
 /** Plugin enablement drafts survive Settings remounts and apply through one Save action. */
 
-import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
-import type { PluginInventorySnapshot, ImportedPluginSnapshot } from '@hydra1902/harness-api-remotes/client'
+import { createSnapshotStore } from '@hydraharness/harness-client-runtime/client'
+import type { PluginInventorySnapshot, ImportedPluginSnapshot } from '@hydraharness/harness-api-remotes/client'
 import type { NativePluginControls, ImportedPluginControls } from './PluginInventorySettingsTab.tsx'
 
 /** Shared viewing state for the Plugins tab's staged enablement. */

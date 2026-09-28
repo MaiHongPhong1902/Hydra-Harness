@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { createScope, scopeOf } from '@hydra1902/harness-scope'
-import type { Scope, ScopeKey } from '@hydra1902/harness-scope'
-import SessionStore from '@hydra1902/harness-session'
-import type { Session } from '@hydra1902/harness-session'
+import { Context } from '@hydraharness/cordis'
+import { createScope, scopeOf } from '@hydraharness/harness-scope'
+import type { Scope, ScopeKey } from '@hydraharness/harness-scope'
+import SessionStore from '@hydraharness/harness-session'
+import type { Session } from '@hydraharness/harness-session'
 
 async function mount(): Promise<Context> {
   const ctx = new Context()

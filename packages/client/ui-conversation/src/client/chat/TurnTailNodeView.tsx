@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { PropsRenderSlots } from '@hydra1902/harness-client-ui-slots'
+import type { PropsRenderSlots } from '@hydraharness/harness-client-ui-slots'
 import type { ChatNodeViewProps, TurnTailOwnerProps } from '../contract/slots.ts'
 import { MessageIconActions } from './MessageIconActions.tsx'
 import { RevisionRetryAction } from './MessageItem.tsx'

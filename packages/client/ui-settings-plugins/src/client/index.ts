@@ -8,17 +8,17 @@
  * back to plugin configuration in a Web-only deployment.
  */
 
-import type { ConnectionHandle } from '@hydra1902/harness-client-connection/client'
+import type { ConnectionHandle } from '@hydraharness/harness-client-connection/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@hydra1902/harness-client-locale/client'
+import type {} from '@hydraharness/harness-client-locale/client'
 // Type-only: the settings shell's SlotMap merge (the 'settings.section' entry)
 // and the ctx.settingsScope Context merge. Cross-plugin collaboration goes
 // through the service, never a value import (client bundle purity gate).
-import type {} from '@hydra1902/harness-client-ui-settings/client'
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
-import { resolveSlotLabel } from '@hydra1902/harness-client-ui-slots'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
+import { resolveSlotLabel } from '@hydraharness/harness-client-ui-slots'
 // Type-only: the ctx.remote Context merge and the forwarded-event key face.
-import type {} from '@hydra1902/harness-api-remotes/client'
+import type {} from '@hydraharness/harness-api-remotes/client'
 import { AgentLoopCard } from './AgentLoopCard.tsx'
 import { BashCard } from './BashCard.tsx'
 import { ConfigurablePluginsTab } from './ConfigurablePluginsTab.tsx'

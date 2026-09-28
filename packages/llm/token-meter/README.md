@@ -1,4 +1,4 @@
-# @hydra/harness-token-meter
+# @hydraharness/harness-token-meter
 
 Replay-aware token measurement through the singleton `ctx.tokenMeter` service. It advances one isolated fold per session from the durable log, so compaction and other pressure-sensitive plugins can share accounting without depending on `CompactionEngine`.
 
@@ -46,15 +46,15 @@ The [Agent Note](../../../.agents/notes/implemented/architecture/2026-07-29-proj
 ## Composition
 
 ```yaml
-- name: '@hydra1902/harness-token-meter'
-- name: '@hydra1902/harness-compaction-basic'
+- name: '@hydraharness/harness-token-meter'
+- name: '@hydraharness/harness-compaction-basic'
 ```
 
-Both plugins have usable defaults. The meter remains independent of model routing and optional compaction. A deployment configures capacity on its LLM adapter and compaction policy on `@hydra/harness-compaction-basic`.
+Both plugins have usable defaults. The meter remains independent of model routing and optional compaction. A deployment configures capacity on its LLM adapter and compaction policy on `@hydraharness/harness-compaction-basic`.
 
 ## Model Experience
 
-Indirectly, through consumers such as `@hydra/harness-compaction-basic`; the service itself adds no prompt, message, schema, tool, or model call.
+Indirectly, through consumers such as `@hydraharness/harness-compaction-basic`; the service itself adds no prompt, message, schema, tool, or model call.
 
 #### KV Cache effect
 

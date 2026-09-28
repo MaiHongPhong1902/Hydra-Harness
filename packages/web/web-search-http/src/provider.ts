@@ -1,8 +1,8 @@
 /** Bounded JSON HTTP requests and simple dot-path mapping for search providers. */
 
-import { credentialRef } from '@hydra1902/harness-credentials'
-import { SearchProviderError, searchHttpError, WebError } from '@hydra1902/harness-web'
-import type { WebSearchProvider, WebSearchProviderDescriptor, WebSearchRequest, WebSearchResult, WebSearchSource } from '@hydra1902/harness-web'
+import { credentialRef } from '@hydraharness/harness-credentials'
+import { SearchProviderError, searchHttpError, WebError } from '@hydraharness/harness-web'
+import type { WebSearchProvider, WebSearchProviderDescriptor, WebSearchRequest, WebSearchResult, WebSearchSource } from '@hydraharness/harness-web'
 
 /** Fully resolved, secret-free configuration captured once per request. */
 export interface HttpSearchConfig {

@@ -1,15 +1,15 @@
-/** Package-owned durable clock-context invariants. @module @hydra1902/harness-time-context/invariant */
+/** Package-owned durable clock-context invariants. @module @hydraharness/harness-time-context/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 import {
   deriveBrowserTimeZoneContext,
   renderBrowserTimeZoneContext,
 } from './request-zone.ts'
 import { createTimestampFormatter, formatTimestamp } from './timestamp.ts'
 
-const PACKAGE_NAME = '@hydra1902/harness-time-context'
+const PACKAGE_NAME = '@hydraharness/harness-time-context'
 const SOURCE_NAME = 'time-context'
 const READING = new RegExp(
   '^Time sampled while preparing turn (\\d+), step (\\d+): '

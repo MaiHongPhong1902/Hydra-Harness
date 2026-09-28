@@ -1,9 +1,9 @@
 /** Current-surface projection and byte-bounded rendering. */
 
-import { isCompactCheckpointSource } from '@hydra1902/harness-compaction'
-import type { SessionSurfaceSnapshot } from '@hydra1902/harness-session-query'
-import { assertNever } from '@hydra1902/harness-llm'
-import { TextRetainer } from '@hydra1902/harness-output-retention'
+import { isCompactCheckpointSource } from '@hydraharness/harness-compaction'
+import type { SessionSurfaceSnapshot } from '@hydraharness/harness-session-query'
+import { assertNever } from '@hydraharness/harness-llm'
+import { TextRetainer } from '@hydraharness/harness-output-retention'
 import { stringifyTagSafeJson } from './serialization.ts'
 import type { ReferencedConversationItem } from './types.ts'
 

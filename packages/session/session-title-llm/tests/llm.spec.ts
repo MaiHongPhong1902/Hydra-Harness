@@ -1,17 +1,17 @@
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import LlmRuntime, { createUserMessage, CallId, isAgentLoopRequest, LlmAdapter  } from '@hydra1902/harness-llm'
-import type { FinishReason, GenerateOptions, StreamChunk } from '@hydra1902/harness-llm'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import { SessionTitleProviderId } from '@hydra1902/harness-session-title'
-import type { SessionTitleProviderRequest } from '@hydra1902/harness-session-title'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+import LlmRuntime, { createUserMessage, CallId, isAgentLoopRequest, LlmAdapter  } from '@hydraharness/harness-llm'
+import type { FinishReason, GenerateOptions, StreamChunk } from '@hydraharness/harness-llm'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import { SessionTitleProviderId } from '@hydraharness/harness-session-title'
+import type { SessionTitleProviderRequest } from '@hydraharness/harness-session-title'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import {
   generateSessionTitleWithLlm,
   resolveSessionTitleLlmConfig,
   SESSION_TITLE_TIMEOUT_CODE,
-} from '@hydra1902/harness-session-title-llm'
-import type { SessionTitleLlmConfig } from '@hydra1902/harness-session-title-llm'
+} from '@hydraharness/harness-session-title-llm'
+import type { SessionTitleLlmConfig } from '@hydraharness/harness-session-title-llm'
 
 class RecordingAdapter extends LlmAdapter {
   readonly requests: GenerateOptions[] = []

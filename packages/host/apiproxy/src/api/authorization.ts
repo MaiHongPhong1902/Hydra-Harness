@@ -8,7 +8,7 @@ import type {
   AuthorizationNotice,
   AuthorizationPromptOption,
   AuthorizationUsage,
-} from '@hydra1902/harness-authorization/types'
+} from '@hydraharness/harness-authorization/types'
 import type { RpcRequest, RpcResponse } from './rpc.ts'
 
 /** Provider-owned identity label. The id is opaque and never a credential. */

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { OnboardingSurface } from '@hydra1902/harness-client-ui-primitives'
+import { OnboardingSurface } from '@hydraharness/harness-client-ui-primitives'
 
 let appRoot: HTMLDivElement
 

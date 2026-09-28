@@ -6,9 +6,9 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import type { SessionId } from '@hydra1902/harness-session'
-import type { ApiProxy, GoalRef, HostFrame, MuxFrame, RpcMessage, RpcRequest, RpcResponse } from '@hydra1902/harness-host-apiproxy'
-import { InProcessApiClient, RpcId, toFetchHandler } from '@hydra1902/harness-host-apiproxy'
+import type { SessionId } from '@hydraharness/harness-session'
+import type { ApiProxy, GoalRef, HostFrame, MuxFrame, RpcMessage, RpcRequest, RpcResponse } from '@hydraharness/harness-host-apiproxy'
+import { InProcessApiClient, RpcId, toFetchHandler } from '@hydraharness/harness-host-apiproxy'
 
 const sid = (id: string): SessionId => id as SessionId
 

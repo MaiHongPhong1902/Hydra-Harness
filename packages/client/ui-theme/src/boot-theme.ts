@@ -5,7 +5,7 @@
  * owns after the client plugin tree activates.
  */
 
-import type { IndexInjection } from '@hydra1902/harness-host-webserver'
+import type { IndexInjection } from '@hydraharness/harness-host-webserver'
 import { DEFAULT_PREFERENCE, type ThemePreference } from './theme-settings.ts'
 
 /** Build the inline script body for one schema-validated built-in preference. */

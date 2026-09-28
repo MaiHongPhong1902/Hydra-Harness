@@ -1,9 +1,9 @@
 import { PassThrough } from 'node:stream'
 import { describe, expect, it, vi } from 'vitest'
 import { basename, dirname, relative, resolve } from 'node:path'
-import { Context } from '@hydra1902/cordis'
-import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
-import type { SubprocessSpawnSpec, SubprocessTerminalHandle, SubprocessTerminalSpawnSpec } from '@hydra1902/harness-subprocess'
+import { Context } from '@hydraharness/cordis'
+import LocalSubprocessRuntime from '@hydraharness/harness-subprocess-local'
+import type { SubprocessSpawnSpec, SubprocessTerminalHandle, SubprocessTerminalSpawnSpec } from '@hydraharness/harness-subprocess'
 import { childEnv } from '../src/spawn.ts'
 
 function spec(command: string, overrides: Partial<SubprocessSpawnSpec> = {}): SubprocessSpawnSpec {

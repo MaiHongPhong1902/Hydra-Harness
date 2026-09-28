@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-research-policy",
+  "name": "@hydraharness/harness-research-policy",
   "description": "Durable research budgets shared by a session and its delegated agents",
   "hydra": {
     "plugin": {
@@ -37,27 +37,27 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-subagent": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-subagent": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-subagent": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-subagent": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   }
 }

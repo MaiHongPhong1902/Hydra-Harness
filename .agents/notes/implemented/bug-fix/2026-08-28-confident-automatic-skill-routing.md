@@ -8,7 +8,7 @@ Bounded skill discovery depended on the model calling `skill_search` before exac
 
 ## Decision
 
-`@hydra/harness-tool-skill` ranks newly claimed direct-user text at `agent/pre-step` with the same dependency-free lexical metadata scores used by `skill_search`. It automatically injects exactly one model-invocable skill when discovery is complete and the top candidate either appears as an exact whole multi-term skill name or matches at least two distinct name terms including the leading name term. The top score must be unique before lexical name tie-breaking.
+`@hydraharness/harness-tool-skill` ranks newly claimed direct-user text at `agent/pre-step` with the same dependency-free lexical metadata scores used by `skill_search`. It automatically injects exactly one model-invocable skill when discovery is complete and the top candidate either appears as an exact whole multi-term skill name or matches at least two distinct name terms including the leading name term. The top score must be unique before lexical name tie-breaking.
 
 An explicit `/name` gesture suppresses automatic routing and retains its user-invocation policy. Automatic discovery and loading fail open on stale, invalid, incomplete, or failing providers, recheck model-invocation policy on the loaded definition, and preserve cancellation. Successful injections use the durable `skill-invocation` source with `trigger: 'automatic' | 'user'`, so session replay distinguishes the route. Weak, generic, description-only, tied, incomplete, and non-user matches load nothing; the model-facing `skill_search` and `skill` tools remain the fallback.
 

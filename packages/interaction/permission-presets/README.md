@@ -1,4 +1,4 @@
-# @hydra/harness-permission-presets
+# @hydraharness/harness-permission-presets
 
 User-facing permission presets through `ctx.permissionPresets` ([`PermissionPresetService`](src/index.ts)). Each configured name bundles `sandbox/mode` with `approval/policy`; the defaults are `workspace-write` (`workspace-write` + `ask`) and `danger-full-access` (`danger-full-access` + `never`). UI adapters may expose the table as one selector, while sandbox execution and approval continue to consume their own knobs.
 
@@ -12,7 +12,7 @@ Two optional children ship the product surfaces over the same service: a `permis
 
 ## Model Experience
 
-Indirectly, through `@hydra/harness-user-approval` and `@hydra/harness-tool-bash`, which render the approval-policy prompt, switch notice, and sandboxed tool outcomes selected by this service's knob events; `permission/preset` itself is log-only.
+Indirectly, through `@hydraharness/harness-user-approval` and `@hydraharness/harness-tool-bash`, which render the approval-policy prompt, switch notice, and sandboxed tool outcomes selected by this service's knob events; `permission/preset` itself is log-only.
 
 #### KV Cache effect
 

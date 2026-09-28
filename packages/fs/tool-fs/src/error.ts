@@ -4,11 +4,11 @@
  * not the only correct recovery (re-read / read the file), so this package
  * appends the remedy at the model boundary; provider messages stay
  * machine-oriented and unchanged.
- * @module @hydra1902/harness-tool-fs/src/error
+ * @module @hydraharness/harness-tool-fs/src/error
  */
 
-import { FsError } from '@hydra1902/harness-fs'
-import type { FsErrorCode } from '@hydra1902/harness-fs'
+import { FsError } from '@hydraharness/harness-fs'
+import type { FsErrorCode } from '@hydraharness/harness-fs'
 
 /** The remedy appended to each remediable failure code's message. */
 const REMEDIES: Partial<Record<FsErrorCode, string>> = {

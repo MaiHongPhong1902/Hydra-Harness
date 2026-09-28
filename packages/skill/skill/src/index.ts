@@ -3,19 +3,19 @@
  *
  * This package owns the Service Definition role of the skill capability seam.
  * Concrete
- * providers such as `@hydra1902/harness-skill-filesystem` decide where skills come
+ * providers such as `@hydraharness/harness-skill-filesystem` decide where skills come
  * from; this service only merges provider catalogs, resolves the winning skill
  * for a name, and exposes the winning summaries and definitions to consumers.
  *
- * @module @hydra1902/harness-skill
+ * @module @hydraharness/harness-skill
  */
 
-import { Context, Service } from '@hydra1902/cordis'
-import { assertNever } from '@hydra1902/harness-llm'
-import { NamedEntries, ScopedLayers, scopeChainOf, scopeOf } from '@hydra1902/harness-scope'
-import type { ScopeKey, ScopeLayer } from '@hydra1902/harness-scope'
-import z from '@hydra1902/schemastery'
-import type Schema from '@hydra1902/schemastery'
+import { Context, Service } from '@hydraharness/cordis'
+import { assertNever } from '@hydraharness/harness-llm'
+import { NamedEntries, ScopedLayers, scopeChainOf, scopeOf } from '@hydraharness/harness-scope'
+import type { ScopeKey, ScopeLayer } from '@hydraharness/harness-scope'
+import z from '@hydraharness/schemastery'
+import type Schema from '@hydraharness/schemastery'
 import { isSkillName } from './frontmatter.ts'
 export { isSkillName, parseSkillDocument, type SkillDocument } from './frontmatter.ts'
 export type {} from './types.ts'
@@ -150,7 +150,7 @@ export interface SkillInvocationSource {
   readonly form: 'instructions'
 }
 
-declare module '@hydra1902/harness-llm' {
+declare module '@hydraharness/harness-llm' {
   interface MessageSourceMap {
     /** A skill invocation injected by the host. */
     'skill-invocation': SkillInvocationSource
@@ -279,7 +279,7 @@ export interface Config {
   readonly collectCacheMaxEntries?: number
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     skills: SkillRegistry
   }

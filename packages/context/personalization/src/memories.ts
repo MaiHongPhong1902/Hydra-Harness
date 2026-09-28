@@ -3,7 +3,7 @@
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { withFileLock, writeFileAtomic } from '@hydra1902/harness-atomic-write'
+import { withFileLock, writeFileAtomic } from '@hydraharness/harness-atomic-write'
 import type { MemoryEntry } from './session.ts'
 
 /** Stable file format version for the local memory document. */

@@ -1,8 +1,8 @@
-# @hydra/harness-message-feedback
+# @hydraharness/harness-message-feedback
 
 Host-owned editable feedback for one finalized assistant message. The package registers `ctx.messageFeedback`, persists one lifecycle-bound sidecar row per Session in storage-domain, and publishes the Host `messageFeedback.list`, `messageFeedback.put`, and `messageFeedback.delete` unary Remote contract. It is separate from the immutable Session-level `feedback/record` event and performs no telemetry handoff. The [message-feedback sidecar Agent Note](../../../.agents/notes/implemented/architecture/2026-08-10-message-feedback-sidecar.md) owns the design boundary.
 
-Public request, value, version, and failure types are exported from the package root and `@hydra/harness-message-feedback/types`; [`src/types.ts`](src/types.ts) is their source.
+Public request, value, version, and failure types are exported from the package root and `@hydraharness/harness-message-feedback/types`; [`src/types.ts`](src/types.ts) is their source.
 
 ## Configuration
 
@@ -14,7 +14,7 @@ Notes must contain at least one non-whitespace character, but accepted text is s
 
 ```yaml
 - id: message-feedback
-  name: '@hydra1902/harness-message-feedback'
+  name: '@hydraharness/harness-message-feedback'
   config:
     maxNoteBytes: 8192
 ```

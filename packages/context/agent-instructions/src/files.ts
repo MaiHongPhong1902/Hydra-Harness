@@ -1,15 +1,15 @@
 /**
  * Instruction-file discovery and bounded, abort-aware provider reads.
  *
- * @module @hydra1902/harness-agent-instructions/files
+ * @module @hydraharness/harness-agent-instructions/files
  */
 
 import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
-import type { FileSystem, FsInfo, FsTarget, FsVersion } from '@hydra1902/harness-fs'
-import { assertNever } from '@hydra1902/harness-llm'
-import { hydraHomeDisplay } from '@hydra1902/harness-home-paths'
+import type { FileSystem, FsInfo, FsTarget, FsVersion } from '@hydraharness/harness-fs'
+import { assertNever } from '@hydraharness/harness-llm'
+import { hydraHomeDisplay } from '@hydraharness/harness-home-paths'
 import { resolveConfig, resolveDiscoveryConfig, type ResolvedConfig } from './config.ts'
 import { trimmedInstructionDigest } from './digest.ts'
 import {

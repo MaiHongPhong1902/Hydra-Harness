@@ -2,4 +2,4 @@
 # Agent Presets grant the model-facing tool independently.
 - insert:
     - id: subagent-codex
-      name: '@hydra1902/harness-subagent-codex'
+      name: '@hydraharness/harness-subagent-codex'

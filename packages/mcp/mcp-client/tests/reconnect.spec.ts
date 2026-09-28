@@ -5,11 +5,11 @@
  * Isolated file so vi.mock of the MCP SDK doesn't pollute other test suites.
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime from '@hydra1902/harness-tools'
-import { CallId } from '@hydra1902/harness-llm'
-import type { Config } from '@hydra1902/harness-mcp-client'
+import { Context } from '@hydraharness/cordis'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime from '@hydraharness/harness-tools'
+import { CallId } from '@hydraharness/harness-llm'
+import type { Config } from '@hydraharness/harness-mcp-client'
 
 // ---- Mock MCP SDK ----
 
@@ -58,8 +58,8 @@ vi.mock('@modelcontextprotocol/sdk/client/streamableHttp.js', () => ({
 
 // vi.mock is hoisted above static imports, so the modules under test see the
 // mocked SDK even through a static import.
-import { apply } from '@hydra1902/harness-mcp-client/src/index.ts'
-import { RECONNECT_DEFAULTS, resolveReconnectPolicy, startConnection } from '@hydra1902/harness-mcp-client/src/connection.ts'
+import { apply } from '@hydraharness/harness-mcp-client/src/index.ts'
+import { RECONNECT_DEFAULTS, resolveReconnectPolicy, startConnection } from '@hydraharness/harness-mcp-client/src/connection.ts'
 
 // ---- Helpers ----
 

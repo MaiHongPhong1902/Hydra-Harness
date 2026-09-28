@@ -1,8 +1,8 @@
 /** Assistant block classifier (moved here with sessions/conversation.ts). */
 
 import { describe, expect, it } from 'vitest'
-import { AttachmentId } from '@hydra1902/harness-attachment'
-import type { ContentBlock } from '@hydra1902/harness-api-remotes/client'
+import { AttachmentId } from '@hydraharness/harness-attachment'
+import type { ContentBlock } from '@hydraharness/harness-api-remotes/client'
 import { toAssistantBlock, toAssistantBlocks } from '../src/client/sessions/conversation.ts'
 
 describe('toAssistantBlock', () => {

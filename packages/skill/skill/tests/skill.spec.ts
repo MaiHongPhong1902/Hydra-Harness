@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { bindScopeParent, createScope, scopeOf } from '@hydra1902/harness-scope'
+import { Context } from '@hydraharness/cordis'
+import { bindScopeParent, createScope, scopeOf } from '@hydraharness/harness-scope'
 import SkillRegistry, {
   isModelInvocable,
   isUserInvocable,
@@ -11,7 +11,7 @@ import SkillRegistry, {
   type SkillLookupOptions,
   type SkillProvider,
   type SkillProviderObservation,
-} from '@hydra1902/harness-skill'
+} from '@hydraharness/harness-skill'
 
 function memorySkill(name: string, description: string, rank: number, body = `${name} body.`): SkillCandidate {
   return {

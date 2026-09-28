@@ -4,15 +4,15 @@
  * creation, flatten post-publication failures, and dispose to whole-tree
  * quiescence.
  *
- * @module @hydra1902/harness-subagent-codex/run
+ * @module @hydraharness/harness-subagent-codex/run
  */
 
 import { randomUUID } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import { SessionId } from '@hydra1902/harness-session'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import { SessionId } from '@hydraharness/harness-session'
 import {
   settleRunResult,
   subprocessRunHandle,
@@ -20,12 +20,12 @@ import {
   type SubagentRun,
   type SubagentStartRequest,
   type SubagentStopReason,
-} from '@hydra1902/harness-subagent'
+} from '@hydraharness/harness-subagent'
 import type {
   SubprocessHandle,
   SubprocessOutcome,
   SubprocessSpawnSpec,
-} from '@hydra1902/harness-subprocess'
+} from '@hydraharness/harness-subprocess'
 import {
   CodexAppServerWire,
   type CodexWireFailureFacts,

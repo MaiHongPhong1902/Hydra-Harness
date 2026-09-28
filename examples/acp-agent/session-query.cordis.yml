@@ -1,12 +1,12 @@
 # Explicit session-query tool opt-in for the dedicated spill scenario. The
 # nested filesystem overlay supplies private spill storage and its byte limit.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./fs.cordis.yml
     patches:
       - insert:
           - id: tool-session-query
-            name: '@hydra1902/harness-tool-session-query'
+            name: '@hydraharness/harness-tool-session-query'
           - id: timeout-policy
-            name: '@hydra1902/harness-tool-call-timeout-policy'
+            name: '@hydraharness/harness-tool-call-timeout-policy'

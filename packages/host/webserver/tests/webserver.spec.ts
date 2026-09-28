@@ -12,9 +12,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import Include from '@hydra1902/cordis-plugin-include'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import Include from '@hydraharness/cordis-plugin-include'
 import HttpServer, { renderIndexInjections } from '../src/index.ts'
 
 let root: string | undefined
@@ -32,7 +32,7 @@ async function loadComposition(port = 0): Promise<Context> {
   root = await mkdtemp(join(tmpdir(), 'hydra-webserver-loader-'))
   const configPath = join(root, 'cordis.yml')
   await writeFile(configPath, [
-    "- name: '@hydra1902/harness-host-webserver'",
+    "- name: '@hydraharness/harness-host-webserver'",
     '  config:',
     "    host: '127.0.0.1'",
     `    port: ${String(port)}`,
@@ -44,7 +44,7 @@ async function loadComposition(port = 0): Promise<Context> {
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@hydra1902/harness-host-webserver', HttpServer],
+    ['@hydraharness/harness-host-webserver', HttpServer],
   ])
   context.loader.internal = {
     version: 'v2',

@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-hooks-registry",
+  "name": "@hydraharness/harness-hooks-registry",
   "description": "Settings-backed hook records that mount and unmount Claude Code and Codex hook bridges",
   "hydra": {
     "plugin": {
@@ -42,26 +42,26 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@hydra1902/harness-atomic-write": "workspace:^",
-    "@hydra1902/harness-home-paths": "workspace:^",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/harness-atomic-write": "workspace:^",
+    "@hydraharness/harness-home-paths": "workspace:^",
+    "@hydraharness/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@hydra1902/harness-hooks-claude-code": "workspace:^",
-    "@hydra1902/harness-hooks-codex": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-hooks-claude-code": "workspace:^",
+    "@hydraharness/harness-hooks-codex": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-hooks-claude-code": "workspace:^",
-    "@hydra1902/harness-hooks-codex": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/harness-settings-file": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/cordis-plugin-loader": "workspace:^"
+    "@hydraharness/harness-hooks-claude-code": "workspace:^",
+    "@hydraharness/harness-hooks-codex": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/harness-settings-file": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^"
   }
 }

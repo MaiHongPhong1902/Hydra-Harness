@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-tool-workflow",
+  "name": "@hydraharness/harness-tool-workflow",
   "description": "Model-facing workflow tool: run a JavaScript orchestration script over ctx.workflowEngine",
   "hydra": {
     "plugin": {
@@ -42,28 +42,28 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-workflow": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-workflow": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-subagent": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-workflow": "workspace:^",
-    "@hydra1902/harness-workflow-worker-thread": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-subagent": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-workflow": "workspace:^",
+    "@hydraharness/harness-workflow-worker-thread": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

@@ -1,13 +1,13 @@
 /**
  * Agent-scoped Schedule management tools over the durable session fold.
- * @module @hydra1902/harness-schedule
+ * @module @hydraharness/harness-schedule
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import { defineTool } from '@hydra1902/harness-tools'
-import type { GenericCallView } from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import { defineTool } from '@hydraharness/harness-tools'
+import type { GenericCallView } from '@hydraharness/harness-tools'
 import {
   allocateScheduleId,
   createAfterScheduleRecord,

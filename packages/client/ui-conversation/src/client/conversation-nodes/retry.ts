@@ -1,12 +1,12 @@
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   ConversationLocation, ConversationNodeDefinition, ModelRetryNode,
-} from '@hydra1902/harness-client-runtime/client'
-import type {} from '@hydra1902/harness-llm-retry/types'
+} from '@hydraharness/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-llm-retry/types'
 import type { RetryChatData } from '../contract/chat-nodes.ts'
 import { chatNode } from './common.ts'
 
-declare module '@hydra1902/harness-client-ui-conversation/client' {
+declare module '@hydraharness/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Producer-correlated model retry chain. */
     'model-retry': RetryChatData

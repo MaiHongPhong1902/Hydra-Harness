@@ -3,11 +3,11 @@
  * conversion, workspace-grouped location rendering with `file:`-URI resolution, complete-result
  * capping, and UI presentation. No I/O — a UI may call the presenter on live streaming and on
  * replay, so it depends only on the tool arguments.
- * @module @hydra1902/harness-tool-lsp/render
+ * @module @hydraharness/harness-tool-lsp/render
  */
 
-import type { GenericCallView } from '@hydra1902/harness-tools'
-import type { LspHover, LspLocation, LspOperation, LspPosition } from '@hydra1902/harness-lsp'
+import type { GenericCallView } from '@hydraharness/harness-tools'
+import type { LspHover, LspLocation, LspOperation, LspPosition } from '@hydraharness/harness-lsp'
 import { posix, win32 } from 'node:path'
 import { fileURLToPath } from 'node:url'
 

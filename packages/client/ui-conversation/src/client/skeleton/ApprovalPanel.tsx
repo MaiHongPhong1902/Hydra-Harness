@@ -13,8 +13,8 @@
 // resolved frame.
 
 import { useMemo, useState } from 'react'
-import { Button } from '@hydra1902/harness-client-ui-primitives'
-import type { RunningToolCall } from '@hydra1902/harness-client-runtime/client'
+import { Button } from '@hydraharness/harness-client-ui-primitives'
+import type { RunningToolCall } from '@hydraharness/harness-client-runtime/client'
 import { PendingApproval, type ApprovalComposerProps } from '../contract/slots.ts'
 import { rootToolCall } from '../chat/tool-node-reader.ts'
 import css from './ApprovalPanel.module.css'

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import * as GeneralInvariant from '@hydra1902/harness-client-ui-settings-general/invariant'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+import { Context } from '@hydraharness/cordis'
+import * as GeneralInvariant from '@hydraharness/harness-client-ui-settings-general/invariant'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 
 describe('invariant companion', () => {
   it('registers under the package name with an empty installer', async () => {

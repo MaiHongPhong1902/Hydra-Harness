@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-fs-local",
+  "name": "@hydraharness/harness-fs-local",
   "description": "Local-filesystem implementation of the Hydra harness filesystem seam (ctx.fs)",
   "hydra": {
     "plugin": {
@@ -37,18 +37,18 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-fs": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-fs": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
     "koffi": "^3.1.0",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-fs": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-fs": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

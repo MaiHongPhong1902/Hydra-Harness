@@ -6,7 +6,7 @@ Status: implemented
 
 This repository held three unrelated groups of publishable packages and no channel that sent any of them to a registry.
 
-`packages/*/*` and `apps/*` form the runtime surface of `@hydra/harness`; `vendor/*` holds nine rescoped Cordis framework packages, each carrying its upstream version; `native/landlock-run/packages/*` holds Linux platform packages with their own workflow. The three differ in version baseline, change rate, and build requirements: hydra moves with the product, vendor moves only when upstream is re-synced or a local modification changes, and native needs a musl toolchain and one build per architecture. Forcing them through one pipeline means every product release republishes the framework and the native binaries.
+`packages/*/*` and `apps/*` form the runtime surface of `@hydraharness/harness`; `vendor/*` holds nine rescoped Cordis framework packages, each carrying its upstream version; `native/landlock-run/packages/*` holds Linux platform packages with their own workflow. The three differ in version baseline, change rate, and build requirements: hydra moves with the product, vendor moves only when upstream is re-synced or a local modification changes, and native needs a musl toolchain and one build per architecture. Forcing them through one pipeline means every product release republishes the framework and the native binaries.
 
 Two hard blockers sat in the way. All 217 workspace manifests set `private: true`, which npm refuses to publish. The subtler one was 933 hand-written `peerDependencies: "^0.0.1"` entries between sibling hydra packages: `pnpm pack` substitutes the `workspace:` protocol but leaves semver ranges alone, and `^0.0.1` means `>=0.0.1 <0.0.2` — it excludes `0.0.2`, and semver excludes prereleases from a range without a prerelease of its own, so it excluded `0.0.1-rc.1` too. Those entries never failed only because the version never left `0.0.1`.
 
@@ -24,7 +24,7 @@ Two hard blockers sat in the way. All 217 workspace manifests set `private: true
 | vendored framework | the nine `vendor/*` packages | each package on its own version line | `vendor-<package>-v<version>` (one per package) | `release-vendor.yml` (pack) / `release-vendor-publish.yml` (publish) |
 | native | `native/landlock-run/packages/*` | its own `0.0.x` | `landlock-run-v<version>` | `landlock-run-release.yml` |
 
-All three publish to the `@hydra` scope on npmjs.com, and access is per sequence rather than per scope: the vendored framework and the native packages are `public`, the hydra family is `restricted` ([rationale](2026-08-13-public-vendor-and-native-sequences.md)). No publish path passes `--access`, because one flag cannot serve sequences that disagree and would override the manifest that owns the level.
+All three publish to the `@hydraharness` scope on npmjs.com, and access is per sequence rather than per scope: the vendored framework and the native packages are `public`, the hydra family is `restricted` ([rationale](2026-08-13-public-vendor-and-native-sequences.md)). No publish path passes `--access`, because one flag cannot serve sequences that disagree and would override the manifest that owns the level.
 
 ### Versions land in the repository from a local command; CI only checks and uploads
 
@@ -38,15 +38,15 @@ The vendored packages are decoupled from upstream by their scope but keep their 
 
 | Package | Upstream version | First published version |
 |---|---|---|
-| `@hydra/cordis` | 4.0.0-rc.7 | 4.0.1 |
-| `@hydra/cordis-plugin-loader` | 1.0.0-rc.5 | 1.0.1 |
-| `@hydra/cosmokit` | 1.8.1 | 1.8.2 |
-| `@hydra/schemastery` | 3.18.0 | 3.18.1 |
-| `@hydra/cordis-plugin-hmr` | 1.0.15 | 1.0.16 |
-| `@hydra/cordis-plugin-include` | 1.0.4 | 1.0.5 |
-| `@hydra/cordis-plugin-timer` | 1.1.2 | 1.1.3 |
-| `@hydra/cordis-plugin-group` | 1.0.0 | 1.0.1 |
-| `@hydra/cordis-plugin-logger-console` | 1.0.0 | 1.0.1 |
+| `@hydraharness/cordis` | 4.0.0-rc.7 | 4.0.1 |
+| `@hydraharness/cordis-plugin-loader` | 1.0.0-rc.5 | 1.0.1 |
+| `@hydraharness/cosmokit` | 1.8.1 | 1.8.2 |
+| `@hydraharness/schemastery` | 3.18.0 | 3.18.1 |
+| `@hydraharness/cordis-plugin-hmr` | 1.0.15 | 1.0.16 |
+| `@hydraharness/cordis-plugin-include` | 1.0.4 | 1.0.5 |
+| `@hydraharness/cordis-plugin-timer` | 1.1.2 | 1.1.3 |
+| `@hydraharness/cordis-plugin-group` | 1.0.0 | 1.0.1 |
+| `@hydraharness/cordis-plugin-logger-console` | 1.0.0 | 1.0.1 |
 
 Taking the last published version as the baseline is what survives a re-sync: upstream restoring `4.0.0-rc.8` after this repository published `4.0.1` would otherwise compute `4.0.1` again and collide. `--prerelease rc.1` publishes a rehearsal instead, which takes `--tag next` and leaves the release numbers free: a prerelease has lower precedence than the release it precedes, so `4.0.1` still follows `4.0.1-rc.1`. That ordering is computed here rather than read from `git tag --sort=v:refname`, which places a prerelease above its release.
 
@@ -76,7 +76,7 @@ Two registry behaviours shape how a publish is attempted. Writes are spaced by a
 
 Every reference to a workspace member uses `workspace:^`, so `pnpm pack` substitutes a range matching the target version: sibling `peerDependencies` follow the family version, and a reference to a vendored package follows that package's own line. The Landlock platform packages keep `workspace:*`, which publishes the exact version, because a platform package and its entry must agree exactly.
 
-`scripts/check-workspace-constraints.ts` requires the protocol, so a new package cannot reintroduce a hand-written range; the invariant-companion rule requires `workspace:^` for `@hydra/harness-invariants` for the same reason.
+`scripts/check-workspace-constraints.ts` requires the protocol, so a new package cannot reintroduce a hand-written range; the invariant-companion rule requires `workspace:^` for `@hydraharness/harness-invariants` for the same reason.
 
 ### An optional dependency is never loaded at module scope
 
@@ -113,9 +113,9 @@ A hydra verification installs the vendored family's pack output too. The harness
 
 The hydra CLI tarball also bundles the internal dependency and peer closure reached by its CLI manifest and the vendored framework. The consumer probe installs only that one tarball, leaving external packages as ordinary dependencies so npm can select platform-specific builds; this is the supported bare-install path.
 
-The hydra publish workflow promotes that self-contained CLI prerelease to `latest` after publishing the family, so `npm install @hydra1902/harness` resolves the verified entry package without requiring an explicit `@next` tag. The other family members remain under `next`.
+The hydra publish workflow promotes that self-contained CLI prerelease to `latest` after publishing the family, so `npm install @hydraharness/harness` resolves the verified entry package without requiring an explicit `@next` tag. The other family members remain under `next`.
 
-The verification also packs the Landlock entry, which `@hydra/harness-sandbox-local` declares as a plain dependency, and omits optional dependencies. The platform packages behind those optional entries need a musl toolchain and one build per architecture, so a job on one runner cannot produce them; a consumer that cannot install them must still start, which is what optional means here. The verification therefore reads a directory by its contents rather than a pack order, because a directory can hold tarballs packed only to satisfy a cross-sequence dependency.
+The verification also packs the Landlock entry, which `@hydraharness/harness-sandbox-local` declares as a plain dependency, and omits optional dependencies. The platform packages behind those optional entries need a musl toolchain and one build per architecture, so a job on one runner cannot produce them; a consumer that cannot install them must still start, which is what optional means here. The verification therefore reads a directory by its contents rather than a pack order, because a directory can hold tarballs packed only to satisfy a cross-sequence dependency.
 
 ### Repository changes this carried
 
@@ -148,7 +148,7 @@ This Agent Note replaces the version scheme and the release-set boundary in [art
 
 **Verifying only the packed install, with no local registry.** The reference flow unpacks tarballs into a tree and drives it with plain Node, which bypasses version-range resolution. Running a local registry in CI to cover that layer was rejected: artifact correctness is covered by existing tests, the publication path is exercised by the master rehearsal, and a pull request only needs to prove the release set packs. Installing from `file:` specifiers still exercises range resolution for every internal dependency.
 
-**Selecting a subset by entry closure.** Crawling `dependencies` from `@hydra/harness` and `@hydra/harness-web-frontend` yields 156 packages, 61 fewer than the whole set. But this repository's plugins are mounted by name from `cordis.yml` rather than imported: `vendor/cordis-plugin-group` and `vendor/cordis-plugin-logger-console` fall outside the dependency closure while being required at runtime. Selecting by code dependency fails as "the consumer installs it and it will not start", and it would need a standing proof that no mounted package was missed. Under a private scope the extra packages are invisible outside the organization. `python/`, the root `examples/`, `docs/`, and `website/` are not members.
+**Selecting a subset by entry closure.** Crawling `dependencies` from `@hydraharness/harness` and `@hydraharness/harness-web-frontend` yields 156 packages, 61 fewer than the whole set. But this repository's plugins are mounted by name from `cordis.yml` rather than imported: `vendor/cordis-plugin-group` and `vendor/cordis-plugin-logger-console` fall outside the dependency closure while being required at runtime. Selecting by code dependency fails as "the consumer installs it and it will not start", and it would need a standing proof that no mounted package was missed. Under a private scope the extra packages are invisible outside the organization. `python/`, the root `examples/`, `docs/`, and `website/` are not members.
 
 **Extending `scripts/publish-npm-baseline.ts`.** It is a local publication script that packs and publishes in one process, the opposite of separating credential-free packing from protected publication. Its verified parts — payload validation and installed-artifact probes — are reused so `pnpm run duplication` does not report clones.
 

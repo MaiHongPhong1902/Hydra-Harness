@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra1902/harness-settings'
+import { Context } from '@hydraharness/cordis'
+import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydraharness/harness-settings'
 import WebRuntime, {
   WebError,
   SearchProviderError,
@@ -11,7 +11,7 @@ import WebRuntime, {
   type WebSearchProvider,
   type WebSearchRequest,
   type WebSearchResult,
-} from '@hydra1902/harness-web'
+} from '@hydraharness/harness-web'
 
 /** A scripted search provider for contract tests. */
 function makeSearchProvider(

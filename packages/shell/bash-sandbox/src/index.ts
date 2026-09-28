@@ -5,12 +5,12 @@
  * the command never ran: foreground calls throw `SANDBOX_UNAVAILABLE`, while
  * background processes carry `runnerFailed`; other spawn rejections retain
  * local-executor semantics. The tool owns approval and passes a complete per-call policy.
- * @module @hydra1902/harness-bash-sandbox
+ * @module @hydraharness/harness-bash-sandbox
  */
 
-import { Context } from '@hydra1902/cordis'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from '@hydra1902/harness-shell'
-import { SandboxUnavailableError } from '@hydra1902/harness-sandbox'
+import { Context } from '@hydraharness/cordis'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from '@hydraharness/harness-shell'
+import { SandboxUnavailableError } from '@hydraharness/harness-sandbox'
 import type {
   ConfinedArgv,
   ConfinedSandboxMode,
@@ -19,16 +19,16 @@ import type {
   SandboxExecutionPolicy,
   SandboxMode,
   SandboxPolicy,
-} from '@hydra1902/harness-sandbox'
-import type {} from '@hydra1902/harness-sandbox-policy'
-import { LocalBashExecutor } from '@hydra1902/harness-bash-local'
-import type { Config as LocalConfig } from '@hydra1902/harness-bash-local'
+} from '@hydraharness/harness-sandbox'
+import type {} from '@hydraharness/harness-sandbox-policy'
+import { LocalBashExecutor } from '@hydraharness/harness-bash-local'
+import type { Config as LocalConfig } from '@hydraharness/harness-bash-local'
 import { classifyDenial, classifyRunnerFailure, isRunnerSpawnFailure, matchesSignature } from './helpers.ts'
 
 /**
  * Plugin config: the local executor's knobs, verbatim. The sandbox policy —
  * the default mode and fallback `workspace-write` root — is NOT here: it lives
- * on `ctx.sandboxPolicy` (`@hydra1902/harness-sandbox-policy`), which resolves
+ * on `ctx.sandboxPolicy` (`@hydraharness/harness-sandbox-policy`), which resolves
  * each calling session's mode and cwd for every enforcing capability. The runner
  * choice is likewise the `ctx.sandbox` provider's config, not this executor's.
  */

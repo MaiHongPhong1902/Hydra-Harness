@@ -1,7 +1,7 @@
 /** Model-visible continuation prompt for one same-session goal round. */
 
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import type { GoalView } from '@hydra1902/harness-goal'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import type { GoalView } from '@hydraharness/harness-goal'
 
 /**
  * Render the complete goal-round instruction retained in session history.

@@ -1,37 +1,37 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import AgentLoop from '@hydra1902/harness-agent-loop'
-import { mountAgentLoopTestDependencies } from '@hydra1902/harness-agent-loop-testkit'
-import InvariantRegistry from '@hydra1902/harness-invariants'
-import { CommandId } from '@hydra1902/harness-commands/brand'
-import * as SessionInvariant from '@hydra1902/harness-session/invariant'
-import * as AgentInvariant from '@hydra1902/harness-agent/invariant'
-import * as AgentLoopInvariant from '@hydra1902/harness-agent-loop/invariant'
-import * as CompactionInvariant from '@hydra1902/harness-compaction/invariant'
-import * as CompactionBasicInvariant from '@hydra1902/harness-compaction-basic/invariant'
-import { BasicCompactionEngine } from '@hydra1902/harness-compaction-basic'
-import { CompactionId, isCompactCheckpointSource, ManualCompactionError } from '@hydra1902/harness-compaction'
-import type { CompactionResult } from '@hydra1902/harness-compaction'
+import { Context } from '@hydraharness/cordis'
+import AgentLoop from '@hydraharness/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydraharness/harness-agent-loop-testkit'
+import InvariantRegistry from '@hydraharness/harness-invariants'
+import { CommandId } from '@hydraharness/harness-commands/brand'
+import * as SessionInvariant from '@hydraharness/harness-session/invariant'
+import * as AgentInvariant from '@hydraharness/harness-agent/invariant'
+import * as AgentLoopInvariant from '@hydraharness/harness-agent-loop/invariant'
+import * as CompactionInvariant from '@hydraharness/harness-compaction/invariant'
+import * as CompactionBasicInvariant from '@hydraharness/harness-compaction-basic/invariant'
+import { BasicCompactionEngine } from '@hydraharness/harness-compaction-basic'
+import { CompactionId, isCompactCheckpointSource, ManualCompactionError } from '@hydraharness/harness-compaction'
+import type { CompactionResult } from '@hydraharness/harness-compaction'
 import {
   createAssistantMessage,
   createUserMessage,
   LlmAdapter,
-} from '@hydra1902/harness-llm'
+} from '@hydraharness/harness-llm'
 import type {
   ContentBlock,
   LlmResolvedModelInfo,
   Message,
   StreamChunk,
   TokenUsage,
-} from '@hydra1902/harness-llm'
-import SessionStore, { Session, SessionId, type SessionEvent } from '@hydra1902/harness-session'
-import LlmRuntime from '@hydra1902/harness-llm'
-import TokenMeter from '@hydra1902/harness-token-meter'
-import type { Agent } from '@hydra1902/harness-agent'
+} from '@hydraharness/harness-llm'
+import SessionStore, { Session, SessionId, type SessionEvent } from '@hydraharness/harness-session'
+import LlmRuntime from '@hydraharness/harness-llm'
+import TokenMeter from '@hydraharness/harness-token-meter'
+import type { Agent } from '@hydraharness/harness-agent'
 import type {
   SummarizationInput,
   SummaryResult,
-} from '@hydra1902/harness-compaction-basic/src/summarizer.ts'
+} from '@hydraharness/harness-compaction-basic/src/summarizer.ts'
 
 const MODEL = 'mock'
 const SIGNAL = new AbortController().signal

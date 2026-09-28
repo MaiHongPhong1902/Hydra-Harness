@@ -1,4 +1,4 @@
-/** Wire-form admission of base64-encoded image uploads. @module @hydra1902/harness-attachment/admission */
+/** Wire-form admission of base64-encoded image uploads. @module @hydraharness/harness-attachment/admission */
 
 import { Buffer } from 'node:buffer'
 import { AttachmentError } from './error.ts'

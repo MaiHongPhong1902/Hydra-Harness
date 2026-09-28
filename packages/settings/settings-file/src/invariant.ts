@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-settings-file`.
- * @module @hydra1902/harness-settings-file/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-settings-file`.
+ * @module @hydraharness/harness-settings-file/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-settings-file'
+const PACKAGE_NAME = '@hydraharness/harness-settings-file'
 
 /** Cordis companion plugin name. */
 export const name = 'settings-file-invariant'
@@ -17,7 +17,7 @@ export const inject = ['invariants']
 /**
  * No runtime invariant: this provider's contracts are file round-trip,
  * watcher timing, and atomic-write behavior — IO effects proven by package
- * tests; the in-process commit relation is owned by `@hydra1902/harness-settings`.
+ * tests; the in-process commit relation is owned by `@hydraharness/harness-settings`.
  */
 const install: InvariantInstaller = () => {}
 

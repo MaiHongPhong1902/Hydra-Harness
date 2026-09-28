@@ -10,9 +10,9 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, waitFor } from '@testing-library/react'
-import { SlotTestRuntime, usePinnedBrowserLanguages } from '@hydra1902/harness-client-test-runtime'
-import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
-import { apply, inject } from '@hydra1902/harness-client-ui-sidebar/client'
+import { SlotTestRuntime, usePinnedBrowserLanguages } from '@hydraharness/harness-client-test-runtime'
+import { LocaleRuntime } from '@hydraharness/harness-client-locale/client'
+import { apply, inject } from '@hydraharness/harness-client-ui-sidebar/client'
 
 // The service reads its initial locale from the browser; these specs assert
 // the shipped English copy, so they state the browser they assume.

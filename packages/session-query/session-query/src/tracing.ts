@@ -1,7 +1,7 @@
 /** One-shot session-lineage and event-relationship tracing helpers. */
 
-import { foldSurface, isSurfaceEvent, snapshotSessionEvent } from '@hydra1902/harness-session'
-import type { SessionEvent, SessionId, SurfaceEvent, SurfaceEventType } from '@hydra1902/harness-session'
+import { foldSurface, isSurfaceEvent, snapshotSessionEvent } from '@hydraharness/harness-session'
+import type { SessionEvent, SessionId, SurfaceEvent, SurfaceEventType } from '@hydraharness/harness-session'
 import { SessionQueryError } from './config.ts'
 import type {
   SessionEventRecord,

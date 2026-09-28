@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-code-runtime-worker-thread",
+  "name": "@hydraharness/harness-code-runtime-worker-thread",
   "description": "Worker-thread implementation of the Hydra harness code-execution seam",
   "hydra": {
     "plugin": {
@@ -41,20 +41,20 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-code-runtime": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-code-runtime": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-code-runtime": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-code-runtime": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

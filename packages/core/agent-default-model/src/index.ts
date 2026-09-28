@@ -1,16 +1,16 @@
 /**
  * Default model selection for an Agent without a session-specific selection.
  *
- * @module @hydra1902/harness-agent-default-model
+ * @module @hydraharness/harness-agent-default-model
  */
 
-import { Context, Service } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { ModelSelection } from '@hydra1902/harness-agent'
-import { ReasoningEffortId } from '@hydra1902/harness-llm'
-import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
+import { Context, Service } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { ModelSelection } from '@hydraharness/harness-agent'
+import { ReasoningEffortId } from '@hydraharness/harness-llm'
+import { installSettingsSection, settingsNamespace } from '@hydraharness/harness-settings'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** Default model selection for Agents created without an explicit model. */
     agentDefaultModel: AgentDefaultModelConfig

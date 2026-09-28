@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-The public documentation describes Hydra as a desktop application, but the published guide only explains `npx @hydra/harness web`. Readers cannot find the source command, desktop prerequisites, or the current lack of an installer.
+The public documentation describes Hydra as a desktop application, but the published guide only explains `npx @hydraharness/harness web`. Readers cannot find the source command, desktop prerequisites, or the current lack of an installer.
 
 ## Decision
 
@@ -14,7 +14,7 @@ The documentation site publishes `docs/user/guide/desktop.md` at `/guide/desktop
 
 **Keep the desktop command only in the root README.** Rejected because the website's user guide is the public entry point and already advertises the desktop surface.
 
-**Document `npx @hydra/harness desktop`.** Rejected because the launcher and published package expose no desktop command or distributable installer.
+**Document `npx @hydraharness/harness desktop`.** Rejected because the launcher and published package expose no desktop command or distributable installer.
 
 ## Consequences
 

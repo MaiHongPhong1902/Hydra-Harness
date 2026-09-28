@@ -1,4 +1,4 @@
-# @hydra/harness-tool-subagent
+# @hydraharness/harness-tool-subagent
 
 The model-facing delegation tool over one configured `ctx.subagents` provider. Changing the provider changes transport without changing the execution contract.
 

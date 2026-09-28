@@ -1,8 +1,8 @@
 /** Node-half coverage for the model guidance paired with Web file references. */
 
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
 import { apply, inject } from '../src/index.ts'
 
 let ctx: Context | undefined

@@ -11,7 +11,7 @@ import {
   hydraHomePath,
   expandHomePath,
   resolveHydraHome,
-} from '@hydra1902/harness-home-paths'
+} from '@hydraharness/harness-home-paths'
 
 afterEach(() => {
   vi.unstubAllEnvs()

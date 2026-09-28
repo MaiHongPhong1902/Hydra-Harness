@@ -1,4 +1,4 @@
-import { defineProperty } from '@hydra1902/cosmokit'
+import { defineProperty } from '@hydraharness/cosmokit'
 import type { Context, Service } from './index.ts'
 
 /** Ordered collection of disposable values with O(1) deletion by value. */

@@ -2,20 +2,20 @@
  * The sandbox-escalation API shared by the `write` and `edit` tools: the
  * per-call policy resolution, the advertised escalation fields, and the denial-marker
  * mapping — all delegating the vocabulary and the fail-closed approval
- * sequence to `@hydra1902/harness-sandbox` (the same pieces `@hydra1902/harness-tool-bash`
+ * sequence to `@hydraharness/harness-sandbox` (the same pieces `@hydraharness/harness-tool-bash`
  * uses), so bash and fs escalate identically. Built ONCE per plugin from
  * `ctx.fs.sandboxMode` (the capability fact — is a confining backend mounted?)
  * and shared by both mutating tools.
  *
- * @module @hydra1902/harness-tool-fs/sandbox
+ * @module @hydraharness/harness-tool-fs/sandbox
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { ToolExecution } from '@hydra1902/harness-tools'
-import type { SandboxExecutionPolicy, SandboxMode } from '@hydra1902/harness-sandbox'
-import { ESCALATION_TARGETS, approveEscalation, escalationHintMarker, sandboxDenialMarker, validateEscalationArgs } from '@hydra1902/harness-sandbox'
-import type { SandboxPolicyService } from '@hydra1902/harness-sandbox-policy'
-import { FsError } from '@hydra1902/harness-fs'
+import type { Context } from '@hydraharness/cordis'
+import type { ToolExecution } from '@hydraharness/harness-tools'
+import type { SandboxExecutionPolicy, SandboxMode } from '@hydraharness/harness-sandbox'
+import { ESCALATION_TARGETS, approveEscalation, escalationHintMarker, sandboxDenialMarker, validateEscalationArgs } from '@hydraharness/harness-sandbox'
+import type { SandboxPolicyService } from '@hydraharness/harness-sandbox-policy'
+import { FsError } from '@hydraharness/harness-fs'
 
 /** The two escalation arguments a mutating tool may carry (advertised only under a confining backend). */
 export interface FsEscalationArgs {

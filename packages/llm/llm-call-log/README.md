@@ -1,4 +1,4 @@
-# @hydra/harness-llm-call-log
+# @hydraharness/harness-llm-call-log
 
 Records model calls in the owning session through the `llm/stream` waterfall. The base bundle mounts this observer for Web and headless profiles. Each consumed stream records its provider, model, purpose, input message count, system-prompt character count, and advertised tool names. Conversation records also identify the turn and step. Auxiliary calls retain their explicit `session-title` or `compaction` purpose; other one-shots are `auxiliary`.
 

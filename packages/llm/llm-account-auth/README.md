@@ -1,4 +1,4 @@
-# @hydra/harness-llm-account-auth
+# @hydraharness/harness-llm-account-auth
 
 Native account-backed OAuth routes for ChatGPT and Google Antigravity. The plugin exposes `chatgpt` and `antigravity` as configurable provider routes and stores each provider's accounts in one credentials-service grant record.
 

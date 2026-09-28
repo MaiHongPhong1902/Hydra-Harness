@@ -1,11 +1,11 @@
 # Add the persisted goal domain and its model-facing tools to the real one-shot app.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - insert:
           - id: goal
-            name: '@hydra1902/harness-goal'
+            name: '@hydraharness/harness-goal'
           - id: tool-goal
-            name: '@hydra1902/harness-tool-goal'
+            name: '@hydraharness/harness-tool-goal'

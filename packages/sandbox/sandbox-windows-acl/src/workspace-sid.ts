@@ -21,7 +21,7 @@
  * tree propagation). Renaming the workspace directory derives a new SID —
  * the old standing ACEs are inert residue, and the next session re-propagates
  * once.
- * @module @hydra1902/harness-sandbox-windows-acl/workspace-sid
+ * @module @hydraharness/harness-sandbox-windows-acl/workspace-sid
  */
 
 import { createHash } from 'node:crypto'

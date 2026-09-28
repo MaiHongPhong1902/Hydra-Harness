@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { type Agent } from '@hydra1902/harness-agent'
-import SubagentRuntime, { type SubagentStartRequest } from '@hydra1902/harness-subagent'
-import { SessionId } from '@hydra1902/harness-session'
+import { Context } from '@hydraharness/cordis'
+import { type Agent } from '@hydraharness/harness-agent'
+import SubagentRuntime, { type SubagentStartRequest } from '@hydraharness/harness-subagent'
+import { SessionId } from '@hydraharness/harness-session'
 import * as scripted from './scripted-provider.ts'
 
 /** A minimal parent; the scripted provider only reads its id. */

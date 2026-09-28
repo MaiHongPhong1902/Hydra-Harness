@@ -1,4 +1,4 @@
-import type { LLMConfig } from '@hydra1902/harness-browseragent-llms'
+import type { LLMConfig } from '@hydraharness/harness-browseragent-llms'
 
 // @note circular dependency but okay
 import type { PageAgentCore } from './PageAgentCore'

@@ -1,4 +1,4 @@
-# `@hydra/harness-jev`
+# `@hydraharness/harness-jev`
 
 Optional Host capability for TypeSafe Jev's native `/api/v1/decisions` API. It exposes `ctx.jev.systemOne()` for structured choices, scores, and yes/no answers without registering a chat model route.
 

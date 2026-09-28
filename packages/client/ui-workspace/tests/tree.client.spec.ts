@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type {
   SessionId, SessionListState, SessionSummary, WorkspaceId, WorkspaceView,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import {
   deriveFlat, deriveGroups, deriveSearchResults, workspaceLabel, relativeTime,
   UNGROUPED_KEY, UNGROUPED_LABEL,
 } from '../src/client/tree.ts'
 import { createWorkspaceViewStore } from '../src/client/stores.ts'
-import { conversationVersions } from '@hydra1902/harness-client-runtime/client'
+import { conversationVersions } from '@hydraharness/harness-client-runtime/client'
 
 const sid = (id: string) => id as SessionId
 const wid = (id: string) => id as WorkspaceId

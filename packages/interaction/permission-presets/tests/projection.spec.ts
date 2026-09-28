@@ -10,16 +10,16 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import type { Session } from '@hydra1902/harness-session'
-import type { Agent } from '@hydra1902/harness-agent'
-import { createScope } from '@hydra1902/harness-scope'
-import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
-import CommandRuntime from '@hydra1902/harness-commands'
-import PermissionPresetService from '@hydra1902/harness-permission-presets'
-import type { Config } from '@hydra1902/harness-permission-presets'
-import ApprovalService from '@hydra1902/harness-user-approval'
+import { Context } from '@hydraharness/cordis'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import type { Session } from '@hydraharness/harness-session'
+import type { Agent } from '@hydraharness/harness-agent'
+import { createScope } from '@hydraharness/harness-scope'
+import SessionProjectionRegistry from '@hydraharness/harness-session-projection'
+import CommandRuntime from '@hydraharness/harness-commands'
+import PermissionPresetService from '@hydraharness/harness-permission-presets'
+import type { Config } from '@hydraharness/harness-permission-presets'
+import ApprovalService from '@hydraharness/harness-user-approval'
 
 async function harness(options: { withPermission?: boolean; config?: Config } = {}): Promise<{ ctx: Context; session: Session }> {
   const ctx = new Context()

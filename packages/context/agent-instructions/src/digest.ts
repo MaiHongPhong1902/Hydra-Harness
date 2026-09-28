@@ -1,7 +1,7 @@
 /**
  * Content identity for workspace instruction duplicate suppression.
  *
- * @module @hydra1902/harness-agent-instructions/digest
+ * @module @hydraharness/harness-agent-instructions/digest
  */
 
 import { createHash } from 'node:crypto'

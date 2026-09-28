@@ -1,18 +1,18 @@
 /**
  * Bundled `hydra-badge` skill provider.
  *
- * @module @hydra1902/harness-skill-badge
+ * @module @hydraharness/harness-skill-badge
  */
 
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import {
   BUNDLED_SKILL_RANK,
   type SkillCandidate,
   type SkillDefinition,
   type SkillProvider,
-} from '@hydra1902/harness-skill'
+} from '@hydraharness/harness-skill'
 
 const PROVIDER_NAME = 'hydra-badge'
 const SKILL_BODY_URL = new URL('../assets/hydra-badge.md', import.meta.url)

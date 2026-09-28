@@ -2,15 +2,15 @@
  * Model-facing full-file write. It obtains an optional intent from the single policy slot, calls
  * `ctx.fs.writeText` without a stat, then records the resulting version; no policy means an
  * unconditional atomic create-or-overwrite.
- * @module @hydra1902/harness-tool-fs/src/write
+ * @module @hydraharness/harness-tool-fs/src/write
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { defineTool } from '@hydra1902/harness-tools'
-import type { DiffCallView, DiffResultView, ToolResult } from '@hydra1902/harness-tools'
-import type { FsWriteOutcome } from '@hydra1902/harness-fs'
-import type {} from '@hydra1902/harness-fs'
-import type {} from '@hydra1902/harness-system-prompt'
+import type { Context } from '@hydraharness/cordis'
+import { defineTool } from '@hydraharness/harness-tools'
+import type { DiffCallView, DiffResultView, ToolResult } from '@hydraharness/harness-tools'
+import type { FsWriteOutcome } from '@hydraharness/harness-fs'
+import type {} from '@hydraharness/harness-fs'
+import type {} from '@hydraharness/harness-system-prompt'
 import { computeHunkDiffs, diffsFromMeta } from './diff.ts'
 import { remediateFsError } from './error.ts'
 import { sessionResolveOptions } from './session-cwd.ts'

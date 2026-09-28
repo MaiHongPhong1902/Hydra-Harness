@@ -4,8 +4,8 @@ import { promisify } from 'node:util'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra1902/harness-loader-smoke'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydraharness/harness-loader-smoke'
+import type { SessionEvent } from '@hydraharness/harness-session'
 
 const binScript = fileURLToPath(new URL('./fixtures/headless-driver.ts', import.meta.url))
 const configPath = fileURLToPath(new URL('./fixtures/cli.cordis.yml', import.meta.url))

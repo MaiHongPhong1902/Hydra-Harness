@@ -3,11 +3,11 @@
  * consumes and produces, plus the fields in the `workflow/*` event payloads.
  * Types only (plus the id-brand factory), per the package convention.
  *
- * @module @hydra1902/harness-workflow/types
+ * @module @hydraharness/harness-workflow/types
  */
 
-import type { Branded } from '@hydra1902/harness-brand'
-import type { SessionId } from '@hydra1902/harness-session/types'
+import type { Branded } from '@hydraharness/harness-brand'
+import type { SessionId } from '@hydraharness/harness-session/types'
 
 /** Identifies one workflow run. */
 export type WorkflowRunId = Branded<'WorkflowRunId'>

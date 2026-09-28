@@ -1,4 +1,4 @@
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import type { BuildFailure } from 'esbuild'
 import { codeFrameColumns } from '@babel/code-frame'
 import { readFileSync } from 'node:fs'

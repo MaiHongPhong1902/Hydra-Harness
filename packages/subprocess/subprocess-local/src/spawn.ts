@@ -14,8 +14,8 @@ import { closeSync, mkdtempSync, openSync, unlinkSync, writeSync } from 'node:fs
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as sleepMs } from 'node:timers/promises'
-import { scrubbedParentEnv } from '@hydra1902/harness-subprocess'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+import { scrubbedParentEnv } from '@hydraharness/harness-subprocess'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import type {
   CollectedOutput,
   SubprocessCollect,
@@ -23,7 +23,7 @@ import type {
   SubprocessOutcome,
   SubprocessOutputMode,
   SubprocessSpawnSpec,
-} from '@hydra1902/harness-subprocess'
+} from '@hydraharness/harness-subprocess'
 import { linuxProcessGroupHasLiveMembers } from './process-inspector.ts'
 
 /**

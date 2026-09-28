@@ -1,9 +1,9 @@
 /** Advisory model-facing decisions over candidate browser actions. */
 
-import type { Context } from '@hydra1902/cordis'
-import { defineTool } from '@hydra1902/harness-tools'
-import type { ToolExecution } from '@hydra1902/harness-tools'
-import { JevError } from '@hydra1902/harness-jev'
+import type { Context } from '@hydraharness/cordis'
+import { defineTool } from '@hydraharness/harness-tools'
+import type { ToolExecution } from '@hydraharness/harness-tools'
+import { JevError } from '@hydraharness/harness-jev'
 
 export const name = 'browser-decisions'
 export const inject = ['tools']

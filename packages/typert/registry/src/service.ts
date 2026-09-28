@@ -2,10 +2,10 @@
  * Runtime registry for generated Typert reflection, Remote invocations, and
  * dependency-inverted lookup/Context providers. It performs no TypeScript
  * analysis or schema generation.
- * @module @hydra1902/harness-typert-registry
+ * @module @hydraharness/harness-typert-registry
  */
 
-import { Context, Service } from '@hydra1902/cordis'
+import { Context, Service } from '@hydraharness/cordis'
 import { z } from 'zod'
 import type {
   InvocationDescriptor,
@@ -29,7 +29,7 @@ import type {
   TypertRegistryChange,
   TypertRegistryListener,
   TypertRegistryContract,
-} from '@hydra1902/harness-typert-protocol'
+} from '@hydraharness/harness-typert-protocol'
 import type {
   TypertContribution,
   TypertFace,

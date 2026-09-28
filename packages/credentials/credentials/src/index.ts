@@ -5,10 +5,10 @@
  * operation, so a changed credential reaches the next operation without any
  * plugin restart, and configuration surfaces describe a reference without
  * ever seeing its value.
- * @module @hydra1902/harness-credentials
+ * @module @hydraharness/harness-credentials
  */
 
-import { Context, Service } from '@hydra1902/cordis'
+import { Context, Service } from '@hydraharness/cordis'
 import type { CredentialKey, CredentialRecord, CredentialRef } from './types.ts'
 
 export type { ApiKeyRecord, CredentialKey, CredentialRecord, CredentialRef, GrantRecord } from './types.ts'
@@ -152,7 +152,7 @@ export interface CredentialRecordEntry {
   kind: CredentialRecord['kind']
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     credentials: CredentialProvider
   }

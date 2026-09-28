@@ -1,18 +1,18 @@
 /**
  * Model-facing result rendering for the pwsh tool — the PowerShell twin of
- * `@hydra1902/harness-tool-bash`'s renderer: stdout, a marked stderr section, sandbox
+ * `@hydraharness/harness-tool-bash`'s renderer: stdout, a marked stderr section, sandbox
  * denial/runner-failure markers (with the same-turn escalation hint), and
  * truncation notices with spill paths, then exit-status markers. Non-zero
  * exits are reported, not errored — the model decides how to react; only
  * infrastructure failures (spawn errors, aborts) surface as isError
  * results.
  *
- * @module @hydra1902/harness-tool-pwsh/render
+ * @module @hydraharness/harness-tool-pwsh/render
  */
 
-import type { ShellProcessRead, ShellSandboxInfo, CollectedOutput } from '@hydra1902/harness-shell'
-import type { SandboxMode } from '@hydra1902/harness-sandbox'
-import { escalationHintMarker, sandboxDenialMarker } from '@hydra1902/harness-sandbox'
+import type { ShellProcessRead, ShellSandboxInfo, CollectedOutput } from '@hydraharness/harness-shell'
+import type { SandboxMode } from '@hydraharness/harness-sandbox'
+import { escalationHintMarker, sandboxDenialMarker } from '@hydraharness/harness-sandbox'
 
 /* jscpd:ignore-start -- deliberate twin of hydra-tool-bash/render.ts (Agent Note). */
 

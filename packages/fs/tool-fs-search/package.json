@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-tool-fs-search",
+  "name": "@hydraharness/harness-tool-fs-search",
   "description": "Model-facing filesystem discovery tools (glob, grep) backed by the packaged ripgrep binary (@vscode/ripgrep)",
   "hydra": {
     "plugin": {
@@ -38,32 +38,32 @@
   "license": "MIT",
   "dependencies": {
     "@vscode/ripgrep": "^1.18.0",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-output-retention": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-spill": "workspace:^",
-    "@hydra1902/harness-subprocess": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-output-retention": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-spill": "workspace:^",
+    "@hydraharness/harness-subprocess": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-subprocess": "workspace:^",
-    "@hydra1902/harness-subprocess-local": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-output-retention": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-spill": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-subprocess": "workspace:^",
+    "@hydraharness/harness-subprocess-local": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-output-retention": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-spill": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

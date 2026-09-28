@@ -15,11 +15,11 @@
  * data. The decoder validates before expanding and fails loud on a malformed
  * row-tagged value instead of silently dropping a whole run.
  *
- * @module @hydra1902/harness-session/chunk-rows
+ * @module @hydraharness/harness-session/chunk-rows
  */
 
-import { CallId, assertNever } from '@hydra1902/harness-llm'
-import type { StreamChunk } from '@hydra1902/harness-llm'
+import { CallId, assertNever } from '@hydraharness/harness-llm'
+import type { StreamChunk } from '@hydraharness/harness-llm'
 import type { SessionEvent } from './types.ts'
 
 /** The chunk kinds that may pack; block boundaries, usage, and finish chunks always stay one event per line. */

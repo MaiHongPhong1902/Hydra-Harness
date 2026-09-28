@@ -2,7 +2,7 @@
 import { useState, type ReactNode } from 'react'
 import {
   IconApiOutline14, IconBrowseOutline16, IconChevronDownOutline14, IconEditOutline16, IconSparkle16,
-} from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-client-ui-primitives'
 import type { ChatViewSlotProps } from '../contract/slots.ts'
 import css from './ActivityGroup.module.css'
 

@@ -1,6 +1,6 @@
 import type {
   SettingsSchemaService,
-} from '@hydra1902/harness-client-ui-settings/client'
+} from '@hydraharness/harness-client-ui-settings/client'
 
 /** Plain schema callbacks exposed to Models stores and presentation components. */
 export type SettingsSchemaOperations = Pick<

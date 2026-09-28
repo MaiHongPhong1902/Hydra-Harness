@@ -4,7 +4,7 @@ import {
   SessionQueryError,
   materializeSessionEventResultFilters,
   materializeSessionResultFilters,
-} from '@hydra1902/harness-session-query'
+} from '@hydraharness/harness-session-query'
 import type {
   SessionAvailability,
   SessionEventMetadataFilter,
@@ -13,7 +13,7 @@ import type {
   SessionResultFilter,
   SessionSearchCursor,
   SessionSearchRequest,
-} from '@hydra1902/harness-session-query'
+} from '@hydraharness/harness-session-query'
 
 /** Collision-free marker inserted before an FTS5 match by `highlight()`. */
 export const FTS_HIGHLIGHT_START = '\uFDD0'

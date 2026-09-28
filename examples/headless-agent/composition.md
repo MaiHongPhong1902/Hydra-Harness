@@ -8,85 +8,85 @@ The headless snapshot composition combines the real DeepSeek adapter and coding 
 ```mermaid
 flowchart LR
   cfg["examples/headless-agent<br/>cordis.yml"]
-  plugin_headless_settings["settings<br/>@hydra1902/harness-settings-file"]
+  plugin_headless_settings["settings<br/>@hydraharness/harness-settings-file"]
   cfg --> plugin_headless_settings
-  plugin_headless_credentials["credentials<br/>@hydra1902/harness-credentials-local"]
+  plugin_headless_credentials["credentials<br/>@hydraharness/harness-credentials-local"]
   cfg --> plugin_headless_credentials
-  plugin_headless_llm_deepseek["llm-deepseek<br/>@hydra1902/harness-llm-deepseek"]
+  plugin_headless_llm_deepseek["llm-deepseek<br/>@hydraharness/harness-llm-deepseek"]
   cfg --> plugin_headless_llm_deepseek
-  plugin_headless_subprocess["subprocess<br/>@hydra1902/harness-subprocess-local"]
+  plugin_headless_subprocess["subprocess<br/>@hydraharness/harness-subprocess-local"]
   cfg --> plugin_headless_subprocess
-  plugin_headless_bash["bash<br/>@hydra1902/harness-bash-local"]
+  plugin_headless_bash["bash<br/>@hydraharness/harness-bash-local"]
   cfg --> plugin_headless_bash
-  plugin_headless_agent_spine["agent-spine<br/>@hydra1902/harness-agent-spine-demo"]
+  plugin_headless_agent_spine["agent-spine<br/>@hydraharness/harness-agent-spine-demo"]
   cfg --> plugin_headless_agent_spine
-  plugin_headless_persistence["persistence<br/>@hydra1902/harness-session-persistence-jsonl"]
+  plugin_headless_persistence["persistence<br/>@hydraharness/harness-session-persistence-jsonl"]
   cfg --> plugin_headless_persistence
-  plugin_headless_checkpoint_policy["checkpoint-policy<br/>@hydra1902/harness-session-checkpoint-policy"]
+  plugin_headless_checkpoint_policy["checkpoint-policy<br/>@hydraharness/harness-session-checkpoint-policy"]
   cfg --> plugin_headless_checkpoint_policy
-  plugin_headless_token_meter["token-meter<br/>@hydra1902/harness-token-meter"]
+  plugin_headless_token_meter["token-meter<br/>@hydraharness/harness-token-meter"]
   cfg --> plugin_headless_token_meter
-  plugin_headless_compaction_basic["compaction-basic<br/>@hydra1902/harness-compaction-basic"]
+  plugin_headless_compaction_basic["compaction-basic<br/>@hydraharness/harness-compaction-basic"]
   cfg --> plugin_headless_compaction_basic
-  plugin_headless_session_projection["session-projection<br/>@hydra1902/harness-session-projection"]
+  plugin_headless_session_projection["session-projection<br/>@hydraharness/harness-session-projection"]
   cfg --> plugin_headless_session_projection
-  plugin_headless_subagent["subagent<br/>@hydra1902/harness-subagent"]
+  plugin_headless_subagent["subagent<br/>@hydraharness/harness-subagent"]
   cfg --> plugin_headless_subagent
-  plugin_headless_subagent_spawn_in_process["subagent-spawn-in-process<br/>@hydra1902/harness-subagent-spawn-in-process"]
+  plugin_headless_subagent_spawn_in_process["subagent-spawn-in-process<br/>@hydraharness/harness-subagent-spawn-in-process"]
   cfg --> plugin_headless_subagent_spawn_in_process
-  plugin_headless_subagent_fork_in_process["subagent-fork-in-process<br/>@hydra1902/harness-subagent-fork-in-process"]
+  plugin_headless_subagent_fork_in_process["subagent-fork-in-process<br/>@hydraharness/harness-subagent-fork-in-process"]
   cfg --> plugin_headless_subagent_fork_in_process
-  plugin_headless_tool_subagent_control["tool-subagent-control<br/>@hydra1902/harness-tool-subagent-control"]
+  plugin_headless_tool_subagent_control["tool-subagent-control<br/>@hydraharness/harness-tool-subagent-control"]
   cfg --> plugin_headless_tool_subagent_control
-  plugin_headless_tool_subagent_report["tool-subagent-report<br/>@hydra1902/harness-tool-subagent-report"]
+  plugin_headless_tool_subagent_report["tool-subagent-report<br/>@hydraharness/harness-tool-subagent-report"]
   cfg --> plugin_headless_tool_subagent_report
-  plugin_headless_tool_subagent["tool-subagent<br/>@hydra1902/harness-tool-subagent"]
+  plugin_headless_tool_subagent["tool-subagent<br/>@hydraharness/harness-tool-subagent"]
   cfg --> plugin_headless_tool_subagent
-  plugin_headless_tool_subagent_fork["tool-subagent-fork<br/>@hydra1902/harness-tool-subagent"]
+  plugin_headless_tool_subagent_fork["tool-subagent-fork<br/>@hydraharness/harness-tool-subagent"]
   cfg --> plugin_headless_tool_subagent_fork
-  plugin_headless_workflow_worker_thread["workflow-worker-thread<br/>@hydra1902/harness-workflow-worker-thread"]
+  plugin_headless_workflow_worker_thread["workflow-worker-thread<br/>@hydraharness/harness-workflow-worker-thread"]
   cfg --> plugin_headless_workflow_worker_thread
-  plugin_headless_tool_workflow["tool-workflow<br/>@hydra1902/harness-tool-workflow"]
+  plugin_headless_tool_workflow["tool-workflow<br/>@hydraharness/harness-tool-workflow"]
   cfg --> plugin_headless_tool_workflow
-  plugin_headless_tool_ralph["tool-ralph<br/>@hydra1902/harness-tool-ralph"]
+  plugin_headless_tool_ralph["tool-ralph<br/>@hydraharness/harness-tool-ralph"]
   cfg --> plugin_headless_tool_ralph
-  plugin_headless_tool_todo["tool-todo<br/>@hydra1902/harness-tool-todo"]
+  plugin_headless_tool_todo["tool-todo<br/>@hydraharness/harness-tool-todo"]
   cfg --> plugin_headless_tool_todo
-  plugin_headless_fs_local["fs-local<br/>@hydra1902/harness-fs-local"]
+  plugin_headless_fs_local["fs-local<br/>@hydraharness/harness-fs-local"]
   cfg --> plugin_headless_fs_local
-  plugin_headless_fs_observation_policy["fs-observation-policy<br/>@hydra1902/harness-fs-observation-policy"]
+  plugin_headless_fs_observation_policy["fs-observation-policy<br/>@hydraharness/harness-fs-observation-policy"]
   cfg --> plugin_headless_fs_observation_policy
-  plugin_headless_tool_fs["tool-fs<br/>@hydra1902/harness-tool-fs"]
+  plugin_headless_tool_fs["tool-fs<br/>@hydraharness/harness-tool-fs"]
   cfg --> plugin_headless_tool_fs
 ```
 
 | Plugin id | Package / module |
 | --- | --- |
-| `settings` | `@hydra1902/harness-settings-file` |
-| `credentials` | `@hydra1902/harness-credentials-local` |
-| `llm-deepseek` | `@hydra1902/harness-llm-deepseek` |
-| `subprocess` | `@hydra1902/harness-subprocess-local` |
-| `bash` | `@hydra1902/harness-bash-local` |
-| `agent-spine` | `@hydra1902/harness-agent-spine-demo` |
-| `persistence` | `@hydra1902/harness-session-persistence-jsonl` |
-| `checkpoint-policy` | `@hydra1902/harness-session-checkpoint-policy` |
-| `token-meter` | `@hydra1902/harness-token-meter` |
-| `compaction-basic` | `@hydra1902/harness-compaction-basic` |
-| `session-projection` | `@hydra1902/harness-session-projection` |
-| `subagent` | `@hydra1902/harness-subagent` |
-| `subagent-spawn-in-process` | `@hydra1902/harness-subagent-spawn-in-process` |
-| `subagent-fork-in-process` | `@hydra1902/harness-subagent-fork-in-process` |
-| `tool-subagent-control` | `@hydra1902/harness-tool-subagent-control` |
-| `tool-subagent-report` | `@hydra1902/harness-tool-subagent-report` |
-| `tool-subagent` | `@hydra1902/harness-tool-subagent` |
-| `tool-subagent-fork` | `@hydra1902/harness-tool-subagent` |
-| `workflow-worker-thread` | `@hydra1902/harness-workflow-worker-thread` |
-| `tool-workflow` | `@hydra1902/harness-tool-workflow` |
-| `tool-ralph` | `@hydra1902/harness-tool-ralph` |
-| `tool-todo` | `@hydra1902/harness-tool-todo` |
-| `fs-local` | `@hydra1902/harness-fs-local` |
-| `fs-observation-policy` | `@hydra1902/harness-fs-observation-policy` |
-| `tool-fs` | `@hydra1902/harness-tool-fs` |
+| `settings` | `@hydraharness/harness-settings-file` |
+| `credentials` | `@hydraharness/harness-credentials-local` |
+| `llm-deepseek` | `@hydraharness/harness-llm-deepseek` |
+| `subprocess` | `@hydraharness/harness-subprocess-local` |
+| `bash` | `@hydraharness/harness-bash-local` |
+| `agent-spine` | `@hydraharness/harness-agent-spine-demo` |
+| `persistence` | `@hydraharness/harness-session-persistence-jsonl` |
+| `checkpoint-policy` | `@hydraharness/harness-session-checkpoint-policy` |
+| `token-meter` | `@hydraharness/harness-token-meter` |
+| `compaction-basic` | `@hydraharness/harness-compaction-basic` |
+| `session-projection` | `@hydraharness/harness-session-projection` |
+| `subagent` | `@hydraharness/harness-subagent` |
+| `subagent-spawn-in-process` | `@hydraharness/harness-subagent-spawn-in-process` |
+| `subagent-fork-in-process` | `@hydraharness/harness-subagent-fork-in-process` |
+| `tool-subagent-control` | `@hydraharness/harness-tool-subagent-control` |
+| `tool-subagent-report` | `@hydraharness/harness-tool-subagent-report` |
+| `tool-subagent` | `@hydraharness/harness-tool-subagent` |
+| `tool-subagent-fork` | `@hydraharness/harness-tool-subagent` |
+| `workflow-worker-thread` | `@hydraharness/harness-workflow-worker-thread` |
+| `tool-workflow` | `@hydraharness/harness-tool-workflow` |
+| `tool-ralph` | `@hydraharness/harness-tool-ralph` |
+| `tool-todo` | `@hydraharness/harness-tool-todo` |
+| `fs-local` | `@hydraharness/harness-fs-local` |
+| `fs-observation-policy` | `@hydraharness/harness-fs-observation-policy` |
+| `tool-fs` | `@hydraharness/harness-tool-fs` |
 
 Source config: [`examples/headless-agent/cordis.yml`](cordis.yml).
 

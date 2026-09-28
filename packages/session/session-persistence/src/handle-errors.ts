@@ -1,4 +1,4 @@
-import type { SessionId } from '@hydra1902/harness-session'
+import type { SessionId } from '@hydraharness/harness-session'
 
 /** A write open found another active writer for the same session. */
 export class SessionAlreadyOwnedError extends Error {

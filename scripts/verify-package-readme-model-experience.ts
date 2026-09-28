@@ -256,7 +256,7 @@ for (const line of readFileSync(resolve(root, 'docs/tool-catalog.md'), 'utf8').s
   const title = /^## (.+)$/.exec(line)?.[1]
   if (title !== undefined) {
     const packageName = title.replaceAll('`', '')
-    toolCatalogFragments.add(packageName.startsWith('@hydra1902/')
+    toolCatalogFragments.add(packageName.startsWith('@hydraharness/')
       ? hydraPackageSlug(packageName)
       : headingFragment(title))
   }

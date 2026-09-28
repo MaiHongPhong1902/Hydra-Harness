@@ -1,11 +1,11 @@
 /**
  * Pure-type outlet of the session-projection Service Definition: the one projection type
  * table, importable from client aggregates without dragging the host-side
- * cordis Context merges of the package root (@hydra1902/harness-agent → @hydra1902/harness-session). Domain
+ * cordis Context merges of the package root (@hydraharness/harness-agent → @hydraharness/harness-session). Domain
  * packages may declare-merge through either the package root or this outlet —
  * re-export preserves symbol identity, so both land on the same table.
  *
- * @module @hydra1902/harness-session-projection/types
+ * @module @hydraharness/harness-session-projection/types
  */
 
 /**

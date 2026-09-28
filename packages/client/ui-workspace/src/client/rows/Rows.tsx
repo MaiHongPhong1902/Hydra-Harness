@@ -11,9 +11,9 @@ import {
   HoverCard, IconArchiveOutline20, IconBranchOutline16, IconEditOutline16,
   IconEllipsisOutline16, IconFolderClose16, IconFolderOpen16, IconPlusOutline16,
   IconTrashOutline16, IconTriangleRightFill14, Menu, StateDot,
-} from '@hydra1902/harness-client-ui-primitives'
-import type { StateDotState } from '@hydra1902/harness-client-ui-primitives'
-import { abbreviateHomePath } from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-ui-primitives'
+import type { StateDotState } from '@hydraharness/harness-client-ui-primitives'
+import { abbreviateHomePath } from '@hydraharness/harness-client-runtime/client'
 import type { WorkspaceBrowserProps } from '../contract/slots.ts'
 import type { GroupNode, SearchResultNode, SessionNode } from '../tree.ts'
 import { relativeTime } from '../tree.ts'

@@ -45,7 +45,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
     }).map(([key, path]) => [key, artifactUrl(path)]))
     const script = `
       import { createServer } from 'node:http'
-      import * as cordis from '@hydra1902/cordis'
+      import * as cordis from '@hydraharness/cordis'
 
       const urls = ${JSON.stringify(urls)}
       const { Context } = cordis
@@ -123,16 +123,16 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
         const handoff = handoffs.get(id)
         if (handoff === undefined) throw new Error('missing Client bundle handoff ' + id)
         return handoff.factory(specifier => {
-          if (specifier === '@hydra1902/cordis') return cordis
+          if (specifier === '@hydraharness/cordis') return cordis
           throw new Error('unexpected Client external ' + specifier)
         })
       }
       const client = new Context()
       for (const id of [
-        '@hydra1902/harness-typert-registry',
-        '@hydra1902/harness-client-connection',
-        '@hydra1902/harness-api-gateway',
-        '@hydra1902/harness-api-remotes',
+        '@hydraharness/harness-typert-registry',
+        '@hydraharness/harness-client-connection',
+        '@hydraharness/harness-api-gateway',
+        '@hydraharness/harness-api-remotes',
       ]) {
         const plugin = instantiate(id)
         await client.plugin({ inject: plugin.inject, apply: plugin.apply })

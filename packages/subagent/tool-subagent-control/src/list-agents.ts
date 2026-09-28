@@ -4,15 +4,15 @@
  * `descendants` scope, `ctx.subagents.listDescendants()`. It stays separately
  * loadable from the root `send_message` plugin so a deployment can register
  * continuation delivery without exposing discovery.
- * @module @hydra1902/harness-tool-subagent-control/list-agents
+ * @module @hydraharness/harness-tool-subagent-control/list-agents
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { defineTool } from '@hydra1902/harness-tools'
-import type { Agent } from '@hydra1902/harness-agent'
-import type { SessionId } from '@hydra1902/harness-session'
-import { assertNever } from '@hydra1902/harness-llm'
-import type { SubagentDescendantListEntry, SubagentListEntry } from '@hydra1902/harness-subagent'
+import type { Context } from '@hydraharness/cordis'
+import { defineTool } from '@hydraharness/harness-tools'
+import type { Agent } from '@hydraharness/harness-agent'
+import type { SessionId } from '@hydraharness/harness-session'
+import { assertNever } from '@hydraharness/harness-llm'
+import type { SubagentDescendantListEntry, SubagentListEntry } from '@hydraharness/harness-subagent'
 
 export const name = 'tool-subagent-list-agents'
 export const inject = ['tools', 'subagents', 'agents']

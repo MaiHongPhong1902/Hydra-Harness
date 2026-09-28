@@ -1,15 +1,15 @@
 /**
- * `@hydra1902/harness-web-fetch-http`: registers an anonymous public HTTP(S)
+ * `@hydraharness/harness-web-fetch-http`: registers an anonymous public HTTP(S)
  * `WebFetchProvider` with `ctx.web`. A function/namespace plugin (NOT a
  * default-export service): it registers INTO the seam's fetch registry, like the
  * search providers register into the search registry.
  *
- * @module @hydra1902/harness-web-fetch-http
+ * @module @hydraharness/harness-web-fetch-http
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type {} from '@hydra1902/harness-web'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type {} from '@hydraharness/harness-web'
 import { HttpFetchProvider } from './provider.ts'
 import type { HttpFetchLimits } from './provider.ts'
 

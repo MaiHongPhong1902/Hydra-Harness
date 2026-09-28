@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-web-search-http",
+  "name": "@hydraharness/harness-web-search-http",
   "description": "Serper and configurable JSON HTTP search providers",
   "hydra": {
     "plugin": {
@@ -37,23 +37,23 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-credentials": "workspace:^",
-    "@hydra1902/harness-launch-environment": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-web": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^"
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-launch-environment": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-web": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-credentials": "workspace:^",
-    "@hydra1902/harness-launch-environment": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-web": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/harness-web-search-deepseek": "workspace:^"
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-launch-environment": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-web": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/harness-web-search-deepseek": "workspace:^"
   }
 }

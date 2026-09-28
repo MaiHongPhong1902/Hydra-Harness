@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { IconChevronLeftOutline14, IconChevronRightOutline14, IconPanelLeftOutline16 } from '@hydra1902/harness-client-ui-primitives'
-import { Menu, Tooltip } from '@hydra1902/harness-client-ui-primitives'
-import type { MenuEntry } from '@hydra1902/harness-client-ui-primitives'
+import { IconChevronLeftOutline14, IconChevronRightOutline14, IconPanelLeftOutline16 } from '@hydraharness/harness-client-ui-primitives'
+import { Menu, Tooltip } from '@hydraharness/harness-client-ui-primitives'
+import type { MenuEntry } from '@hydraharness/harness-client-ui-primitives'
 import css from './DesktopTitleBar.module.css'
 
 export type DesktopTitleBarAction =

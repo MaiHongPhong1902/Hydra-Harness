@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, render, screen, within } from '@testing-library/react'
-import { bindSnapshotSelector, makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { createSnapshotStore, type SessionId, type SessionListState } from '@hydra1902/harness-client-runtime/client'
+import { bindSnapshotSelector, makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { createSnapshotStore, type SessionId, type SessionListState } from '@hydraharness/harness-client-runtime/client'
 import { UsageSection } from '../src/client/settings/UsageSection.tsx'
 import { en } from '../src/client/locales.ts'
 

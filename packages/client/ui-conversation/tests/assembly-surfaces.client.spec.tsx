@@ -3,11 +3,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
-import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
-import type { ISession, SessionId } from '@hydra1902/harness-client-runtime/client'
-import type { PropsRenderSlots } from '@hydra1902/harness-client-ui-slots'
-import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@hydra1902/harness-client-test-runtime'
-import { apply, inject, type EmptyWorkspaceOwnerProps } from '@hydra1902/harness-client-ui-conversation/client'
+import { LocaleRuntime } from '@hydraharness/harness-client-locale/client'
+import type { ISession, SessionId } from '@hydraharness/harness-client-runtime/client'
+import type { PropsRenderSlots } from '@hydraharness/harness-client-ui-slots'
+import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@hydraharness/harness-client-test-runtime'
+import { apply, inject, type EmptyWorkspaceOwnerProps } from '@hydraharness/harness-client-ui-conversation/client'
 
 usePinnedBrowserLanguages('en-US')
 

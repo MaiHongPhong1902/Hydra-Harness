@@ -1,13 +1,13 @@
-import { createUserMessage } from '@hydra1902/harness-llm'
+import { createUserMessage } from '@hydraharness/harness-llm'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import {
   GoalId,
   type GoalSnapshotChangeMeta,
-} from '@hydra1902/harness-goal'
-import * as GoalInvariantCompanion from '@hydra1902/harness-goal/invariant'
-import InvariantRegistry, { InvariantError } from '@hydra1902/harness-invariants'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
+} from '@hydraharness/harness-goal'
+import * as GoalInvariantCompanion from '@hydraharness/harness-goal/invariant'
+import InvariantRegistry, { InvariantError } from '@hydraharness/harness-invariants'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
 
 const change: GoalSnapshotChangeMeta = {
   kind: 'goal/change',
@@ -54,7 +54,7 @@ describe('goal stream invariants', () => {
       session.append('goal/change', { ...change, extra: true } as never)
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@hydra1902/harness-goal',
+      packageName: '@hydraharness/harness-goal',
     }))
     expect(session.seq).toBe(0)
     expect(() => {

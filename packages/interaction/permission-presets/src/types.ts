@@ -6,7 +6,7 @@
  * browser half-entry's re-export) for client aggregates — with zero content
  * duplication.
  *
- * @module @hydra1902/harness-permission-presets/types
+ * @module @hydraharness/harness-permission-presets/types
  */
 
 /** The select-option shape a presentation layer advertises for one preset (or for the derived `custom` state). */
@@ -31,7 +31,7 @@ export interface PermissionSelect {
   currentValue: string
 }
 
-declare module '@hydra1902/harness-session-projection/types' {
+declare module '@hydraharness/harness-session-projection/types' {
   interface SessionProjectionMap {
     /**
      * The session's permission select, folded from the three whole-value

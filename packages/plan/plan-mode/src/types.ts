@@ -1,11 +1,11 @@
 /**
  * Pure types of the plan domain: the ONE home of the `plan` projection-key
  * declaration, free of this package's host-side value imports (cordis
- * service, @hydra1902/harness-tools, @hydra1902/harness-agent). Two namespace projections serve it —
+ * service, @hydraharness/harness-tools, @hydraharness/harness-agent). Two namespace projections serve it —
  * `./types` for host consumers, `./client` for client aggregates — with zero
  * content duplication.
  *
- * @module @hydra1902/harness-plan-mode/types
+ * @module @hydraharness/harness-plan-mode/types
  */
 
 /**
@@ -21,7 +21,7 @@ export interface PlanProjection {
   pending: boolean
 }
 
-declare module '@hydra1902/harness-session-projection/types' {
+declare module '@hydraharness/harness-session-projection/types' {
   interface SessionProjectionMap {
     /** Plan collaboration state folded from the plan command lifecycle and `plan/mode` events. */
     plan: PlanProjection

@@ -1,6 +1,6 @@
-# @hydra/harness-sandbox-windows-acl
+# @hydraharness/harness-sandbox-windows-acl
 
-Windows write-restriction sandbox backend for the [harness sandbox seam](../sandbox/): a Node.js/[koffi](https://koffi.dev/) port of the mechanism in [huoyaoyuan/windows-acl-restrict-poc](https://github.com/huoyaoyuan/windows-acl-restrict-poc) (`10e4dfb`, the fixed revision), mounted as the `enforcement: 'partial'` win32 rung of the [`@hydra/harness-sandbox-local`](../sandbox-local/) chain (`workspace-write` / `read-only` modes); the same package carries the Linux/macOS backends.
+Windows write-restriction sandbox backend for the [harness sandbox seam](../sandbox/): a Node.js/[koffi](https://koffi.dev/) port of the mechanism in [huoyaoyuan/windows-acl-restrict-poc](https://github.com/huoyaoyuan/windows-acl-restrict-poc) (`10e4dfb`, the fixed revision), mounted as the `enforcement: 'partial'` win32 rung of the [`@hydraharness/harness-sandbox-local`](../sandbox-local/) chain (`workspace-write` / `read-only` modes); the same package carries the Linux/macOS backends.
 
 Mechanism in one line: the caller's token is duplicated into a `WRITE_RESTRICTED` token whose restricting SIDs carry separate workspace and private-temp capabilities. The workspace SID is derived deterministically from the canonical workspace path (`workspaceWriteSid`), so the workspace-root ACE materializes once per workspace per machine and every later session, call, or restart hits the exact-ACE skip. Each live session/workspace pair instead receives a random temp directory and a SID derived from that path (`tempWriteSid`), so sessions share the intended workspace authority without inheriting one another's temp authority. Windows grants a write only where BOTH the caller's normal access AND the restricting-SID intersection allow it. These SIDs are the primary allowlists and grant nothing elsewhere, but the check also inherits ambient write ACEs of the OTHER restricting SIDs (the keep-alive group logon SID + Everyone), and NTFS ACLs belong to file objects rather than paths; the Everyone and hard-link boundaries are why the rung reports partial rather than full enforcement.
 
@@ -12,7 +12,7 @@ Building directly on the raw ACL mechanism is the recorded design choice: it imp
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { AclSandbox, tempWriteSid, workspaceWriteSid } from '@hydra1902/harness-sandbox-windows-acl'
+import { AclSandbox, tempWriteSid, workspaceWriteSid } from '@hydraharness/harness-sandbox-windows-acl'
 
 const workspaceRoot = process.cwd()
 const tempDir = mkdtempSync(join(tmpdir(), 'hydra-'))
@@ -40,7 +40,7 @@ A direct `AclSandbox` requires an explicit private temp directory (or `tempDir: 
 
 ## The confinement runner
 
-The seam-facing shape is the **runner entry** (`./runner`), the argv-prefix wrapper `@hydra/harness-sandbox-local` spawns in place of the caller's command — the same architecture as bwrap/landlock-run/sandbox-exec, so the sandbox seam's `confine()` contract needs no change. Stable argv contract:
+The seam-facing shape is the **runner entry** (`./runner`), the argv-prefix wrapper `@hydraharness/harness-sandbox-local` spawns in place of the caller's command — the same architecture as bwrap/landlock-run/sandbox-exec, so the sandbox seam's `confine()` contract needs no change. Stable argv contract:
 
 ```sh
 node runner.js --workspace <dir> --temp <dir> --mode <read-only|workspace-write> [--write-sid <S-1-4-…> --temp-write-sid <S-1-4-…>] -- <argv...>
@@ -82,7 +82,7 @@ The koffi struct definitions assert their sizes against the probe at module load
 
 ## Model Experience
 
-Indirectly, through [`@hydra/harness-bash-sandbox`](../../shell/bash-sandbox/README.md), [`@hydra/harness-pwsh-sandbox`](../../shell/pwsh-sandbox/README.md), and their tools, which render this backend's partial-enforcement and denial facts (the confined stderr the tool layer classifies through `denialSignatures`) while the [`@hydra/harness-sandbox`](../sandbox/README.md) seam owns the `SANDBOX_UNAVAILABLE` text and runner selection.
+Indirectly, through [`@hydraharness/harness-bash-sandbox`](../../shell/bash-sandbox/README.md), [`@hydraharness/harness-pwsh-sandbox`](../../shell/pwsh-sandbox/README.md), and their tools, which render this backend's partial-enforcement and denial facts (the confined stderr the tool layer classifies through `denialSignatures`) while the [`@hydraharness/harness-sandbox`](../sandbox/README.md) seam owns the `SANDBOX_UNAVAILABLE` text and runner selection.
 
 #### KV Cache effect
 

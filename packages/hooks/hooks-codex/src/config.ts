@@ -2,10 +2,10 @@
  * Parse Codex's seven-event hook subset into shared {@link MatcherGroup}s. Only synchronous command
  * hooks run; other types and `async: true` commands are recorded as skipped. Codex performs no
  * command substitution.
- * @module @hydra1902/harness-hooks-codex/config
+ * @module @hydraharness/harness-hooks-codex/config
  */
 
-import { matcherDiagnostic, type MatcherGroup } from '@hydra1902/harness-hook-protocol'
+import { matcherDiagnostic, type MatcherGroup } from '@hydraharness/harness-hook-protocol'
 
 /** The seven Codex hook points that have matching Hydra extension points. */
 export const CODEX_EVENTS = [

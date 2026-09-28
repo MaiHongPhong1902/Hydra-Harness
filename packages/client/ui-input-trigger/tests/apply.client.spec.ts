@@ -4,13 +4,13 @@
  * registration follows the slot declaration, resolves the per-session controller from the slot's
  * sessionId, and unregisters on fiber teardown.
  */
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it } from 'vitest'
-import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
-import { createScope, scopeOf, SlotRegistry } from '@hydra1902/harness-client-runtime/client'
-import type { SessionId } from '@hydra1902/harness-client-runtime/client'
-import { apply, inject, InputTriggerService } from '@hydra1902/harness-client-ui-input-trigger/client'
-import type { MenuViewInjected } from '@hydra1902/harness-client-ui-input-trigger/client'
+import { LocaleRuntime } from '@hydraharness/harness-client-locale/client'
+import { createScope, scopeOf, SlotRegistry } from '@hydraharness/harness-client-runtime/client'
+import type { SessionId } from '@hydraharness/harness-client-runtime/client'
+import { apply, inject, InputTriggerService } from '@hydraharness/harness-client-ui-input-trigger/client'
+import type { MenuViewInjected } from '@hydraharness/harness-client-ui-input-trigger/client'
 
 const sid = (k: string): SessionId => k as SessionId
 

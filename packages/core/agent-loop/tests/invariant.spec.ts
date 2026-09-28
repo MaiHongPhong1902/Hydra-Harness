@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import InvariantRegistry from '@hydra1902/harness-invariants'
-import * as AgentLoopInvariant from '@hydra1902/harness-agent-loop/invariant'
-import { createUserMessage, markAgentLoopRequest, type GenerateOptions  } from '@hydra1902/harness-llm'
+import { Context } from '@hydraharness/cordis'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import InvariantRegistry from '@hydraharness/harness-invariants'
+import * as AgentLoopInvariant from '@hydraharness/harness-agent-loop/invariant'
+import { createUserMessage, markAgentLoopRequest, type GenerateOptions  } from '@hydraharness/harness-llm'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

@@ -4,12 +4,12 @@
  * layer — consumers depend on this package and never touch backends directly.
  * Plugin `Config` is schemastery; record schemas inside domain specs are zod
  * (see `src/spec.ts` for the split rationale).
- * @module @hydra1902/harness-storage-domain
+ * @module @hydraharness/harness-storage-domain
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { storageBackendServiceKey } from '@hydra1902/harness-storage'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { storageBackendServiceKey } from '@hydraharness/harness-storage'
 import { DomainError } from './error.ts'
 import { descriptorOf } from './spec.ts'
 import type { DomainSpec } from './spec.ts'
@@ -26,13 +26,13 @@ export type {
 export type { DomainChanged } from './events.ts'
 export type { Domain, DomainGlobal, DomainGlobalHandleOf, KvTable } from './domain.ts'
 
-declare module '@hydra1902/harness-storage' {
+declare module '@hydraharness/harness-storage' {
   interface StorageForms {
     domain: DomainFacility
   }
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     storageDomain: DomainFacility
   }

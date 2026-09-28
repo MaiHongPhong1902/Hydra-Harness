@@ -1,14 +1,14 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-session-title`.
- * @module @hydra1902/harness-session-title/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-session-title`.
+ * @module @hydraharness/harness-session-title/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
+import type { SessionEvent } from '@hydraharness/harness-session'
 
-const PACKAGE_NAME = '@hydra1902/harness-session-title'
+const PACKAGE_NAME = '@hydraharness/harness-session-title'
 
 /** Cordis companion plugin name. */
 export const name = 'session-title-invariant'

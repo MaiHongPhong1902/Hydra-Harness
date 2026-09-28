@@ -3,10 +3,10 @@
  * process-group cancellation, and timeout machinery. The bridge supplies the
  * trusted stdin payload and dialect environment, then this module decodes the
  * captured outcome.
- * @module @hydra1902/harness-hook-protocol/runner
+ * @module @hydraharness/harness-hook-protocol/runner
  */
 
-import type { ShellExecutor } from '@hydra1902/harness-shell'
+import type { ShellExecutor } from '@hydraharness/harness-shell'
 import { parseHookOutput } from './codec.ts'
 import type { CommandHook, HookOutput } from './types.ts'
 

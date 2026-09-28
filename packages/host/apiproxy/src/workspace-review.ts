@@ -4,7 +4,7 @@ import { constants } from 'node:fs'
 import { lstat, open, realpath } from 'node:fs/promises'
 import { isAbsolute, relative, resolve } from 'node:path'
 import { promisify } from 'node:util'
-import type { ReviewHunk, ReviewMode, WorkspaceReview, WorkspaceReviewFile } from '@hydra1902/harness-fs-review/client'
+import type { ReviewHunk, ReviewMode, WorkspaceReview, WorkspaceReviewFile } from '@hydraharness/harness-fs-review/client'
 
 const execute = promisify(execFile)
 /** Deployment budgets shared by the gateway's config and its direct constructor. */

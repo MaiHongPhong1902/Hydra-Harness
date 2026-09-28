@@ -35,4 +35,4 @@ Additionally, launching the desktop application via `npm run desktop` failed on 
 
 - Unit test in `packages/browser/browser-electron/tests/child.spec.ts`: `preempts earlier desktop browser connection when another agent connects` passes.
 - All 92 browser-electron tests pass cleanly (`pnpm test packages/browser/browser-electron`).
-- Desktop smoke suite passes cleanly (`pnpm --filter @hydra/harness-desktop run smoke`).
+- Desktop smoke suite passes cleanly (`pnpm --filter @hydraharness/harness-desktop run smoke`).

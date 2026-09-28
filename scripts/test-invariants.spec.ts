@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context, FiberState, Service, ValidationError } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import z from '@hydra1902/schemastery'
-import InvariantRegistry from '@hydra1902/harness-invariants'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import { Context, FiberState, Service, ValidationError } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import z from '@hydraharness/schemastery'
+import InvariantRegistry from '@hydraharness/harness-invariants'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 import { packageInvariantOwners } from './package-invariants.ts'
 import {
   TEST_INVARIANT_READY_SERVICE,
@@ -13,7 +13,7 @@ import {
   usesManualInvariantTree,
 } from './test-invariants.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     testInvariantProbe: TestInvariantProbe
   }

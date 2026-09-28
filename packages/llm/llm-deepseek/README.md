@@ -1,8 +1,8 @@
-# @hydra/harness-llm-deepseek
+# @hydraharness/harness-llm-deepseek
 
 DeepSeek chat-completions adapter for the harness LLM seam: direct `fetch` + SSE (framed by `eventsource-parser`) translating the official wire format (source of truth: the API docs — guides/thinking_mode, guides/tool_calls, api/create-chat-completion) into the `StreamChunk` protocol.
 
-A second, library-backed implementation of the same seam exists in `@hydra/harness-llm-pi-ai`. This package owns the `deepseek-official` provider route — deliberately distinct from pi-ai's catalog name `deepseek`, so one composition can mount both DeepSeek paths side by side; registering another adapter for `deepseek-official` itself still throws `LlmError('DUPLICATE_ADAPTER')`.
+A second, library-backed implementation of the same seam exists in `@hydraharness/harness-llm-pi-ai`. This package owns the `deepseek-official` provider route — deliberately distinct from pi-ai's catalog name `deepseek`, so one composition can mount both DeepSeek paths side by side; registering another adapter for `deepseek-official` itself still throws `LlmError('DUPLICATE_ADAPTER')`.
 
 The package root exposes the Cordis plugin contract and `DeepSeekAdapter`; wire serialization, SSE parsing, and chunk translation helpers are not part of that root contract.
 
@@ -12,7 +12,7 @@ Profiles accept `apiKeyFallbackEnvs`, ordered credential references after `apiKe
 
 ```yaml
 - id: llm-deepseek
-  name: '@hydra1902/harness-llm-deepseek'
+  name: '@hydraharness/harness-llm-deepseek'
   config:
     apiKeyEnv: DEEPSEEK_API_KEY  # default; resolved per request via ctx.credentials, then the environment
     baseURL: https://api.deepseek.com # optional; $DEEPSEEK_BASE_URL then the public API when omitted
@@ -56,7 +56,7 @@ The same exact-model result exposes ordered `off`, `low`, `high`, and `max` effo
 
 `thinking: disabled` is a deployment lock that publishes only `off` with `off` as its default. Omitting `reasoningEffort` or configuring it as `off` is valid; configuring `low`, `high`, or `max` fails plugin loading, and a direct per-request attempt to enable thinking fails before network I/O. A request with `GenerateOptions.purpose: 'session-title'` also forces thinking disabled and omits the already-resolved effort, reserving its bounded output for visible title text without changing conversation or compaction defaults.
 
-`streamIdleTimeoutMs` bounds each outstanding provider read, including the initial `fetch`, without counting time the consumer spends between chunks. DeepSeek SSE comments rearm an outstanding read as transport activity but never become `StreamChunk` values or session-log events. One stable abort signal reaches the request and body reader for the whole call; expiry stops the transport and throws `LlmError('TIMEOUT')`, while an earlier caller abort throws `LlmError('ABORTED')`. The adapter makes exactly one provider request per `stream()` call; it registers the configured policy as provider metadata, and `@hydra/harness-llm-retry` separately executes it at durable agent-step boundaries.
+`streamIdleTimeoutMs` bounds each outstanding provider read, including the initial `fetch`, without counting time the consumer spends between chunks. DeepSeek SSE comments rearm an outstanding read as transport activity but never become `StreamChunk` values or session-log events. One stable abort signal reaches the request and body reader for the whole call; expiry stops the transport and throws `LlmError('TIMEOUT')`, while an earlier caller abort throws `LlmError('ABORTED')`. The adapter makes exactly one provider request per `stream()` call; it registers the configured policy as provider metadata, and `@hydraharness/harness-llm-retry` separately executes it at durable agent-step boundaries.
 
 ## Dynamic configuration (settings + credentials)
 
@@ -72,9 +72,9 @@ The plugin also declares its route in the configurable-provider directory (`ctx.
 
 ## App attribution
 
-Every request carries the shared attribution header from @hydra/harness-llm's `attributionHeaders()` - the mandatory `User-Agent` baseline identifying the harness (see [@hydra/harness-llm § App attribution](../llm/README.md#app-attribution-attributionts)). Direct DeepSeek requests and OpenAI-compatible gateway requests get no provider-specific app-attribution headers under this adapter contract; OpenRouter app attribution is deferred to a future explicit OpenRouter adapter or mode. A request whose `GenerateOptions.purpose` is `compaction` (@hydra/harness-compaction-basic's auxiliary summarization call) additionally carries `x-hydra-harness-compact: 1`, so the host can separate compaction traffic from conversation requests.
+Every request carries the shared attribution header from @hydraharness/harness-llm's `attributionHeaders()` - the mandatory `User-Agent` baseline identifying the harness (see [@hydraharness/harness-llm § App attribution](../llm/README.md#app-attribution-attributionts)). Direct DeepSeek requests and OpenAI-compatible gateway requests get no provider-specific app-attribution headers under this adapter contract; OpenRouter app attribution is deferred to a future explicit OpenRouter adapter or mode. A request whose `GenerateOptions.purpose` is `compaction` (@hydraharness/harness-compaction-basic's auxiliary summarization call) additionally carries `x-hydra-harness-compact: 1`, so the host can separate compaction traffic from conversation requests.
 
-DeepSeek request identity is separate from app attribution. After credential resolution, every provider request carries `x-hydra-harness-user-id` with the stable anonymous id from [`@hydra/harness-anonymous-user-id`](../../identity/anonymous-user-id/README.md); a request carrying `GenerateOptions.sessionId` also sends that exact value as `x-hydra-harness-session-id`, while a direct call without a session omits the session header. Both headers go to the resolved `baseURL`, including a configured gateway, and remain outside the request body and model-visible content.
+DeepSeek request identity is separate from app attribution. After credential resolution, every provider request carries `x-hydra-harness-user-id` with the stable anonymous id from [`@hydraharness/harness-anonymous-user-id`](../../identity/anonymous-user-id/README.md); a request carrying `GenerateOptions.sessionId` also sends that exact value as `x-hydra-harness-session-id`, while a direct call without a session omits the session header. Both headers go to the resolved `baseURL`, including a configured gateway, and remain outside the request body and model-visible content.
 
 ## Wire-format notes
 

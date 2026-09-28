@@ -7,7 +7,7 @@ import { defineConfig } from 'vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-console.log(chalk.cyan(`📦 Building @hydra1902/harness-browseragent-llms`))
+console.log(chalk.cyan(`📦 Building @hydraharness/harness-browseragent-llms`))
 
 export default defineConfig({
 	clearScreen: false,

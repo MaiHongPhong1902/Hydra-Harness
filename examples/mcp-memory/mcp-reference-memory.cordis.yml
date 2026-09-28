@@ -2,7 +2,7 @@
 # the pinned executable first; Hydra starts it but does not run a package manager.
 - insert:
     - id: memory-mcp-reference
-      name: '@hydra1902/harness-mcp-client'
+      name: '@hydraharness/harness-mcp-client'
       config:
         serverName: reference_memory
         transport: stdio

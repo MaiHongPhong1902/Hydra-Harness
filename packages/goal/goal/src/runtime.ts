@@ -1,6 +1,6 @@
 /** Runtime constructors and protocol constants for the goal domain. */
 
-import { HarnessError } from '@hydra1902/harness-llm'
+import { HarnessError } from '@hydraharness/harness-llm'
 import type { GoalId as GoalIdType } from './types.ts'
 import type { GoalErrorCode } from './domain.ts'
 

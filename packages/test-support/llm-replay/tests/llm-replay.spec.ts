@@ -2,10 +2,10 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import type { SessionEvent } from '@hydra1902/harness-session'
-import { CompactionId } from '@hydra1902/harness-compaction'
-import LlmRuntime, { CallId, createUserMessage, GenerateOptions, LlmAdapter, StreamChunk } from '@hydra1902/harness-llm'
+import { Context } from '@hydraharness/cordis'
+import type { SessionEvent } from '@hydraharness/harness-session'
+import { CompactionId } from '@hydraharness/harness-compaction'
+import LlmRuntime, { CallId, createUserMessage, GenerateOptions, LlmAdapter, StreamChunk } from '@hydraharness/harness-llm'
 import {
   type Config,
   type ReplayEntry,

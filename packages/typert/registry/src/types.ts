@@ -1,11 +1,11 @@
 /**
  * Pure generated-artifact and runtime-registry types. The registry stores Zod
  * schemas separately from generated package reflection metadata.
- * @module @hydra1902/harness-typert-registry/types
+ * @module @hydraharness/harness-typert-registry/types
  */
 
 import type { z } from 'zod'
-import type { InvocationDescriptor } from '@hydra1902/harness-typert-protocol'
+import type { InvocationDescriptor } from '@hydraharness/harness-typert-protocol'
 
 /** Independently compiled side that produced a contribution. */
 export type TypertFace = 'host' | 'client'

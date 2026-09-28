@@ -14,14 +14,14 @@
  * carry the complete post-change state, never a bare delta — it keeps every
  * unit's transition trivially cheap and every served value self-describing.
  *
- * @module @hydra1902/harness-session-projection
+ * @module @hydraharness/harness-session-projection
  */
 
-import { Context, Service } from '@hydra1902/cordis'
+import { Context, Service } from '@hydraharness/cordis'
 import type { ZodType } from 'zod'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     sessionProjections: SessionProjectionRegistry
   }

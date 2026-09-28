@@ -5,22 +5,22 @@
  * any trees the service still owns. It has no config: every disposition and
  * limit arrives on the spec, so the deployment-varying choices stay with the
  * caller's config (the bash executor's, the LSP host's, …).
- * @module @hydra1902/harness-subprocess-local
+ * @module @hydraharness/harness-subprocess-local
  */
 
 import { constants } from 'node:fs'
 import { access, stat } from 'node:fs/promises'
 import { delimiter, extname, isAbsolute, resolve } from 'node:path'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import * as nodePty from 'node-pty'
 import type { IPtyForkOptions } from 'node-pty'
-import { SubprocessRuntime } from '@hydra1902/harness-subprocess'
+import { SubprocessRuntime } from '@hydraharness/harness-subprocess'
 import type {
   SubprocessHandle,
   SubprocessSpawnSpec,
   SubprocessTerminalHandle,
   SubprocessTerminalSpawnSpec,
-} from '@hydra1902/harness-subprocess'
+} from '@hydraharness/harness-subprocess'
 import { childEnv, spawnSubprocess } from './spawn.ts'
 import type { LocalSubprocessHandle, SpawnInternals } from './spawn.ts'
 import { createProcessInspector } from './process-inspector.ts'

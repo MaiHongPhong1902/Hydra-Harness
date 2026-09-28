@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { UserMessage } from '@hydra1902/harness-llm'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { UserMessage } from '@hydraharness/harness-llm'
 import {
   deriveBrowserTimeZoneContext,
   renderBrowserTimeZoneContext,

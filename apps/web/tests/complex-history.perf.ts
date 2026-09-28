@@ -9,22 +9,22 @@ import { performance } from 'node:perf_hooks'
 import type { Browser, CDPSession, Locator, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { StreamChunk } from '@hydra1902/harness-llm'
+import type { StreamChunk } from '@hydraharness/harness-llm'
 import {
   CallId,
   createAssistantMessage,
   createToolResultMessage,
   createUserMessage,
-} from '@hydra1902/harness-llm'
-import type { ReplayEntry, ReplayOverrideDoc } from '@hydra1902/harness-llm-replay'
-import type { SessionEvent } from '@hydra1902/harness-session'
+} from '@hydraharness/harness-llm'
+import type { ReplayEntry, ReplayOverrideDoc } from '@hydraharness/harness-llm-replay'
+import type { SessionEvent } from '@hydraharness/harness-session'
 import {
   SESSION_FORMAT_VERSION,
   Session,
   SessionId,
-} from '@hydra1902/harness-session'
+} from '@hydraharness/harness-session'
 // Carries the session/title event declaration into the fixture builder.
-import type {} from '@hydra1902/harness-session-title'
+import type {} from '@hydraharness/harness-session-title'
 import {
   launchWebScaffold,
   seedSession,

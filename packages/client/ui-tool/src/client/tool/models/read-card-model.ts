@@ -13,8 +13,8 @@
  * until the result arrives.
  * @module
  */
-import { abbreviateHomePath } from '@hydra1902/harness-client-runtime/client'
-import type { ReadBlockLine, ReadBlockProps } from '@hydra1902/harness-client-ui-primitives'
+import { abbreviateHomePath } from '@hydraharness/harness-client-runtime/client'
+import type { ReadBlockLine, ReadBlockProps } from '@hydraharness/harness-client-ui-primitives'
 import { relativizeToCwd, type ToolCallBlock } from './tool-call-model.ts'
 
 /**

@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-client-ui-slots",
+  "name": "@hydraharness/harness-client-ui-slots",
   "description": "Slot registry pure core: SlotMap declaration merging, single register composition API, four-share props types, store-seat types, renderer install seam",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -27,9 +27,9 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
     "@types/react": "~18.3.1",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis": "workspace:^"
   },
   "files": [
     "lib/index.js",
@@ -37,7 +37,7 @@
     "lib/types/**/*.d.ts"
   ],
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

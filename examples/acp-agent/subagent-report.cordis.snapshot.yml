@@ -1,15 +1,15 @@
 # Keyless counterpart to subagent-report.cordis.yml: replace the live adapter
 # with replay and preserve its child and parent scheduling fence.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra1902/harness-llm-deepseek'
+        name: '@hydraharness/harness-llm-deepseek'
         disabled: true
       - id: acp-agent
-        name: '@hydra1902/harness-acp-demo'
+        name: '@hydraharness/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -22,7 +22,7 @@
 
             Verify your work by running the code or tests. Keep answers brief and factual.
       - id: sandbox
-        name: '@hydra1902/harness-sandbox-local'
+        name: '@hydraharness/harness-sandbox-local'
         config:
           runnerCommand:
             - bash
@@ -33,7 +33,7 @@
             - 'passthrough-runner: profile rejected'
       - insert:
           - id: llm-replay
-            name: '@hydra1902/harness-llm-replay'
+            name: '@hydraharness/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

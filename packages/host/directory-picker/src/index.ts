@@ -8,10 +8,10 @@
  * can reach). Consumers switch on `capability().kind`; the union is
  * merge-extensible, and the documented default for an unknown kind is to
  * hide the picking affordance rather than fail.
- * @module @hydra1902/harness-host-directory-picker
+ * @module @hydraharness/harness-host-directory-picker
  */
 
-import { Context, Service } from '@hydra1902/cordis'
+import { Context, Service } from '@hydraharness/cordis'
 
 /** The native interaction: one OS directory chooser on the host display. */
 export interface DirectoryPickerNativeCapability {
@@ -115,7 +115,7 @@ export class DirectoryPickerError extends Error {
   }
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     directoryPicker: DirectoryPicker
   }

@@ -1,10 +1,10 @@
 /** Session-local diagnostics around the shared LLM stream waterfall. */
 
-import type { Context } from '@hydra1902/cordis'
-import { isAgentLoopRequest, isTokenDelta } from '@hydra1902/harness-llm'
-import type { GenerateOptions, StreamChunk } from '@hydra1902/harness-llm'
+import type { Context } from '@hydraharness/cordis'
+import { isAgentLoopRequest, isTokenDelta } from '@hydraharness/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydraharness/harness-llm'
 import type { LlmCallEnd } from './types.ts'
-import type {} from '@hydra1902/harness-session'
+import type {} from '@hydraharness/harness-session'
 
 export type { LlmCallStart, LlmCallFirstOutput, LlmCallEnd } from './types.ts'
 

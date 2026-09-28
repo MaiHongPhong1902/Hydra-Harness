@@ -3,7 +3,7 @@
  * algorithm used by the agent loop to build an assistant message from a chunk
  * stream while logging the raw chunks for replay fidelity.
  *
- * @module @hydra1902/harness-llm/assembler
+ * @module @hydraharness/harness-llm/assembler
  */
 
 import { CallId } from './brand.ts'

@@ -2,13 +2,13 @@
 # the ordinary DeepSeek route while the ACP app and every other capability stay
 # identical to the base example.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - insert:
           - id: session-title-provider
-            name: '@hydra1902/harness-session-title-first-prompt-llm'
+            name: '@hydraharness/harness-session-title-first-prompt-llm'
             config:
               targetWords: 5
               targetCjkCharacters: 10

@@ -3,9 +3,9 @@ import { fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { CallId, createUserMessage, LlmAdapter, type GenerateOptions, type StreamChunk } from '@hydra1902/harness-llm'
-import { SessionId } from '@hydra1902/harness-session'
-import type { PluginInventoryGateway } from '@hydra1902/harness-host-plugin-inventory'
+import { CallId, createUserMessage, LlmAdapter, type GenerateOptions, type StreamChunk } from '@hydraharness/harness-llm'
+import { SessionId } from '@hydraharness/harness-session'
+import type { PluginInventoryGateway } from '@hydraharness/harness-host-plugin-inventory'
 import { launchWebScaffold, type WebScaffold } from './scaffold.ts'
 
 const OVERLAY = fileURLToPath(new URL('./browser-decisions.overlay.yml', import.meta.url))
@@ -69,10 +69,10 @@ describe('web e2e: browser decisions without Jev', () => {
 
   it('saves Jev, its UI, and its bounded consumer together for restart', async () => {
     const inventory = scaffold.ctx.get('pluginInventory') as PluginInventoryGateway
-    const entry = (await inventory.list()).entries.find(row => row.moduleName === '@hydra1902/harness-jev')!
+    const entry = (await inventory.list()).entries.find(row => row.moduleName === '@hydraharness/harness-jev')!
     expect(entry).toMatchObject({ enabled: false, toggleable: true })
     expect(entry.relatedModules).toEqual(expect.arrayContaining([
-      '@hydra1902/harness-browser-decisions', '@hydra1902/harness-client-ui-jev',
+      '@hydraharness/harness-browser-decisions', '@hydraharness/harness-client-ui-jev',
     ]))
     const result = await inventory.setEnabled({ entryId: entry.entryId, enabled: true })
     expect(result.restartRequired).toBe(true)
@@ -82,8 +82,8 @@ describe('web e2e: browser decisions without Jev', () => {
     expect(manifest).toMatchObject({ hydra: { profile: { pluginEnablement: {
       jev: true, 'ui-jev': true, 'browser-decisions': true,
     } } } })
-    const jevEntry = result.snapshot.entries.find(row => row.moduleName === '@hydra1902/harness-jev')
+    const jevEntry = result.snapshot.entries.find(row => row.moduleName === '@hydraharness/harness-jev')
     expect(jevEntry).toMatchObject({ enabled: false, pendingEnabled: true, restartRequired: true })
-    expect(jevEntry?.relatedModules).toContain('@hydra1902/harness-browser-decisions')
+    expect(jevEntry?.relatedModules).toContain('@hydraharness/harness-browser-decisions')
   })
 })

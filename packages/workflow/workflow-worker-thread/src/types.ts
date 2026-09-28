@@ -2,12 +2,12 @@
  * Non-protocol wire vocabulary for the worker-thread engine: the `workerData` init payload and
  * the child-port interfaces the worker-side runtime consumes. Host/worker messages are defined in
  * `./protocol.ts`; transported child requests and results are plain JSON for structured clone.
- * @module @hydra1902/harness-workflow-worker-thread/types
+ * @module @hydraharness/harness-workflow-worker-thread/types
  */
 
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import type { ObjectJsonSchema } from '@hydra1902/harness-tools'
-import type { WorkflowMeta } from '@hydra1902/harness-workflow'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import type { ObjectJsonSchema } from '@hydraharness/harness-tools'
+import type { WorkflowMeta } from '@hydraharness/harness-workflow'
 
 /**
  * The per-run limits the worker-side runtime enforces. The host keeps the

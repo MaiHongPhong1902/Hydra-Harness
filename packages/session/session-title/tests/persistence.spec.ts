@@ -1,13 +1,13 @@
-import { createUserMessage } from '@hydra1902/harness-llm'
+import { createUserMessage } from '@hydraharness/harness-llm'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
-import SqliteSessionPersistence from '@hydra1902/harness-session-persistence-sqlite'
-import SessionTitleService, { foldSessionTitle } from '@hydra1902/harness-session-title'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import JsonlSessionPersistence from '@hydraharness/harness-session-persistence-jsonl'
+import SqliteSessionPersistence from '@hydraharness/harness-session-persistence-sqlite'
+import SessionTitleService, { foldSessionTitle } from '@hydraharness/harness-session-title'
 
 const CONFIG = {
   fallbackMaxWords: 5,

@@ -3,13 +3,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execa } from 'execa'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import SessionStore, {
   SessionId, TOOL_OUTCOME_UNKNOWN,
   type SessionEvent,
-} from '@hydra1902/harness-session'
-import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
+} from '@hydraharness/harness-session'
+import JsonlSessionPersistence from '@hydraharness/harness-session-persistence-jsonl'
 
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url))
 const childScript = fileURLToPath(new URL('./fixtures/crash-child.ts', import.meta.url))

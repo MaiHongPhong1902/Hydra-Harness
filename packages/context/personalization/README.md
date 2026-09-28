@@ -1,4 +1,4 @@
-# @hydra/harness-personalization
+# @hydraharness/harness-personalization
 
 Personality preference for the system prompt: `friendly`, `pragmatic` (default), or `none`. The value lives in one settings namespace (`personalization`), registered through the generic `ctx.settings` seam so the browser reads and writes it via the already-existing `settings.describe`/`settings.mutate` RPCs — this package adds no RPC of its own.
 

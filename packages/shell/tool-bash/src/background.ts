@@ -1,10 +1,10 @@
 /**
  * Generic-task adaptation for background bash process handles.
  *
- * @module @hydra1902/harness-tool-bash/background
+ * @module @hydraharness/harness-tool-bash/background
  */
 
-import type { ShellProcess } from '@hydra1902/harness-shell'
+import type { ShellProcess } from '@hydraharness/harness-shell'
 
 /**
  * Map a settled background process onto the generic task-outcome vocabulary:

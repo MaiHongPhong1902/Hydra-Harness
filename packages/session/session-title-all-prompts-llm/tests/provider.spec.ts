@@ -1,10 +1,10 @@
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it } from 'vitest'
-import LlmRuntime, { createUserMessage, LlmAdapter  } from '@hydra1902/harness-llm'
-import type { GenerateOptions, StreamChunk } from '@hydra1902/harness-llm'
-import SessionStore, { Session, SessionId } from '@hydra1902/harness-session'
-import SessionTitleService from '@hydra1902/harness-session-title'
-import * as providerPlugin from '@hydra1902/harness-session-title-all-prompts-llm'
+import LlmRuntime, { createUserMessage, LlmAdapter  } from '@hydraharness/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydraharness/harness-llm'
+import SessionStore, { Session, SessionId } from '@hydraharness/harness-session'
+import SessionTitleService from '@hydraharness/harness-session-title'
+import * as providerPlugin from '@hydraharness/harness-session-title-all-prompts-llm'
 
 class RecordingAdapter extends LlmAdapter {
   readonly requests: GenerateOptions[] = []

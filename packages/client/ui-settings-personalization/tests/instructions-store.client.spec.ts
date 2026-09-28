@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import type { IApiClient } from '@hydra1902/harness-api-remotes/client'
+import type { IApiClient } from '@hydraharness/harness-api-remotes/client'
 import { InstructionsController } from '../src/client/instructions-store.ts'
 
 const EMPTY_SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'

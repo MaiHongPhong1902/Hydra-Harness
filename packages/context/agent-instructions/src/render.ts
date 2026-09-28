@@ -1,7 +1,7 @@
 /**
  * Model-facing workspace instruction rendering within an explicit byte budget.
  *
- * @module @hydra1902/harness-agent-instructions/render
+ * @module @hydraharness/harness-agent-instructions/render
  */
 
 import { basename, dirname } from 'node:path'

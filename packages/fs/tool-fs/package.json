@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-tool-fs",
+  "name": "@hydraharness/harness-tool-fs",
   "description": "Model-facing filesystem tools (read, write, edit) over the Hydra harness filesystem seam (ctx.fs)",
   "hydra": {
     "plugin": {
@@ -38,35 +38,35 @@
   "license": "MIT",
   "dependencies": {
     "diff": "^9.0.0",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@hydra1902/harness-attachment": "workspace:^",
-    "@hydra1902/harness-fs": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-sandbox": "workspace:^",
-    "@hydra1902/harness-sandbox-policy": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-user-approval": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-attachment": "workspace:^",
+    "@hydraharness/harness-fs": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-sandbox": "workspace:^",
+    "@hydraharness/harness-sandbox-policy": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-user-approval": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-attachment": "workspace:^",
-    "@hydra1902/harness-fs": "workspace:^",
-    "@hydra1902/harness-fs-local": "workspace:^",
-    "@hydra1902/harness-fs-observation-policy": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-sandbox": "workspace:^",
-    "@hydra1902/harness-sandbox-policy": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-user-approval": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-attachment": "workspace:^",
+    "@hydraharness/harness-fs": "workspace:^",
+    "@hydraharness/harness-fs-local": "workspace:^",
+    "@hydraharness/harness-fs-observation-policy": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-sandbox": "workspace:^",
+    "@hydraharness/harness-sandbox-policy": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-user-approval": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

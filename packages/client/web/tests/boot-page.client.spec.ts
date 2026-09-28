@@ -35,11 +35,11 @@ describe('BootPage', () => {
 
   it('lists failed entries', () => {
     const { el, page } = mount()
-    page.setState('@hydra1902/harness-client-ui-layout', 'failed')
+    page.setState('@hydraharness/harness-client-ui-layout', 'failed')
     page.setState('ok', 'active')
-    page.setState('@hydra1902/harness-client-ui-tool', 'failed')
-    expect(el.textContent).toContain('@hydra1902/harness-client-ui-layout')
-    expect(el.textContent).toContain('@hydra1902/harness-client-ui-tool')
+    page.setState('@hydraharness/harness-client-ui-tool', 'failed')
+    expect(el.textContent).toContain('@hydraharness/harness-client-ui-layout')
+    expect(el.textContent).toContain('@hydraharness/harness-client-ui-tool')
     expect(el.textContent).not.toContain('ok')
     expect(el.textContent).not.toContain('Loading plugins…')
   })

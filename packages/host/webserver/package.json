@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-host-webserver",
+  "name": "@hydraharness/harness-host-webserver",
   "description": "Web route-registration plugin: HTTP and upgrade routes, index transform taps, and static dist fallback; knows no harness concepts",
   "hydra": {
     "plugin": {
@@ -37,14 +37,14 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^"
   }
 }

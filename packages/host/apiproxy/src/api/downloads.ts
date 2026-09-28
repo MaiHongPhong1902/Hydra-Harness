@@ -5,7 +5,7 @@
  * `IApiClient` never exposes them.
  */
 
-import type { SessionId } from '@hydra1902/harness-session/types'
+import type { SessionId } from '@hydraharness/harness-session/types'
 
 /** Host-only download surfaces (no wire envelope; absent from IApiClient). */
 export interface DownloadsApi {

@@ -4,17 +4,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { createUserMessage, CallId, StreamChunk  } from '@hydra1902/harness-llm'
-import SessionStore, { SessionEvent, SessionId } from '@hydra1902/harness-session'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import LlmRuntime from '@hydra1902/harness-llm'
-import ToolRuntime, { defineContentToolFixture, TOOL_ABORTED_BEFORE_DISPATCH, TOOL_RUNTIME_SCHEDULER, type PostToolDecision, type PreToolDecision } from '@hydra1902/harness-tools'
-import AgentRegistry, { type Agent } from '@hydra1902/harness-agent'
-import AgentLoop, { DEFAULT_MAX_PARALLEL_TOOL_CALLS } from '@hydra1902/harness-agent-loop'
+import { Context } from '@hydraharness/cordis'
+import { createUserMessage, CallId, StreamChunk  } from '@hydraharness/harness-llm'
+import SessionStore, { SessionEvent, SessionId } from '@hydraharness/harness-session'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import LlmRuntime from '@hydraharness/harness-llm'
+import ToolRuntime, { defineContentToolFixture, TOOL_ABORTED_BEFORE_DISPATCH, TOOL_RUNTIME_SCHEDULER, type PostToolDecision, type PreToolDecision } from '@hydraharness/harness-tools'
+import AgentRegistry, { type Agent } from '@hydraharness/harness-agent'
+import AgentLoop, { DEFAULT_MAX_PARALLEL_TOOL_CALLS } from '@hydraharness/harness-agent-loop'
 import { MockAdapter, textResponse } from './mock-adapter.ts'
-import { CodeRuntime } from '@hydra1902/harness-code-runtime'
-import type { CodeRunRequest, CodeRunResult } from '@hydra1902/harness-code-runtime'
+import { CodeRuntime } from '@hydraharness/harness-code-runtime'
+import type { CodeRunRequest, CodeRunResult } from '@hydraharness/harness-code-runtime'
 
 async function harness(adapter: MockAdapter, maxParallelToolCalls?: number) {
   const ctx = new Context()

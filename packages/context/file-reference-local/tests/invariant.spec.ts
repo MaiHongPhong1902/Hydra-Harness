@@ -1,6 +1,6 @@
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it } from 'vitest'
-import InvariantService from '@hydra1902/harness-invariants'
+import InvariantService from '@hydraharness/harness-invariants'
 import * as FileReferenceLocalInvariant from '../src/invariant.ts'
 
 describe('invariant companion', () => {

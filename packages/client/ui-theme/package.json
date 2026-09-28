@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-client-ui-theme",
+  "name": "@hydraharness/harness-client-ui-theme",
   "description": "Theme plugin: Host bootstrap for the pre-plugin palette; DOM-free ThemeRuntime for light/dark/system state; --dsw-* token styles and Appearance settings row",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -35,11 +35,11 @@
     },
     "client": {
       "inject": [
-        "@hydra1902/harness-client-connection",
-        "@hydra1902/harness-client-runtime",
-        "@hydra1902/harness-client-locale",
-        "@hydra1902/harness-client-ui-settings",
-        "@hydra1902/harness-api-remotes"
+        "@hydraharness/harness-client-connection",
+        "@hydraharness/harness-client-runtime",
+        "@hydraharness/harness-client-locale",
+        "@hydraharness/harness-client-ui-settings",
+        "@hydraharness/harness-api-remotes"
       ],
       "platform": "web",
       "immediately": true
@@ -47,29 +47,29 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-api-remotes": "workspace:^",
-    "@hydra1902/harness-client-connection": "workspace:^",
-    "@hydra1902/harness-client-locale": "workspace:^",
-    "@hydra1902/harness-client-runtime": "workspace:^",
-    "@hydra1902/harness-client-ui-settings": "workspace:^",
-    "@hydra1902/harness-host-webserver": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-api-remotes": "workspace:^",
+    "@hydraharness/harness-client-connection": "workspace:^",
+    "@hydraharness/harness-client-locale": "workspace:^",
+    "@hydraharness/harness-client-runtime": "workspace:^",
+    "@hydraharness/harness-client-ui-settings": "workspace:^",
+    "@hydraharness/harness-host-webserver": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-api-remotes": "workspace:^",
-    "@hydra1902/harness-client-connection": "workspace:^",
-    "@hydra1902/harness-client-locale": "workspace:^",
-    "@hydra1902/harness-client-runtime": "workspace:^",
-    "@hydra1902/harness-client-test-runtime": "workspace:^",
-    "@hydra1902/harness-client-ui-primitives": "workspace:^",
-    "@hydra1902/harness-client-ui-settings": "workspace:^",
-    "@hydra1902/harness-client-ui-slots": "workspace:^",
-    "@hydra1902/harness-host-webserver": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-api-remotes": "workspace:^",
+    "@hydraharness/harness-client-connection": "workspace:^",
+    "@hydraharness/harness-client-locale": "workspace:^",
+    "@hydraharness/harness-client-runtime": "workspace:^",
+    "@hydraharness/harness-client-test-runtime": "workspace:^",
+    "@hydraharness/harness-client-ui-primitives": "workspace:^",
+    "@hydraharness/harness-client-ui-settings": "workspace:^",
+    "@hydraharness/harness-client-ui-slots": "workspace:^",
+    "@hydraharness/harness-host-webserver": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
     "@types/react": "~18.3.1",
     "react": "^18.2.0"
   },
@@ -86,6 +86,6 @@
   },
   "dependencies": {
     "clsx": "^2.0.0",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   }
 }

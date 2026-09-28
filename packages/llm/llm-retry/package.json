@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-llm-retry",
+  "name": "@hydraharness/harness-llm-retry",
   "description": "Provider-routed LLM request retry policy for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -41,34 +41,34 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/cordis-plugin-include": "workspace:^",
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-agent-loop": "workspace:^",
-    "@hydra1902/harness-agent-loop-testkit": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-llm-deepseek": "workspace:^",
-    "@hydra1902/harness-llm-mock-server": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence-jsonl": "workspace:^",
-    "@hydra1902/harness-session-persistence-sqlite": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/cordis-plugin-include": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-agent-loop": "workspace:^",
+    "@hydraharness/harness-agent-loop-testkit": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-llm-deepseek": "workspace:^",
+    "@hydraharness/harness-llm-mock-server": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence-jsonl": "workspace:^",
+    "@hydraharness/harness-session-persistence-sqlite": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

@@ -7,17 +7,17 @@
  * composing this plugin out of cordis.yml removes both surfaces entirely;
  * the owning view renders an empty chain and inert prose at zero cost.
  */
-import type { ConnectionHandle } from '@hydra1902/harness-client-connection/client'
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
-import type { ChatFileMentions } from '@hydra1902/harness-client-ui-conversation/client'
-import type {} from '@hydra1902/harness-client-locale/client'
+import type { ConnectionHandle } from '@hydraharness/harness-client-connection/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
+import type { ChatFileMentions } from '@hydraharness/harness-client-ui-conversation/client'
+import type {} from '@hydraharness/harness-client-locale/client'
 import { ProducedFiles } from './ProducedFiles.tsx'
 import { en, NS, type DeliverablesKey } from './locales.ts'
 import {
   deliverablesDefinition, producedFileMentions, selectProducedFiles,
 } from './turn-deliverables.ts'
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Produced-files row copy. */
     'deliverables': DeliverablesKey

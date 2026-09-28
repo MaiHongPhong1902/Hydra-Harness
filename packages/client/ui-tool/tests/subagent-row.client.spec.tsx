@@ -2,12 +2,12 @@
 /** subagent atomic Tool presentation. */
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { RunningToolCall, ToolResultNode } from '@hydra1902/harness-client-runtime/client'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+import type { RunningToolCall, ToolResultNode } from '@hydraharness/harness-client-runtime/client'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 import { SubagentRow, subagentToolview } from '../src/client/tool/toolviews/subagent-row.tsx'
 import { CONVERSATION_NS as NS } from '../src/client/locale.ts'
-import { en } from '@hydra1902/harness-client-ui-conversation/src/client/locales.ts'
+import { en } from '@hydraharness/harness-client-ui-conversation/src/client/locales.ts'
 
 type SubagentRowProps = Parameters<typeof SubagentRow>[0]
 

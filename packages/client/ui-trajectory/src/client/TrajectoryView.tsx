@@ -1,12 +1,12 @@
 /** Trajectory view: compact summary over a turn-aware event ledger. */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { ConvViewProps } from '@hydra1902/harness-client-ui-conversation/client'
-import type { InjectFace, PropsLocale } from '@hydra1902/harness-client-ui-slots'
+import type { ConvViewProps } from '@hydraharness/harness-client-ui-conversation/client'
+import type { InjectFace, PropsLocale } from '@hydraharness/harness-client-ui-slots'
 import type {
   AssistantBlock, AssistantMessageNode, ConversationSnapshot,
   SnapshotStore,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import {
   TrajectoryTable,
   type TrajectoryRequestNumber,

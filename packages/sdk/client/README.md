@@ -1,13 +1,13 @@
-# @hydra/harness-sdk-client
+# @hydraharness/harness-sdk-client
 
 The TypeScript client SDK for driving a Hydra harness runtime as a subprocess over stdio JSON-RPC — the design twin of the [Python SDK](../../../python/README.md) (`hydra-harness-sdk`), sharing the same runtime peer, protocol, and layering: `HydraHarness` is the high-level owned-run API, `HarnessClient` the lower-level protocol client. The package root enumerates the consumer interface: the two client layers, caller-facing types, and `JsonRpcResponseError`; source modules, normalization helpers, and subscription-delivery machinery are not consumer imports. A pure library: it registers nothing on a Cordis context; the runtime process it spawns is a complete harness whose composition its own `cordis.yml` decides.
 
-Unlike the Python SDK, the launch spec is fully explicit (`command`/`args`): this package is for repo-adjacent TypeScript consumers — including the [`@hydra/harness-subagent-sdk`](../../subagent/subagent-sdk/README.md) backend and automation — that know which runtime they are launching. Bundled-runtime resolution (finding a packaged executable) remains the Python distribution's concern.
+Unlike the Python SDK, the launch spec is fully explicit (`command`/`args`): this package is for repo-adjacent TypeScript consumers — including the [`@hydraharness/harness-subagent-sdk`](../../subagent/subagent-sdk/README.md) backend and automation — that know which runtime they are launching. Bundled-runtime resolution (finding a packaged executable) remains the Python distribution's concern.
 
 ## HydraHarness
 
 ```ts
-import { HydraHarness } from '@hydra1902/harness-sdk-client'
+import { HydraHarness } from '@hydraharness/harness-sdk-client'
 
 await using harness = new HydraHarness({
   launch: { command: 'node', args: ['lib/bin.js', 'cordis.yml'] },
@@ -27,9 +27,9 @@ The subprocess starts lazily on first use and stays owned by the instance across
 
 The protocol client under the owned-run API: explicit `start()`/`initialize()`/`prompt()`/`request()`/`close()`, plus notification subscriptions. `prompt()` returns the queued message id as soon as the runtime accepts it; it never waits for agent activity. `subscribe(filter?)` returns a `NotificationSubscription` (awaitable `next()`, non-blocking `tryNext()`, async iteration); `subscribeSessionTree(id)` scopes to one session and the descendants discovered from `subagent.started` lineage edges — the runtime notifies for every session in its context, and scoping is client-side, exactly like the Python SDK. Error surfaces are typed and exported from this package: `JsonRpcResponseError` (wire error response, code/data preserved), `RequestTimeoutError` (a configured bound elapsed), `SdkProtocolError` (a response outside the documented protocol), `TransportClosedError` (the runtime is gone — message carries the exit code and a bounded stderr tail).
 
-`close()` requests protocol `shutdown` (bounded by `shutdownTimeoutMs`, default 1000 ms), then walks a stdin-EOF → SIGTERM → SIGKILL ladder (`disposeEofGraceMs` default 6000, `disposeGraceMs` default 3000) until the process has actually exited. The ladder is private to this client: it runs outside any harness context, so it cannot ride the [`@hydra/harness-subprocess`](../../subprocess/README.md) service — the seam's documented exception for SDK-managed transports. It is idempotent, and a closed client refuses reuse.
+`close()` requests protocol `shutdown` (bounded by `shutdownTimeoutMs`, default 1000 ms), then walks a stdin-EOF → SIGTERM → SIGKILL ladder (`disposeEofGraceMs` default 6000, `disposeGraceMs` default 3000) until the process has actually exited. The ladder is private to this client: it runs outside any harness context, so it cannot ride the [`@hydraharness/harness-subprocess`](../../subprocess/README.md) service — the seam's documented exception for SDK-managed transports. It is idempotent, and a closed client refuses reuse.
 
-`HarnessClientOptions.env` replaces the child environment entirely when given (`undefined` inherits the parent's); callers own credential policy — `scrubbedParentEnv` from `@hydra/harness-subprocess` is the shared scrub base for isolation-minded launches.
+`HarnessClientOptions.env` replaces the child environment entirely when given (`undefined` inherits the parent's); callers own credential policy — `scrubbedParentEnv` from `@hydraharness/harness-subprocess` is the shared scrub base for isolation-minded launches.
 
 ## Model Experience
 

@@ -3,18 +3,18 @@
  * `ctx.subagents` that runs each child as a fresh child {@link Agent} on the same cordis
  * context (its own session, own system prompt, zero parent context). The cheapest transport,
  * reusing the agent factory's quiescent teardown.
- * @module @hydra1902/harness-subagent-spawn-in-process
+ * @module @hydraharness/harness-subagent-spawn-in-process
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
 import type {
   ContinuableCreateSpec,
   ResolvedSubagentStartRequest,
   SubagentCapabilities,
   SubagentProvider,
-} from '@hydra1902/harness-subagent'
-import { startInProcessRun } from '@hydra1902/harness-subagent-in-process-driver'
+} from '@hydraharness/harness-subagent'
+import { startInProcessRun } from '@hydraharness/harness-subagent-in-process-driver'
 
 export const name = 'subagent-spawn-in-process'
 // `tools` is deliberately not injected: the child factory already provides it during setup,

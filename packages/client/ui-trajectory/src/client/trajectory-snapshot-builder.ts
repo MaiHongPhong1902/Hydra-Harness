@@ -1,9 +1,9 @@
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   AssistantMessageNode, ConversationNode, ConversationPromptSnapshot,
   ConversationViewBuilder, ConversationViewDefinition, RequestView,
   ToolCallBlock,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type {
   TrajectoryConversationViewNode, TrajectoryRequestHeaderState,
   TrajectorySnapshot,

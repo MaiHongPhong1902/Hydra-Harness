@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-tool-cordis",
+  "name": "@hydraharness/harness-tool-cordis",
   "description": "Self-referential cordis toolset: inspect the live runtime, mount and dispose model-written plugins",
   "hydra": {
     "plugin": {
@@ -37,26 +37,26 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-cordis-host-runner": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-scope": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-cordis-host-runner": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-scope": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-cordis-host-runner": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-scope": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-cordis-host-runner": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-scope": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

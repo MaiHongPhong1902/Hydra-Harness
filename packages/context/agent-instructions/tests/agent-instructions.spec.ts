@@ -2,14 +2,14 @@ import { chmod, mkdtemp, mkdir, rm, stat, symlink, utimes, writeFile } from 'nod
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import * as workspaceContext from '@hydra1902/harness-agent-instructions'
-import LlmRuntime, { createUserMessage, CallId, type Message, type StreamChunk } from '@hydra1902/harness-llm'
-import SessionStore, { Session, SessionId, SESSION_FORMAT_VERSION, type SessionEvent, type UserMessage } from '@hydra1902/harness-session'
-import AgentRegistry, { agentEvents, Inbox, type Agent } from '@hydra1902/harness-agent'
-import AgentLoop from '@hydra1902/harness-agent-loop'
-import { FileSystem, FsTargetKey, FsVersion } from '@hydra1902/harness-fs'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import * as workspaceContext from '@hydraharness/harness-agent-instructions'
+import LlmRuntime, { createUserMessage, CallId, type Message, type StreamChunk } from '@hydraharness/harness-llm'
+import SessionStore, { Session, SessionId, SESSION_FORMAT_VERSION, type SessionEvent, type UserMessage } from '@hydraharness/harness-session'
+import AgentRegistry, { agentEvents, Inbox, type Agent } from '@hydraharness/harness-agent'
+import AgentLoop from '@hydraharness/harness-agent-loop'
+import { FileSystem, FsTargetKey, FsVersion } from '@hydraharness/harness-fs'
 import type {
   FsDirEntry,
   FsEditOutcome,
@@ -19,20 +19,20 @@ import type {
   FsTarget,
   FsWriteIntent,
   FsWriteOutcome,
-} from '@hydra1902/harness-fs'
-import LocalFileSystem from '@hydra1902/harness-fs-local'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { defineContentToolFixture, defineTool } from '@hydra1902/harness-tools'
+} from '@hydraharness/harness-fs'
+import LocalFileSystem from '@hydraharness/harness-fs-local'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture, defineTool } from '@hydraharness/harness-tools'
 import type {
   ToolExecution,
   ToolExecutionToken,
-} from '@hydra1902/harness-tools'
-import * as ToolFs from '@hydra1902/harness-tool-fs'
+} from '@hydraharness/harness-tools'
+import * as ToolFs from '@hydraharness/harness-tool-fs'
 import {
   discoverBaselineInstructionFiles,
   loadBaselineInstructions,
   renderWorkspaceContext,
-} from '@hydra1902/harness-agent-instructions'
+} from '@hydraharness/harness-agent-instructions'
 import {
   applyInstructionVersionUpdates,
   baselineInstructionState,
@@ -629,7 +629,7 @@ describe('workspace context instruction discovery', () => {
       vi.stubEnv('HYDRA_HOME', '')
       vi.resetModules()
       vi.doMock('node:os', () => ({ homedir: () => home }))
-      const isolated = await import('@hydra1902/harness-agent-instructions')
+      const isolated = await import('@hydraharness/harness-agent-instructions')
       const files = await isolated.discoverBaselineInstructionFiles({ cwd: root })
 
       expect(files.map(file => file.displayPath)).toEqual(['~/.hydra/AGENTS.md'])
@@ -650,7 +650,7 @@ describe('workspace context instruction discovery', () => {
 
       vi.resetModules()
       vi.doMock('node:os', () => ({ homedir: () => home }))
-      const isolated = await import('@hydra1902/harness-agent-instructions')
+      const isolated = await import('@hydraharness/harness-agent-instructions')
       const files = await isolated.discoverBaselineInstructionFiles({ cwd: root, hydraHome: '~/.hydra' })
 
       expect(files).toEqual([{ absolutePath: join(home, '.hydra/AGENTS.md'), displayPath: '~/.hydra/AGENTS.md' }])
@@ -2440,7 +2440,7 @@ describe('workspace context request injection', () => {
           },
         }
       })
-      const isolated = await import('@hydra1902/harness-agent-instructions')
+      const isolated = await import('@hydraharness/harness-agent-instructions')
       await isolated.loadBaselineInstructions({ cwd: root, hydraHome: home, maxBytes: 65536 })
       observedStats.clear()
       await isolated.loadBaselineInstructions({ cwd: root, hydraHome: home, maxBytes: 65536 })
@@ -2473,7 +2473,7 @@ describe('workspace context request injection', () => {
           },
         }
       })
-      const isolated = await import('@hydra1902/harness-agent-instructions')
+      const isolated = await import('@hydraharness/harness-agent-instructions')
 
       const rendered = await isolated.loadBaselineInstructions({ cwd: root, hydraHome: home, maxBytes: 65536 })
 

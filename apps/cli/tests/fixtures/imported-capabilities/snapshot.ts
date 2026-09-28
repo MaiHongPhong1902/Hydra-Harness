@@ -2,12 +2,12 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { setTimeout } from 'node:timers/promises'
 import { fileURLToPath } from 'node:url'
-import { boot, loadOverlayPatches } from '@hydra1902/harness-app-boot'
-import { CallId, createUserMessage, LlmAdapter, type GenerateOptions, type Message, type StreamChunk } from '@hydra1902/harness-llm'
-import { SessionId } from '@hydra1902/harness-session'
-import type {} from '@hydra1902/harness-plugin-runtime'
-import type {} from '@hydra1902/harness-tools'
-import type {} from '@hydra1902/harness-hooks-registry'
+import { boot, loadOverlayPatches } from '@hydraharness/harness-app-boot'
+import { CallId, createUserMessage, LlmAdapter, type GenerateOptions, type Message, type StreamChunk } from '@hydraharness/harness-llm'
+import { SessionId } from '@hydraharness/harness-session'
+import type {} from '@hydraharness/harness-plugin-runtime'
+import type {} from '@hydraharness/harness-tools'
+import type {} from '@hydraharness/harness-hooks-registry'
 
 const overlayPath = process.argv[2]
 if (overlayPath === undefined) throw new Error('imported-capabilities snapshot requires an overlay path')

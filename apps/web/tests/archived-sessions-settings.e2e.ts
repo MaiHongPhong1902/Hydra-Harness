@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { SessionId } from '@hydra1902/harness-session'
+import { SessionId } from '@hydraharness/harness-session'
 import {
   launchWebScaffold, seedSession, watchConsole, type WebScaffold,
 } from './scaffold.ts'

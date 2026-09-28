@@ -7,7 +7,7 @@ import { readFile } from 'node:fs/promises'
 import type { Browser, Locator, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { credentialKey } from '@hydra1902/harness-credentials'
+import { credentialKey } from '@hydraharness/harness-credentials'
 import {
   ACCOUNT_AUTH_PROVIDERS,
 } from './account-auth-fixture.ts'

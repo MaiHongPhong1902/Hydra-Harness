@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-tool-web",
+  "name": "@hydraharness/harness-tool-web",
   "description": "Model-facing web tools (web_search, web_fetch) over the Hydra harness web capability seam (ctx.web)",
   "hydra": {
     "plugin": {
@@ -37,32 +37,32 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-web": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-web": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
     "@joplin/turndown-plugin-gfm": "^1.0.67",
-    "@hydra1902/schemastery": "workspace:^",
+    "@hydraharness/schemastery": "workspace:^",
     "turndown": "^7.2.4"
   },
   "devDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
     "@types/turndown": "^5.0.6",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-spill-local": "workspace:^",
-    "@hydra1902/harness-spill-policy": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tool-call-timeout-policy": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-web": "workspace:^",
-    "@hydra1902/harness-web-fetch-http": "workspace:^",
-    "@hydra1902/harness-web-search-exa": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-spill-local": "workspace:^",
+    "@hydraharness/harness-spill-policy": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tool-call-timeout-policy": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-web": "workspace:^",
+    "@hydraharness/harness-web-fetch-http": "workspace:^",
+    "@hydraharness/harness-web-search-exa": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

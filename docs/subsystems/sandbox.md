@@ -1,6 +1,6 @@
 # Process Sandbox
 
-The process-sandbox seam of [@hydra/harness-sandbox](../../packages/sandbox/sandbox) wraps a same-world subprocess argv in a file-effect policy without coupling consumers to a platform runner. [@hydra/harness-sandbox-local](../../packages/sandbox/sandbox-local) supplies Linux bwrap/Landlock, macOS Seatbelt, and the Windows ACL restricted-token backend; [@hydra/harness-bash-sandbox](../../packages/shell/bash-sandbox) and [@hydra/harness-pwsh-sandbox](../../packages/shell/pwsh-sandbox) consume it. Containers, microVMs, and remote execution are sibling implementations of whole capability seams, not providers of `ctx.sandbox`.
+The process-sandbox seam of [@hydraharness/harness-sandbox](../../packages/sandbox/sandbox) wraps a same-world subprocess argv in a file-effect policy without coupling consumers to a platform runner. [@hydraharness/harness-sandbox-local](../../packages/sandbox/sandbox-local) supplies Linux bwrap/Landlock, macOS Seatbelt, and the Windows ACL restricted-token backend; [@hydraharness/harness-bash-sandbox](../../packages/shell/bash-sandbox) and [@hydraharness/harness-pwsh-sandbox](../../packages/shell/pwsh-sandbox) consume it. Containers, microVMs, and remote execution are sibling implementations of whole capability seams, not providers of `ctx.sandbox`.
 
 Source: [`packages/sandbox/sandbox/src/index.ts`](../../packages/sandbox/sandbox/src/index.ts)
 
@@ -52,7 +52,7 @@ interface SandboxExecutionPolicy {
   /** Absolute root directory `workspace-write` may write under. */
   workspaceRoot: string
   /**
-   * Opaque identity of the calling session (the branded `@hydra1902/harness-session`
+   * Opaque identity of the calling session (the branded `@hydraharness/harness-session`
    * SessionId). Backends key per-session state off it (e.g. windows-acl gives
    * each live session/workspace pair a random private temp directory and SID,
    * while the workspace SID and standing grant remain per-workspace); absent

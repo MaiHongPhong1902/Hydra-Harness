@@ -1,7 +1,7 @@
 - listitem:
-  - button "session-stats @hydra/harness-session-stats Extension Running":
+  - button "session-stats @hydraharness/harness-session-stats Extension Running":
     - strong: session-stats
-    - code: "@hydra/harness-session-stats"
+    - code: "@hydraharness/harness-session-stats"
     - text: Extension Running
   - text: Enabled
   - switch "Disable plugin session-stats" [checked]

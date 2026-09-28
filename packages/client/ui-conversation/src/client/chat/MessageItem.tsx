@@ -7,9 +7,9 @@ import { memo, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } fr
 import type { ReactNode } from 'react'
 import type {
   ModelRetryNode, SessionId, TurnErrorNode, UserMessageNode,
-} from '@hydra1902/harness-client-runtime/client'
-import { conversationVersions } from '@hydra1902/harness-client-runtime/client'
-import { Button, IconChevronDownOutline14, JsonBlock, MessageText, StateDot } from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-client-runtime/client'
+import { conversationVersions } from '@hydraharness/harness-client-runtime/client'
+import { Button, IconChevronDownOutline14, JsonBlock, MessageText, StateDot } from '@hydraharness/harness-client-ui-primitives'
 import type { ChatNodeOwnerProps, ChatNodeViewProps, ChatViewSlotProps } from '../contract/slots.ts'
 import { ReferenceIcon } from '../reference/ReferenceIcon.tsx'
 import { CompactionItem } from './CompactionItem.tsx'

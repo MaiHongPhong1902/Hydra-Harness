@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-llm-call-log",
+  "name": "@hydraharness/harness-llm-call-log",
   "description": "Session-local model call identity, timing, and tool diagnostics",
   "hydra": {
     "plugin": {
@@ -25,15 +25,15 @@
   "files": ["lib/index.js", "lib/invariant.js", "lib/types/**/*.js", "lib/types/**/*.d.ts"],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^"
   }
 }

@@ -6,16 +6,16 @@
  * classification, the model-friendly terminal environment, and the model-facing
  * stdout/stderr merge for background reads. Execution policy belongs in
  * `tools/pre-execute` or a sandboxing executor.
- * @module @hydra1902/harness-bash-local
+ * @module @hydraharness/harness-bash-local
  */
 
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { SHELL_SETTINGS_NAMESPACE, ShellExecutor } from '@hydra1902/harness-shell'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult, CollectedOutput } from '@hydra1902/harness-shell'
-import type { SubprocessCollect, SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } from '@hydra1902/harness-subprocess'
-import { installSettingsSection } from '@hydra1902/harness-settings'
-import { clampTimeout, deadline, MAX_TIMER_DELAY_MS, timeoutOf } from '@hydra1902/harness-timeout'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { SHELL_SETTINGS_NAMESPACE, ShellExecutor } from '@hydraharness/harness-shell'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult, CollectedOutput } from '@hydraharness/harness-shell'
+import type { SubprocessCollect, SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } from '@hydraharness/harness-subprocess'
+import { installSettingsSection } from '@hydraharness/harness-settings'
+import { clampTimeout, deadline, MAX_TIMER_DELAY_MS, timeoutOf } from '@hydraharness/harness-timeout'
 
 /**
  * Model-friendly environment overrides: disable colors, pagers, and

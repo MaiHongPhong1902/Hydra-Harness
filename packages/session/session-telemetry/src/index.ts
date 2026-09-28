@@ -11,12 +11,12 @@
  * design and its trade-offs are pinned in
  * .agents/notes/implemented/feature/2026-07-23-session-telemetry-otel-revival.md.
  *
- * @module @hydra1902/harness-session-telemetry
+ * @module @hydraharness/harness-session-telemetry
  */
 
-import { Context, Service } from '@hydra1902/cordis'
+import { Context, Service } from '@hydraharness/cordis'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     sessionTelemetry: SessionTelemetryBackend
   }

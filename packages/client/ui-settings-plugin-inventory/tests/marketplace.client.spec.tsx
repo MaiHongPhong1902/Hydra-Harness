@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { PluginMarketplaceSnapshot } from '@hydra1902/harness-api-remotes/client'
+import type { PluginMarketplaceSnapshot } from '@hydraharness/harness-api-remotes/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { MarketplaceSettingsTab } from '../src/client/MarketplaceSettingsTab.tsx'
 import type {

@@ -8,9 +8,9 @@
  * its bootstrap export, which constructs the system and retains the same
  * exports for this package's graph row. The plugin face only enrolls that
  * pre-existing instance by providing it as `ctx.modules`.
- * @module @hydra1902/harness-client-modules/client
+ * @module @hydraharness/harness-client-modules/client
  */
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import { ClientModuleSystem } from './system.ts'
 import { parseBootManifest } from './manifest.ts'
 import type {

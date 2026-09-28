@@ -4,10 +4,10 @@
  * projection, and snapshot reference stability.
  */
 import { describe, expect, it } from 'vitest'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { ContentBlock, UserMessage } from '@hydra1902/harness-llm/types'
-import type { SessionEvent } from '@hydra1902/harness-session/types'
-import type { MessageId, MuxFrame, RpcId, SessionId } from '@hydra1902/harness-api-remotes/client'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { ContentBlock, UserMessage } from '@hydraharness/harness-llm/types'
+import type { SessionEvent } from '@hydraharness/harness-session/types'
+import type { MessageId, MuxFrame, RpcId, SessionId } from '@hydraharness/harness-api-remotes/client'
 import { Session } from '../src/client/sessions/session.ts'
 import { SessionManager } from '../src/client/sessions/manager.ts'
 import { FakeApiClient, fakeRemote } from './fake-api.client.ts'

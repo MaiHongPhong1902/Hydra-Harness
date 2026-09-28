@@ -1,5 +1,5 @@
 // Electron main process for the harness's embedded browser. Spawned by
-// `@hydra1902/harness-browser-electron`; it owns one window holding controlled tab views
+// `@hydraharness/harness-browser-electron`; it owns one window holding controlled tab views
 // and speaks NDJSON over stdio.
 //
 // Protocol, one JSON object per line:

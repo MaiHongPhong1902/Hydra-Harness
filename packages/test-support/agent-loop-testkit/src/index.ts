@@ -2,17 +2,17 @@
  * Shared mounting for the services required before tests load the concrete
  * agent loop. The caller retains ownership of the context, loop, adapters,
  * optional plugins, and teardown.
- * @module @hydra1902/harness-agent-loop-testkit
+ * @module @hydraharness/harness-agent-loop-testkit
  */
 
-import type { Context } from '@hydra1902/cordis'
-import AgentRegistry from '@hydra1902/harness-agent'
-import LlmRuntime from '@hydra1902/harness-llm'
-import SessionStore from '@hydra1902/harness-session'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import type { Config as SystemPromptConfig } from '@hydra1902/harness-system-prompt'
-import ToolRuntime from '@hydra1902/harness-tools'
-import type { Config as ToolRuntimeConfig } from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import AgentRegistry from '@hydraharness/harness-agent'
+import LlmRuntime from '@hydraharness/harness-llm'
+import SessionStore from '@hydraharness/harness-session'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import type { Config as SystemPromptConfig } from '@hydraharness/harness-system-prompt'
+import ToolRuntime from '@hydraharness/harness-tools'
+import type { Config as ToolRuntimeConfig } from '@hydraharness/harness-tools'
 
 /** Configuration forwarded to the prerequisite service plugins. */
 export interface AgentLoopTestDependenciesOptions {

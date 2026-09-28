@@ -9,11 +9,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Hmr from '@hydra1902/cordis-plugin-hmr'
-import Include, { type PatchOptions } from '@hydra1902/cordis-plugin-include'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import Timer from '@hydra1902/cordis-plugin-timer'
+import { Context } from '@hydraharness/cordis'
+import Hmr from '@hydraharness/cordis-plugin-hmr'
+import Include, { type PatchOptions } from '@hydraharness/cordis-plugin-include'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import Timer from '@hydraharness/cordis-plugin-timer'
 import {
   boot,
   loadOptionalPatches,
@@ -48,12 +48,12 @@ describe('loadOptionalPatches', () => {
     const dir = tmp()
     writeFileSync(join(dir, PROFILE_PATCH_FILENAME), [
       '- id: agent-loop',
-      "  name: '@hydra1902/harness-agent-loop'",
+      "  name: '@hydraharness/harness-agent-loop'",
       '  config:',
       '    model: !!js process.env.HYDRA_SPEC_MODEL',
       '- insert:',
       '    - id: llm',
-      "      name: '@hydra1902/harness-llm-pi-ai'",
+      "      name: '@hydraharness/harness-llm-pi-ai'",
       '',
     ].join('\n'))
     const patches = loadOptionalPatches(NAME, join(dir, PROFILE_PATCH_FILENAME))

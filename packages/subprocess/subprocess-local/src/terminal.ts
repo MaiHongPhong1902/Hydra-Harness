@@ -9,7 +9,7 @@ import type {
   SubprocessTerminalForeground,
   SubprocessTerminalHandle,
   SubprocessTerminalSignal,
-} from '@hydra1902/harness-subprocess'
+} from '@hydraharness/harness-subprocess'
 import type { ProcessIdentity, ProcessInspector } from './process-inspector.ts'
 
 function delay(ms: number): Promise<void> {

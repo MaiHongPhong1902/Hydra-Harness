@@ -1,5 +1,5 @@
 /** Pure grouping of prompt revisions into one navigable conversation. */
-import type { SessionId } from '@hydra1902/harness-api-remotes/client'
+import type { SessionId } from '@hydraharness/harness-api-remotes/client'
 import type { SessionListState, SessionSummary } from './service.ts'
 
 function compareVersions(a: SessionSummary, b: SessionSummary): number {

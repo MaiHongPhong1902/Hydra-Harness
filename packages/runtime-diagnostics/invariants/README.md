@@ -1,4 +1,4 @@
-# @hydra/harness-invariants
+# @hydraharness/harness-invariants
 
 Configurable registry service for package-owned runtime invariant checks. The root plugin registers `ctx.invariants`; it contains no product checks or product-package imports. Every workspace package publishes a `./invariant` companion that registers its exact npm package name.
 
@@ -22,7 +22,7 @@ The service owns every registration fiber, while the returned disposer also belo
 
 `InvariantError` extends `Error`, carries stable `code: 'INVARIANT'`, and exposes the owning `packageName` without adding a product dependency to the service.
 
-Session itself owns immutable, surface-valid log storage in every composition: it takes one lossless JSON snapshot of each candidate, validates complete cited source-event coverage and positional replacement, restricts `tool/result` replacement to one current result's `content`, deep-freezes the accepted record, and exposes the log through immutable array snapshots. The `@hydra/harness-session` invariant companion checks the remaining cross-record rules that Session does not own.
+Session itself owns immutable, surface-valid log storage in every composition: it takes one lossless JSON snapshot of each candidate, validates complete cited source-event coverage and positional replacement, restricts `tool/result` replacement to one current result's `content`, deep-freezes the accepted record, and exposes the log through immutable array snapshots. The `@hydraharness/harness-session` invariant companion checks the remaining cross-record rules that Session does not own.
 
 ## Package companions
 
@@ -34,14 +34,14 @@ The current executable companions protect these relationships:
 
 | Companion | Checks |
 |---|---|
-| `@hydra/harness-session`, `@hydra/harness-agent`, `@hydra/harness-scope`, `@hydra/harness-agent-loop` | Session enclosure and call/result trace, agent-status transitions, inbox FIFO conservation, scoped subjects, and model-request reconstruction. |
-| `@hydra/harness-llm`, `@hydra/harness-llm-retry`, `@hydra/harness-tools`, `@hydra/harness-system-prompt` | Stream grammar, durable retry position and bounds, tool-pipeline stages and frozen results, and authoritative prompt-assembly data. |
-| `@hydra/harness-compaction`, `@hydra/harness-hook-protocol`, `@hydra/harness-sandbox-policy` | Durable compaction and hook pairing, compaction metadata, and sandbox-mode vocabulary. |
-| `@hydra/harness-fs`, `@hydra/harness-subagent`, `@hydra/harness-workflow` | Filesystem event identity, provider/child pairing, and workflow/agent lifecycle identity. |
-| `@hydra/harness-goal`, `@hydra/harness-goal-round-driver` | Durable goal source/content agreement, revision and lifecycle transitions, timestamps, sequential admitted rounds, and reconstructed continuation prompts. |
-| `@hydra/harness-permission-presets`, `@hydra/harness-user-approval` | Active-preset references and approval asked/decided audit pairing. |
-| `@hydra/harness-jobs`, `@hydra/harness-tool-todo` | Task snapshot lifecycle/ownership fields and durable whole-list todo structure. |
-| `@hydra/harness-time-context` | Durable clock readings agree with the session's open turn and next pre-step position and elapsed baseline; rendered time parses and does not postdate its event. |
+| `@hydraharness/harness-session`, `@hydraharness/harness-agent`, `@hydraharness/harness-scope`, `@hydraharness/harness-agent-loop` | Session enclosure and call/result trace, agent-status transitions, inbox FIFO conservation, scoped subjects, and model-request reconstruction. |
+| `@hydraharness/harness-llm`, `@hydraharness/harness-llm-retry`, `@hydraharness/harness-tools`, `@hydraharness/harness-system-prompt` | Stream grammar, durable retry position and bounds, tool-pipeline stages and frozen results, and authoritative prompt-assembly data. |
+| `@hydraharness/harness-compaction`, `@hydraharness/harness-hook-protocol`, `@hydraharness/harness-sandbox-policy` | Durable compaction and hook pairing, compaction metadata, and sandbox-mode vocabulary. |
+| `@hydraharness/harness-fs`, `@hydraharness/harness-subagent`, `@hydraharness/harness-workflow` | Filesystem event identity, provider/child pairing, and workflow/agent lifecycle identity. |
+| `@hydraharness/harness-goal`, `@hydraharness/harness-goal-round-driver` | Durable goal source/content agreement, revision and lifecycle transitions, timestamps, sequential admitted rounds, and reconstructed continuation prompts. |
+| `@hydraharness/harness-permission-presets`, `@hydraharness/harness-user-approval` | Active-preset references and approval asked/decided audit pairing. |
+| `@hydraharness/harness-jobs`, `@hydraharness/harness-tool-todo` | Task snapshot lifecycle/ownership fields and durable whole-list todo structure. |
+| `@hydraharness/harness-time-context` | Durable clock readings agree with the session's open turn and next pre-step position and elapsed baseline; rendered time parses and does not postdate its event. |
 
 The root entrypoint of each owner remains independent of diagnostics. Loading the service alone installs no product checks, and loading a companion without the service waits on its declared `invariants` injection.
 
@@ -50,16 +50,16 @@ The root entrypoint of each owner remains independent of diagnostics. Loading th
 ## Composition
 
 ```ts
-import type { Context } from '@hydra1902/cordis'
-import InvariantRegistry from '@hydra1902/harness-invariants'
-import * as SessionInvariant from '@hydra1902/harness-session/invariant'
+import type { Context } from '@hydraharness/cordis'
+import InvariantRegistry from '@hydraharness/harness-invariants'
+import * as SessionInvariant from '@hydraharness/harness-session/invariant'
 
 declare const ctx: Context
 
 ctx.plugin(InvariantRegistry, {
   enabled: true,
-  package_allowlist: ['^@hydra1902/harness-'],
-  package_blocklist: ['^@hydra1902/harness-agent-loop$'],
+  package_allowlist: ['^@hydraharness/harness-'],
+  package_blocklist: ['^@hydraharness/harness-agent-loop$'],
 })
 ctx.plugin(SessionInvariant)
 ```

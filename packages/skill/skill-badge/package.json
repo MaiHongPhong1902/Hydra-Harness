@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-skill-badge",
+  "name": "@hydraharness/harness-skill-badge",
   "description": "Bundled hydra badge skill provider for Hydra harness",
   "hydra": {
     "plugin": {
@@ -37,13 +37,13 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-skill": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-skill": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-skill": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-skill": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

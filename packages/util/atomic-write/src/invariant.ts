@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-atomic-write`.
- * @module @hydra1902/harness-atomic-write/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-atomic-write`.
+ * @module @hydraharness/harness-atomic-write/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-atomic-write'
+const PACKAGE_NAME = '@hydraharness/harness-atomic-write'
 
 /** Cordis companion plugin name. */
 export const name = 'atomic-write-invariant'

@@ -10,7 +10,7 @@
  */
 
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface SlotMap {
     /**
      * The sidebar-foot trigger row content: icon + label, supplied as slot

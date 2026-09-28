@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-web-search-deepseek`.
- * @module @hydra1902/harness-web-search-deepseek/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-web-search-deepseek`.
+ * @module @hydraharness/harness-web-search-deepseek/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-web-search-deepseek'
+const PACKAGE_NAME = '@hydraharness/harness-web-search-deepseek'
 
 /** Cordis companion plugin name. */
 export const name = 'web-search-deepseek-invariant'

@@ -3,4 +3,4 @@
 
 - insert:
     - id: subagent-claude-code
-      name: '@hydra1902/harness-subagent-claude-code'
+      name: '@hydraharness/harness-subagent-claude-code'

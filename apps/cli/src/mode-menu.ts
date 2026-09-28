@@ -30,8 +30,8 @@ const MENU_TEXT = [
 const NON_INTERACTIVE_TEXT = [
   'hydra: the bare launcher requires an interactive terminal.',
   'Use one of these explicit commands:',
-  '  npx @hydra1902/harness web',
-  '  npx @hydra1902/harness --profile headless "<task>"',
+  '  npx @hydraharness/harness web',
+  '  npx @hydraharness/harness --profile headless "<task>"',
   'Desktop is available only from a Hydra source checkout; see the Desktop guide.',
 ].join('\n') + '\n'
 

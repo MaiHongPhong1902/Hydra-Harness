@@ -4,10 +4,10 @@ An experimental provider-composition POC that places one filesystem/process exec
 
 | Package | ctx key | Role |
 |---|---|---|
-| [`e2b`](e2b/README.md) (`@hydra/harness-e2b`) | `ctx.e2b` | Create one sandbox, prepare its working/runtime directories, expose the shared SDK handle, and delete it on timeout or disposal |
-| [`fs-e2b`](fs-e2b/README.md) (`@hydra/harness-fs-e2b`) | `ctx.fs` | Implement the filesystem seam over E2B Filesystem APIs |
-| [`subprocess-e2b`](subprocess-e2b/README.md) (`@hydra/harness-subprocess-e2b`) | `ctx.subprocess` | Implement executable lookup, managed process groups and stdio, remote spill files, and terminal sessions over E2B Commands and PTY APIs |
+| [`e2b`](e2b/README.md) (`@hydraharness/harness-e2b`) | `ctx.e2b` | Create one sandbox, prepare its working/runtime directories, expose the shared SDK handle, and delete it on timeout or disposal |
+| [`fs-e2b`](fs-e2b/README.md) (`@hydraharness/harness-fs-e2b`) | `ctx.fs` | Implement the filesystem seam over E2B Filesystem APIs |
+| [`subprocess-e2b`](subprocess-e2b/README.md) (`@hydraharness/harness-subprocess-e2b`) | `ctx.subprocess` | Implement executable lookup, managed process groups and stdio, remote spill files, and terminal sessions over E2B Commands and PTY APIs |
 
-The existing [`@hydra/harness-bash-local`](../shell/bash-local/README.md), [`@hydra/harness-terminal-bash`](../terminal/terminal-bash/README.md), and [`@hydra/harness-lsp-stdio`](../lsp/lsp-stdio/README.md) need no E2B-specific forks. They delegate every execution-world operation to `ctx.fs` and `ctx.subprocess`, so mounting the two E2B adapters places their mutable work in the same sandbox.
+The existing [`@hydraharness/harness-bash-local`](../shell/bash-local/README.md), [`@hydraharness/harness-terminal-bash`](../terminal/terminal-bash/README.md), and [`@hydraharness/harness-lsp-stdio`](../lsp/lsp-stdio/README.md) need no E2B-specific forks. They delegate every execution-world operation to `ctx.fs` and `ctx.subprocess`, so mounting the two E2B adapters places their mutable work in the same sandbox.
 
 This boundary does not move the harness process, Cordis objects, model calls, agent/session state, session persistence, skills, higher-level protocol state, or E2B SDK buffers. The [portable execution-world decision](../../.agents/notes/implemented/architecture/2026-07-28-portable-execution-world-consumers.md) owns both the generic composition and this POC boundary.

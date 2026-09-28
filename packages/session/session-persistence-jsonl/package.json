@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-session-persistence-jsonl",
+  "name": "@hydraharness/harness-session-persistence-jsonl",
   "description": "JSONL durable session persistence backend for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -37,19 +37,19 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
     "koffi": "^3.1.0",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

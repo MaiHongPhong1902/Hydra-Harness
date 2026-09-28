@@ -1,6 +1,6 @@
 /** Generic unary RPC contracts shared by the Host and Client Connection halves. */
 
-import type { RpcResult } from '@hydra1902/harness-host-apiproxy/api'
+import type { RpcResult } from '@hydraharness/harness-host-apiproxy/api'
 
 /** Trust fence applied before a Host RPC channel reaches its handler. */
 export type ConnectionRpcAuthority = 'trusted-host' | 'loopback'

@@ -4,19 +4,19 @@
  * version this controller last observed, and a `version-conflict` reply carries
  * the authoritative item, so a lost race reconciles from the reply itself
  * instead of refetching the whole Session.
- * @module @hydra1902/harness-client-ui-message-feedback/client/controller
+ * @module @hydraharness/harness-client-ui-message-feedback/client/controller
  */
 
-import type { RemoteResult } from '@hydra1902/harness-typert-protocol'
-import type { HostObservable } from '@hydra1902/harness-client-ui-slots'
-import type { MessageId, SessionId } from '@hydra1902/harness-client-connection/client'
+import type { RemoteResult } from '@hydraharness/harness-typert-protocol'
+import type { HostObservable } from '@hydraharness/harness-client-ui-slots'
+import type { MessageId, SessionId } from '@hydraharness/harness-client-connection/client'
 import type {
   MessageFeedbackDeleteResult,
   MessageFeedbackItem,
   MessageFeedbackListResult,
   MessageFeedbackPutResult,
   MessageFeedbackRating,
-} from '@hydra1902/harness-message-feedback/types'
+} from '@hydraharness/harness-message-feedback/types'
 
 /**
  * The three Remote calls this controller needs. The generated face wraps every

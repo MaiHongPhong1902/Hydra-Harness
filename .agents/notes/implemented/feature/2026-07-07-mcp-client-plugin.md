@@ -6,13 +6,13 @@ Status: implemented
 
 The harness had no way to consume tools from the MCP (Model Context Protocol) ecosystem. MCP is the emerging standard for tool servers — GitHub, filesystem, databases, code search, and hundreds of community servers expose tools via MCP. Users want to point the harness at one or more MCP servers and have their tools appear as native model-facing tools, without writing per-server glue code.
 
-The `ToolRuntime` already accepts raw JSON Schema tool definitions (documented in `@hydra/harness-tools` README: "Raw JSON-Schema tool definitions (from MCP servers) are still accepted by `ToolRuntime.register()` directly"), and the extension cookbook sketches the intended pattern ("MCP | one plugin per server: discover tools → `ctx.tools.register()`"). The infrastructure was ready; the bridge plugin was missing.
+The `ToolRuntime` already accepts raw JSON Schema tool definitions (documented in `@hydraharness/harness-tools` README: "Raw JSON-Schema tool definitions (from MCP servers) are still accepted by `ToolRuntime.register()` directly"), and the extension cookbook sketches the intended pattern ("MCP | one plugin per server: discover tools → `ctx.tools.register()`"). The infrastructure was ready; the bridge plugin was missing.
 
 ## Decision
 
 ### Package
 
-A single package `@hydra/harness-mcp-client` at `packages/mcp/mcp-client/`. No capability-seam three-package split — there is no foreseeable second MCP client implementation, and the convention is "don't split preemptively" ([capability seams Agent Note](../architecture/2026-06-13-capability-seams.md)).
+A single package `@hydraharness/harness-mcp-client` at `packages/mcp/mcp-client/`. No capability-seam three-package split — there is no foreseeable second MCP client implementation, and the convention is "don't split preemptively" ([capability seams Agent Note](../architecture/2026-06-13-capability-seams.md)).
 
 ### SDK
 
@@ -24,7 +24,7 @@ MCP Client only (no server side — ACP already covers the "expose harness as an
 
 ### Plugin shape
 
-Namespace plugin (named exports `name`/`inject`/`Config`/`apply`, no `export default`). `inject: ['tools']`. Each MCP server is one plugin instance in `cordis.yml` — the same package loaded N times with different configs, like `@hydra/harness-tool-subagent`.
+Namespace plugin (named exports `name`/`inject`/`Config`/`apply`, no `export default`). `inject: ['tools']`. Each MCP server is one plugin instance in `cordis.yml` — the same package loaded N times with different configs, like `@hydraharness/harness-tool-subagent`.
 
 ### Configuration
 
@@ -58,7 +58,7 @@ Example `cordis.yml` usage:
 
 ```yaml
 - id: mcp-github
-  name: '@hydra1902/harness-mcp-client'
+  name: '@hydraharness/harness-mcp-client'
   config:
     serverName: github
     transport: stdio
@@ -68,7 +68,7 @@ Example `cordis.yml` usage:
       GITHUB_TOKEN: !!js process.env.GITHUB_TOKEN
 
 - id: mcp-web
-  name: '@hydra1902/harness-mcp-client'
+  name: '@hydraharness/harness-mcp-client'
   config:
     serverName: web
     transport: streamable-http

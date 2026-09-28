@@ -8,24 +8,24 @@ import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SessionStore, { Session } from '@hydra1902/harness-session'
-import AgentRegistry from '@hydra1902/harness-agent'
-import { TypertLookupFailure } from '@hydra1902/harness-typert-protocol'
-import TypertRegistry from '@hydra1902/harness-typert-registry'
-import { createUserMessage, MessageId } from '@hydra1902/harness-llm'
-import type { Agent } from '@hydra1902/harness-agent'
-import UserQuestionService from '@hydra1902/harness-user-questions'
-import type { SessionEvent, SessionHeader, SessionId } from '@hydra1902/harness-session'
+import { Context } from '@hydraharness/cordis'
+import SessionStore, { Session } from '@hydraharness/harness-session'
+import AgentRegistry from '@hydraharness/harness-agent'
+import { TypertLookupFailure } from '@hydraharness/harness-typert-protocol'
+import TypertRegistry from '@hydraharness/harness-typert-registry'
+import { createUserMessage, MessageId } from '@hydraharness/harness-llm'
+import type { Agent } from '@hydraharness/harness-agent'
+import UserQuestionService from '@hydraharness/harness-user-questions'
+import type { SessionEvent, SessionHeader, SessionId } from '@hydraharness/harness-session'
 import {
   PersistenceCoordinator,
   SessionPersistenceRevision,
   type PersistenceBackend,
   type StoredPrefix,
-} from '@hydra1902/harness-session-persistence'
-import type { RpcRequest } from '@hydra1902/harness-host-apiproxy/api/rpc'
-import { RpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
-import { createApiProxy } from '@hydra1902/harness-host-apiproxy'
+} from '@hydraharness/harness-session-persistence'
+import type { RpcRequest } from '@hydraharness/harness-host-apiproxy/api/rpc'
+import { RpcId } from '@hydraharness/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydraharness/harness-host-apiproxy'
 
 const sid = (id: string): SessionId => id as SessionId
 
@@ -397,7 +397,7 @@ describe('Remote Agent and Session lookup policy', () => {
       inspect,
       locate: () => undefined,
     } as never)
-    const resumedSession = { id: sessionId, header: meta, events: [] } as unknown as import('@hydra1902/harness-session').Session
+    const resumedSession = { id: sessionId, header: meta, events: [] } as unknown as import('@hydraharness/harness-session').Session
     const resumedAgent = { id: sessionId, session: resumedSession, status: 'idle', ctx } as Agent
     const release = Promise.withResolvers<undefined>()
     const resume = vi.spyOn(ctx.agents, 'resume').mockImplementation(async () => {

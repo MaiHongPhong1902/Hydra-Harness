@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-fs-sandbox`.
- * @module @hydra1902/harness-fs-sandbox/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-fs-sandbox`.
+ * @module @hydraharness/harness-fs-sandbox/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-fs-sandbox'
+const PACKAGE_NAME = '@hydraharness/harness-fs-sandbox'
 
 /** Cordis companion plugin name. */
 export const name = 'fs-sandbox-invariant'

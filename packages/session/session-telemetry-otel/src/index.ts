@@ -9,13 +9,13 @@
  * capture mode and an outer shutdown deadline: the SDK's export timeout does
  * not bound its preceding `forceFlush()` wait.
  *
- * @module @hydra1902/harness-session-telemetry-otel
+ * @module @hydraharness/harness-session-telemetry-otel
  */
 
 import { createRequire } from 'node:module'
-import z from '@hydra1902/schemastery'
-import type { Context } from '@hydra1902/cordis'
-import type {} from '@hydra1902/harness-command-feedback'
+import z from '@hydraharness/schemastery'
+import type { Context } from '@hydraharness/cordis'
+import type {} from '@hydraharness/harness-command-feedback'
 import {
   SessionTelemetryBackend,
   SessionTelemetryCoordinator,
@@ -23,9 +23,9 @@ import {
   type SessionTelemetryRecord,
   type SessionTelemetrySeverity,
   type SessionTelemetrySharingStatus,
-} from '@hydra1902/harness-session-telemetry'
-import { APP_IDENTITY } from '@hydra1902/harness-llm'
-import { getOrCreateAnonymousUserId } from '@hydra1902/harness-anonymous-user-id'
+} from '@hydraharness/harness-session-telemetry'
+import { APP_IDENTITY } from '@hydraharness/harness-llm'
+import { getOrCreateAnonymousUserId } from '@hydraharness/harness-anonymous-user-id'
 import {
   BatchLogRecordProcessor,
   LoggerProvider,
@@ -37,7 +37,7 @@ import { SeverityNumber, type AnyValue, type Logger } from '@opentelemetry/api-l
 import { resourceFromAttributes } from '@opentelemetry/resources'
 
 // The package's own manifest is the single source of the instrumentation-scope
-// version (same pattern as @hydra1902/harness-llm's attribution identity).
+// version (same pattern as @hydraharness/harness-llm's attribution identity).
 const { version } = createRequire(import.meta.url)('../package.json') as { version: string }
 
 /** Session-sharing policy selected by {@link Config.mode}. */
@@ -216,8 +216,8 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
         }),
       ],
     })
-    const ledger = this.provider.getLogger('@hydra1902/harness-session-telemetry-otel', version)
-    const ops = this.provider.getLogger('@hydra1902/harness-session-telemetry-otel/ops', version)
+    const ledger = this.provider.getLogger('@hydraharness/harness-session-telemetry-otel', version)
+    const ops = this.provider.getLogger('@hydraharness/harness-session-telemetry-otel/ops', version)
     const enqueue: SessionTelemetrySink['emit'] = (record) => {
       const logger: Logger = record.channel === 'ops' ? ops : ledger
       logger.emit({

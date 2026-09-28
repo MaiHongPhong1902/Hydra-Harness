@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed, vi } from 'vitest'
-import { CallId, createAssistantMessage, createToolResultMessage, createUserMessage } from '@hydra1902/harness-llm'
-import { SESSION_FORMAT_VERSION, Session, SessionId } from '@hydra1902/harness-session'
-import type {} from '@hydra1902/harness-session-title'
+import { CallId, createAssistantMessage, createToolResultMessage, createUserMessage } from '@hydraharness/harness-llm'
+import { SESSION_FORMAT_VERSION, Session, SessionId } from '@hydraharness/harness-session'
+import type {} from '@hydraharness/harness-session-title'
 import {
   launchWebScaffold, seedSession, watchConsole, webSnapshotMode, type WebScaffold,
 } from './scaffold.ts'

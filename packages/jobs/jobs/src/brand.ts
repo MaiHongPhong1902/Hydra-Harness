@@ -1,16 +1,16 @@
 /**
- * @hydra1902/harness-jobs' owned branded id, carried across the registry, the model-facing
+ * @hydraharness/harness-jobs' owned branded id, carried across the registry, the model-facing
  * control surface, and the client wire.
  *
  * It lives in its own leaf because the package root and `./types` both reach
- * `@hydra1902/harness-agent` through the owner and listener signatures, which a Client program
+ * `@hydraharness/harness-agent` through the owner and listener signatures, which a Client program
  * cannot resolve even as a type. A browser-safe consumer imports the id here;
- * `Branded<B>` itself comes from the zero-dependency `@hydra1902/harness-brand`.
+ * `Branded<B>` itself comes from the zero-dependency `@hydraharness/harness-brand`.
  *
- * @module @hydra1902/harness-jobs/brand
+ * @module @hydraharness/harness-jobs/brand
  */
 
-import type { Branded } from '@hydra1902/harness-brand'
+import type { Branded } from '@hydraharness/harness-brand'
 
 /**
  * Identifies a background job. The registry generates `<kind>-N`; predictable

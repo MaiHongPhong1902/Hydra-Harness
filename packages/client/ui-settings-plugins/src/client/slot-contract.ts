@@ -13,7 +13,7 @@
  * registering its own card already depends on this package for the slot's
  * declaration. The type therefore lives with its declarer.
  */
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface SlotMap {
     /** One plugin's card inside the plugin configuration section (see module JSDoc). */
     'settings.plugin.item': { kind: 'keyed'; scope: 'root'; owner: SettingsPluginItemOwnerProps }

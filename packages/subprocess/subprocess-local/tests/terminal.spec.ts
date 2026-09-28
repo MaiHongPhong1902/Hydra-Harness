@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { IDisposable, IPty } from 'node-pty'
-import { LocalTerminalHandle } from '@hydra1902/harness-subprocess-local/src/terminal.ts'
+import { LocalTerminalHandle } from '@hydraharness/harness-subprocess-local/src/terminal.ts'
 import type {
   ProcessIdentity,
   ProcessInspector,
-} from '@hydra1902/harness-subprocess-local/src/process-inspector.ts'
-import type { SubprocessTerminalSignal } from '@hydra1902/harness-subprocess'
+} from '@hydraharness/harness-subprocess-local/src/process-inspector.ts'
+import type { SubprocessTerminalSignal } from '@hydraharness/harness-subprocess'
 
 class FakePty {
   pid = 123

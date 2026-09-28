@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-session-stats",
+  "name": "@hydraharness/harness-session-stats",
   "description": "Whole-log conversation counts and wall times projection (sessionStats) for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -46,22 +46,22 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-projection": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-projection": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@hydra1902/cordis-plugin-include": "workspace:^",
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-projection": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis-plugin-include": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-projection": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

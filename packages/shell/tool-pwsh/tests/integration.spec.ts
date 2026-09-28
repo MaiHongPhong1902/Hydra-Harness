@@ -1,5 +1,5 @@
 /**
- * Integration tests: the REAL `@hydra1902/harness-pwsh-local` executor plus the
+ * Integration tests: the REAL `@hydraharness/harness-pwsh-local` executor plus the
  * `pwsh` tool, exercised through `ctx.tools.execute()` with a real PowerShell
  * process. These verify the world — actual commands run, stdout/stderr come
  * back, exit codes render, timeouts abort, background jobs settle through the
@@ -14,16 +14,16 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
-import { Context } from '@hydra1902/cordis'
-import { CallId } from '@hydra1902/harness-llm'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { TOOL_ABORTED } from '@hydra1902/harness-tools'
-import LocalJobRegistry from '@hydra1902/harness-jobs-local'
-import * as ToolTasks from '@hydra1902/harness-tool-jobs'
-import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
-import { PwshLocalExecutor, resolvePwshPath } from '@hydra1902/harness-pwsh-local'
-import * as ToolPwsh from '@hydra1902/harness-tool-pwsh'
-import * as BashEnvPlugin from '@hydra1902/harness-shell-env'
+import { Context } from '@hydraharness/cordis'
+import { CallId } from '@hydraharness/harness-llm'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { TOOL_ABORTED } from '@hydraharness/harness-tools'
+import LocalJobRegistry from '@hydraharness/harness-jobs-local'
+import * as ToolTasks from '@hydraharness/harness-tool-jobs'
+import LocalSubprocessRuntime from '@hydraharness/harness-subprocess-local'
+import { PwshLocalExecutor, resolvePwshPath } from '@hydraharness/harness-pwsh-local'
+import * as ToolPwsh from '@hydraharness/harness-tool-pwsh'
+import * as BashEnvPlugin from '@hydraharness/harness-shell-env'
 
 const testToolSignal = new AbortController().signal
 

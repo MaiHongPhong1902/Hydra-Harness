@@ -8,9 +8,9 @@
  * are derived once.
  * @module
  */
-import { resolveWorkspacePath } from '@hydra1902/harness-client-runtime/client'
-import type { TerminalBlockLabels, TerminalBlockProps } from '@hydra1902/harness-client-ui-primitives'
-import type { TranslateNS } from '@hydra1902/harness-client-ui-slots'
+import { resolveWorkspacePath } from '@hydraharness/harness-client-runtime/client'
+import type { TerminalBlockLabels, TerminalBlockProps } from '@hydraharness/harness-client-ui-primitives'
+import type { TranslateNS } from '@hydraharness/harness-client-ui-slots'
 import type { ToolCallBlock } from './tool-call-model.ts'
 
 /**
@@ -170,7 +170,7 @@ function collapse(body: string, rooted: boolean, separator = '/'): string {
  *   start, whose text and error styling the generic path preserves.
  *
  * Window truncation can drop the call head from a settled result (see
- * `ToolResultNode.call`/`callView` in @hydra1902/harness-client-runtime), leaving a terminal
+ * `ToolResultNode.call`/`callView` in @hydraharness/harness-client-runtime), leaving a terminal
  * result with no call side. That still renders: the command falls back to the
  * result view's replacement title, then to an empty command (the prompt line
  * draws bare), and the prompt shows no cwd.

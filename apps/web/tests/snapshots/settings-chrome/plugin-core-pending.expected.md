@@ -2,7 +2,7 @@
   - heading "ui-settings" [level=2]
   - button "Close plugin details":
     - img
-  - paragraph: "@hydra/harness-client-ui-settings"
+  - paragraph: "@hydraharness/harness-client-ui-settings"
   - table:
     - rowgroup:
       - 'row "Description Settings domain base plugin: the settings-namespace scope service and the canonical settings slot-type contract"':
@@ -20,14 +20,14 @@
   - strong: Included plugins
   - list:
     - listitem:
-      - code: "@hydra/harness-client-ui-settings-general"
+      - code: "@hydraharness/harness-client-ui-settings-general"
     - listitem:
-      - code: "@hydra/harness-client-ui-settings-models"
+      - code: "@hydraharness/harness-client-ui-settings-models"
     - listitem:
-      - code: "@hydra/harness-client-ui-settings-personalization"
+      - code: "@hydraharness/harness-client-ui-settings-personalization"
     - listitem:
-      - code: "@hydra/harness-client-ui-settings-plugin-inventory"
+      - code: "@hydraharness/harness-client-ui-settings-plugin-inventory"
     - listitem:
-      - code: "@hydra/harness-client-ui-settings-plugins"
+      - code: "@hydraharness/harness-client-ui-settings-plugins"
   - paragraph: Changed since app start
   - paragraph: This change will apply after restart.

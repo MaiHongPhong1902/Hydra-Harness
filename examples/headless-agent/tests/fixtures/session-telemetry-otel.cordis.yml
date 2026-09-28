@@ -3,7 +3,7 @@
 # The redact-rule entry models a deployment mounting its own scrub rule on the
 # session-telemetry/record waterfall — the seam itself ships no rules.
 - id: logger-console
-  name: '@hydra1902/cordis-plugin-logger-console'
+  name: '@hydraharness/cordis-plugin-logger-console'
   config:
     colors: false
     levels:
@@ -18,20 +18,20 @@
 
 # Managed child-process groups required by the bash executor.
 - id: subprocess
-  name: '@hydra1902/harness-subprocess-local'
+  name: '@hydraharness/harness-subprocess-local'
 
 - id: bash
-  name: '@hydra1902/harness-bash-local'
+  name: '@hydraharness/harness-bash-local'
 
 - id: session-telemetry-otel
-  name: '@hydra1902/harness-session-telemetry-otel'
+  name: '@hydraharness/harness-session-telemetry-otel'
   config:
     mode: !!js process.env.HYDRA_TELEMETRY_E2E_MODE || 'FULL'
     exporter:
       url: !!js process.env.HYDRA_TELEMETRY_E2E_URL
 
 - id: agent-spine
-  name: '@hydra1902/harness-agent-spine-demo'
+  name: '@hydraharness/harness-agent-spine-demo'
   config:
     agents:
       - id: main
@@ -42,10 +42,10 @@
     workspaceContext: false
 
 - id: persistence
-  name: '@hydra1902/harness-session-persistence-jsonl'
+  name: '@hydraharness/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: 'none'
 
 - id: checkpoint-policy
-  name: '@hydra1902/harness-session-checkpoint-policy'
+  name: '@hydraharness/harness-session-checkpoint-policy'

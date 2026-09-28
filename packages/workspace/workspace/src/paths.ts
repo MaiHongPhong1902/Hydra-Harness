@@ -1,6 +1,6 @@
 /**
  * Path canonicalization for workspace identity.
- * @module @hydra1902/harness-workspace/src/paths
+ * @module @hydraharness/harness-workspace/src/paths
  */
 
 import { realpath } from 'node:fs/promises'

@@ -1,7 +1,7 @@
 /** Browser-zone derivation and model-facing policy text for one open request turn. */
 
-import { assertNever } from '@hydra1902/harness-llm'
-import type { UserMessage } from '@hydra1902/harness-llm'
+import { assertNever } from '@hydraharness/harness-llm'
+import type { UserMessage } from '@hydraharness/harness-llm'
 
 const IANA_TIME_ZONE = /^[A-Za-z][A-Za-z0-9_+.-]*(?:\/[A-Za-z0-9_+.-]+)+$/
 

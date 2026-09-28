@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseCodexConfig, CODEX_EVENTS } from '@hydra1902/harness-hooks-codex/src/config.ts'
+import { parseCodexConfig, CODEX_EVENTS } from '@hydraharness/harness-hooks-codex/src/config.ts'
 
 describe('parseCodexConfig', () => {
   it('honors the seven bridge-supported Codex events, dropping the rest', () => {

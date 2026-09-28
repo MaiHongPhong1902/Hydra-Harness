@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-llm-pi-ai",
+  "name": "@hydraharness/harness-llm-pi-ai",
   "description": "pi-ai-backed DeepSeek adapter for the Hydra harness LLM seam (design-verification twin of hydra-llm-deepseek)",
   "hydra": {
     "plugin": {
@@ -37,29 +37,29 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-attachment": "workspace:^",
-    "@hydra1902/harness-authorization": "workspace:^",
-    "@hydra1902/harness-credentials": "workspace:^",
-    "@hydra1902/harness-launch-environment": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-attachment": "workspace:^",
+    "@hydraharness/harness-authorization": "workspace:^",
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-launch-environment": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "^0.82.1",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-attachment": "workspace:^",
-    "@hydra1902/harness-authorization": "workspace:^",
-    "@hydra1902/harness-credentials": "workspace:^",
-    "@hydra1902/harness-launch-environment": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-attachment": "workspace:^",
+    "@hydraharness/harness-authorization": "workspace:^",
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-launch-environment": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

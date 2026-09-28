@@ -1,4 +1,4 @@
-# @hydra/harness-client-connection
+# @hydraharness/harness-client-connection
 
 `ctx.connection` owns the browser API client, loopback classification, connection generation, and the single-consumer Host/event downlink loops. The served Web app uses HTTP and WebSocket transport; a shell can supply `globalThis.__HYDRA_TRANSPORT__` with `createApiClient`, `fetch`, and optional `loadBundle` instead.
 

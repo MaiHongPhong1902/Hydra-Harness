@@ -2,7 +2,7 @@
  * Public records for exact reads and relationship traces over the
  * live-preferred logical session corpus.
  *
- * @module @hydra1902/harness-session-query/types
+ * @module @hydraharness/harness-session-query/types
  */
 
 import type {
@@ -11,8 +11,8 @@ import type {
   SessionHeader,
   SessionId,
   SurfaceEvent,
-} from '@hydra1902/harness-session'
-import type { SessionTitleSnapshot } from '@hydra1902/harness-session-title'
+} from '@hydraharness/harness-session'
+import type { SessionTitleSnapshot } from '@hydraharness/harness-session-title'
 import type { SessionSearchCursor } from './cursor.ts'
 
 export type { SessionSearchCursor } from './cursor.ts'

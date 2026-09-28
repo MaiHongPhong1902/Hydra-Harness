@@ -1,8 +1,8 @@
-/** Package-owned invariant companion for `@hydra1902/harness-jev`. */
+/** Package-owned invariant companion for `@hydraharness/harness-jev`. */
 
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-jev'
+const PACKAGE_NAME = '@hydraharness/harness-jev'
 
 /** Cordis companion plugin name. */
 export const name = 'jev-invariant'
@@ -13,5 +13,5 @@ export const inject = ['invariants']
 const install: InvariantInstaller = () => {}
 
 /** Register the package invariant companion. */
-export const apply = (ctx: import('@hydra1902/cordis').Context): Promise<() => void> =>
+export const apply = (ctx: import('@hydraharness/cordis').Context): Promise<() => void> =>
   Promise.resolve(ctx.invariants.register(PACKAGE_NAME, install))

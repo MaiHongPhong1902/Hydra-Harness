@@ -2,16 +2,16 @@
  * Personalization settings section, browser half: custom instructions
  * (`settings.readInstructions`/`writeInstructions`), local memory controls,
  * and the personality selector. The two settings namespaces are owned
- * host-side by `@hydra1902/harness-personalization`.
+ * host-side by `@hydraharness/harness-personalization`.
  */
 
-import type { ConnectionHandle } from '@hydra1902/harness-api-remotes/client'
+import type { ConnectionHandle } from '@hydraharness/harness-api-remotes/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@hydra1902/harness-client-locale/client'
+import type {} from '@hydraharness/harness-client-locale/client'
 // Type-only: pulls the settings shell's SlotMap merge (the 'settings.section' entry) and ctx.settingsScope.
-import type {} from '@hydra1902/harness-client-ui-settings/client'
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
-import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
+import { createSnapshotStore } from '@hydraharness/harness-client-runtime/client'
 import { InstructionsController } from './instructions-store.ts'
 import { en } from './locales.ts'
 import type { PersonalizationKey } from './locales.ts'
@@ -22,13 +22,13 @@ export type { MemorySettings, Personality, PersonalitySettings, PersonalizationS
 export type { InstructionsState, InstructionsStatus } from './instructions-store.ts'
 export type { PersonalizationKey } from './locales.ts'
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     'settings.personalization': PersonalizationKey
   }
 }
 
-/** Settings namespace registered host-side by `@hydra1902/harness-personalization`. */
+/** Settings namespace registered host-side by `@hydraharness/harness-personalization`. */
 const PERSONALIZATION_NAMESPACE = 'personalization'
 const MEMORY_NAMESPACE = 'memory'
 

@@ -7,12 +7,12 @@
  * [SessionsPort](./sessions-port.ts). Widening this interface is the
  * explicit act of widening what features may do to the sessions domain.
  */
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   RpcResult, SessionId, SubagentAddress,
-} from '@hydra1902/harness-api-remotes/client'
-import type { PromptRevisionRequest } from '@hydra1902/harness-host-apiproxy/api'
-import type { HostObservable, SessionMaybeProvideInfo, SessionProvideInfo } from '@hydra1902/harness-client-ui-slots'
+} from '@hydraharness/harness-api-remotes/client'
+import type { PromptRevisionRequest } from '@hydraharness/harness-host-apiproxy/api'
+import type { HostObservable, SessionMaybeProvideInfo, SessionProvideInfo } from '@hydraharness/harness-client-ui-slots'
 import type { AgentContext } from '../agents/scope.ts'
 import type { SessionSearchResultItem } from '../sessions/manager.ts'
 import type {
@@ -39,7 +39,7 @@ export interface ISessions {
   readonly searchResultLimit: number
   /** Create or adopt a session without selecting it as current. */
   create(opts?: {
-    workspaceId?: import('@hydra1902/harness-api-remotes/client').WorkspaceId
+    workspaceId?: import('@hydraharness/harness-api-remotes/client').WorkspaceId
     cwd?: string
     sessionId?: SessionId
     reuseWorkspaceBlank?: true

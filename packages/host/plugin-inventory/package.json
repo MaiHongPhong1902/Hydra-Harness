@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-host-plugin-inventory",
+  "name": "@hydraharness/harness-host-plugin-inventory",
   "description": "Remote projection and shared-settings controls for current Cordis Loader plugin state",
   "hydra": {
     "plugin": {
@@ -54,36 +54,36 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^",
+    "@hydraharness/schemastery": "workspace:^",
     "zod": "^4.4.3"
   },
   "peerDependencies": {
-    "@hydra1902/harness-app-boot": "workspace:^",
-    "@hydra1902/harness-atomic-write": "workspace:^",
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-hooks-registry": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-mcp-registry": "workspace:^",
-    "@hydra1902/harness-plugin-runtime": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/harness-typert-protocol": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/cordis-plugin-include": "workspace:^",
-    "@hydra1902/cordis-plugin-loader": "workspace:^"
+    "@hydraharness/harness-app-boot": "workspace:^",
+    "@hydraharness/harness-atomic-write": "workspace:^",
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-hooks-registry": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-mcp-registry": "workspace:^",
+    "@hydraharness/harness-plugin-runtime": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/harness-typert-protocol": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/cordis-plugin-include": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-app-boot": "workspace:^",
-    "@hydra1902/harness-atomic-write": "workspace:^",
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-hooks-registry": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-mcp-registry": "workspace:^",
-    "@hydra1902/harness-plugin-runtime": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/harness-settings-file": "workspace:^",
-    "@hydra1902/harness-typert-protocol": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/cordis-plugin-include": "workspace:^",
-    "@hydra1902/cordis-plugin-loader": "workspace:^"
+    "@hydraharness/harness-app-boot": "workspace:^",
+    "@hydraharness/harness-atomic-write": "workspace:^",
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-hooks-registry": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-mcp-registry": "workspace:^",
+    "@hydraharness/harness-plugin-runtime": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/harness-settings-file": "workspace:^",
+    "@hydraharness/harness-typert-protocol": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/cordis-plugin-include": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^"
   }
 }

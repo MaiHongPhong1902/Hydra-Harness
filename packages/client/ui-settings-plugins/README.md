@@ -1,4 +1,4 @@
-# @hydra/harness-client-ui-settings-plugins
+# @hydraharness/harness-client-ui-settings-plugins
 
 The **Plugins** settings section and its **Plugin configuration**, **MCP**, and **Hooks** tabs. The section owns the heading and compact tab chrome; feature plugins contribute pages through `settings.plugins.tab`. The configuration tab shows one expandable card per Host plugin whose configuration a user owns. A card shows the plugin's name and what it governs; expanding it in place reveals hand-written controls bound to that plugin's settings namespace, each field marking whether the user overrode it and offering a reset back to the value the deployment composed.
 
@@ -14,7 +14,7 @@ The MCP tab reports the shipped `obsidian-knowledge` plugin state and owns its c
 
 ## The user's own MCP servers and hooks
 
-The MCP tab also carries the user's own MCP server records, and the **Hooks** tab carries their hook records. Both are stored in the harness settings document by `@hydra/harness-mcp-registry` and `@hydra/harness-hooks-registry`, so a server or hook added here comes back on the next start; both write through `pluginInventory` Remotes and appear only on a loopback connection, because they name Host paths and start Host processes.
+The MCP tab also carries the user's own MCP server records, and the **Hooks** tab carries their hook records. Both are stored in the harness settings document by `@hydraharness/harness-mcp-registry` and `@hydraharness/harness-hooks-registry`, so a server or hook added here comes back on the next start; both write through `pluginInventory` Remotes and appear only on a loopback connection, because they name Host paths and start Host processes.
 
 Adding a record saves it switched off, so nothing runs before the user reviews it; the switch is what mounts it. Add rejects a name already in use, including concurrent creates, and editing requires the named record to still exist. Each row reports what the Host actually did — connected, connecting, could not connect, or saved settings are incomplete for a record it refuses to mount — with the refusal reason beside it, and lists a mounted server's registered tool names. An MCP record's URL, `env`, and `header` values are protected from generic settings responses; the dedicated Host view strips URL userinfo and returns only environment/header names. Leaving those fields blank on an edit keeps what is stored rather than clearing it, so an edit can never delete a credential the browser never received. Hook definitions are pasted as JSON in the record's own dialect (an existing `hooks.json` works verbatim, with or without its `hooks` wrapper) or pointed at an absolute path; because the row carries only what the definitions cover, editing an inline record starts from an empty document the user re-pastes.
 

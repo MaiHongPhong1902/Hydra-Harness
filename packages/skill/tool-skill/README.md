@@ -1,4 +1,4 @@
-# @hydra/harness-tool-skill
+# @hydraharness/harness-tool-skill
 
 Bounded automatic skill routing, model-facing discovery, exact instruction loading, and deterministic user invocation.
 

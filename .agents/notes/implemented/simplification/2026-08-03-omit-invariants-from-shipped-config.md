@@ -4,15 +4,15 @@ Status: implemented
 
 ## Problem
 
-`@hydra/harness-invariants` and package-owned `./invariant` companions are optional development diagnostics. The shipped TUI mounted the service and four stateful companions while the shipped Web tree omitted them, so the two product surfaces had different diagnostic cost and failure behavior. A relational assertion failure could terminate an ordinary TUI run even though the always-on product boundary remained responsible for session validation and immutable history.
+`@hydraharness/harness-invariants` and package-owned `./invariant` companions are optional development diagnostics. The shipped TUI mounted the service and four stateful companions while the shipped Web tree omitted them, so the two product surfaces had different diagnostic cost and failure behavior. A relational assertion failure could terminate an ordinary TUI run even though the always-on product boundary remained responsible for session validation and immutable history.
 
 ## Decision
 
-The shipped `hydra` configuration trees under `apps/cli/config/` mount neither `@hydra/harness-invariants` nor any package-owned `./invariant` companion. The CLI package therefore carries no direct dependency on the invariant service.
+The shipped `hydra` configuration trees under `apps/cli/config/` mount neither `@hydraharness/harness-invariants` nor any package-owned `./invariant` companion. The CLI package therefore carries no direct dependency on the invariant service.
 
 Invariant support remains available for focused tests, example bundles, generated SDK compositions, and custom deployments that opt into diagnostics explicitly. Session validation, snapshotting, freezing, and cited source-event validation remain always on and do not depend on the optional service, as defined by the [source-owned immutability decision](../architecture/2026-06-11-dev-invariants-over-deep-readonly.md).
 
-The built CLI config-dump test checks both shipped surfaces and rejects either the service entry or any `@hydra/harness-*/invariant` entry.
+The built CLI config-dump test checks both shipped surfaces and rejects either the service entry or any `@hydraharness/harness-*/invariant` entry.
 
 ## Alternatives considered
 

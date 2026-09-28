@@ -1,16 +1,16 @@
-import { createUserMessage } from '@hydra1902/harness-llm'
+import { createUserMessage } from '@hydraharness/harness-llm'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import {
   CompactionId,
   CompactionEngine,
   compactCheckpointSource,
   isCompactCheckpointSource,
-} from '@hydra1902/harness-compaction'
-import type { CompactionResult, CompactionTrigger } from '@hydra1902/harness-compaction'
-import { Session, SessionId } from '@hydra1902/harness-session'
-import type { CompactionAgentContext } from '@hydra1902/harness-compaction'
-import type { ManualCompactAgentContext } from '@hydra1902/harness-compaction'
+} from '@hydraharness/harness-compaction'
+import type { CompactionResult, CompactionTrigger } from '@hydraharness/harness-compaction'
+import { Session, SessionId } from '@hydraharness/harness-session'
+import type { CompactionAgentContext } from '@hydraharness/harness-compaction'
+import type { ManualCompactAgentContext } from '@hydraharness/harness-compaction'
 
 /**
  * A trivial concrete CompactionEngine implementing the abstract contract. The

@@ -1,22 +1,22 @@
 # Web Access
 
-The web access seam — a [capability seam](../../.agents/notes/implemented/architecture/2026-06-24-web-capability-seam.md) that spans **two operations** (search and fetch) on one `ctx.web` service, split across packages: Service Definition ([@hydra/harness-web](../../packages/web/web), `ctx.web` + the provider registries), Service Providers ([@hydra/harness-web-search-exa](../../packages/web/web-search-exa), [@hydra/harness-web-search-perplexity](../../packages/web/web-search-perplexity), [@hydra/harness-web-search-deepseek](../../packages/web/web-search-deepseek), [@hydra/harness-web-search-http](../../packages/web/web-search-http), [@hydra/harness-web-fetch-http](../../packages/web/web-fetch-http)), and Consumer ([@hydra/harness-tool-web](../../packages/web/tool-web), the `web_search`/`web_fetch` tool schemas). Web is **one optional capability**, not part of the agent-loop spine — so its vocabulary lives here, not in [core.md](core.md). A search-provider swap does not change how the model asks for a query, and a fetch-provider swap does not change how the model asks for a URL.
+The web access seam — a [capability seam](../../.agents/notes/implemented/architecture/2026-06-24-web-capability-seam.md) that spans **two operations** (search and fetch) on one `ctx.web` service, split across packages: Service Definition ([@hydraharness/harness-web](../../packages/web/web), `ctx.web` + the provider registries), Service Providers ([@hydraharness/harness-web-search-exa](../../packages/web/web-search-exa), [@hydraharness/harness-web-search-perplexity](../../packages/web/web-search-perplexity), [@hydraharness/harness-web-search-deepseek](../../packages/web/web-search-deepseek), [@hydraharness/harness-web-search-http](../../packages/web/web-search-http), [@hydraharness/harness-web-fetch-http](../../packages/web/web-fetch-http)), and Consumer ([@hydraharness/harness-tool-web](../../packages/web/tool-web), the `web_search`/`web_fetch` tool schemas). Web is **one optional capability**, not part of the agent-loop spine — so its vocabulary lives here, not in [core.md](core.md). A search-provider swap does not change how the model asks for a query, and a fetch-provider swap does not change how the model asks for a URL.
 
 Source: [`packages/web/web/src/types.ts`](../../packages/web/web/src/types.ts)
 
 ## Why one capability has two operations
 
-Search and fetch share no request schema and no business logic, but they are deliberately one `ctx.web` middle layer: one provider-selection policy owner, one abort/error vocabulary, and one product-facing "how this harness reaches the web" configuration API. The cost is the parallel `searchX`/`fetchX` method pairs on the service; that parallelism is intentional, not a missed extraction. Providers register **capabilities** (a `WebSearchProvider` or `WebFetchProvider`), not tools; the model-facing names, schemas, prompt guidance, and presentation all live in the single `@hydra/harness-tool-web` consumer.
+Search and fetch share no request schema and no business logic, but they are deliberately one `ctx.web` middle layer: one provider-selection policy owner, one abort/error vocabulary, and one product-facing "how this harness reaches the web" configuration API. The cost is the parallel `searchX`/`fetchX` method pairs on the service; that parallelism is intentional, not a missed extraction. Providers register **capabilities** (a `WebSearchProvider` or `WebFetchProvider`), not tools; the model-facing names, schemas, prompt guidance, and presentation all live in the single `@hydraharness/harness-tool-web` consumer.
 
 ## Search request and result
 
-Each seam request carries exactly one `query`. The `@hydra/harness-tool-web` consumer accepts a required `queries` array and fans it out into separate seam requests; a one-item array performs one search. `maxResults` is a consumer-owned bound (`@hydra/harness-tool-web`'s `searchMaxResults` config, default `8`) passed through the seam and enforced on the way back — if a provider over-returns, the seam truncates `sources[]` and sets `truncated`.
+Each seam request carries exactly one `query`. The `@hydraharness/harness-tool-web` consumer accepts a required `queries` array and fans it out into separate seam requests; a one-item array performs one search. `maxResults` is a consumer-owned bound (`@hydraharness/harness-tool-web`'s `searchMaxResults` config, default `8`) passed through the seam and enforced on the way back — if a provider over-returns, the seam truncates `sources[]` and sets `truncated`.
 
 ```ts type-equiv
 /**
  * What one search-capable backend is asked to search. Each request carries one
  * query; a consumer may issue several requests. `maxResults` is a
- * `@hydra1902/harness-tool-web`-layer bound passed through unchanged and enforced on the way
+ * `@hydraharness/harness-tool-web`-layer bound passed through unchanged and enforced on the way
  * back by the seam (see {@link WebSearchResult}).
  */
 interface WebSearchRequest {
@@ -27,7 +27,7 @@ interface WebSearchRequest {
   readonly date?: string
   /**
    * Upper bound on returned sources; the seam truncates to it. Omitted = no
-   * bound. `@hydra1902/harness-tool-web` always sets it. A provider whose API supports a
+   * bound. `@hydraharness/harness-tool-web` always sets it. A provider whose API supports a
    * result-count control (Exa's `numResults`) should apply it at the request
    * layer as a cost/latency optimization; the seam enforces the bound
    * regardless.
@@ -62,7 +62,7 @@ interface WebSearchResult {
  * One citeable source. A source always has a URL; `title`, `snippet`, and
  * `publishedAt` are optional because not every provider returns them — forcing
  * adapters to invent them would make the seam lie (Perplexity citations may be
- * URL-only). `@hydra1902/harness-tool-web` renders `title ?? hostname(url)` for display.
+ * URL-only). `@hydraharness/harness-tool-web` renders `title ?? hostname(url)` for display.
  */
 interface WebSearchSource {
   readonly url: string
@@ -162,7 +162,7 @@ interface WebFetchResult {
 ```ts type-equiv
 /**
  * The decoded body of a fetched resource. A CLOSED discriminated union owned by
- * `@hydra1902/harness-web`: the provider decodes the kind and `@hydra1902/harness-tool-web` renders it, so a
+ * `@hydraharness/harness-web`: the provider decodes the kind and `@hydraharness/harness-tool-web` renders it, so a
  * new kind is a coordinated change across known packages, not a plugin
  * extension. Consumers `switch` on `kind` ending in `default: assertNever(...)`
  * so adding a kind breaks compilation at every consumer until handled. Each arm
@@ -182,7 +182,7 @@ Selection never depends on registration, config, or HMR order: a capability has 
 
 ## Errors
 
-`WebError extends HarnessError` ([core.md](core.md) error taxonomy) with a `code: string` (open, like every other seam's error — `LlmError`, `SubagentError`), not a closed union: a provider may raise its own codes without editing `@hydra/harness-web`, and consumers must tolerate an unknown code. The codes split by owner. Seam-neutral codes are raised by the shared `WebRuntime` contract: `WEB_PROVIDER_UNAVAILABLE`, `WEB_PROVIDER_CONFIGURED_MISSING`, `WEB_PROVIDER_CONFIGURED_UNAVAILABLE`, `WEB_PROVIDER_AMBIGUOUS`, `WEB_DUPLICATE_PROVIDER` (a registration-time programming error, the analogue of `LlmRuntime`'s `DUPLICATE_ADAPTER`), `WEB_ABORTED`, and `WEB_PROVIDER_ERROR` (the catch-all for a provider's own failure surfaced through the seam, including network/transport failure — DNS, connection refused, TLS). Fetch-transport codes are owned by the `@hydra/harness-web-fetch-http` implementation and a different fetch backend need not raise them: `WEB_INVALID_URL`, `WEB_BLOCKED_URL`, `WEB_REDIRECT_BLOCKED`, `WEB_FETCH_TOO_LARGE`, `WEB_FETCH_TIMEOUT`, `WEB_UNSUPPORTED_CONTENT_TYPE`.
+`WebError extends HarnessError` ([core.md](core.md) error taxonomy) with a `code: string` (open, like every other seam's error — `LlmError`, `SubagentError`), not a closed union: a provider may raise its own codes without editing `@hydraharness/harness-web`, and consumers must tolerate an unknown code. The codes split by owner. Seam-neutral codes are raised by the shared `WebRuntime` contract: `WEB_PROVIDER_UNAVAILABLE`, `WEB_PROVIDER_CONFIGURED_MISSING`, `WEB_PROVIDER_CONFIGURED_UNAVAILABLE`, `WEB_PROVIDER_AMBIGUOUS`, `WEB_DUPLICATE_PROVIDER` (a registration-time programming error, the analogue of `LlmRuntime`'s `DUPLICATE_ADAPTER`), `WEB_ABORTED`, and `WEB_PROVIDER_ERROR` (the catch-all for a provider's own failure surfaced through the seam, including network/transport failure — DNS, connection refused, TLS). Fetch-transport codes are owned by the `@hydraharness/harness-web-fetch-http` implementation and a different fetch backend need not raise them: `WEB_INVALID_URL`, `WEB_BLOCKED_URL`, `WEB_REDIRECT_BLOCKED`, `WEB_FETCH_TOO_LARGE`, `WEB_FETCH_TIMEOUT`, `WEB_UNSUPPORTED_CONTENT_TYPE`.
 
 ## The service
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import type { SessionEvent } from '@hydraharness/harness-session'
 import { AssistantOutputFold, finalAssistantOutput } from '../src/assistant-output.ts'
 
 function message(content: ContentBlock[]): SessionEvent {

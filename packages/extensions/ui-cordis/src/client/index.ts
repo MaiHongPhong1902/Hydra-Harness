@@ -1,11 +1,11 @@
 /** Cordis dynamic-plugin cards, inventory panel, business-view host, and `@pluginId` source. */
 
-import type { ClientContext, SessionId } from '@hydra1902/harness-client-runtime/client'
-import type {} from '@hydra1902/harness-client-ui-tool/client'
-import type {} from '@hydra1902/harness-client-locale/client'
-import type {} from '@hydra1902/harness-client-ui-sidebar/client'
-import type {} from '@hydra1902/harness-api-remotes/client'
-import type { InputTriggerService, InputTriggerSource } from '@hydra1902/harness-client-ui-input-trigger/client'
+import type { ClientContext, SessionId } from '@hydraharness/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-client-ui-tool/client'
+import type {} from '@hydraharness/harness-client-locale/client'
+import type {} from '@hydraharness/harness-client-ui-sidebar/client'
+import type {} from '@hydraharness/harness-api-remotes/client'
+import type { InputTriggerService, InputTriggerSource } from '@hydraharness/harness-client-ui-input-trigger/client'
 import type {} from './events.ts'
 import { CordisActionRow } from './CordisActionRow.tsx'
 import { CordisDefineRow } from './CordisDefineRow.tsx'

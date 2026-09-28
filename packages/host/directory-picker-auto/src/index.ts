@@ -8,13 +8,13 @@
  * entries, so the surface is discovered exactly as a config-row's would be
  * and one resolved choice still swaps both faces; pinning an interaction
  * remains composing that pair directly instead of this row.
- * @module @hydra1902/harness-host-directory-picker-auto
+ * @module @hydraharness/harness-host-directory-picker-auto
  */
 
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 // Empty type imports carry the `loader` and `webServer` Context merges for the reads below.
-import type {} from '@hydra1902/cordis-plugin-loader'
-import type {} from '@hydra1902/harness-host-webserver'
+import type {} from '@hydraharness/cordis-plugin-loader'
+import type {} from '@hydraharness/harness-host-webserver'
 import { canExecute, hasLinuxChooserBinary } from './probe.ts'
 import type { DirectoryPickerBackendKind } from './resolve.ts'
 import { resolveDirectoryPickerBackend } from './resolve.ts'
@@ -35,8 +35,8 @@ export const inject = ['webServer', 'loader']
  * app composing this chooser to declare both values as dependencies.
  */
 export const BACKEND_PACKAGES: Record<DirectoryPickerBackendKind, string> = {
-  native: '@hydra1902/harness-host-directory-picker-native',
-  browse: '@hydra1902/harness-host-directory-picker-browse',
+  native: '@hydraharness/harness-host-directory-picker-native',
+  browse: '@hydraharness/harness-host-directory-picker-browse',
 }
 
 /**
@@ -48,8 +48,8 @@ export const BACKEND_PACKAGES: Record<DirectoryPickerBackendKind, string> = {
  * workspace.
  */
 export const SURFACE_PACKAGES: Record<DirectoryPickerBackendKind, string> = {
-  native: '@hydra1902/harness-client-ui-directory-picker-native',
-  browse: '@hydra1902/harness-client-ui-directory-picker-browse',
+  native: '@hydraharness/harness-client-ui-directory-picker-native',
+  browse: '@hydraharness/harness-client-ui-directory-picker-browse',
 }
 
 /**

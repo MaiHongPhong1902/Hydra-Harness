@@ -2,13 +2,13 @@
 /** First-run provider configuration navigation over the shared Models join. */
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import Schema from '@hydra1902/schemastery'
-import type { RpcResponse, SettingsNamespaceView } from '@hydra1902/harness-api-remotes/client'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import Schema from '@hydraharness/schemastery'
+import type { RpcResponse, SettingsNamespaceView } from '@hydraharness/harness-api-remotes/client'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
 import { ProviderOnboarding } from '../src/client/ProviderOnboarding.tsx'
 import { OnboardingModal } from '../src/client/OnboardingModal.tsx'
 import type { ProviderOnboardingProps } from '../src/client/ProviderOnboarding.tsx'
-import { SettingsDescribeMirror } from '@hydra1902/harness-client-ui-settings/src/client/settings-mirror.ts'
+import { SettingsDescribeMirror } from '@hydraharness/harness-client-ui-settings/src/client/settings-mirror.ts'
 import { ModelsSettingsStore } from '../src/client/store.ts'
 import {
   OFFICIAL_DEEPSEEK_DECLINED_FIELD, WELCOME_NOTICE_SETTINGS_NAMESPACE,

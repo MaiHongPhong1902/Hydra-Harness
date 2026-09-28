@@ -1,9 +1,9 @@
-/** Package-owned invariant companion for the directory-picker seam. @module @hydra1902/harness-host-directory-picker/invariant */
+/** Package-owned invariant companion for the directory-picker seam. @module @hydraharness/harness-host-directory-picker/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-host-directory-picker'
+const PACKAGE_NAME = '@hydraharness/harness-host-directory-picker'
 
 /** Cordis companion plugin name. */
 export const name = 'host-directory-picker-invariant'

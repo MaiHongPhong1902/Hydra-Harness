@@ -1,23 +1,23 @@
 /** Agent-owned snapshots and hash-guarded review actions over the filesystem provider. @module */
-import { Context, Service } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
+import { Context, Service } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { createHash, randomUUID } from 'node:crypto'
 import { mkdir, open, readFile, readdir, rm } from 'node:fs/promises'
 import { isAbsolute, join, relative, sep } from 'node:path'
-import { writeFileAtomic, withFileLock } from '@hydra1902/harness-atomic-write'
-import { resolveHydraHome } from '@hydra1902/harness-home-paths'
-import type { ToolDispatchExecution } from '@hydra1902/harness-tools'
-import { FsError, type FsTarget } from '@hydra1902/harness-fs'
-import type { SessionId } from '@hydra1902/harness-session'
-import type {} from '@hydra1902/harness-session-persistence'
-import { effectiveSandboxMode } from '@hydra1902/harness-sandbox-policy'
+import { writeFileAtomic, withFileLock } from '@hydraharness/harness-atomic-write'
+import { resolveHydraHome } from '@hydraharness/harness-home-paths'
+import type { ToolDispatchExecution } from '@hydraharness/harness-tools'
+import { FsError, type FsTarget } from '@hydraharness/harness-fs'
+import type { SessionId } from '@hydraharness/harness-session'
+import type {} from '@hydraharness/harness-session-persistence'
+import { effectiveSandboxMode } from '@hydraharness/harness-sandbox-policy'
 import { reviewChangeSchema } from './client.ts'
 import { preview, type ReviewLimits } from './diff.ts'
 import type { ChangeId, ReviewChange, ReviewOutcome } from './types.ts'
 export type { ChangeId, ReviewChange, ReviewOutcome } from './types.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context { fileReview: FileReview }
 }
 

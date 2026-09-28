@@ -2,10 +2,10 @@
  * Dialect-neutral vocabulary and log-only events shared by the Claude Code and
  * Codex hook bridges. Payload construction, matching differences, environment,
  * and extension-point-specific decision mapping remain owned by each bridge.
- * @module @hydra1902/harness-hook-protocol/types
+ * @module @hydraharness/harness-hook-protocol/types
  */
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /**
      * A hook command was invoked at a hook point — a log-only record (like

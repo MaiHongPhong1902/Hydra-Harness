@@ -7,14 +7,14 @@ it('resolves registry and personalization imports without built artifacts', () =
   const root = resolve(import.meta.dirname, '..')
   const config = ts.getParsedCommandLineOfConfigFile(resolve(root, 'tsconfig.host.json'), {}, repositoryConfigHost)!
   const modules = [
-    '@hydra1902/harness-plugin-runtime',
-    '@hydra1902/harness-plugin-runtime/types',
-    '@hydra1902/harness-hooks-registry',
-    '@hydra1902/harness-hooks-registry/types',
-    '@hydra1902/harness-mcp-registry',
-    '@hydra1902/harness-mcp-registry/types',
-    '@hydra1902/harness-personalization',
-    '@hydra1902/harness-hooks-codex/config',
+    '@hydraharness/harness-plugin-runtime',
+    '@hydraharness/harness-plugin-runtime/types',
+    '@hydraharness/harness-hooks-registry',
+    '@hydraharness/harness-hooks-registry/types',
+    '@hydraharness/harness-mcp-registry',
+    '@hydraharness/harness-mcp-registry/types',
+    '@hydraharness/harness-personalization',
+    '@hydraharness/harness-hooks-codex/config',
   ]
   const source = resolve(root, 'packages/host/plugin-inventory/src/index.ts')
   const host = { ...ts.sys, fileExists: (file: string) => !/[\\/]lib[\\/]/.test(file) && ts.sys.fileExists(file) }

@@ -3,8 +3,8 @@ import { spawn } from 'node:child_process'
 import { createInterface } from 'node:readline'
 import { PassThrough } from 'node:stream'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { BrowserError, launchBrowser, resolveElectronPath } from '@hydra1902/harness-browser-electron'
-import type { BrowserChild, BrowserChildProcess } from '@hydra1902/harness-browser-electron'
+import { BrowserError, launchBrowser, resolveElectronPath } from '@hydraharness/harness-browser-electron'
+import type { BrowserChild, BrowserChildProcess } from '@hydraharness/harness-browser-electron'
 
 vi.mock('node:child_process', async importOriginal => ({
   ...await importOriginal<typeof import('node:child_process')>(), spawn: vi.fn(),

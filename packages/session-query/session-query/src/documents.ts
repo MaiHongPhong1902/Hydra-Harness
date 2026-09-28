@@ -1,7 +1,7 @@
 /** Shared event metadata and semantic-document projection. */
 
-import { foldSurface } from '@hydra1902/harness-session'
-import type { SessionEvent, SessionId } from '@hydra1902/harness-session'
+import { foldSurface } from '@hydraharness/harness-session'
+import type { SessionEvent, SessionId } from '@hydraharness/harness-session'
 import type { SessionEventRecord, SessionEventSearchDocument, SessionEventSurface } from './types.ts'
 import { SessionQueryError } from './config.ts'
 import { extractSessionEventText } from './extraction.ts'

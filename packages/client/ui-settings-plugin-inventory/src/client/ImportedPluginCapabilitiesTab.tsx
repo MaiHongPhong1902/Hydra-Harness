@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
-import type { ImportedPluginSnapshot, SkillEntry } from '@hydra1902/harness-api-remotes/client'
-import { Button } from '@hydra1902/harness-client-ui-primitives'
-import type { HostObservable, InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import type { ImportedPluginSnapshot, SkillEntry } from '@hydraharness/harness-api-remotes/client'
+import { Button } from '@hydraharness/harness-client-ui-primitives'
+import type { HostObservable, InjectFace, PropsLocale, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
 import { groupByOwner, matchesQuery } from './marketplace-owner.ts'
 import css from './PluginInventorySettingsTab.module.css'
 

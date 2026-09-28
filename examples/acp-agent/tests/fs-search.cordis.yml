@@ -1,18 +1,18 @@
 # Minimal live counterpart for the glob-sampling snapshot composition.
 - id: llm-deepseek
-  name: '@hydra1902/harness-llm-deepseek'
+  name: '@hydraharness/harness-llm-deepseek'
   config:
     models:
       - id: deepseek-v4-pro
 
 - id: subprocess
-  name: '@hydra1902/harness-subprocess-local'
+  name: '@hydraharness/harness-subprocess-local'
 
 - id: bash
-  name: '@hydra1902/harness-bash-local'
+  name: '@hydraharness/harness-bash-local'
 
 - id: acp-agent
-  name: '@hydra1902/harness-acp-demo'
+  name: '@hydraharness/harness-acp-demo'
   config:
     provider: deepseek-official
     model: deepseek-v4-pro
@@ -26,7 +26,7 @@
     persona: You are a concise snapshot agent working in {{cwd}}.
 
 - id: tool-fs-search
-  name: '@hydra1902/harness-tool-fs-search'
+  name: '@hydraharness/harness-tool-fs-search'
   config:
     sampleOverCapGlobResults: true
     globMaxResults: 4

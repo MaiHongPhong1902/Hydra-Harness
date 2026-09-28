@@ -5,19 +5,19 @@
  * Background policy is selected by this plugin's configuration: one-shot
  * calls own a plain Task, while continuable calls use
  * `ctx.subagents.startContinuable()`.
- * @module @hydra1902/harness-tool-subagent
+ * @module @hydraharness/harness-tool-subagent
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { defineTool } from '@hydra1902/harness-tools'
-import type { AgentOptions } from '@hydra1902/harness-agent'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import type { JsonValue } from '@hydra1902/harness-session'
-import { assertSubagentMaxDepth, settleRun } from '@hydra1902/harness-subagent'
-import type { SubagentProvider, SubagentResult, SubagentRun } from '@hydra1902/harness-subagent'
-import type { JobOutcome } from '@hydra1902/harness-jobs'
-import type {} from '@hydra1902/harness-system-prompt'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { defineTool } from '@hydraharness/harness-tools'
+import type { AgentOptions } from '@hydraharness/harness-agent'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import type { JsonValue } from '@hydraharness/harness-session'
+import { assertSubagentMaxDepth, settleRun } from '@hydraharness/harness-subagent'
+import type { SubagentProvider, SubagentResult, SubagentRun } from '@hydraharness/harness-subagent'
+import type { JobOutcome } from '@hydraharness/harness-jobs'
+import type {} from '@hydraharness/harness-system-prompt'
 
 export const name = 'tool-subagent'
 export const inject = ['tools', 'subagents', 'systemPrompt']
@@ -414,7 +414,7 @@ export function apply(ctx: Context, config: Config): void {
           }
           const jobs = ctx.get('jobs')
           if (jobs === undefined) {
-            throw new Error('background jobs unavailable: load @hydra1902/harness-jobs and @hydra1902/harness-tool-jobs')
+            throw new Error('background jobs unavailable: load @hydraharness/harness-jobs and @hydraharness/harness-tool-jobs')
           }
           // One-shot background child: job preflight finishes before the
           // starter can spawn, and the task-owned signal covers startup.

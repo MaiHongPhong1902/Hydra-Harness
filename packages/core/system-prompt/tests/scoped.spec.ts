@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { createScope, scopeOf } from '@hydra1902/harness-scope'
-import type { Scope, ScopeKey } from '@hydra1902/harness-scope'
-import SystemPrompt, { TOOL_ORDER_REST, renderContextSnapshot, renderPrompt } from '@hydra1902/harness-system-prompt'
-import type { Config, PromptAssembly } from '@hydra1902/harness-system-prompt'
+import { Context } from '@hydraharness/cordis'
+import { createScope, scopeOf } from '@hydraharness/harness-scope'
+import type { Scope, ScopeKey } from '@hydraharness/harness-scope'
+import SystemPrompt, { TOOL_ORDER_REST, renderContextSnapshot, renderPrompt } from '@hydraharness/harness-system-prompt'
+import type { Config, PromptAssembly } from '@hydraharness/harness-system-prompt'
 
 async function mount(config: Config = {}): Promise<Context> {
   const ctx = new Context()

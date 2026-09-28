@@ -3,10 +3,10 @@
  * Only command hooks run; other hook types are returned as skipped so the
  * bridge can warn. Plugin-root and project-directory substitutions are applied
  * to commands at parse time.
- * @module @hydra1902/harness-hooks-claude-code/config
+ * @module @hydraharness/harness-hooks-claude-code/config
  */
 
-import { matcherDiagnostic, type MatcherGroup } from '@hydra1902/harness-hook-protocol'
+import { matcherDiagnostic, type MatcherGroup } from '@hydraharness/harness-hook-protocol'
 
 const CLAUDE_EVENTS = [
   'SessionStart',

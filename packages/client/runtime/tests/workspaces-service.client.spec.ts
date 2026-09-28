@@ -1,6 +1,6 @@
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import type { SessionId, WorkspaceId, WorkspaceView } from '@hydra1902/harness-api-remotes/client'
+import type { SessionId, WorkspaceId, WorkspaceView } from '@hydraharness/harness-api-remotes/client'
 import { SessionRuntime } from '../src/client/sessions/service.ts'
 import { WorkspaceManager } from '../src/client/workspaces/manager.ts'
 import { DirectoryBrowseError, WorkspaceCreateError, WorkspaceRuntime } from '../src/client/workspaces/service.ts'

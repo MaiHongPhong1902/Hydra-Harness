@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-tool-ralph",
+  "name": "@hydraharness/harness-tool-ralph",
   "description": "Model-facing fresh-agent Ralph loop over the workflow and subagent seams",
   "hydra": {
     "plugin": {
@@ -37,33 +37,33 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-subagent": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-workflow": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-subagent": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-workflow": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-agent-loop": "workspace:^",
-    "@hydra1902/harness-agent-loop-testkit": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-subagent": "workspace:^",
-    "@hydra1902/harness-subagent-in-process-driver": "workspace:^",
-    "@hydra1902/harness-subagent-spawn-in-process": "workspace:^",
-    "@hydra1902/harness-system-prompt": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-workflow": "workspace:^",
-    "@hydra1902/harness-workflow-worker-thread": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-agent-loop": "workspace:^",
+    "@hydraharness/harness-agent-loop-testkit": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-subagent": "workspace:^",
+    "@hydraharness/harness-subagent-in-process-driver": "workspace:^",
+    "@hydraharness/harness-subagent-spawn-in-process": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-workflow": "workspace:^",
+    "@hydraharness/harness-workflow-worker-thread": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

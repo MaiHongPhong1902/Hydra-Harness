@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { createUserMessage, CallId , createMessage, createToolResultMessage } from '@hydra1902/harness-llm'
-import { toolPairingBalancedAfter, toolPairingBalancedBefore } from '@hydra1902/harness-compaction'
-import { Session, SessionId } from '@hydra1902/harness-session'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import { createUserMessage, CallId , createMessage, createToolResultMessage } from '@hydraharness/harness-llm'
+import { toolPairingBalancedAfter, toolPairingBalancedBefore } from '@hydraharness/harness-compaction'
+import { Session, SessionId } from '@hydraharness/harness-session'
+import type { SessionEvent } from '@hydraharness/harness-session'
 
 const SURFACE = { surfaceOp: 'append' as const }
 

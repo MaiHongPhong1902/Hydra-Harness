@@ -1,6 +1,6 @@
-import type { Context } from '@hydra1902/cordis'
-import type { GenerateOptions, StreamChunk } from '@hydra1902/harness-llm'
-import { CallId, LlmAdapter } from '@hydra1902/harness-llm'
+import type { Context } from '@hydraharness/cordis'
+import type { GenerateOptions, StreamChunk } from '@hydraharness/harness-llm'
+import { CallId, LlmAdapter } from '@hydraharness/harness-llm'
 
 /**
  * Test adapter for the `mock-delegate` model: the first request calls the

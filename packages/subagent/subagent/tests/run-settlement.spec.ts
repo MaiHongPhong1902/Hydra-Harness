@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SessionId } from '@hydra1902/harness-session'
+import { SessionId } from '@hydraharness/harness-session'
 import {
   settleRun,
   settleRunResult,

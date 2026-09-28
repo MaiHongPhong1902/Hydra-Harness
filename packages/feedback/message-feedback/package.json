@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-message-feedback",
+  "name": "@hydraharness/harness-message-feedback",
   "description": "Lifecycle-bound per-message rating and note sidecar for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -54,32 +54,32 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence": "workspace:^",
-    "@hydra1902/harness-storage-domain": "workspace:^",
-    "@hydra1902/harness-typert-protocol": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence": "workspace:^",
+    "@hydraharness/harness-storage-domain": "workspace:^",
+    "@hydraharness/harness-typert-protocol": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^",
+    "@hydraharness/schemastery": "workspace:^",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@hydra1902/cordis-plugin-include": "workspace:^",
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence": "workspace:^",
-    "@hydra1902/harness-session-persistence-jsonl": "workspace:^",
-    "@hydra1902/harness-storage": "workspace:^",
-    "@hydra1902/harness-storage-domain": "workspace:^",
-    "@hydra1902/harness-storage-json": "workspace:^",
-    "@hydra1902/harness-typert-protocol": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis-plugin-include": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence": "workspace:^",
+    "@hydraharness/harness-session-persistence-jsonl": "workspace:^",
+    "@hydraharness/harness-storage": "workspace:^",
+    "@hydraharness/harness-storage-domain": "workspace:^",
+    "@hydraharness/harness-storage-json": "workspace:^",
+    "@hydraharness/harness-typert-protocol": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

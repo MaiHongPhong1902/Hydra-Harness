@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LlmError } from '@hydra1902/harness-llm'
+import { LlmError } from '@hydraharness/harness-llm'
 import { DONE, parseSse } from '../src/sse.ts'
 
 /**

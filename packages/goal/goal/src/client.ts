@@ -4,7 +4,7 @@
  * (repo discipline), so `./client` projects the same single-source content
  * `./types` serves to host consumers — zero duplication.
  *
- * @module @hydra1902/harness-goal/client
+ * @module @hydraharness/harness-goal/client
  */
 
 export type * from './types.ts'

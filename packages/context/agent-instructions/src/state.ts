@@ -1,14 +1,14 @@
 /**
  * Session-visible workspace instruction state and dynamic reconciliation.
  *
- * @module @hydra1902/harness-agent-instructions/state
+ * @module @hydraharness/harness-agent-instructions/state
  */
 
-import type { Agent } from '@hydra1902/harness-agent'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { Message } from '@hydra1902/harness-llm'
-import type { Session, UserMessage } from '@hydra1902/harness-session'
-import type { FileSystem, FsVersion } from '@hydra1902/harness-fs'
+import type { Agent } from '@hydraharness/harness-agent'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { Message } from '@hydraharness/harness-llm'
+import type { Session, UserMessage } from '@hydraharness/harness-session'
+import type { FileSystem, FsVersion } from '@hydraharness/harness-fs'
 import type { ResolvedConfig } from './config.ts'
 import { instructionContentSha1, trimmedInstructionDigest } from './digest.ts'
 import {
@@ -45,7 +45,7 @@ export interface AgentInstructionSource {
   changes: AgentInstructionChange[]
 }
 
-declare module '@hydra1902/harness-llm' {
+declare module '@hydraharness/harness-llm' {
   interface MessageSourceMap {
     'agent-instructions': AgentInstructionSource
   }

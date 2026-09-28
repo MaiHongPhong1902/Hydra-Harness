@@ -3,10 +3,10 @@
  * vocabulary remains in `./types` so Client programs never import Agent or
  * host Cordis context declarations.
  *
- * @module @hydra1902/harness-workflow
+ * @module @hydraharness/harness-workflow
  */
 
-import type { Agent } from '@hydra1902/harness-agent'
+import type { Agent } from '@hydraharness/harness-agent'
 import type {
   WorkflowMeta, WorkflowResult, WorkflowRunId,
 } from './types.ts'

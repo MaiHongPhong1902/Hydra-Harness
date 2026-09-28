@@ -1,4 +1,4 @@
-import type { Dict } from '@hydra1902/cosmokit'
+import type { Dict } from '@hydraharness/cosmokit'
 import { EventsService } from './events.ts'
 import { LoggerService } from './logger.ts'
 import { ReflectService } from './reflect.ts'

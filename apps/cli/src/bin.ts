@@ -3,14 +3,14 @@
  * hydra — command-line entry. Dynamic imports per mode keep unrelated modes out
  * of each dispatch path; the adapter prints and exits for
  * `--help`/`--version`/a parse error, so only a valid mode reaches the switch.
- * @module @hydra1902/harness/bin
+ * @module @hydraharness/harness/bin
  */
 
 /* v8 ignore file -- built-bin acceptance exercises this self-executing dispatch. */
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { loadLayeredEnv } from '@hydra1902/harness-app-boot'
+import { loadLayeredEnv } from '@hydraharness/harness-app-boot'
 import { parseHydraArgs, type HydraInvocation } from './args.ts'
 
 // Both the source tree (apps/cli/src) and the bundled bin (apps/cli/lib) sit

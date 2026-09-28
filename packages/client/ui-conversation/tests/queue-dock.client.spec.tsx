@@ -8,13 +8,13 @@ import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react
 import { useSyncExternalStore } from 'react'
 import {
   EMPTY_CHAT_SNAPSHOT, EMPTY_CONVERSATION_VIEWS,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type {
   ConversationSnapshot, QueuedMessage, SessionId, SessionListState,
-} from '@hydra1902/harness-client-runtime/client'
-import type { SnapshotSelectorHook } from '@hydra1902/harness-client-ui-slots'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+} from '@hydraharness/harness-client-runtime/client'
+import type { SnapshotSelectorHook } from '@hydraharness/harness-client-ui-slots'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 import type { QueueItemId } from '../src/client/contract/queue.ts'
 import type { InputState } from '../src/client/input/contract.ts'
 import { en } from '../src/client/locales.ts'

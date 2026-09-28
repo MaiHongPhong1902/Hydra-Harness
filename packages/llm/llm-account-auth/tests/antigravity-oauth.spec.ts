@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createServer, request as httpRequest } from 'node:http'
-import { LlmError } from '@hydra1902/harness-llm'
+import { LlmError } from '@hydraharness/harness-llm'
 import {
   ANTIGRAVITY_API_ENDPOINT,
   ANTIGRAVITY_API_VERSION,

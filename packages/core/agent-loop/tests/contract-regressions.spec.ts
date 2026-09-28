@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import LlmRuntime, { createUserMessage, CallId, LlmError, MessageSource, ProviderRequestId, StreamChunk  } from '@hydra1902/harness-llm'
-import SessionStore, { Session, SessionEvent, SessionId, TurnEndReason, type UserMessage } from '@hydra1902/harness-session'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { defineContentToolFixture, type PostToolDecision } from '@hydra1902/harness-tools'
-import AgentRegistry, { type Agent } from '@hydra1902/harness-agent'
-import AgentLoop from '@hydra1902/harness-agent-loop'
+import { Context } from '@hydraharness/cordis'
+import LlmRuntime, { createUserMessage, CallId, LlmError, MessageSource, ProviderRequestId, StreamChunk  } from '@hydraharness/harness-llm'
+import SessionStore, { Session, SessionEvent, SessionId, TurnEndReason, type UserMessage } from '@hydraharness/harness-session'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture, type PostToolDecision } from '@hydraharness/harness-tools'
+import AgentRegistry, { type Agent } from '@hydraharness/harness-agent'
+import AgentLoop from '@hydraharness/harness-agent-loop'
 import { ReactLoopAgent } from '../src/agent.ts'
-import InvariantRegistry from '@hydra1902/harness-invariants'
-import * as SessionInvariant from '@hydra1902/harness-session/invariant'
-import * as AgentInvariant from '@hydra1902/harness-agent/invariant'
-import * as AgentLoopInvariant from '@hydra1902/harness-agent-loop/invariant'
+import InvariantRegistry from '@hydraharness/harness-invariants'
+import * as SessionInvariant from '@hydraharness/harness-session/invariant'
+import * as AgentInvariant from '@hydraharness/harness-agent/invariant'
+import * as AgentLoopInvariant from '@hydraharness/harness-agent-loop/invariant'
 import { MockAdapter, textResponse, toolCallResponse } from './mock-adapter.ts'
 
 async function mountInvariants(ctx: Context): Promise<void> {
@@ -810,7 +810,7 @@ describe('turn and step boundary recovery', () => {
     expect(adapter.requests).toHaveLength(1)
     expect(errors.map(error => error.message)).toEqual([
       'reject first step-end',
-      'invariant violated by "@hydra1902/harness-session": turn/end 1 while step 1 is still open',
+      'invariant violated by "@hydraharness/harness-session": turn/end 1 while step 1 is still open',
     ])
     expect(boundaryCounts(agent)).toMatchObject({
       turnStart: 1,

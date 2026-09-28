@@ -1,7 +1,7 @@
 /**
  * Harness error base with a stable machine-routable code and chained cause.
  * Package errors extend it so tool results and replay can retain failure class.
- * @module @hydra1902/harness-llm/error
+ * @module @hydraharness/harness-llm/error
  */
 
 /**

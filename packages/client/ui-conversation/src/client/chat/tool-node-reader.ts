@@ -1,7 +1,7 @@
 import type {
   ConversationSnapshot, ToolCallBlock,
-} from '@hydra1902/harness-client-runtime/client'
-import { conversationContextKey } from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
+import { conversationContextKey } from '@hydraharness/harness-client-runtime/client'
 import type { ChatNode } from '../contract/chat-nodes.ts'
 
 function toolNode(node: ReturnType<ConversationSnapshot['chat']['nodes']['get']>): ChatNode<'tool-call'> | undefined {

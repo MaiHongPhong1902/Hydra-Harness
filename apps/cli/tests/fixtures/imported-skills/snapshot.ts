@@ -1,10 +1,10 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { boot, loadOverlayPatches } from '@hydra1902/harness-app-boot'
-import { CallId, createUserMessage, LlmAdapter, type GenerateOptions, type Message, type StreamChunk } from '@hydra1902/harness-llm'
-import { SessionId } from '@hydra1902/harness-session'
-import type {} from '@hydra1902/harness-plugin-runtime'
-import type {} from '@hydra1902/harness-tools'
+import { boot, loadOverlayPatches } from '@hydraharness/harness-app-boot'
+import { CallId, createUserMessage, LlmAdapter, type GenerateOptions, type Message, type StreamChunk } from '@hydraharness/harness-llm'
+import { SessionId } from '@hydraharness/harness-session'
+import type {} from '@hydraharness/harness-plugin-runtime'
+import type {} from '@hydraharness/harness-tools'
 
 const overlayPath = process.argv[2]
 if (overlayPath === undefined) throw new Error('imported-skills snapshot requires an overlay path')

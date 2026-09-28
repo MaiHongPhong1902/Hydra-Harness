@@ -1,4 +1,4 @@
-# @hydra/harness-client-ui-layout
+# @hydraharness/harness-client-ui-layout
 
 Settings → Browser groups the global Browsing, Downloads, and Uploads policies in one three-column Browser permissions card. The controls persist through the existing Host settings scope and use a single column on narrow screens. Browser history access and existing site managers keep their independent controls.
 

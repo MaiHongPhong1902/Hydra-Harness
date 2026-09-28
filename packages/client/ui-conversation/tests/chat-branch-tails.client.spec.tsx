@@ -7,12 +7,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 import type {
   ChatConversationViewNode, ConversationNode, SessionId, SessionListState,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type { ChatNodeViewProps } from '../src/client/contract/slots.ts'
 import {
   formatMessageClock, msUntilNextLocalMidnight, startOfLocalDay,
@@ -49,7 +49,7 @@ interface MessageItemProps {
   readonly node: ConversationNode
   readonly t: ChatNodeViewProps['t']
   readonly referenceLabels?: readonly string[]
-  readonly editMessage?: (node: import('@hydra1902/harness-client-runtime/client').UserMessageNode, text: string) => Promise<void>
+  readonly editMessage?: (node: import('@hydraharness/harness-client-runtime/client').UserMessageNode, text: string) => Promise<void>
 }
 
 /** Legacy-node fixture adapter for the independently registered renderers. */
@@ -787,16 +787,16 @@ describe('MessageItem arms', () => {
         content: [{ type: 'text', text: 'Current runtime context.\n\nsandbox\n\nworkspace' }],
         source: {
           kind: 'plugin',
-          plugin: '@hydra1902/harness-system-prompt',
+          plugin: '@hydraharness/harness-system-prompt',
           form: 'snapshot',
           sections: [{ name: 'sandbox:policy', text: 'workspace-write' }, { name: 'workspace', text: '/repo' }],
         },
-        provenance: { role: 'inject', label: '@hydra1902/harness-system-prompt' },
+        provenance: { role: 'inject', label: '@hydraharness/harness-system-prompt' },
         form: 'snapshot',
       } as never}
       />,
     )
-    fireEvent.click(view.getByRole('button', { name: /^Context injection\s*@hydra1902\/harness-system-prompt$/ }))
+    fireEvent.click(view.getByRole('button', { name: /^Context injection\s*@hydraharness\/harness-system-prompt$/ }))
     const rows = [...view.container.querySelectorAll('[data-context-sections] div')].map(node => node.textContent)
     expect(rows).toEqual(['sandbox:policyworkspace-write', 'workspace/repo'])
   })

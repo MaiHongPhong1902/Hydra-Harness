@@ -8,14 +8,14 @@
  * price is derived from THIS fold's nodes by the replace producer. A
  * projection replacement without a claim deliberately folds with zero delta.
  *
- * @module @hydra1902/harness-token-meter/surface-fold
+ * @module @hydraharness/harness-token-meter/surface-fold
  */
 
-import { deriveEventMessage } from '@hydra1902/harness-session'
-import type { SurfaceEvent } from '@hydra1902/harness-session'
+import { deriveEventMessage } from '@hydraharness/harness-session'
+import type { SurfaceEvent } from '@hydraharness/harness-session'
 import type { TokenSurfaceNode } from './types.ts'
 import { estimateMessage } from './estimate.ts'
-import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { ContentBlock } from '@hydraharness/harness-llm'
 
 type FileText = (ref: Extract<ContentBlock, { type: 'file' }>['attachment']) => string
 

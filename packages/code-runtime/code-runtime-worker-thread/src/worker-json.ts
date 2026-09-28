@@ -1,9 +1,9 @@
 /**
  * Lossless-JSON snapshots for the dependency-free source worker closure.
- * @module @hydra1902/harness-code-runtime-worker-thread/worker-json
+ * @module @hydraharness/harness-code-runtime-worker-thread/worker-json
  */
 
-import type { CodeJsonValue } from '@hydra1902/harness-code-runtime'
+import type { CodeJsonValue } from '@hydraharness/harness-code-runtime'
 
 /* jscpd:ignore-start -- the source worker mirrors session JSON helpers without workspace runtime imports */
 type IntrinsicCallable = (this: unknown, ...args: unknown[]) => unknown

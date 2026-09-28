@@ -16,9 +16,9 @@ The stdio and Echo agents are removed without compatibility packages, modes, com
 
 The remaining application roles are explicit:
 
-- `@hydra/harness-tui` owns terminal-interactive execution. It rejects non-TTY streams before Loader boot; `apps/cli/config/base.cordis.yml` plus the `tui.cordis.yml` overlay own the complete coding composition, with PTY plus terminal-snapshot coverage in `apps/cli/tests/`.
+- `@hydraharness/harness-tui` owns terminal-interactive execution. It rejects non-TTY streams before Loader boot; `apps/cli/config/base.cordis.yml` plus the `tui.cordis.yml` overlay own the complete coding composition, with PTY plus terminal-snapshot coverage in `apps/cli/tests/`.
 - [`hydra --profile headless`](../../../../apps/cli/README.md) owns non-interactive execution. Its `headless` profile is the product composition; `examples/headless-agent` owns replay snapshots, generic real-agent suites, and an unexported keyless Loader driver.
-- [`@hydra/harness-acp-demo`](../../../../packages/examples/acp-demo/README.md) and `@hydra/harness-sdk-jsonrpc-server` own their framed protocol integrations.
+- [`@hydraharness/harness-acp-demo`](../../../../packages/examples/acp-demo/README.md) and `@hydraharness/harness-sdk-jsonrpc-server` own their framed protocol integrations.
 
 The SDK project model that carried the `stdio` run-interface option is deleted by the [SDK project toolchain removal](2026-08-11-remove-sdk-project-toolchain.md). Repository-facing demo documentation requires a DeepSeek API key and leads with a current runnable product.
 

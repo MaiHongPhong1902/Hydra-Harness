@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-subprocess-local`.
- * @module @hydra1902/harness-subprocess-local/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-subprocess-local`.
+ * @module @hydraharness/harness-subprocess-local/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-subprocess-local'
+const PACKAGE_NAME = '@hydraharness/harness-subprocess-local'
 
 /** Cordis companion plugin name. */
 export const name = 'subprocess-local-invariant'

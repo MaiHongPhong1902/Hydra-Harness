@@ -8,23 +8,23 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
-import { Context } from '@hydra1902/cordis'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import { Context } from '@hydraharness/cordis'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
 import {
   createSnapshotStore, EMPTY_CONVERSATION_VIEWS,
-} from '@hydra1902/harness-client-runtime/client'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+} from '@hydraharness/harness-client-runtime/client'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 import type {
   ConversationSnapshot, RunningToolCall, SessionId, SessionListState, ToolResultNode, WorkspaceListState,
-} from '@hydra1902/harness-client-runtime/client'
-import type { ToolResultView } from '@hydra1902/harness-api-remotes/client'
-import type { SelectionTarget } from '@hydra1902/harness-client-ui-conversation/client'
+} from '@hydraharness/harness-client-runtime/client'
+import type { ToolResultView } from '@hydraharness/harness-api-remotes/client'
+import type { SelectionTarget } from '@hydraharness/harness-client-ui-conversation/client'
 import { CHAT_READ_MAX_LINES, readCardModel } from '../src/client/tool/models/read-card-model.ts'
-import { createChatStore } from '@hydra1902/harness-client-ui-conversation/src/client/stores.ts'
+import { createChatStore } from '@hydraharness/harness-client-ui-conversation/src/client/stores.ts'
 import { GenericToolCard, type GenericToolCardProps } from '../src/client/tool/toolviews/GenericToolCard.tsx'
-import { en } from '@hydra1902/harness-client-ui-conversation/src/client/locales.ts'
-import { DetailsPanel } from '@hydra1902/harness-client-ui-conversation/src/client/skeleton/DetailsPanel.tsx'
+import { en } from '@hydraharness/harness-client-ui-conversation/src/client/locales.ts'
+import { DetailsPanel } from '@hydraharness/harness-client-ui-conversation/src/client/skeleton/DetailsPanel.tsx'
 import { ReadRow, readToolview } from '../src/client/tool/toolviews/read-row.tsx'
 import { renderToolDetails, SessionProviderStub, toolChatSnapshot } from './tool-details-render.client.tsx'
 

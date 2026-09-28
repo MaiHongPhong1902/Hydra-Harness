@@ -1,4 +1,4 @@
-# @hydra1902/harness-agent-spine-demo
+# @hydraharness/harness-agent-spine-demo
 
 The **default executor-less, UI-less agent spine** as ONE Cordis bundle plugin. It loads the fixed set of services every harness agent needs, including the local skill provider, and forwards the loop's `agents` list as its own config — so an app package composes a working agent by adding only an entry point and the swappable backends.
 
@@ -9,32 +9,32 @@ Read this package for the whole plugin tree and its composition order.
 `apply(ctx, config)` mounts each of these as a child of the bundle fiber:
 
 ```
-@hydra1902/cordis-plugin-timer  timer service (writes nothing to stdout)
-@hydra1902/harness-llm              abstract LLM service + content-block vocabulary
-@hydra1902/harness-session          event-sourced session log + store
-@hydra1902/harness-session-title    log-backed title service + deterministic fallback
-@hydra1902/harness-system-prompt    prompt-section + tool-schema assembly
-@hydra1902/harness-tools            registry + guarded pre/around/post/final-result pipeline
-@hydra1902/harness-skill            skill provider registry
-@hydra1902/harness-skill-filesystem      local filesystem skill provider
-@hydra1902/harness-agent            agent registry + initiator scope + agent/* events
-@hydra1902/harness-goal             optional persisted same-session goal domain
-@hydra1902/harness-tool-goal        optional model-facing goal controls
-@hydra1902/harness-goal-round-driver     optional same-session goal-round driver
-@hydra1902/harness-llm-retry        provider-routed request retry policy
-@hydra1902/harness-jobs-local      generic background-job registry
-@hydra1902/harness-invariants       configurable invariant registry service
-@hydra1902/harness-session/invariant
-@hydra1902/harness-agent/invariant
-@hydra1902/harness-scope/invariant
-@hydra1902/harness-agent-loop/invariant
+@hydraharness/cordis-plugin-timer  timer service (writes nothing to stdout)
+@hydraharness/harness-llm              abstract LLM service + content-block vocabulary
+@hydraharness/harness-session          event-sourced session log + store
+@hydraharness/harness-session-title    log-backed title service + deterministic fallback
+@hydraharness/harness-system-prompt    prompt-section + tool-schema assembly
+@hydraharness/harness-tools            registry + guarded pre/around/post/final-result pipeline
+@hydraharness/harness-skill            skill provider registry
+@hydraharness/harness-skill-filesystem      local filesystem skill provider
+@hydraharness/harness-agent            agent registry + initiator scope + agent/* events
+@hydraharness/harness-goal             optional persisted same-session goal domain
+@hydraharness/harness-tool-goal        optional model-facing goal controls
+@hydraharness/harness-goal-round-driver     optional same-session goal-round driver
+@hydraharness/harness-llm-retry        provider-routed request retry policy
+@hydraharness/harness-jobs-local      generic background-job registry
+@hydraharness/harness-invariants       configurable invariant registry service
+@hydraharness/harness-session/invariant
+@hydraharness/harness-agent/invariant
+@hydraharness/harness-scope/invariant
+@hydraharness/harness-agent-loop/invariant
                                   package-owned relational checks
-@hydra1902/harness-tool-bash        the model-facing bash schema (unless toolBash=false)
-@hydra1902/harness-agent-instructions  AGENTS.md/CLAUDE.md workspace context loader
-@hydra1902/harness-tool-skill       bounded skill search + exact model-facing loader schemas
-@hydra1902/harness-tool-jobs       job_output/job_list/job_kill schemas + completion notices
-@hydra1902/harness-agent-loop       THE concrete loop (gets the forwarded `agents`)
-                                  (@hydra1902/harness-system-prompt gets the forwarded `persona`)
+@hydraharness/harness-tool-bash        the model-facing bash schema (unless toolBash=false)
+@hydraharness/harness-agent-instructions  AGENTS.md/CLAUDE.md workspace context loader
+@hydraharness/harness-tool-skill       bounded skill search + exact model-facing loader schemas
+@hydraharness/harness-tool-jobs       job_output/job_list/job_kill schemas + completion notices
+@hydraharness/harness-agent-loop       THE concrete loop (gets the forwarded `agents`)
+                                  (@hydraharness/harness-system-prompt gets the forwarded `persona`)
 ```
 
 ## What it deliberately leaves OUTSIDE the bundle
@@ -52,14 +52,14 @@ This applies the [Service Definition / Service Provider / Consumer separation](.
 ## Config
 
 ```ts
-import type { Config } from '@hydra1902/harness-agent-spine-demo'
+import type { Config } from '@hydraharness/harness-agent-spine-demo'
 // { agents?, maxParallelToolCalls?, includeHarnessIdentity?, includeRuntimeContext?, persona?, toolOrder?, tools?, hydraHome?, sessionTitle?, skills?, workspaceContext, toolBash?, jobs?, toolJobs?, goals?, invariants? }
 // workspaceContext requires { maxBytes } or false; the other owner schemas supply defaults.
 ```
 
-The bundle forwards each field to the child that owns it. App packages supply any pre-created agents: headless and JSON-RPC compositions create `main`, while the ACP app creates agents on demand at `session/new`. `includeRuntimeContext: false` is forwarded to `@hydra1902/harness-system-prompt` and suppresses all dynamic context snapshots for fresh sessions without disabling their policy services. Prompt, tool, title, skill, agent-instructions, invariant, goal, and task settings retain the schemas and defaults documented by their owning packages; `jobs.maxConcurrentJobsPerOwner` configures the local provider independently of the model-facing `toolJobs` controls. `pickSpineConfig()` copies only fields owned by this bundle, and conflicting `hydraHome` values fail during composition.
+The bundle forwards each field to the child that owns it. App packages supply any pre-created agents: headless and JSON-RPC compositions create `main`, while the ACP app creates agents on demand at `session/new`. `includeRuntimeContext: false` is forwarded to `@hydraharness/harness-system-prompt` and suppresses all dynamic context snapshots for fresh sessions without disabling their policy services. Prompt, tool, title, skill, agent-instructions, invariant, goal, and task settings retain the schemas and defaults documented by their owning packages; `jobs.maxConcurrentJobsPerOwner` configures the local provider independently of the model-facing `toolJobs` controls. `pickSpineConfig()` copies only fields owned by this bundle, and conflicting `hydraHome` values fail during composition.
 
-For example, `{ invariants: { enabled: true, package_allowlist: ['^@hydra1902/harness-'], package_blocklist: ['agent-loop$'] } }` keeps the package-owned companions mounted but suppresses the blocked owner. Blocklist matches override allowlist matches; see [`@hydra1902/harness-invariants`](../../runtime-diagnostics/invariants/README.md) for regex and lifecycle rules.
+For example, `{ invariants: { enabled: true, package_allowlist: ['^@hydraharness/harness-'], package_blocklist: ['agent-loop$'] } }` keeps the package-owned companions mounted but suppresses the blocked owner. Blocklist matches override allowlist matches; see [`@hydraharness/harness-invariants`](../../runtime-diagnostics/invariants/README.md) for regex and lifecycle rules.
 
 ## Why a code bundle, not a shared YAML include
 
@@ -69,7 +69,7 @@ The retry policy may repeat a failed request in a new numbered step. Retry statu
 
 ## Model Experience
 
-Indirectly, through `@hydra1902/harness-system-prompt`, `@hydra1902/harness-tool-skill`, `@hydra1902/harness-tool-bash`, `@hydra1902/harness-tools`, and `@hydra1902/harness-llm-retry`, plus `@hydra1902/harness-tool-goal` and goal-round prompts when `goals` is enabled. The bundle adds no model-bound wrapper content of its own.
+Indirectly, through `@hydraharness/harness-system-prompt`, `@hydraharness/harness-tool-skill`, `@hydraharness/harness-tool-bash`, `@hydraharness/harness-tools`, and `@hydraharness/harness-llm-retry`, plus `@hydraharness/harness-tool-goal` and goal-round prompts when `goals` is enabled. The bundle adds no model-bound wrapper content of its own.
 
 #### KV Cache effect
 

@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
-import { Context } from '@hydra1902/cordis'
-import { SettingsSchemaService } from '@hydra1902/harness-client-ui-settings/src/client/schema.ts'
-import { SettingsDescribeMirror } from '@hydra1902/harness-client-ui-settings/src/client/settings-mirror.ts'
-import { SettingsScopeController } from '@hydra1902/harness-client-ui-settings/src/client/settings-scope.ts'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
+import { Context } from '@hydraharness/cordis'
+import { SettingsSchemaService } from '@hydraharness/harness-client-ui-settings/src/client/schema.ts'
+import { SettingsDescribeMirror } from '@hydraharness/harness-client-ui-settings/src/client/settings-mirror.ts'
+import { SettingsScopeController } from '@hydraharness/harness-client-ui-settings/src/client/settings-scope.ts'
 
 /** Stateless schema service for scope construction in this jsdom fixture. */
 const schemaService = new SettingsSchemaService(new Context())

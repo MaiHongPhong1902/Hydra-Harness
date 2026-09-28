@@ -1,5 +1,5 @@
 /**
- * @hydra1902/harness-host-apiproxy — the API gateway every client shape shares:
+ * @hydraharness/harness-host-apiproxy — the API gateway every client shape shares:
  * the ApiProxy contract (api/: types + zod schemas, browser-safe), the fetch
  * carrier pair (fetch/: toFetchHandler on the host side, AbstractApiClient +
  * platform subclasses on the client side), and the host-side implementation
@@ -12,9 +12,9 @@
  * service; sessions that have already logged a selection remain unchanged.
  */
 
-import { Context, Service } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type {} from '@hydra1902/harness-agent-default-model'
+import { Context, Service } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type {} from '@hydraharness/harness-agent-default-model'
 import type { ApiProxy } from './api/index.ts'
 import { createApiProxy, DEFAULT_COLD_BLANK_PROBE_MAX_BYTES } from './api-proxy.ts'
 import { resolveReviewLimits } from './workspace-review.ts'
@@ -33,7 +33,7 @@ export type { IApiClient } from './fetch/client.ts'
 export { createApiProxy } from './api-proxy.ts'
 export type { ApiProxyDefaults } from './api-proxy.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** The host-side ApiProxy implementation (the transport-agnostic gateway face). */
     apiProxy: ApiProxy

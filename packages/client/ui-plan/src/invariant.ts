@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-client-ui-plan`.
- * @module @hydra1902/harness-client-ui-plan/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-client-ui-plan`.
+ * @module @hydraharness/harness-client-ui-plan/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-client-ui-plan'
+const PACKAGE_NAME = '@hydraharness/harness-client-ui-plan'
 
 /** Cordis companion plugin name. */
 export const name = 'client-ui-plan-invariant'
@@ -16,7 +16,7 @@ export const inject = ['invariants']
 
 /**
  * No runtime invariant: plan state and boundary ownership are
- * audited by @hydra1902/harness-plan-mode, while the control is a slot effect whose
+ * audited by @hydraharness/harness-plan-mode, while the control is a slot effect whose
  * declaration, registration, and teardown are exercised by this package.
  */
 const install: InvariantInstaller = () => {}

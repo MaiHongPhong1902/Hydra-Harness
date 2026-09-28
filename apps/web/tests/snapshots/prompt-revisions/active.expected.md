@@ -7,10 +7,10 @@
 - button "Edit":
   - img
 - tooltip "Edit"
-- button "Context injection @hydra/harness-system-prompt":
+- button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
-  - text: Context injection @hydra/harness-system-prompt
+  - text: Context injection @hydraharness/harness-system-prompt
 - paragraph: Hello from the active revision.
 - button "Copy":
   - img

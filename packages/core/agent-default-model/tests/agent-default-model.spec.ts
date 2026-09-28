@@ -1,11 +1,11 @@
 /** Default Agent model settings layered over a real settings provider. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import AgentDefaultModelConfig, { AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE } from '../src/index.ts'
-import { SettingsProvider } from '@hydra1902/harness-settings'
-import type { SettingsNamespace } from '@hydra1902/harness-settings'
-import { ReasoningEffortId } from '@hydra1902/harness-llm'
+import { SettingsProvider } from '@hydraharness/harness-settings'
+import type { SettingsNamespace } from '@hydraharness/harness-settings'
+import { ReasoningEffortId } from '@hydraharness/harness-llm'
 
 /** The smallest real provider: one in-memory document, always writable. */
 class MemorySettings extends SettingsProvider {

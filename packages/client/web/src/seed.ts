@@ -10,9 +10,9 @@ import * as React from 'react'
 import * as ReactJsxRuntime from 'react/jsx-runtime'
 import * as ReactDom from 'react-dom'
 import * as ReactDomClient from 'react-dom/client'
-import * as Cordis from '@hydra1902/cordis'
-import * as UiSlots from '@hydra1902/harness-client-ui-slots'
-import * as UiPrimitives from '@hydra1902/harness-client-ui-primitives'
+import * as Cordis from '@hydraharness/cordis'
+import * as UiSlots from '@hydraharness/harness-client-ui-slots'
+import * as UiPrimitives from '@hydraharness/harness-client-ui-primitives'
 import type { PlatformModule } from './platform.ts'
 
 /**
@@ -28,8 +28,8 @@ export function getStaticModules(): Record<string, unknown> {
     'react/jsx-runtime': ReactJsxRuntime,
     'react-dom': ReactDom,
     'react-dom/client': ReactDomClient,
-    '@hydra1902/cordis': Cordis,
-    '@hydra1902/harness-client-ui-slots': UiSlots,
-    '@hydra1902/harness-client-ui-primitives': UiPrimitives,
+    '@hydraharness/cordis': Cordis,
+    '@hydraharness/harness-client-ui-slots': UiSlots,
+    '@hydraharness/harness-client-ui-primitives': UiPrimitives,
   } satisfies Record<PlatformModule, unknown>
 }

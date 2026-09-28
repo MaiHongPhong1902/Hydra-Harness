@@ -1,4 +1,4 @@
-# @hydra/harness-client-ui-slots
+# @hydraharness/harness-client-ui-slots
 
 Slot registry pure core, slot terminal design: SlotMap declaration merging, the single `register` composition API on SlotCore, the four-share component-props type family, the store-seat type family, and the renderer installation contract. React types only at runtime — the package is React-free and cordis-free.
 

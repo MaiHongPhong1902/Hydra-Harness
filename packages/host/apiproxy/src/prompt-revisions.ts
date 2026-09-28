@@ -1,11 +1,11 @@
 /** Immutable prompt revisions and generation attempts over the existing session log. */
 import { createHash } from 'node:crypto'
-import type { Context } from '@hydra1902/cordis'
-import type { Agent, AgentHandle, AgentOptions, CreateAgentOptions } from '@hydra1902/harness-agent'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { SessionEvent, SessionHeader, SessionId } from '@hydra1902/harness-session'
-import { interruptedTurnClosers } from '@hydra1902/harness-session'
-import type { Workspace } from '@hydra1902/harness-workspace'
+import type { Context } from '@hydraharness/cordis'
+import type { Agent, AgentHandle, AgentOptions, CreateAgentOptions } from '@hydraharness/harness-agent'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { SessionEvent, SessionHeader, SessionId } from '@hydraharness/harness-session'
+import { interruptedTurnClosers } from '@hydraharness/harness-session'
+import type { Workspace } from '@hydraharness/harness-workspace'
 import type { ConversationRevision, PromptRevisionRequest, RevisionMessage } from './api/sessions.ts'
 import { conversationRevisionSchema } from './api/sessions.schema.ts'
 

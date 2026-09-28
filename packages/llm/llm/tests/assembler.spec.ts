@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BlockAssembler, CallId, type StreamChunk } from '@hydra1902/harness-llm'
+import { BlockAssembler, CallId, type StreamChunk } from '@hydraharness/harness-llm'
 
 describe('BlockAssembler', () => {
   it('assembles interleaved text, reasoning, and tool-call deltas', () => {
@@ -199,7 +199,7 @@ describe('BlockAssembler replay metadata', () => {
 
 describe('assertNever', () => {
   it('throws with diagnostics when a value escapes a closed union at runtime', async () => {
-    const { assertNever } = await import('@hydra1902/harness-llm')
+    const { assertNever } = await import('@hydraharness/harness-llm')
     expect(() => assertNever({ type: 'rogue' } as never, 'test-context'))
       .toThrow('unreachable variant in test-context: {"type":"rogue"}')
     expect(() => assertNever(undefined as never)).toThrow('unreachable variant: undefined')

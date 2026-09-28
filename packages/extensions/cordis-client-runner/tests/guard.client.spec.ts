@@ -7,7 +7,7 @@
  * dynamic package from reaching a foreign context. Registrations ride the
  * CALLING fiber, so disposing it must remove them (HMR safety).
  */
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
 import type { FC } from 'react'
 import type {
@@ -15,8 +15,8 @@ import type {
   CordisDynamicPluginId,
   CordisDynamicPluginRunId,
   DynamicCordisPackage,
-} from '@hydra1902/harness-api-remotes/client'
-import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-api-remotes/client'
+import { SlotRegistry } from '@hydraharness/harness-client-runtime/client'
 import { dynamicCordisContext } from '../src/client/guard.ts'
 import type { DynamicCordisSlotLedgerRow } from '../src/client/guard.ts'
 

@@ -17,7 +17,7 @@ Snapshot suites run this directory's configuration through [`tests/fixtures/head
 
 ## E2B POC overlay
 
-[`e2b.cordis.yml`](e2b.cordis.yml) replaces the local filesystem and subprocess providers with one shared E2B sandbox while retaining `@hydra/harness-bash-local` and the same model-facing tools. The overlay requires `E2B_API_KEY` when used against E2B. Automated tests use deterministic provider responses.
+[`e2b.cordis.yml`](e2b.cordis.yml) replaces the local filesystem and subprocess providers with one shared E2B sandbox while retaining `@hydraharness/harness-bash-local` and the same model-facing tools. The overlay requires `E2B_API_KEY` when used against E2B. Automated tests use deterministic provider responses.
 
 The overlay creates the same absolute cwd inside the sandbox, but it does not upload or mount the host workspace. File and Bash mutations exist only in E2B; Cordis, model calls, agent/session state, session logs, skills, and SDK buffers remain on the host. The composition kills its sandbox on timeout and disposal. It is a provider-composition POC, not a whole-harness migration or a workspace-sync feature.
 

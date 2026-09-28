@@ -2,17 +2,17 @@
  * Agent service: live registry, factory delegation, and process-local
  * initiator scope. Concrete creation and driving belong to the loop.
  *
- * @module @hydra1902/harness-agent
+ * @module @hydraharness/harness-agent
  */
 
-import { Context, FiberState, getTraceable, Service, symbols } from '@hydra1902/cordis'
-import type { Fiber } from '@hydra1902/cordis'
+import { Context, FiberState, getTraceable, Service, symbols } from '@hydraharness/cordis'
+import type { Fiber } from '@hydraharness/cordis'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { isPromise } from 'node:util/types'
-import { scopeTarget } from '@hydra1902/harness-scope'
-import type { Scoped } from '@hydra1902/harness-scope'
-import type { SessionEvent, SessionId } from '@hydra1902/harness-session'
-import type { TypertContext, TypertLookup } from '@hydra1902/harness-typert-protocol'
+import { scopeTarget } from '@hydraharness/harness-scope'
+import type { Scoped } from '@hydraharness/harness-scope'
+import type { SessionEvent, SessionId } from '@hydraharness/harness-session'
+import type { TypertContext, TypertLookup } from '@hydraharness/harness-typert-protocol'
 import type { Agent, AgentOptions } from './runtime-types.ts'
 
 export * from './runtime-types.ts'
@@ -23,7 +23,7 @@ export * from './model-selection.ts'
 export { agentCarrier, agentEvents, assembleContextFor, emitAgentEvent } from './dispatch.ts'
 export type { AgentEventDispatch, AgentSubjectEvent } from './dispatch.ts'
 
-declare module '@hydra1902/harness-typert-protocol' {
+declare module '@hydraharness/harness-typert-protocol' {
   interface TypertLookupMap {
     agent: TypertLookup<Agent, SessionId>
   }
@@ -33,14 +33,14 @@ declare module '@hydra1902/harness-typert-protocol' {
   }
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     agents: AgentRegistry
     /**
      * The agent association installed as an own property on `Agent.ctx`, or
      * `undefined` on a plain context. Contexts derived from `Agent.ctx` inherit
      * the association; a deliberately nested scope may carry a nearer
-     * `@hydra1902/harness-scope` tag while retaining it, so this field is DX context rather
+     * `@hydraharness/harness-scope` tag while retaining it, so this field is DX context rather
      * than the scope resolver. {@link AgentRegistry} registers a root accessor
      * defaulting to `undefined`, and core packages below the agent layer use
      * `scopeOf()` for layer selection instead of reading this field.
@@ -85,7 +85,7 @@ export interface CreateAgentOptions {
    * fork lineage, the `seedLength` seed boundary, the coarse `origin`
    * classification, and the `delegationDepth` recursion budget. Mirrors the
    * `cwd`/`parentSession`/`seedLength`/`origin`/`delegationDepth` fields of
-   * {@link CreateSessionOptions.meta} in @hydra1902/harness-session (the internal-only
+   * {@link CreateSessionOptions.meta} in @hydraharness/harness-session (the internal-only
    * `createdAt`, used when reconstructing a persisted session, is deliberately
    * excluded — a factory caller never sets it). This is durable session data,
    * so the session boundary validates and snapshots it before asynchronous
@@ -176,9 +176,9 @@ export interface AgentHandle {
 
 /**
  * The agent-creation factory the loop implementation provides to the registry
- * via {@link AgentRegistry.setFactory}. Kept on the `@hydra1902/harness-agent` interface so
+ * via {@link AgentRegistry.setFactory}. Kept on the `@hydraharness/harness-agent` interface so
  * consumers (e.g. the ACP bridge) program against `ctx.agents` without
- * depending on the concrete `@hydra1902/harness-agent-loop` package.
+ * depending on the concrete `@hydraharness/harness-agent-loop` package.
  */
 export interface AgentFactory {
   /**
@@ -245,7 +245,7 @@ interface FactorySlot {
  * Agent service (`ctx.agents`): tracks live agents and carries the initiating
  * Agent through one process-local asynchronous driver chain. Agent *creation*
  * is provided by whichever plugin implements the {@link AgentFactory}
- * (`@hydra1902/harness-agent-loop`), registered via {@link setFactory}.
+ * (`@hydraharness/harness-agent-loop`), registered via {@link setFactory}.
  *
  * Initiator methods provide same-process causal attribution only. Ambient
  * presence is neither liveness proof nor authorization; subjects and owners
@@ -269,13 +269,13 @@ export class AgentRegistry extends Service {
       typeCtx.typert.lookups.register('agent', {
         parameter: 'agent',
         wire: 'agentId',
-        hostTypeSymbol: '@hydra1902/harness-agent#Agent',
-        wireTypeSymbol: '@hydra1902/harness-session/types#SessionId',
+        hostTypeSymbol: '@hydraharness/harness-agent#Agent',
+        wireTypeSymbol: '@hydraharness/harness-session/types#SessionId',
         resolve: sessionId => this.get(sessionId),
       })
       typeCtx.typert.contexts.registerHost('agent', {
         wire: 'agentId',
-        wireTypeSymbol: '@hydra1902/harness-session/types#SessionId',
+        wireTypeSymbol: '@hydraharness/harness-session/types#SessionId',
         resolve: sessionId => this.get(sessionId)?.ctx,
       })
     })

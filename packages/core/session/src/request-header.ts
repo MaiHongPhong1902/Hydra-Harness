@@ -7,8 +7,8 @@
  * @module hydra-session/request-header
  */
 
-import { callConfigEquals } from '@hydra1902/harness-llm'
-import type { ToolSchema } from '@hydra1902/harness-llm'
+import { callConfigEquals } from '@hydraharness/harness-llm'
+import type { ToolSchema } from '@hydraharness/harness-llm'
 import type { EpochHeader, SessionEvent } from './types.ts'
 
 /**

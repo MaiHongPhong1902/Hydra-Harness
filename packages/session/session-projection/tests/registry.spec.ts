@@ -8,14 +8,14 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { z } from 'zod'
-import SessionStore from '@hydra1902/harness-session'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
-import type { ProjectionDefinition } from '@hydra1902/harness-session-projection'
+import SessionStore from '@hydraharness/harness-session'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import SessionProjectionRegistry from '@hydraharness/harness-session-projection'
+import type { ProjectionDefinition } from '@hydraharness/harness-session-projection'
 
-declare module '@hydra1902/harness-session-projection/types' {
+declare module '@hydraharness/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     'test/marks': MarksState
     'test/count': number
@@ -26,7 +26,7 @@ declare module '@hydra1902/harness-session-projection/types' {
   }
 }
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     'test/mark': { marks: string[] }
   }

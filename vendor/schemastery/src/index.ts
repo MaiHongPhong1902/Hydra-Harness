@@ -1,4 +1,4 @@
-import { Binary, clone, deepEqual, filterKeys, isNullable, isPlainObject, pick, valueMap, type Dict } from '@hydra1902/cosmokit'
+import { Binary, clone, deepEqual, filterKeys, isNullable, isPlainObject, pick, valueMap, type Dict } from '@hydraharness/cosmokit'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 
 const kSchema = Symbol.for('schemastery')

@@ -2,9 +2,9 @@
 
 import { useEffect, useSyncExternalStore } from 'react'
 import clsx from 'clsx'
-import type { SessionId, SessionListState, SessionSummary } from '@hydra1902/harness-client-runtime/client'
-import { conversationVersions } from '@hydra1902/harness-client-runtime/client'
-import { IconChevronDownOutline14, IconChevronLeftOutline14, IconChevronRightOutline14 } from '@hydra1902/harness-client-ui-primitives'
+import type { SessionId, SessionListState, SessionSummary } from '@hydraharness/harness-client-runtime/client'
+import { conversationVersions } from '@hydraharness/harness-client-runtime/client'
+import { IconChevronDownOutline14, IconChevronLeftOutline14, IconChevronRightOutline14 } from '@hydraharness/harness-client-ui-primitives'
 import { PromptVersionMenu } from '../chat/PromptVersionMenu.tsx'
 import type {
   ConversationSessionHeaderSlotProps, ConversationSessionSlotProps,

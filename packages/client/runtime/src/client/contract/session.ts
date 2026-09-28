@@ -7,11 +7,11 @@
  * must stub); runtime-internal entry points (history staging, wire-frame
  * dispatch) stay on the class, invisible out here.
  */
-import type { AttachmentIdType, ImageAttachmentRef } from '@hydra1902/harness-attachment'
+import type { AttachmentIdType, ImageAttachmentRef } from '@hydraharness/harness-attachment'
 import type {
   MessageId, PromptContentPart, QueueAction, RpcResult, SessionId,
-} from '@hydra1902/harness-api-remotes/client'
-import type { RemoteResult } from '@hydra1902/harness-typert-protocol'
+} from '@hydraharness/harness-api-remotes/client'
+import type { RemoteResult } from '@hydraharness/harness-typert-protocol'
 import type { ConversationSnapshot } from '../sessions/conversation.ts'
 import type { ObservableSnapshot } from './store.ts'
 

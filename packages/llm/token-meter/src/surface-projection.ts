@@ -14,13 +14,13 @@
  * armed claim folds with zero delta because bounded state cannot reconstruct
  * the replaced range; this preserves replay at the cost of possible drift.
  *
- * @module @hydra1902/harness-token-meter/surface-projection
+ * @module @hydraharness/harness-token-meter/surface-projection
  */
 
-import { deriveEventMessage, isSurfaceEvent } from '@hydra1902/harness-session'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import { deriveEventMessage, isSurfaceEvent } from '@hydraharness/harness-session'
+import type { SessionEvent } from '@hydraharness/harness-session'
 // Type-only: the `compaction/*` SessionEventMap merges (shadow-price events).
-import type {} from '@hydra1902/harness-compaction'
+import type {} from '@hydraharness/harness-compaction'
 import { estimateMessage } from './estimate.ts'
 
 /**

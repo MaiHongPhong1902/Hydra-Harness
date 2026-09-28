@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { spawn } from 'node:child_process'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { once } from 'node:events'
 import { chmod, mkdir, mkdtemp, rm, stat, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -8,13 +8,13 @@ import { join } from 'node:path'
 import { performance } from 'node:perf_hooks'
 import { pathToFileURL } from 'node:url'
 import { DatabaseSync } from 'node:sqlite'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import Include from '@hydra1902/cordis-plugin-include'
-import SessionStore, { SessionId, type SessionEvent } from '@hydra1902/harness-session'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import Include from '@hydraharness/cordis-plugin-include'
+import SessionStore, { SessionId, type SessionEvent } from '@hydraharness/harness-session'
 import SessionPersistenceSqlite, {
   DEFAULT_BUSY_TIMEOUT_MS,
   SCHEMA_VERSION,
-} from '@hydra1902/harness-session-persistence-sqlite'
+} from '@hydraharness/harness-session-persistence-sqlite'
 import {
   runCoordinatorContract,
   type CoordinatorFixture,
@@ -235,8 +235,8 @@ describe('SessionPersistenceSqlite physical packing', () => {
     const path = await freshDbPath('hydra-sqlite-loader-')
     const configPath = join(path, '..', 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@hydra1902/harness-session'",
-      "- name: '@hydra1902/harness-session-persistence-sqlite'",
+      "- name: '@hydraharness/harness-session'",
+      "- name: '@hydraharness/harness-session-persistence-sqlite'",
       '  config:',
       `    path: ${JSON.stringify(path)}`,
       '',
@@ -249,8 +249,8 @@ describe('SessionPersistenceSqlite physical packing', () => {
     ctx.loader.internal = {
       version: 'sqlite',
       async import(specifier: string) {
-        if (specifier === '@hydra1902/harness-session') return SessionStore
-        if (specifier === '@hydra1902/harness-session-persistence-sqlite') {
+        if (specifier === '@hydraharness/harness-session') return SessionStore
+        if (specifier === '@hydraharness/harness-session-persistence-sqlite') {
           return SessionPersistenceSqlite
         }
         throw new Error(`unexpected Loader import: ${specifier}`)

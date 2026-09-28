@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { authorizationAccountId } from '@hydra1902/harness-authorization'
+import { Context } from '@hydraharness/cordis'
+import { authorizationAccountId } from '@hydraharness/harness-authorization'
 import type {
   AuthorizationAccount,
   AuthorizationAccountId,
@@ -8,8 +8,8 @@ import type {
   AuthorizationOutcome,
   AuthorizationService,
   AuthorizationUsage,
-} from '@hydra1902/harness-authorization'
-import { credentialKey, type CredentialKey } from '@hydra1902/harness-credentials'
+} from '@hydraharness/harness-authorization'
+import { credentialKey, type CredentialKey } from '@hydraharness/harness-credentials'
 import type { ApiProxy, RpcRequest, RpcResponse } from '../src/api/index.ts'
 import { RpcId } from '../src/api/rpc.ts'
 import { createApiProxy } from '../src/api-proxy.ts'

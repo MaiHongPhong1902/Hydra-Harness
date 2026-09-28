@@ -1,7 +1,7 @@
 /**
  * Canonical directory-boundary checks for the Windows ACL workspace and
  * private-temp capabilities.
- * @module @hydra1902/harness-sandbox-windows-acl/path-boundary
+ * @module @hydraharness/harness-sandbox-windows-acl/path-boundary
  */
 
 import { realpathSync } from 'node:fs'

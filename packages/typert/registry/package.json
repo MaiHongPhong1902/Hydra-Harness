@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-typert-registry",
+  "name": "@hydraharness/harness-typert-registry",
   "description": "Runtime registry for generated package reflection and Zod schemas",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -56,15 +56,15 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@hydra1902/harness-typert-protocol": "workspace:^",
+    "@hydraharness/harness-typert-protocol": "workspace:^",
     "zod": "^4.4.3"
   },
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

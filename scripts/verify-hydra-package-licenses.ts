@@ -7,7 +7,7 @@ import { globSync, readFileSync } from 'node:fs'
 import { resolve, sep } from 'node:path'
 
 const ROOT = resolve(import.meta.dirname, '..')
-const HYDRA_PACKAGE_NAME = /^@hydra1902\/harness(?:-|$)/
+const HYDRA_PACKAGE_NAME = /^@hydraharness\/harness(?:-|$)/
 
 /** Result of checking every Hydra package reachable through the root workspace list. */
 export interface HydraPackageLicenseReport {

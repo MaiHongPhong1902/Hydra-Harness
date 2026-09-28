@@ -39,12 +39,12 @@ An inflation guard bounds the whole pass: if the post-compaction size is not str
 
 ### The recall tools
 
-A new package `@hydra/harness-tool-recall` (consumer-only, over the `@hydra/harness-session` and `@hydra/harness-compaction` vocabularies) registers two model-facing tools:
+A new package `@hydraharness/harness-tool-recall` (consumer-only, over the `@hydraharness/harness-session` and `@hydraharness/harness-compaction` vocabularies) registers two model-facing tools:
 
 - `history_read(checkpoint, offset?)` — renders the shadowed span of any checkpoint in the log, including superseded ones, as `User:`/`Assistant:`/`Tool result:` transcript, paginated by a configured budget with a continuation cursor.
 - `history_search(query, checkpoint?, limit?)` — case-insensitive literal scan over every shadowed span; returns snippets with checkpoint ids and coverage metadata (`scanned`/`matched`/`truncated`). The zero-match hint notes the scan is literal and points at direct `history_read` of a plausible checkpoint.
 
-Both read `exec.agent.session.events` (the tool-todo access pattern; non-agent callers rejected), render only surface-type message events, and return ordinary `tool/result`s — recalled bytes land at the context tail, logged, so reconstructability holds with no special casing. There is no new storage and no sidecar index: the session log stores the content, `compaction/summary.shadowedRange` and `shadowedSeqs` identify what each checkpoint replaced, and the tools read both. The tool schemas and the package's one system-prompt section are static strings; checkpoint ids reach the model only through footers. The transcript renderer moves from `compaction-basic` into `@hydra/harness-session`, shared by summarizer and tools.
+Both read `exec.agent.session.events` (the tool-todo access pattern; non-agent callers rejected), render only surface-type message events, and return ordinary `tool/result`s — recalled bytes land at the context tail, logged, so reconstructability holds with no special casing. There is no new storage and no sidecar index: the session log stores the content, `compaction/summary.shadowedRange` and `shadowedSeqs` identify what each checkpoint replaced, and the tools read both. The tool schemas and the package's one system-prompt section are static strings; checkpoint ids reach the model only through footers. The transcript renderer moves from `compaction-basic` into `@hydraharness/harness-session`, shared by summarizer and tools.
 
 ### Cache and cost
 

@@ -1,5 +1,5 @@
 import { createRequire, type LoadHookContext } from 'node:module'
-import type { Dict } from '@hydra1902/cosmokit'
+import type { Dict } from '@hydraharness/cosmokit'
 
 /** Node internal module format names handled by loader hooks. */
 export type ModuleFormat = 'builtin' | 'commonjs' | 'json' | 'module' | 'wasm'

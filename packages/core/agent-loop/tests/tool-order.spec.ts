@@ -1,4 +1,4 @@
-import { createUserMessage } from '@hydra1902/harness-llm'
+import { createUserMessage } from '@hydraharness/harness-llm'
 /**
  * Loop-level tool-order determinism: the request/header event — and therefore the frozen
  * request the adapter receives — carries the assembly's canonical tool order (system-prompt's
@@ -8,15 +8,15 @@ import { createUserMessage } from '@hydra1902/harness-llm'
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import LlmRuntime from '@hydra1902/harness-llm'
-import SessionStore, { SessionId, foldRequestHeader } from '@hydra1902/harness-session'
-import SystemPrompt, { TOOL_ORDER_REST } from '@hydra1902/harness-system-prompt'
-import type { Config as SystemPromptConfig } from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { defineContentToolFixture } from '@hydra1902/harness-tools'
-import AgentRegistry, { type Agent } from '@hydra1902/harness-agent'
+import { Context } from '@hydraharness/cordis'
+import LlmRuntime from '@hydraharness/harness-llm'
+import SessionStore, { SessionId, foldRequestHeader } from '@hydraharness/harness-session'
+import SystemPrompt, { TOOL_ORDER_REST } from '@hydraharness/harness-system-prompt'
+import type { Config as SystemPromptConfig } from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture } from '@hydraharness/harness-tools'
+import AgentRegistry, { type Agent } from '@hydraharness/harness-agent'
 
-import AgentLoop from '@hydra1902/harness-agent-loop'
+import AgentLoop from '@hydraharness/harness-agent-loop'
 import { MockAdapter, textResponse } from './mock-adapter.ts'
 
 async function harness(adapter: MockAdapter, toolOrder?: SystemPromptConfig['toolOrder']) {

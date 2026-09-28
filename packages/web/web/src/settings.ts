@@ -1,6 +1,6 @@
 /** Product search selection and invocation limits, independent of chat configuration. */
 
-import z from '@hydra1902/schemastery'
+import z from '@hydraharness/schemastery'
 
 /** Saved search preferences. Empty provider requires an explicit user selection. */
 export interface WebSearchSettings {

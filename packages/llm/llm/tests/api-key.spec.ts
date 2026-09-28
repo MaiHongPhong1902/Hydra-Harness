@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assertUsableApiKey, INVALID_CREDENTIAL_CODE, normalizeApiKey } from '@hydra1902/harness-llm'
+import { assertUsableApiKey, INVALID_CREDENTIAL_CODE, normalizeApiKey } from '@hydraharness/harness-llm'
 
 describe('normalizeApiKey', () => {
   it('accepts a printable-ASCII key unchanged', () => {

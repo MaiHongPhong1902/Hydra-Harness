@@ -2,16 +2,16 @@
 # the base cordis.yml, so this overlay adds only the local tool-result spill
 # storage those scenarios exercise.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - insert:
           - id: spill-local
-            name: '@hydra1902/harness-spill-local'
+            name: '@hydraharness/harness-spill-local'
             config:
               root: !!js process.env.HYDRA_SNAPSHOT_SPILL_ROOT ?? './.spill'
           - id: spill-policy
-            name: '@hydra1902/harness-spill-policy'
+            name: '@hydraharness/harness-spill-policy'
             config:
               maxInlineBytes: !!js process.env.HYDRA_SNAPSHOT && 800 || 50000

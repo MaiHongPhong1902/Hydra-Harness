@@ -9,11 +9,11 @@
  */
 
 import { useEffect } from 'react'
-import type { SnapshotStore } from '@hydra1902/harness-client-runtime/client'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
-import { IconAgentPresetOutline16 } from '@hydra1902/harness-client-ui-primitives'
+import type { SnapshotStore } from '@hydraharness/harness-client-runtime/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
+import { IconAgentPresetOutline16 } from '@hydraharness/harness-client-ui-primitives'
 // Type-only: pulls the ui-conversation SlotMap merge (the header actions).
-import type {} from '@hydra1902/harness-client-ui-conversation/client'
+import type {} from '@hydraharness/harness-client-ui-conversation/client'
 import type { AgentPresetSettingsState } from './settings-store.ts'
 import { presetDisplayText } from './locales.ts'
 import css from './AgentPresetLabel.module.css'

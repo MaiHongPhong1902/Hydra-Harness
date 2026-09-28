@@ -9,19 +9,19 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import { createUserMessage, CallId } from '@hydra1902/harness-llm'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import { SessionId } from '@hydra1902/harness-session'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { defineContentToolFixture } from '@hydra1902/harness-tools'
-import type { ToolDefinition } from '@hydra1902/harness-tools'
-import type { PostToolDecision, ToolExecution, ToolExecutionToken } from '@hydra1902/harness-tools'
-import { SpillLocator, SpillStore } from '@hydra1902/harness-spill'
-import type { SaveTextSpill, SpillRef } from '@hydra1902/harness-spill'
-import * as SpillPolicy from '@hydra1902/harness-spill-policy'
-import { WorkerThreadCodeRuntime } from '@hydra1902/harness-code-runtime-worker-thread'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import { createUserMessage, CallId } from '@hydraharness/harness-llm'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import { SessionId } from '@hydraharness/harness-session'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture } from '@hydraharness/harness-tools'
+import type { ToolDefinition } from '@hydraharness/harness-tools'
+import type { PostToolDecision, ToolExecution, ToolExecutionToken } from '@hydraharness/harness-tools'
+import { SpillLocator, SpillStore } from '@hydraharness/harness-spill'
+import type { SaveTextSpill, SpillRef } from '@hydraharness/harness-spill'
+import * as SpillPolicy from '@hydraharness/harness-spill-policy'
+import { WorkerThreadCodeRuntime } from '@hydraharness/harness-code-runtime-worker-thread'
 
 const testToolSignal = new AbortController().signal
 

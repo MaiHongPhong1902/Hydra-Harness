@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-pwsh-sandbox`.
- * @module @hydra1902/harness-pwsh-sandbox/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-pwsh-sandbox`.
+ * @module @hydraharness/harness-pwsh-sandbox/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-pwsh-sandbox'
+const PACKAGE_NAME = '@hydraharness/harness-pwsh-sandbox'
 
 /** Cordis companion plugin name. */
 export const name = 'pwsh-sandbox-invariant'

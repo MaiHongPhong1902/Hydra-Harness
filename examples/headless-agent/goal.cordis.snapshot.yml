@@ -2,17 +2,17 @@
 # a config patch cannot target an entry behind a nested include, then restates
 # the goal overlay while replacing the live model with keyless replay.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra1902/harness-llm-deepseek'
+        name: '@hydraharness/harness-llm-deepseek'
         disabled: true
       - insert:
           - id: goal
-            name: '@hydra1902/harness-goal'
+            name: '@hydraharness/harness-goal'
           - id: tool-goal
-            name: '@hydra1902/harness-tool-goal'
+            name: '@hydraharness/harness-tool-goal'
           - id: llm-replay
-            name: '@hydra1902/harness-llm-replay'
+            name: '@hydraharness/harness-llm-replay'

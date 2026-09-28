@@ -8,7 +8,7 @@ The [Cordis tutorial](../../../../docs/cordis-tutorial/index.md) uses an officia
 
 ## Decision
 
-`@hydra/harness-skill-badge` is a native Cordis plugin that registers one immutable bundled provider on `ctx.skills`. The provider owns the `hydra-badge` summary, instruction body, and PNG resource base; `@hydra/harness-tool-skill` remains the sole owner of bounded model-facing search and exact loader rendering.
+`@hydraharness/harness-skill-badge` is a native Cordis plugin that registers one immutable bundled provider on `ctx.skills`. The provider owns the `hydra-badge` summary, instruction body, and PNG resource base; `@hydraharness/harness-tool-skill` remains the sole owner of bounded model-facing search and exact loader rendering.
 
 The shipped CLI composition declares `skill-badge` as disabled. Enabling that existing row is the explicit opt-in; disabled installations advertise no badge skill and gain no model-visible content.
 
@@ -16,7 +16,7 @@ The provider uses the bundled rank after project, custom, and user filesystem so
 
 ## Alternatives considered
 
-**Mount packaged files through `@hydra/harness-skill-filesystem`.** Rejected because filesystem discovery, parsing, and watching add lifecycle machinery that an immutable single-skill provider does not need.
+**Mount packaged files through `@hydraharness/harness-skill-filesystem`.** Rejected because filesystem discovery, parsing, and watching add lifecycle machinery that an immutable single-skill provider does not need.
 
 ## Consequences
 

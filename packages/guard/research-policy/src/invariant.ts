@@ -1,6 +1,6 @@
 /** Research charge records must preserve their accounting units. */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 import type {} from './index.ts'
 
 export const name = 'research-policy-invariant'
@@ -19,4 +19,4 @@ const install: InvariantInstaller = (ctx, fail) => {
  * @param ctx - context carrying invariant registrations.
  * @returns the registration disposer.
  */
-export const apply = (ctx: Context): Promise<() => void> => Promise.resolve(ctx.invariants.register('@hydra1902/harness-research-policy', install))
+export const apply = (ctx: Context): Promise<() => void> => Promise.resolve(ctx.invariants.register('@hydraharness/harness-research-policy', install))

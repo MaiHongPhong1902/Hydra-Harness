@@ -4,12 +4,12 @@
  * through the `jobsBySession` list mirror, so the plugin issues no RPC and
  * holds no state of its own beyond popover visibility.
  */
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
 import { JobListAction } from './JobListAction.tsx'
-import type {} from '@hydra1902/harness-client-locale/client'
+import type {} from '@hydraharness/harness-client-locale/client'
 import { en, NS, type JobKey } from './locales.ts'
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Background-job list copy. */
     'job': JobKey

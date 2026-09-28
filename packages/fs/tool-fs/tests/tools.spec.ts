@@ -4,14 +4,14 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve, sep } from 'node:path'
-import { CallId } from '@hydra1902/harness-llm'
-import SystemPrompt, { renderPrompt } from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { type ToolResult } from '@hydra1902/harness-tools'
-import { FileSystem, FsError, FsTargetKey, FsVersion } from '@hydra1902/harness-fs'
+import { CallId } from '@hydraharness/harness-llm'
+import SystemPrompt, { renderPrompt } from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { type ToolResult } from '@hydraharness/harness-tools'
+import { FileSystem, FsError, FsTargetKey, FsVersion } from '@hydraharness/harness-fs'
 import type {
   FsDirEntry,
   FsEditOutcome,
@@ -21,16 +21,16 @@ import type {
   FsTarget,
   FsWriteIntent,
   FsWriteOutcome,
-} from '@hydra1902/harness-fs'
-import * as FsPolicy from '@hydra1902/harness-fs-observation-policy'
-import * as ToolFs from '@hydra1902/harness-tool-fs'
+} from '@hydraharness/harness-fs'
+import * as FsPolicy from '@hydraharness/harness-fs-observation-policy'
+import * as ToolFs from '@hydraharness/harness-tool-fs'
 import { parseReadArgs, STREAM_MIN_SIZE } from '../src/read.ts'
 import { formatReadOutput } from '../src/read-render.ts'
 import type { FileReadOutcome } from '../src/read-render.ts'
 import { sessionCwd } from '../src/session-cwd.ts'
-import ApprovalService from '@hydra1902/harness-user-approval'
-import type { SandboxExecutionPolicy, SandboxMode } from '@hydra1902/harness-sandbox'
-import SandboxPolicyService from '@hydra1902/harness-sandbox-policy'
+import ApprovalService from '@hydraharness/harness-user-approval'
+import type { SandboxExecutionPolicy, SandboxMode } from '@hydraharness/harness-sandbox'
+import SandboxPolicyService from '@hydraharness/harness-sandbox-policy'
 
 const testToolSignal = new AbortController().signal
 

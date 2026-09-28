@@ -1,7 +1,7 @@
 /** Public types for the user-declared hook registry. */
 
-import type {} from '@hydra1902/cordis'
-import type { JsonValue } from '@hydra1902/harness-session/types'
+import type {} from '@hydraharness/cordis'
+import type { JsonValue } from '@hydraharness/harness-session/types'
 
 /** Hook config dialect a record is written in, selecting its bridge. */
 export type HookDialect = 'claude-code' | 'codex'
@@ -83,7 +83,7 @@ export interface HookRecordEnablementRequest {
   readonly enabled: boolean
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Events {
     /**
      * The mounted bridge set now matches the stored records. Emitted after each

@@ -1,15 +1,15 @@
-import { createUserMessage } from '@hydra1902/harness-llm'
+import { createUserMessage } from '@hydraharness/harness-llm'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import {
   GoalId,
   type GoalSnapshotChangeMeta,
   type GoalView,
-} from '@hydra1902/harness-goal'
-import * as GoalSessionInvariant from '@hydra1902/harness-goal-round-driver/invariant'
-import { renderGoalRoundPrompt } from '@hydra1902/harness-goal-round-driver'
-import InvariantRegistry, { InvariantError } from '@hydra1902/harness-invariants'
-import SessionStore, { SessionId, type Session } from '@hydra1902/harness-session'
+} from '@hydraharness/harness-goal'
+import * as GoalSessionInvariant from '@hydraharness/harness-goal-round-driver/invariant'
+import { renderGoalRoundPrompt } from '@hydraharness/harness-goal-round-driver'
+import InvariantRegistry, { InvariantError } from '@hydraharness/harness-invariants'
+import SessionStore, { SessionId, type Session } from '@hydraharness/harness-session'
 
 const change: GoalSnapshotChangeMeta = {
   kind: 'goal/change',
@@ -95,7 +95,7 @@ describe('goal-round-driver prompt invariants', () => {
       appendRound(session, 2, [{ type: 'text', text: 'counterfeit continuation' }])
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@hydra1902/harness-goal-round-driver',
+      packageName: '@hydraharness/harness-goal-round-driver',
     }))
   })
 
@@ -110,7 +110,7 @@ describe('goal-round-driver prompt invariants', () => {
         source,
       }), { surfaceOp: 'append' })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
-      packageName: '@hydra1902/harness-goal-round-driver',
+      packageName: '@hydraharness/harness-goal-round-driver',
     }))
   })
 
@@ -122,7 +122,7 @@ describe('goal-round-driver prompt invariants', () => {
 
     await expect(ctx.plugin(GoalSessionInvariant)).rejects.toMatchObject({
       code: 'INVARIANT',
-      packageName: '@hydra1902/harness-goal-round-driver',
+      packageName: '@hydraharness/harness-goal-round-driver',
     })
   })
 })

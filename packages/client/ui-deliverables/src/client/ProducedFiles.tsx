@@ -5,9 +5,9 @@
 // Host machine.
 
 import { useLayoutEffect, useRef, useState } from 'react'
-import type { HostDescriptionSource } from '@hydra1902/harness-client-connection/client'
-import type { InjectFace, PropsLocale } from '@hydra1902/harness-client-ui-slots'
-import type { TurnTailOwnerProps } from '@hydra1902/harness-client-ui-conversation/client'
+import type { HostDescriptionSource } from '@hydraharness/harness-client-connection/client'
+import type { InjectFace, PropsLocale } from '@hydraharness/harness-client-ui-slots'
+import type { TurnTailOwnerProps } from '@hydraharness/harness-client-ui-conversation/client'
 import { basename } from './turn-deliverables.ts'
 import type { NS } from './locales.ts'
 import css from './ProducedFiles.module.css'

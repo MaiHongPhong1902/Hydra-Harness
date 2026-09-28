@@ -13,16 +13,16 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import Include from '@hydra1902/cordis-plugin-include'
-import LlmRuntime from '@hydra1902/harness-llm'
-import { credentialRef } from '@hydra1902/harness-credentials'
-import LocalCredentialProvider from '@hydra1902/harness-credentials-local'
-import { settingsNamespace } from '@hydra1902/harness-settings'
-import FileSettingsProvider from '@hydra1902/harness-settings-file'
-import { getOrCreateAnonymousUserId } from '@hydra1902/harness-anonymous-user-id'
-import * as LlmDeepSeek from '@hydra1902/harness-llm-deepseek'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import Include from '@hydraharness/cordis-plugin-include'
+import LlmRuntime from '@hydraharness/harness-llm'
+import { credentialRef } from '@hydraharness/harness-credentials'
+import LocalCredentialProvider from '@hydraharness/harness-credentials-local'
+import { settingsNamespace } from '@hydraharness/harness-settings'
+import FileSettingsProvider from '@hydraharness/harness-settings-file'
+import { getOrCreateAnonymousUserId } from '@hydraharness/harness-anonymous-user-id'
+import * as LlmDeepSeek from '@hydraharness/harness-llm-deepseek'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 
@@ -63,19 +63,19 @@ async function loadComposition(
     ...options.withDynamic
       ? [
         '- id: settings',
-        "  name: '@hydra1902/harness-settings-file'",
+        "  name: '@hydraharness/harness-settings-file'",
         '  config:',
         `    path: ${JSON.stringify(settingsPath)}`,
         '    debounceMs: 10',
         '- id: credentials',
-        "  name: '@hydra1902/harness-credentials-local'",
+        "  name: '@hydraharness/harness-credentials-local'",
         '  config:',
         `    path: ${JSON.stringify(credentialsPath)}`,
         '    debounceMs: 10',
       ]
       : [],
     '- id: llm-deepseek',
-    "  name: '@hydra1902/harness-llm-deepseek'",
+    "  name: '@hydraharness/harness-llm-deepseek'",
     '  config:',
     `    baseURL: ${JSON.stringify(options.baseURL)}`,
     '',
@@ -88,9 +88,9 @@ async function loadComposition(
   ctx.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
     ['test-llm-service', LlmRuntime],
-    ['@hydra1902/harness-settings-file', FileSettingsProvider],
-    ['@hydra1902/harness-credentials-local', LocalCredentialProvider],
-    ['@hydra1902/harness-llm-deepseek', LlmDeepSeek],
+    ['@hydraharness/harness-settings-file', FileSettingsProvider],
+    ['@hydraharness/harness-credentials-local', LocalCredentialProvider],
+    ['@hydraharness/harness-llm-deepseek', LlmDeepSeek],
   ])
   ctx.loader.internal = {
     version: 'v2',

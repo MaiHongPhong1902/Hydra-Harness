@@ -11,10 +11,10 @@
  * @module hydra-agent-loop/tool-calls
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { assertNever, createToolResultMessage, type ToolCallBlock } from '@hydra1902/harness-llm'
-import type { Session, UserMessage } from '@hydra1902/harness-session'
-import { TOOL_ABORTED_BEFORE_DISPATCH, TOOL_RUNTIME_SCHEDULER, type ToolExecutionInput, type ToolExecutionMode, type ToolExecutionResult, type ToolRunContext } from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import { assertNever, createToolResultMessage, type ToolCallBlock } from '@hydraharness/harness-llm'
+import type { Session, UserMessage } from '@hydraharness/harness-session'
+import { TOOL_ABORTED_BEFORE_DISPATCH, TOOL_RUNTIME_SCHEDULER, type ToolExecutionInput, type ToolExecutionMode, type ToolExecutionResult, type ToolRunContext } from '@hydraharness/harness-tools'
 
 /** One tool call after argument parsing, ready to schedule. */
 interface PlannedCall {

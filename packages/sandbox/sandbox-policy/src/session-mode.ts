@@ -18,10 +18,10 @@
  * @module hydra-sandbox-policy/session-mode
  */
 
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import type { SandboxMode } from '@hydra1902/harness-sandbox'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import type { SandboxMode } from '@hydraharness/harness-sandbox'
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /**
      * The session's sandbox mode was switched — log-only (like `approval/*`;

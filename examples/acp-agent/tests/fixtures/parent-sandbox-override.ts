@@ -1,6 +1,6 @@
-import type { Context } from '@hydra1902/cordis'
-import { setSandboxMode } from '@hydra1902/harness-sandbox-policy'
-import type {} from '@hydra1902/harness-agent'
+import type { Context } from '@hydraharness/cordis'
+import { setSandboxMode } from '@hydraharness/harness-sandbox-policy'
+import type {} from '@hydraharness/harness-agent'
 
 export const name = 'parent-sandbox-override'
 

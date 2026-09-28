@@ -3,7 +3,7 @@
  * timestamps, hook duration, and LLM diagnostic latency while preserving other payloads.
  * Request-header scrubbers stay composable so one scenario per header class can pin prompt and
  * tool-schema sidecars.
- * @module @hydra1902/harness-acp-snapshot/normalize
+ * @module @hydraharness/harness-acp-snapshot/normalize
  */
 
 const SESSION_ID = '{{sessionId}}'

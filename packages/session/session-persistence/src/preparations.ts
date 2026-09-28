@@ -1,9 +1,9 @@
 /**
  * Bounded sharing and exclusive reservation of unpublished Sessions.
- * @module @hydra1902/harness-session-persistence/preparations
+ * @module @hydraharness/harness-session-persistence/preparations
  */
 
-import type { Session, SessionId } from '@hydra1902/harness-session'
+import type { Session, SessionId } from '@hydraharness/harness-session'
 
 interface PreparedSource {
   readonly session: Session

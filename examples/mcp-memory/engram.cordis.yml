@@ -2,7 +2,7 @@
 # first; storage and project selection remain Engram-owned.
 - insert:
     - id: memory-engram
-      name: '@hydra1902/harness-mcp-client'
+      name: '@hydraharness/harness-mcp-client'
       config:
         serverName: engram
         transport: stdio

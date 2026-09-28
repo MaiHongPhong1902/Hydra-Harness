@@ -6,11 +6,11 @@
 // entries. Tool composition belongs to ui-tool and its machinery spec.
 
 import { describe, expect, it, vi } from 'vitest'
-import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@hydra1902/harness-client-test-runtime'
-import { resolveSlotLabel } from '@hydra1902/harness-client-ui-slots'
-import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
-import type { SessionId } from '@hydra1902/harness-client-runtime/client'
-import { apply, inject } from '@hydra1902/harness-client-ui-conversation/client'
+import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@hydraharness/harness-client-test-runtime'
+import { resolveSlotLabel } from '@hydraharness/harness-client-ui-slots'
+import { LocaleRuntime } from '@hydraharness/harness-client-locale/client'
+import type { SessionId } from '@hydraharness/harness-client-runtime/client'
+import { apply, inject } from '@hydraharness/harness-client-ui-conversation/client'
 
 // The service reads its initial locale from the browser, so these specs state
 // the browser language they assume.

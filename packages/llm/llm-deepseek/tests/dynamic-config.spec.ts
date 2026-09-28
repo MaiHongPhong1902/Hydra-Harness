@@ -1,21 +1,21 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { access, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import LlmRuntime, { createUserMessage, INVALID_CREDENTIAL_CODE } from '@hydra1902/harness-llm'
-import AttachmentStore, { AttachmentId } from '@hydra1902/harness-attachment'
+import LlmRuntime, { createUserMessage, INVALID_CREDENTIAL_CODE } from '@hydraharness/harness-llm'
+import AttachmentStore, { AttachmentId } from '@hydraharness/harness-attachment'
 import type {
   ImageAttachmentLimits,
   ImageAttachmentRef,
   SaveImageAttachment,
   StoredImageAttachment,
-} from '@hydra1902/harness-attachment'
-import { credentialRef } from '@hydra1902/harness-credentials'
-import { LocalCredentialProvider } from '@hydra1902/harness-credentials-local'
-import { settingsNamespace } from '@hydra1902/harness-settings'
-import { FileSettingsProvider } from '@hydra1902/harness-settings-file'
-import * as LlmDeepSeek from '@hydra1902/harness-llm-deepseek'
+} from '@hydraharness/harness-attachment'
+import { credentialRef } from '@hydraharness/harness-credentials'
+import { LocalCredentialProvider } from '@hydraharness/harness-credentials-local'
+import { settingsNamespace } from '@hydraharness/harness-settings'
+import { FileSettingsProvider } from '@hydraharness/harness-settings-file'
+import * as LlmDeepSeek from '@hydraharness/harness-llm-deepseek'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 

@@ -1,15 +1,15 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { Session, SessionId } from '@hydra1902/harness-session'
-import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
-import type { Agent } from '@hydra1902/harness-agent'
-import { bindScopeParent, createScope, scopeOf } from '@hydra1902/harness-scope'
-import type { ScopeKey } from '@hydra1902/harness-scope'
-import { JobId } from '@hydra1902/harness-jobs'
-import type { JobHooks, JobKind, JobOutcome, JobSnapshot, JobStart } from '@hydra1902/harness-jobs'
-import LocalJobRegistry, { type Config as JobsConfig } from '@hydra1902/harness-jobs-local'
+import { Context } from '@hydraharness/cordis'
+import { Session, SessionId } from '@hydraharness/harness-session'
+import AgentRegistry, { Inbox } from '@hydraharness/harness-agent'
+import type { Agent } from '@hydraharness/harness-agent'
+import { bindScopeParent, createScope, scopeOf } from '@hydraharness/harness-scope'
+import type { ScopeKey } from '@hydraharness/harness-scope'
+import { JobId } from '@hydraharness/harness-jobs'
+import type { JobHooks, JobKind, JobOutcome, JobSnapshot, JobStart } from '@hydraharness/harness-jobs'
+import LocalJobRegistry, { type Config as JobsConfig } from '@hydraharness/harness-jobs-local'
 
-declare module '@hydra1902/harness-jobs' {
+declare module '@hydraharness/harness-jobs' {
   interface JobKindMap {
     workflow: 'workflow'
   }
@@ -119,7 +119,7 @@ describe('LocalJobRegistry.start', () => {
     const ctx = new Context()
     await ctx.plugin(LocalJobRegistry)
     expect(() => ctx.jobs.start(producer().spec))
-      .toThrow('background jobs unavailable: no job controller serves this agent (load @hydra1902/harness-tool-jobs in its composition)')
+      .toThrow('background jobs unavailable: no job controller serves this agent (load @hydraharness/harness-tool-jobs in its composition)')
   })
 
   it('refuses an owner whose own composition attaches no controller', async () => {

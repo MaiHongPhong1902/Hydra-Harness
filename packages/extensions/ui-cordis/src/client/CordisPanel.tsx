@@ -5,11 +5,11 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import {
   IconCheckOutline16, IconCloseOutline16, IconCordisPluginOutline14, IconPlayOutline16,
   IconStopFill16, IconTrashOutline16, Tooltip, useDismissOnOutsidePointer,
-} from '@hydra1902/harness-client-ui-primitives'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
-import type {} from '@hydra1902/harness-client-ui-sidebar/client'
-import type { CordisRunActivity } from '@hydra1902/harness-cordis-client-runner/client'
-import type { SessionId } from '@hydra1902/harness-client-connection/client'
+} from '@hydraharness/harness-client-ui-primitives'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
+import type {} from '@hydraharness/harness-client-ui-sidebar/client'
+import type { CordisRunActivity } from '@hydraharness/harness-cordis-client-runner/client'
+import type { SessionId } from '@hydraharness/harness-client-connection/client'
 import type { CordisInventoryRow } from './dynamic-port.ts'
 import type { CordisPanelFace } from './slots.ts'
 import type { CordisKey } from './locales.ts'

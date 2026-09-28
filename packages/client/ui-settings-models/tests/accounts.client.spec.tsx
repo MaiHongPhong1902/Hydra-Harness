@@ -2,8 +2,8 @@
 /** Multiple account login, prompt privacy, and editor-owned cancellation. */
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import type { IApiClient, RpcResponse } from '@hydra1902/harness-api-remotes/client'
-import Schema from '@hydra1902/schemastery'
+import type { IApiClient, RpcResponse } from '@hydraharness/harness-api-remotes/client'
+import Schema from '@hydraharness/schemastery'
 import { ProviderAccounts } from '../src/client/ProviderAccounts.tsx'
 import { ProviderEditor } from '../src/client/ProviderEditor.tsx'
 import { providerAccountKey, providerUsable } from '../src/client/store.ts'

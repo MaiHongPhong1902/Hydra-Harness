@@ -2,8 +2,8 @@
 
 import type { ApiProxy, HostFrame, MuxFrame, RpcRequest, ServerRequest } from './api.ts'
 import { AbstractApiClient } from './api.ts'
-import { hostFrameSchema, muxFrameSchema } from '@hydra1902/harness-host-apiproxy/api/events.schema'
-import { serverRequestSchema } from '@hydra1902/harness-host-apiproxy/api/rpc.schema'
+import { hostFrameSchema, muxFrameSchema } from '@hydraharness/harness-host-apiproxy/api/events.schema'
+import { serverRequestSchema } from '@hydraharness/harness-host-apiproxy/api/rpc.schema'
 import { HOST_EVENTS_PATH, MUX_EVENTS_PATH } from '../api-path.ts'
 
 type SocketItem<F> = { kind: 'frame'; envelope: RpcRequest<F> } | { kind: 'end' }

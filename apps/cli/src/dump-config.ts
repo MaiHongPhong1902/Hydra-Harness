@@ -3,7 +3,7 @@
  * profile's patch layers through the include plugin's patch algorithm without
  * booting or evaluating `!!js`, with one source layer per bundle, the
  * profile's own patch file, and each `--patch` overlay.
- * @module @hydra1902/harness/dump-config
+ * @module @hydraharness/harness/dump-config
  */
 
 import { existsSync } from 'node:fs'
@@ -13,7 +13,7 @@ import {
   loadOverlayPatches,
   renderConfigDump,
   type ConfigDumpLayer,
-} from '@hydra1902/harness-app-boot'
+} from '@hydraharness/harness-app-boot'
 import {
   homePatchPath, prepareProfile, profileEnablementPatches, PROFILE_ROOT_FILENAME,
 } from './profile-boot.ts'

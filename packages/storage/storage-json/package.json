@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-storage-json",
+  "name": "@hydraharness/harness-storage-json",
   "description": "JSON file KV storage backend for the Hydra harness storage hub",
   "hydra": {
     "plugin": {
@@ -37,16 +37,16 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-storage": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-storage": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-storage": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-storage": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

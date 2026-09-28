@@ -5,9 +5,9 @@
 // retracts everything the presenter wrote.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ThemeSnapshot } from '@hydra1902/harness-client-ui-theme/client'
-import type { DesktopBrowserTheme } from '@hydra1902/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
-import { DARK_ATTRIBUTE, ThemePresenter } from '@hydra1902/harness-client-ui-layout/src/client/theme-presenter.ts'
+import type { ThemeSnapshot } from '@hydraharness/harness-client-ui-theme/client'
+import type { DesktopBrowserTheme } from '@hydraharness/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
+import { DARK_ATTRIBUTE, ThemePresenter } from '@hydraharness/harness-client-ui-layout/src/client/theme-presenter.ts'
 
 const LIGHT_THEME_COLOR = 'rgb(255, 255, 255)'
 const DARK_THEME_COLOR = 'rgb(21, 21, 23)'

@@ -14,8 +14,8 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { CallId } from '@hydra1902/harness-llm'
-import type { SessionEvent, SessionId } from '@hydra1902/harness-session'
+import { CallId } from '@hydraharness/harness-llm'
+import type { SessionEvent, SessionId } from '@hydraharness/harness-session'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden, fixtureUserPrompts,
   launchWebScaffold, recordFixture, watchConsole, webSnapshotMode, type WebScaffold,

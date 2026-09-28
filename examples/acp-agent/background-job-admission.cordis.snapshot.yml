@@ -2,15 +2,15 @@
 # DeepSeek adapter with replay while preserving the app's one-task admission
 # config and the recorded flash route.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra1902/harness-llm-deepseek'
+        name: '@hydraharness/harness-llm-deepseek'
         disabled: true
       - id: acp-agent
-        name: '@hydra1902/harness-acp-demo'
+        name: '@hydraharness/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -26,7 +26,7 @@
             Verify your work by running the code or tests. Keep answers brief and factual.
       - insert:
           - id: llm-replay
-            name: '@hydra1902/harness-llm-replay'
+            name: '@hydraharness/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

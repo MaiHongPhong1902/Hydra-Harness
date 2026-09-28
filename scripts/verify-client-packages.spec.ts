@@ -15,7 +15,7 @@ import {
   type ClientPackageFacts,
 } from './verify-client-packages.ts'
 
-const CORDIS = '@hydra1902/cordis'
+const CORDIS = '@hydraharness/cordis'
 const roots: string[] = []
 
 afterEach(() => {
@@ -27,7 +27,7 @@ function declaration(
   fields: Partial<Omit<ClientDeclaration, 'name' | 'manifest'>> = {},
 ): ClientDeclaration {
   return {
-    name: short.startsWith('@') ? short : '@hydra1902/harness-client-' + short,
+    name: short.startsWith('@') ? short : '@hydraharness/harness-client-' + short,
     manifest: 'packages/client/' + short.replace(/^.*\//, '') + '/package.json',
     dynamic: true,
     external: [],
@@ -73,26 +73,26 @@ function facts(
 describe('source package uses', () => {
   it('counts type imports, module augmentations, dynamic imports, and JSX', () => {
     const uses = collectSourcePackageUses('feature.tsx', [
-      "import type { A } from '@hydra1902/harness-a/subpath'",
-      "declare module '@hydra1902/harness-client-ui-slots' {}",
-      "const load = () => import('@hydra1902/harness-b')",
+      "import type { A } from '@hydraharness/harness-a/subpath'",
+      "declare module '@hydraharness/harness-client-ui-slots' {}",
+      "const load = () => import('@hydraharness/harness-b')",
       'export const view = <div />',
       "export type { Local } from './local.ts'",
     ].join('\n'))
 
     expect([...uses].sort()).toEqual([
-      '@hydra1902/harness-a',
-      '@hydra1902/harness-b',
-      '@hydra1902/harness-client-ui-slots',
+      '@hydraharness/harness-a',
+      '@hydraharness/harness-b',
+      '@hydraharness/harness-client-ui-slots',
       'react',
     ])
     expect([...collectRuntimeSourcePackageUses('feature.tsx', [
-      "import type { A } from '@hydra1902/harness-a/subpath'",
-      "declare module '@hydra1902/harness-client-ui-slots' {}",
-      "const load = () => import('@hydra1902/harness-b')",
+      "import type { A } from '@hydraharness/harness-a/subpath'",
+      "declare module '@hydraharness/harness-client-ui-slots' {}",
+      "const load = () => import('@hydraharness/harness-b')",
       'export const view = <div />',
     ].join('\n'))].sort()).toEqual([
-      '@hydra1902/harness-b',
+      '@hydraharness/harness-b',
       'react',
     ])
   })
@@ -135,7 +135,7 @@ describe('package modes', () => {
       parserPreloadIds: [],
     }))).toEqual([
       'packages/client/web/src/platform.ts: parser-preloaded external '
-      + '"@hydra1902/harness-client-runtime/client" has no matching PARSER_PRELOAD_IDS row in '
+      + '"@hydraharness/harness-client-runtime/client" has no matching PARSER_PRELOAD_IDS row in '
       + 'packages/client/modules/src/index.ts',
     ])
   })
@@ -145,23 +145,23 @@ describe('dependency sections', () => {
   it('accepts dynamic peer plus dev relationships, static dev inputs, and private dependencies', () => {
     const slots = pkg('ui-slots', { dynamic: false, staticLinked: true })
     const runtime = pkg('runtime', {
-      inject: ['@hydra1902/harness-client-feature'],
+      inject: ['@hydraharness/harness-client-feature'],
       sourceUses: {
-        '@hydra1902/harness-agent': ['packages/client/runtime/src/index.ts'],
-        '@hydra1902/harness-client-ui-slots': ['packages/client/runtime/src/client/slots.ts'],
+        '@hydraharness/harness-agent': ['packages/client/runtime/src/index.ts'],
+        '@hydraharness/harness-client-ui-slots': ['packages/client/runtime/src/client/slots.ts'],
         react: ['packages/client/runtime/src/client/view.tsx'],
       },
       dependencies: { immer: '^10.1.1' },
       peerDependencies: {
         [CORDIS]: 'workspace:^',
-        '@hydra1902/harness-agent': 'workspace:^',
-        '@hydra1902/harness-client-feature': 'workspace:^',
+        '@hydraharness/harness-agent': 'workspace:^',
+        '@hydraharness/harness-client-feature': 'workspace:^',
       },
       devDependencies: {
         [CORDIS]: 'workspace:^',
-        '@hydra1902/harness-agent': 'workspace:^',
-        '@hydra1902/harness-client-feature': 'workspace:^',
-        '@hydra1902/harness-client-ui-slots': 'workspace:^',
+        '@hydraharness/harness-agent': 'workspace:^',
+        '@hydraharness/harness-client-feature': 'workspace:^',
+        '@hydraharness/harness-client-ui-slots': 'workspace:^',
         react: '^18.2.0',
       },
     })
@@ -174,10 +174,10 @@ describe('dependency sections', () => {
     const slots = pkg('ui-slots', { dynamic: false, staticLinked: true })
     const subject = pkg('feature', {
       sourceUses: {
-        '@hydra1902/harness-agent': ['packages/client/feature/src/index.ts'],
+        '@hydraharness/harness-agent': ['packages/client/feature/src/index.ts'],
         [slots.name]: ['packages/client/feature/src/view.tsx'],
       },
-      dependencies: { '@hydra1902/harness-agent': 'workspace:^' },
+      dependencies: { '@hydraharness/harness-agent': 'workspace:^' },
       peerDependencies: { [CORDIS]: 'workspace:^', [slots.name]: 'workspace:^' },
       devDependencies: { [CORDIS]: 'workspace:^', [slots.name]: 'workspace:*' },
     })
@@ -189,11 +189,11 @@ describe('dependency sections', () => {
 
   it('requires every peer to have the same development range', () => {
     const subject = pkg('feature', {
-      peerDependencies: { [CORDIS]: 'workspace:^', '@hydra1902/cordis-plugin-loader': 'workspace:^' },
+      peerDependencies: { [CORDIS]: 'workspace:^', '@hydraharness/cordis-plugin-loader': 'workspace:^' },
     })
     expect(collectClientPackageViolations(facts([subject]))).toEqual([
-      'packages/client/feature/package.json: peerDependencies.@hydra1902/cordis-plugin-loader'
-      + ' is workspace:^, so devDependencies.@hydra1902/cordis-plugin-loader must use the same range;'
+      'packages/client/feature/package.json: peerDependencies.@hydraharness/cordis-plugin-loader'
+      + ' is workspace:^, so devDependencies.@hydraharness/cordis-plugin-loader must use the same range;'
       + ' found no declaration',
     ])
   })
@@ -219,12 +219,12 @@ describe('dependency sections', () => {
       dynamic: false,
       staticLinked: true,
       runtimeSourceUses: {
-        '@hydra1902/cordis-plugin-loader': ['packages/client/web/src/boot.ts'],
+        '@hydraharness/cordis-plugin-loader': ['packages/client/web/src/boot.ts'],
         react: ['packages/client/web/src/seed.ts'],
       },
       devDependencies: {
         [CORDIS]: 'workspace:^',
-        '@hydra1902/cordis-plugin-loader': 'workspace:^',
+        '@hydraharness/cordis-plugin-loader': 'workspace:^',
         react: '^18.2.0',
       },
     })
@@ -233,12 +233,12 @@ describe('dependency sections', () => {
 
   it('allows npm dependency cycles', () => {
     const a = pkg('a', {
-      peerDependencies: { [CORDIS]: 'workspace:^', '@hydra1902/harness-client-b': 'workspace:^' },
-      devDependencies: { [CORDIS]: 'workspace:^', '@hydra1902/harness-client-b': 'workspace:^' },
+      peerDependencies: { [CORDIS]: 'workspace:^', '@hydraharness/harness-client-b': 'workspace:^' },
+      devDependencies: { [CORDIS]: 'workspace:^', '@hydraharness/harness-client-b': 'workspace:^' },
     })
     const b = pkg('b', {
-      peerDependencies: { [CORDIS]: 'workspace:^', '@hydra1902/harness-client-a': 'workspace:^' },
-      devDependencies: { [CORDIS]: 'workspace:^', '@hydra1902/harness-client-a': 'workspace:^' },
+      peerDependencies: { [CORDIS]: 'workspace:^', '@hydraharness/harness-client-a': 'workspace:^' },
+      devDependencies: { [CORDIS]: 'workspace:^', '@hydraharness/harness-client-a': 'workspace:^' },
     })
     expect(collectClientPackageViolations(facts([a, b]))).toEqual([])
   })
@@ -246,7 +246,7 @@ describe('dependency sections', () => {
 
 describe('module requests', () => {
   it('accepts a dynamic row supplier and its client subpath', () => {
-    const ui = declaration('ui', { external: ['@hydra1902/harness-client-slots/client'] })
+    const ui = declaration('ui', { external: ['@hydraharness/harness-client-slots/client'] })
     const slots = declaration('slots')
     expect(collectClientPackageViolations(facts([], { declarations: [ui, slots] }))).toEqual([])
   })
@@ -263,8 +263,8 @@ describe('module requests', () => {
 
   it('rejects duplicates, empty values, self-requests, and missing suppliers', () => {
     const ui = declaration('ui', {
-      external: ['', '@hydra1902/harness-client-ui', '@hydra1902/harness-missing', '@hydra1902/harness-missing'],
-      inject: ['', '@hydra1902/harness-a', '@hydra1902/harness-a'],
+      external: ['', '@hydraharness/harness-client-ui', '@hydraharness/harness-missing', '@hydraharness/harness-missing'],
+      inject: ['', '@hydraharness/harness-a', '@hydraharness/harness-a'],
     })
     const found = collectClientPackageViolations(facts([], { declarations: [ui] }))
     expect(found).toHaveLength(6)
@@ -276,12 +276,12 @@ describe('module requests', () => {
 
   it('rejects synchronous module-request cycles but ignores inject cycles', () => {
     const a = declaration('a', {
-      external: ['@hydra1902/harness-client-b'],
-      inject: ['@hydra1902/harness-client-b'],
+      external: ['@hydraharness/harness-client-b'],
+      inject: ['@hydraharness/harness-client-b'],
     })
     const b = declaration('b', {
-      external: ['@hydra1902/harness-client-a'],
-      inject: ['@hydra1902/harness-client-a'],
+      external: ['@hydraharness/harness-client-a'],
+      inject: ['@hydraharness/harness-client-a'],
     })
     const found = collectClientPackageViolations(facts([], { declarations: [a, b] }))
     expect(found).toHaveLength(1)
@@ -316,19 +316,19 @@ describe('manifest declarations', () => {
     const root = mkdtempSync(join(tmpdir(), 'client-packages-fix-'))
     roots.push(root)
     const subject = pkg('feature', {
-      external: ['', 'react', '@hydra1902/harness-client-feature', '@hydra1902/harness-missing'],
-      inject: ['', '@hydra1902/harness-agent', '@hydra1902/harness-agent'],
+      external: ['', 'react', '@hydraharness/harness-client-feature', '@hydraharness/harness-missing'],
+      inject: ['', '@hydraharness/harness-agent', '@hydraharness/harness-agent'],
       sourceUses: {
-        '@hydra1902/harness-agent': ['packages/client/feature/src/index.ts'],
-        '@hydra1902/harness-client-ui-slots': ['packages/client/feature/src/view.tsx'],
+        '@hydraharness/harness-agent': ['packages/client/feature/src/index.ts'],
+        '@hydraharness/harness-client-ui-slots': ['packages/client/feature/src/view.tsx'],
       },
       dependencies: {
         [CORDIS]: 'workspace:^',
-        '@hydra1902/harness-agent': 'workspace:*',
+        '@hydraharness/harness-agent': 'workspace:*',
       },
       peerDependencies: {
-        '@hydra1902/harness-client-ui-slots': 'workspace:^',
-        '@hydra1902/cordis-plugin-loader': 'workspace:^',
+        '@hydraharness/harness-client-ui-slots': 'workspace:^',
+        '@hydraharness/cordis-plugin-loader': 'workspace:^',
       },
       devDependencies: {},
     })
@@ -357,20 +357,20 @@ describe('manifest declarations', () => {
       devDependencies: Record<string, string>
     }
     expect(fixed.hydra.client).toMatchObject({
-      external: ['@hydra1902/harness-missing'],
-      inject: ['@hydra1902/harness-agent'],
+      external: ['@hydraharness/harness-missing'],
+      inject: ['@hydraharness/harness-agent'],
     })
     expect(fixed.dependencies).toBeUndefined()
     expect(fixed.peerDependencies).toEqual({
-      '@hydra1902/cordis-plugin-loader': 'workspace:^',
+      '@hydraharness/cordis-plugin-loader': 'workspace:^',
       [CORDIS]: 'workspace:^',
-      '@hydra1902/harness-agent': 'workspace:*',
+      '@hydraharness/harness-agent': 'workspace:*',
     })
     expect(fixed.devDependencies).toEqual({
-      '@hydra1902/harness-client-ui-slots': 'workspace:^',
+      '@hydraharness/harness-client-ui-slots': 'workspace:^',
       [CORDIS]: 'workspace:^',
-      '@hydra1902/harness-agent': 'workspace:*',
-      '@hydra1902/cordis-plugin-loader': 'workspace:^',
+      '@hydraharness/harness-agent': 'workspace:*',
+      '@hydraharness/cordis-plugin-loader': 'workspace:^',
     })
   })
 

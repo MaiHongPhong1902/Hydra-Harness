@@ -5,7 +5,7 @@
  * the CPython subprocess. The protocol's host-side codec and hostile-frame
  * validators are re-exported so every consumer of the wire shares one
  * vocabulary.
- * @module @hydra1902/harness-code-runtime-python
+ * @module @hydraharness/harness-code-runtime-python
  */
 
 export type { BootMessage, ChildToHost, ReplyMessage } from './protocol.ts'

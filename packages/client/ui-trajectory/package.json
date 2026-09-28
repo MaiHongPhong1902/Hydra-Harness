@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-client-ui-trajectory",
+  "name": "@hydraharness/harness-client-ui-trajectory",
   "description": "Trajectory event ledger with an interactive timing overview: pure-consumer plugin registering into the conversation ViewMap (no service)",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -35,9 +35,9 @@
     },
     "client": {
       "inject": [
-        "@hydra1902/harness-client-locale",
-        "@hydra1902/harness-client-runtime",
-        "@hydra1902/harness-client-ui-conversation"
+        "@hydraharness/harness-client-locale",
+        "@hydraharness/harness-client-runtime",
+        "@hydraharness/harness-client-ui-conversation"
       ],
       "platform": "web"
     }
@@ -52,29 +52,29 @@
     "diff": "^9.0.0"
   },
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-client-locale": "workspace:^",
-    "@hydra1902/harness-client-runtime": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-compaction": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-client-ui-conversation": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-client-locale": "workspace:^",
+    "@hydraharness/harness-client-runtime": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-compaction": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-client-ui-conversation": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-client-locale": "workspace:^",
-    "@hydra1902/harness-client-runtime": "workspace:^",
-    "@hydra1902/harness-client-test-runtime": "workspace:^",
-    "@hydra1902/harness-client-ui-primitives": "workspace:^",
-    "@hydra1902/harness-client-ui-conversation": "workspace:^",
-    "@hydra1902/harness-client-ui-slots": "workspace:^",
-    "@hydra1902/harness-compaction": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-client-locale": "workspace:^",
+    "@hydraharness/harness-client-runtime": "workspace:^",
+    "@hydraharness/harness-client-test-runtime": "workspace:^",
+    "@hydraharness/harness-client-ui-primitives": "workspace:^",
+    "@hydraharness/harness-client-ui-conversation": "workspace:^",
+    "@hydraharness/harness-client-ui-slots": "workspace:^",
+    "@hydraharness/harness-compaction": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
     "@types/react": "~18.3.1",
     "@types/react-dom": "~18.3.0",
-    "@hydra1902/cordis": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

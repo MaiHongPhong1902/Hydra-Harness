@@ -1,4 +1,4 @@
-# @hydra/harness-subagent-spawn-in-process
+# @hydraharness/harness-subagent-spawn-in-process
 
 The spawn provider creates a fresh child `Agent` in the current process. The child has its own session, sees no parent conversation history, and reuses the host's agent factory and LLM/tool services.
 
@@ -38,7 +38,7 @@ Independent of the parent request cache. Child history grows append-only, while 
 
 #### What the model sees
 
-Through `@hydra/harness-tool-subagent`, the parent receives only the child's final output or stop-reason error.
+Through `@hydraharness/harness-tool-subagent`, the parent receives only the child's final output or stop-reason error.
 
 #### Token effect
 

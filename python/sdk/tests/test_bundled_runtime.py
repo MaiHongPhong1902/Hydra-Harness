@@ -21,25 +21,25 @@ _MINIMAL_CONFIG = _REPO_ROOT / "examples" / "jsonrpc-agent" / "minimal.cordis.ym
 # The config must include the JSON-RPC serving plugin.
 _CORDIS_YML = """\
 - id: sdk-jsonrpc-server
-  name: '@hydra1902/harness-sdk-jsonrpc-server'
+  name: '@hydraharness/harness-sdk-jsonrpc-server'
 - id: agent-core
-  name: '@hydra1902/harness-agent-spine-demo'
+  name: '@hydraharness/harness-agent-spine-demo'
   config:
     workspaceContext: false
 - id: sessions
-  name: '@hydra1902/harness-session-persistence-jsonl'
+  name: '@hydraharness/harness-session-persistence-jsonl'
   config:
     root: './sessions'
 - id: session-checkpoints
-  name: '@hydra1902/harness-session-checkpoint-policy'
+  name: '@hydraharness/harness-session-checkpoint-policy'
 - id: subprocess
-  name: '@hydra1902/harness-subprocess-local'
+  name: '@hydraharness/harness-subprocess-local'
 - id: bash
-  name: '@hydra1902/harness-bash-local'
+  name: '@hydraharness/harness-bash-local'
   config:
     cwd: '.'
 - id: todo
-  name: '@hydra1902/harness-tool-todo'
+  name: '@hydraharness/harness-tool-todo'
   config:
     allowParallelInProgress: true
 """
@@ -110,7 +110,7 @@ def test_python_sdk_boots_minimal_jsonrpc_config(tmp_path: Path, mode: str) -> N
 def test_bundled_runtime_surfaces_unbundled_plugin_failure(tmp_path: Path, mode: str) -> None:
     launch_args = _launch_args(mode)
     (tmp_path / "cordis.yml").write_text(
-        "- id: missing\n  name: '@hydra1902/harness-does-not-exist'\n"
+        "- id: missing\n  name: '@hydraharness/harness-does-not-exist'\n"
     )
 
     client = _client(tmp_path, launch_args)
@@ -121,7 +121,7 @@ def test_bundled_runtime_surfaces_unbundled_plugin_failure(tmp_path: Path, mode:
     finally:
         client.close()
 
-    assert "@hydra1902/harness-does-not-exist" in str(excinfo.value)
+    assert "@hydraharness/harness-does-not-exist" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("mode", _MODES)

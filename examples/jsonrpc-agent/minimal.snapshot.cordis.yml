@@ -2,16 +2,16 @@
 # only its live DeepSeek adapter with the fixture-backed provider. The replay
 # catalog claims the same route initialized by the SDK.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./minimal.cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra1902/harness-llm-deepseek'
+        name: '@hydraharness/harness-llm-deepseek'
         disabled: true
       - insert:
           - id: llm-replay
-            name: '@hydra1902/harness-llm-replay'
+            name: '@hydraharness/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

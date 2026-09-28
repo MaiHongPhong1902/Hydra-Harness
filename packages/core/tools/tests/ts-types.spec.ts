@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { jsonSchemaToTs, renderToolsSdk } from '@hydra1902/harness-tools/src/ts-types.ts'
-import type { ToolSdkSchema } from '@hydra1902/harness-tools/src/ts-types.ts'
-import { parameterSchemaSpecToJsonSchema } from '@hydra1902/harness-tools'
+import { jsonSchemaToTs, renderToolsSdk } from '@hydraharness/harness-tools/src/ts-types.ts'
+import type { ToolSdkSchema } from '@hydraharness/harness-tools/src/ts-types.ts'
+import { parameterSchemaSpecToJsonSchema } from '@hydraharness/harness-tools'
 
 describe('jsonSchemaToTs', () => {
   it('maps every unified schema construct', () => {

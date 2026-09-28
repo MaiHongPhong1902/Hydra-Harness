@@ -1,4 +1,4 @@
-# @hydra/harness-llm-pi-ai
+# @hydraharness/harness-llm-pi-ai
 
 Generic multi-provider adapter for the harness LLM seam backed by [`@earendil-works/pi-ai`](https://www.npmjs.com/package/@earendil-works/pi-ai). One plugin instance owns a dict of provider profiles keyed by route; every request selects a profile with `GenerateOptions.provider` and resolves `GenerateOptions.model` against that route's configured catalog. A route naming an installed pi-ai provider inherits its endpoint, wire protocol, and model catalog as defaults and overrides them field by field; a route pi-ai does not ship is declared outright, so an OpenAI-compatible gateway, a self-hosted server, or a provider newer than the installed catalog is configuration rather than a code change.
 
@@ -12,7 +12,7 @@ Configure credentials, the model catalog, and deployment-specific transport sett
 
 ```yaml
 - id: llm
-  name: '@hydra1902/harness-llm-pi-ai'
+  name: '@hydraharness/harness-llm-pi-ai'
   config:
     providers:
       # Catalog route: endpoint, protocol, and models all come from pi-ai.
@@ -197,7 +197,7 @@ Durable content is the authoritative record; replay state only restores native f
 
 ## App attribution
 
-Every request carries the shared attribution header from @hydra/harness-llm's `attributionHeaders()`, merged through pi-ai's `headers` stream option. Provider-specific app-attribution headers are not synthesized. See [@hydra/harness-llm § App attribution](../llm/README.md#app-attribution-attributionts).
+Every request carries the shared attribution header from @hydraharness/harness-llm's `attributionHeaders()`, merged through pi-ai's `headers` stream option. Provider-specific app-attribution headers are not synthesized. See [@hydraharness/harness-llm § App attribution](../llm/README.md#app-attribution-attributionts).
 
 ## Dependency weight
 
@@ -248,4 +248,4 @@ Recorded response content appends to the next request and does not invalidate it
 - **`GenerateOptions.stop` is unsupported** — pi-ai's common stream options cannot guarantee stop-sequence behavior across providers, so the adapter rejects the field.
 - **In-history `system` messages use pi-ai's common context conversion** — provider-specific placement follows pi-ai rather than a harness-owned wire override.
 - **Provider HTTP status is unavailable** — pi-ai error events do not expose a stable HTTP status across providers; failures expose only stable harness error codes.
-- **Retry policy is provider-owned, not an SDK retry** — each provider profile may supply nested `retryPolicy`; omission resolves to normal mode with five retries, and the effective route policy is what `@hydra/harness-llm-retry` executes at the agent failed-step extension point. pi-ai SDK retries stay disabled so durable agent steps and `llm/retry` events own every visible attempt, and direct `ctx.llm.stream()` calls remain single-attempt.
+- **Retry policy is provider-owned, not an SDK retry** — each provider profile may supply nested `retryPolicy`; omission resolves to normal mode with five retries, and the effective route policy is what `@hydraharness/harness-llm-retry` executes at the agent failed-step extension point. pi-ai SDK retries stay disabled so durable agent steps and `llm/retry` events own every visible attempt, and direct `ctx.llm.stream()` calls remain single-attempt.

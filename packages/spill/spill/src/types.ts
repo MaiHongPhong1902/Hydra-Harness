@@ -1,14 +1,14 @@
 /**
  * Vocabulary for the spill storage Service Definition. Types only — the abstract service
  * lives in `./index.ts`, implementations in sibling packages
- * (`@hydra1902/harness-spill-local` first).
+ * (`@hydraharness/harness-spill-local` first).
  *
- * @module @hydra1902/harness-spill/types
+ * @module @hydraharness/harness-spill/types
  */
 
-import type { Branded } from '@hydra1902/harness-brand'
-import type { CallId } from '@hydra1902/harness-llm'
-import type { SessionId } from '@hydra1902/harness-session'
+import type { Branded } from '@hydraharness/harness-brand'
+import type { CallId } from '@hydraharness/harness-llm'
+import type { SessionId } from '@hydraharness/harness-session'
 
 /**
  * Opaque model-facing handle for one spilled artifact. A local backend may use a

@@ -1,10 +1,10 @@
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   ContextMessageNode, ConversationNodeDefinition, SteeringMessageNode, UserMessageNode,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import {
   contextForm, contextProvenance, isAppendSurfaceEvent, isReplacementSurfaceEvent,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type { InboxState } from './inbox.ts'
 import { chatNode } from './common.ts'
 
@@ -20,7 +20,7 @@ interface ReferencedSteeringMessageNode extends SteeringMessageNode {
 
 type MessageNode = ReferencedUserMessageNode | ReferencedSteeringMessageNode | ContextMessageNode
 
-declare module '@hydra1902/harness-client-ui-conversation/client' {
+declare module '@hydraharness/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Ordinary turn-opening user message. */
     user: ReferencedUserMessageNode

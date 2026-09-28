@@ -1,15 +1,15 @@
 /**
  * Durable agent session-event vocabulary shared with type-only consumers.
  *
- * @module @hydra1902/harness-agent/types
+ * @module @hydraharness/harness-agent/types
  */
 
-import type { UserMessage } from '@hydra1902/harness-llm/types'
+import type { UserMessage } from '@hydraharness/harness-llm/types'
 
 /** One of the two ordered pending-message lists owned by an agent. */
 export type InboxTarget = 'next-turn' | 'next-step'
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /**
      * One normalized mutation of an agent's durable pending-message lists.

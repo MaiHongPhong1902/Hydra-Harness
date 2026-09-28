@@ -1,13 +1,13 @@
 /** ui-subagent browser half: catalog actions and read-only composer routing. */
-import { Context } from '@hydra1902/cordis'
-import { stubSettingsScope } from '@hydra1902/harness-client-test-runtime'
+import { Context } from '@hydraharness/cordis'
+import { stubSettingsScope } from '@hydraharness/harness-client-test-runtime'
 import { describe, expect, it } from 'vitest'
 import {
   SlotRegistry, type ConversationSnapshot, type SessionId, type SessionListState,
   type SessionSummary, type SubagentAddress,
-} from '@hydra1902/harness-client-runtime/client'
-import type { ComposerChainProps } from '@hydra1902/harness-client-ui-conversation/client'
-import { apply as applyLocale, inject as localeInject } from '@hydra1902/harness-client-locale/client'
+} from '@hydraharness/harness-client-runtime/client'
+import type { ComposerChainProps } from '@hydraharness/harness-client-ui-conversation/client'
+import { apply as applyLocale, inject as localeInject } from '@hydraharness/harness-client-locale/client'
 import {
   SubagentHeaderLineage, type SubagentCatalogInjected,
 } from '../src/client/SubagentHeaderLineage.tsx'

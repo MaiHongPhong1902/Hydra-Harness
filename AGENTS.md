@@ -4,13 +4,13 @@ Hydra harness is a plugin-based agent harness on vendored Cordis: **everything i
 
 ## Pre-release stance: foundation over blast radius
 
-**Remove this section at the first tagged release.** With no external consumers, prefer the correct foundation over compatibility shims: rename or repackage freely and update every reference together. Backends reject old on-disk formats. SQLite uses monotonic `SCHEMA_VERSION`; `@hydra1902/harness-session` keeps `SESSION_FORMAT_VERSION` at `0` with no compatibility promise.
+**Remove this section at the first tagged release.** With no external consumers, prefer the correct foundation over compatibility shims: rename or repackage freely and update every reference together. Backends reject old on-disk formats. SQLite uses monotonic `SCHEMA_VERSION`; `@hydraharness/harness-session` keeps `SESSION_FORMAT_VERSION` at `0` with no compatibility promise.
 
 ## Repository layout
 
 ```
 vendor/      Vendored Cordis source — manifest + sync procedure in vendor/README.md
-packages/    @hydra1902/harness-<pkg> workspaces at packages/<group>/<pkg>/
+packages/    @hydraharness/harness-<pkg> workspaces at packages/<group>/<pkg>/
   core/        product API spine: session, system-prompt, tools, agent, agent-loop
   api/         Remote BFF assembly and Typert RPC gateway
   typert/      type graph generator, loader, and runtime registry
@@ -47,7 +47,7 @@ packages/    @hydra1902/harness-<pkg> workspaces at packages/<group>/<pkg>/
   support/     dev/test infrastructure
   util/        zero-dependency utilities
 python/      Python SDK and bundled runtime (see python/README.md)
-native/      @hydra1902/node-addon-landlock-run source of record (see native/README.md)
+native/      @hydraharness/node-addon-landlock-run source of record (see native/README.md)
 examples/    Runnable cordis.yml leaves over packages/examples bundles (see examples/AGENTS.md)
 .agents/     Agent workflows and Agent Notes (`notes/`)
 docs/        architecture, generated catalogs, postmortems, cookbook (see docs/AGENTS.md)
@@ -98,7 +98,7 @@ Demos and snapshot recording read `DEEPSEEK_API_KEY`, optional `DEEPSEEK_BASE_UR
 
 ## Conventions
 
-- Every npm package is `@hydra1902/harness-<name>`; vendored packages are rescoped ([mapping](docs/rescope.md)) and `private: true`. `@hydra1902/cordis` is a peerDependency (+ dev) of every harness package.
+- Every npm package is `@hydraharness/harness-<name>`; vendored packages are rescoped ([mapping](docs/rescope.md)) and `private: true`. `@hydraharness/cordis` is a peerDependency (+ dev) of every harness package.
 - ESM everywhere (`"type": "module"`). Use package names across packages and `.ts` in local relative imports. Config subprocesses run built `lib/` under plain Node; source regressions use their declared launcher ([testing policy](docs/testing.md#test-subprocess-launch-modes)). The `hydra` CLI source launch runs through tsx's ESM-only hook (`node --import tsx/esm`); modules it reaches must stay ESM (no CJS-only exports) — Node's native TypeScript modes are unavailable across the engines range ([source-launch contract](.agents/notes/implemented/architecture/2026-07-29-hydra-source-launch-tsx-esm.md)). Raw/Web `cordis.yml` bare plugins must appear in their resolver manifest's `dependencies`; `verify-cordis-config` enforces it.
 - **Registrations are effects**: every contribution goes through `ctx.effect()` / `ctx.on()`; a registry's `register()` returns the disposer.
 - **Runtime invariants assert owned relationships.** Check authoritative event streams or mutable data, not service or method presence, plugin metadata or effects, or fixed pure examples. Without a plausible relationship, an explained empty companion is correct ([package invariant rules](packages/AGENTS.md)).
@@ -109,10 +109,10 @@ Demos and snapshot recording read `DEEPSEEK_API_KEY`, optional `DEEPSEEK_BASE_UR
 - **Plugins, not loop changes**: new behavior goes on documented extension points; changing `agent-loop` requires updating docs/architecture.md.
 - **A capability seam comprises Service Definition / Service Provider / Consumer roles.** It is complete, never one role; split only when roles evolve independently ([glossary](docs/glossary.md#capability-seam)).
 - **Prefer maintained dependencies over hand-rolling** when they genuinely delete owned code and tests ([policy](.agents/notes/implemented/process/2026-07-26-dependencies-over-hand-rolling.md)).
-- **Explicit > implicit at package boundaries**: defaulting is an explicit `resolve(request): Spec` step in the owning implementation, never a hidden `?? default` inside `run()` (the `@hydra1902/harness-shell` request/spec split is the template).
+- **Explicit > implicit at package boundaries**: defaulting is an explicit `resolve(request): Spec` step in the owning implementation, never a hidden `?? default` inside `run()` (the `@hydraharness/harness-shell` request/spec split is the template).
 - **No hardcoded tunables in plugins**: deployment-varying choices are validated `Config` fields changeable from cordis.yml; a `DEFAULT_*` constant or test hook is not configurability. Protocol constants, external specs, and security invariants stay fixed.
 - **Misconfiguration fails loud** at load when self-contained, otherwise at the earliest resolvable point; never silently skip a missing referent.
-- **Opaque cross-boundary ids are branded** (`Branded<B>` from `@hydra1902/harness-brand`), never bare `string`.
+- **Opaque cross-boundary ids are branded** (`Branded<B>` from `@hydraharness/harness-brand`), never bare `string`.
 - **Trust TypeScript at typed same-process boundaries.** Do not add runtime validation, fallback behavior, or hostile-input tests solely for values the static interface requires; validate at parser/config, queued, model/tool JSON, durable/file, worker, process, and wire boundaries.
 - **Source plane vs artifact plane, never mixed.** Static gates and tests resolve workspace imports through tsconfig `paths` to `src` and pass on a clean tree; gates consuming built `lib/` declare that dependency ([layout](docs/development.md#typescript-project-layout)).
 - **Keep compiler faces explicit.** Each package uses one aggregate except `api/remotes`; repo-wide programs seed a face config, never the root solution ([layout](docs/development.md#typescript-project-layout)).

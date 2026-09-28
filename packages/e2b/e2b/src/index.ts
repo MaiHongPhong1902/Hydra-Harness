@@ -1,13 +1,13 @@
 /**
  * Shared ownership of one E2B sandbox. Capability adapters await the same SDK
  * handle, so filesystem and process operations inhabit one remote Linux world.
- * @module @hydra1902/harness-e2b
+ * @module @hydraharness/harness-e2b
  */
 
 import { randomUUID } from 'node:crypto'
 import { posix } from 'node:path'
-import { Context, Service } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
+import { Context, Service } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
 import { FileType, Sandbox, SandboxNotFoundError } from 'e2b'
 
 export {
@@ -60,7 +60,7 @@ interface SchemaResolvedConfig extends Config {
   timeoutMs: number
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     e2b: E2BRuntime
   }

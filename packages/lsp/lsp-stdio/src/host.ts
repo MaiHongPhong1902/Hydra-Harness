@@ -1,7 +1,7 @@
 /** Filesystem-seam source access for the generic stdio LSP provider. */
 
 import { Buffer } from 'node:buffer'
-import type { FileSystem, FsTarget } from '@hydra1902/harness-fs'
+import type { FileSystem, FsTarget } from '@hydraharness/harness-fs'
 import { throwIfAborted } from './abort.ts'
 
 /** A canonical workspace in the filesystem/subprocess execution world. */

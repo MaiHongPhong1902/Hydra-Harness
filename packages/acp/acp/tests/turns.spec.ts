@@ -1,7 +1,7 @@
-import { createUserMessage, type StreamChunk } from '@hydra1902/harness-llm'
+import { createUserMessage, type StreamChunk } from '@hydraharness/harness-llm'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PROTOCOL_VERSION } from '@agentclientprotocol/sdk'
-import { SessionId } from '@hydra1902/harness-session'
+import { SessionId } from '@hydraharness/harness-session'
 import {
   errorResponse,
   makeBridgeHarness,

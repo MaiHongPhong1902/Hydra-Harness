@@ -9,7 +9,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   IconChevronDownOutline14, IconChevronRightOutline14, IconPlusOutline16, IconTrashOutline16,
-} from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-client-ui-primitives'
 import type { en } from './locales.ts'
 import styles from './ModelsSection.module.css'
 

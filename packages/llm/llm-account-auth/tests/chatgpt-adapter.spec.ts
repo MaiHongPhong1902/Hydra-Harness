@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import type { Credential } from '@earendil-works/pi-ai'
-import type { StreamChunk } from '@hydra1902/harness-llm'
-import type { PiAiAdapterOptions } from '@hydra1902/harness-llm-pi-ai'
+import type { StreamChunk } from '@hydraharness/harness-llm'
+import type { PiAiAdapterOptions } from '@hydraharness/harness-llm-pi-ai'
 import { MemoryCredentials } from '../../../credentials/authorization/tests/memory.ts'
 import { accountRecordKey, createAccountPool } from '../src/accounts.ts'
 import { ChatGptAccountAdapter } from '../src/adapter.ts'
 import { buildChatGptProfile } from '../src/chatgpt.ts'
 
 const sdk = vi.hoisted(() => ({ create: vi.fn(), discover: vi.fn() }))
-vi.mock('@hydra1902/harness-llm-pi-ai', async load => ({
-  ...await load<typeof import('@hydra1902/harness-llm-pi-ai')>(),
+vi.mock('@hydraharness/harness-llm-pi-ai', async load => ({
+  ...await load<typeof import('@hydraharness/harness-llm-pi-ai')>(),
   PiAiAdapter: sdk.create,
 }))
 vi.mock('../src/chatgpt.ts', async load => ({

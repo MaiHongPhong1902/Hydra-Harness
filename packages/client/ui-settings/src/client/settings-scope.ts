@@ -1,6 +1,6 @@
 /**
  * Host transport for the settings-namespace scope contract. The contract types
- * live in `@hydra1902/harness-client-runtime` (the common dependency of every feature that
+ * live in `@hydraharness/harness-client-runtime` (the common dependency of every feature that
  * owns a preference); this file owns the per-namespace derivation over the
  * shared {@link SettingsDescribeMirror} and the serialized write path, both of
  * which are Settings-surface concerns. Reads never touch the wire here: the
@@ -8,16 +8,16 @@
  * over its snapshot.
  */
 
-import { Service } from '@hydra1902/cordis'
-import type { Context } from '@hydra1902/cordis'
+import { Service } from '@hydraharness/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   ConnectionHandle, IApiClient, SettingsNamespaceView, SettingsPathOpView,
-} from '@hydra1902/harness-api-remotes/client'
+} from '@hydraharness/harness-api-remotes/client'
 import {
   createSnapshotStore, type SettingsScope, type SettingsScopeSnapshot,
   type SettingsScopeSpec, type SnapshotStore,
-} from '@hydra1902/harness-client-runtime/client'
-// Type-only, and deliberately NOT `@hydra1902/harness-api-remotes/client`: this
+} from '@hydraharness/harness-client-runtime/client'
+// Type-only, and deliberately NOT `@hydraharness/harness-api-remotes/client`: this
 // package is reachable from the Host build graph through its feature-package
 // callers, and api-remotes' Client face imports a Host-tsdown-generated
 // `/remote` artifact, which would deadlock the Host tsc phase. The gateway's
@@ -26,13 +26,13 @@ import {
 // `$on` and its key face without dragging a build artifact in. The runtime
 // `remote` injection belongs to the providing plugin's apply, which registers
 // the mirror's invalidation subscriptions.
-import type {} from '@hydra1902/harness-api-remotes/client'
-import type {} from '@hydra1902/harness-api-remotes/types'
+import type {} from '@hydraharness/harness-api-remotes/client'
+import type {} from '@hydraharness/harness-api-remotes/types'
 // The forwarded event's own declaration: `$on`'s key face is
 // `Extract<keyof Events, keyof Selection>`, so the allowlist alone resolves to
 // never — the owning package's client-safe, type-only subpath supplies the
 // cordis `Events` entry (and with it the branded `SettingsNamespace`).
-import type {} from '@hydra1902/harness-settings/types'
+import type {} from '@hydraharness/harness-settings/types'
 import type { SettingsSchemaService } from './schema.ts'
 import { SettingsDescribeMirror, type SettingsDescribeFace } from './settings-mirror.ts'
 
@@ -223,7 +223,7 @@ export class SettingsScopeController<T> implements SettingsScope<T> {
   }
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     settingsScope: SettingsScopeBinder
   }

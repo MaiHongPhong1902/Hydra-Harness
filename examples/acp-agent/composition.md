@@ -8,101 +8,101 @@ The ACP demo exposes fresh baseline-prompt agent sessions to programmatic client
 ```mermaid
 flowchart LR
   cfg["examples/acp-agent<br/>cordis.yml"]
-  plugin_acp_llm_deepseek["llm-deepseek<br/>@hydra1902/harness-llm-deepseek"]
+  plugin_acp_llm_deepseek["llm-deepseek<br/>@hydraharness/harness-llm-deepseek"]
   cfg --> plugin_acp_llm_deepseek
-  plugin_acp_sandbox["sandbox<br/>@hydra1902/harness-sandbox-local"]
+  plugin_acp_sandbox["sandbox<br/>@hydraharness/harness-sandbox-local"]
   cfg --> plugin_acp_sandbox
-  plugin_acp_sandbox_policy["sandbox-policy<br/>@hydra1902/harness-sandbox-policy"]
+  plugin_acp_sandbox_policy["sandbox-policy<br/>@hydraharness/harness-sandbox-policy"]
   cfg --> plugin_acp_sandbox_policy
-  plugin_acp_subprocess["subprocess<br/>@hydra1902/harness-subprocess-local"]
+  plugin_acp_subprocess["subprocess<br/>@hydraharness/harness-subprocess-local"]
   cfg --> plugin_acp_subprocess
-  plugin_acp_bash["bash<br/>@hydra1902/harness-bash-sandbox"]
+  plugin_acp_bash["bash<br/>@hydraharness/harness-bash-sandbox"]
   cfg --> plugin_acp_bash
-  plugin_acp_approval["approval<br/>@hydra1902/harness-user-approval"]
+  plugin_acp_approval["approval<br/>@hydraharness/harness-user-approval"]
   cfg --> plugin_acp_approval
-  plugin_acp_acp_agent["acp-agent<br/>@hydra1902/harness-acp-demo"]
+  plugin_acp_acp_agent["acp-agent<br/>@hydraharness/harness-acp-demo"]
   cfg --> plugin_acp_acp_agent
-  plugin_acp_acp_agent --> bundle_agent_core["@hydra1902/harness-agent-spine-demo"]
-  plugin_acp_acp_agent --> bundle_jsonl["@hydra1902/harness-session-persistence-jsonl"]
-  plugin_acp_acp_agent --> entrypoint_acp["@hydra1902/harness-acp<br/>automation-only JSON-RPC stdio<br/>fresh sessions created by client"]
+  plugin_acp_acp_agent --> bundle_agent_core["@hydraharness/harness-agent-spine-demo"]
+  plugin_acp_acp_agent --> bundle_jsonl["@hydraharness/harness-session-persistence-jsonl"]
+  plugin_acp_acp_agent --> entrypoint_acp["@hydraharness/harness-acp<br/>automation-only JSON-RPC stdio<br/>fresh sessions created by client"]
   bundle_agent_core --> spine_llm["ctx.llm"]
   bundle_agent_core --> spine_sessions["ctx.sessions"]
   bundle_agent_core --> spine_tools["ctx.tools + tool-bash"]
   bundle_agent_core --> spine_loop["ctx.agents + ctx.agentLoop"]
-  plugin_acp_token_meter["token-meter<br/>@hydra1902/harness-token-meter"]
+  plugin_acp_token_meter["token-meter<br/>@hydraharness/harness-token-meter"]
   cfg --> plugin_acp_token_meter
-  plugin_acp_compaction_basic["compaction-basic<br/>@hydra1902/harness-compaction-basic"]
+  plugin_acp_compaction_basic["compaction-basic<br/>@hydraharness/harness-compaction-basic"]
   cfg --> plugin_acp_compaction_basic
-  plugin_acp_session_projection["session-projection<br/>@hydra1902/harness-session-projection"]
+  plugin_acp_session_projection["session-projection<br/>@hydraharness/harness-session-projection"]
   cfg --> plugin_acp_session_projection
-  plugin_acp_subagent["subagent<br/>@hydra1902/harness-subagent"]
+  plugin_acp_subagent["subagent<br/>@hydraharness/harness-subagent"]
   cfg --> plugin_acp_subagent
-  plugin_acp_subagent_spawn_in_process["subagent-spawn-in-process<br/>@hydra1902/harness-subagent-spawn-in-process"]
+  plugin_acp_subagent_spawn_in_process["subagent-spawn-in-process<br/>@hydraharness/harness-subagent-spawn-in-process"]
   cfg --> plugin_acp_subagent_spawn_in_process
-  plugin_acp_subagent_fork_in_process["subagent-fork-in-process<br/>@hydra1902/harness-subagent-fork-in-process"]
+  plugin_acp_subagent_fork_in_process["subagent-fork-in-process<br/>@hydraharness/harness-subagent-fork-in-process"]
   cfg --> plugin_acp_subagent_fork_in_process
-  plugin_acp_tool_subagent_control["tool-subagent-control<br/>@hydra1902/harness-tool-subagent-control"]
+  plugin_acp_tool_subagent_control["tool-subagent-control<br/>@hydraharness/harness-tool-subagent-control"]
   cfg --> plugin_acp_tool_subagent_control
-  plugin_acp_tool_subagent_list_agents["tool-subagent-list-agents<br/>@hydra1902/harness-tool-subagent-control/list-agents"]
+  plugin_acp_tool_subagent_list_agents["tool-subagent-list-agents<br/>@hydraharness/harness-tool-subagent-control/list-agents"]
   cfg --> plugin_acp_tool_subagent_list_agents
-  plugin_acp_tool_subagent_report["tool-subagent-report<br/>@hydra1902/harness-tool-subagent-report"]
+  plugin_acp_tool_subagent_report["tool-subagent-report<br/>@hydraharness/harness-tool-subagent-report"]
   cfg --> plugin_acp_tool_subagent_report
-  plugin_acp_tool_subagent["tool-subagent<br/>@hydra1902/harness-tool-subagent"]
+  plugin_acp_tool_subagent["tool-subagent<br/>@hydraharness/harness-tool-subagent"]
   cfg --> plugin_acp_tool_subagent
-  plugin_acp_tool_subagent_fork["tool-subagent-fork<br/>@hydra1902/harness-tool-subagent"]
+  plugin_acp_tool_subagent_fork["tool-subagent-fork<br/>@hydraharness/harness-tool-subagent"]
   cfg --> plugin_acp_tool_subagent_fork
-  plugin_acp_workflow_worker_thread["workflow-worker-thread<br/>@hydra1902/harness-workflow-worker-thread"]
+  plugin_acp_workflow_worker_thread["workflow-worker-thread<br/>@hydraharness/harness-workflow-worker-thread"]
   cfg --> plugin_acp_workflow_worker_thread
-  plugin_acp_tool_workflow["tool-workflow<br/>@hydra1902/harness-tool-workflow"]
+  plugin_acp_tool_workflow["tool-workflow<br/>@hydraharness/harness-tool-workflow"]
   cfg --> plugin_acp_tool_workflow
-  plugin_acp_tool_ralph["tool-ralph<br/>@hydra1902/harness-tool-ralph"]
+  plugin_acp_tool_ralph["tool-ralph<br/>@hydraharness/harness-tool-ralph"]
   cfg --> plugin_acp_tool_ralph
-  plugin_acp_tool_todo["tool-todo<br/>@hydra1902/harness-tool-todo"]
+  plugin_acp_tool_todo["tool-todo<br/>@hydraharness/harness-tool-todo"]
   cfg --> plugin_acp_tool_todo
-  plugin_acp_repeat_tool_reminder["repeat-tool-reminder<br/>@hydra1902/harness-repeat-tool-reminder"]
+  plugin_acp_repeat_tool_reminder["repeat-tool-reminder<br/>@hydraharness/harness-repeat-tool-reminder"]
   cfg --> plugin_acp_repeat_tool_reminder
-  plugin_acp_fs_sandbox["fs-sandbox<br/>@hydra1902/harness-fs-sandbox"]
+  plugin_acp_fs_sandbox["fs-sandbox<br/>@hydraharness/harness-fs-sandbox"]
   cfg --> plugin_acp_fs_sandbox
-  plugin_acp_fs_observation_policy["fs-observation-policy<br/>@hydra1902/harness-fs-observation-policy"]
+  plugin_acp_fs_observation_policy["fs-observation-policy<br/>@hydraharness/harness-fs-observation-policy"]
   cfg --> plugin_acp_fs_observation_policy
-  plugin_acp_tool_fs["tool-fs<br/>@hydra1902/harness-tool-fs"]
+  plugin_acp_tool_fs["tool-fs<br/>@hydraharness/harness-tool-fs"]
   cfg --> plugin_acp_tool_fs
-  plugin_acp_hooks_claude_code["hooks-claude-code<br/>@hydra1902/harness-hooks-claude-code"]
+  plugin_acp_hooks_claude_code["hooks-claude-code<br/>@hydraharness/harness-hooks-claude-code"]
   cfg --> plugin_acp_hooks_claude_code
-  plugin_acp_hooks_codex["hooks-codex<br/>@hydra1902/harness-hooks-codex"]
+  plugin_acp_hooks_codex["hooks-codex<br/>@hydraharness/harness-hooks-codex"]
   cfg --> plugin_acp_hooks_codex
 ```
 
 | Plugin id | Package / module |
 | --- | --- |
-| `llm-deepseek` | `@hydra1902/harness-llm-deepseek` |
-| `sandbox` | `@hydra1902/harness-sandbox-local` |
-| `sandbox-policy` | `@hydra1902/harness-sandbox-policy` |
-| `subprocess` | `@hydra1902/harness-subprocess-local` |
-| `bash` | `@hydra1902/harness-bash-sandbox` |
-| `approval` | `@hydra1902/harness-user-approval` |
-| `acp-agent` | `@hydra1902/harness-acp-demo` |
-| `token-meter` | `@hydra1902/harness-token-meter` |
-| `compaction-basic` | `@hydra1902/harness-compaction-basic` |
-| `session-projection` | `@hydra1902/harness-session-projection` |
-| `subagent` | `@hydra1902/harness-subagent` |
-| `subagent-spawn-in-process` | `@hydra1902/harness-subagent-spawn-in-process` |
-| `subagent-fork-in-process` | `@hydra1902/harness-subagent-fork-in-process` |
-| `tool-subagent-control` | `@hydra1902/harness-tool-subagent-control` |
-| `tool-subagent-list-agents` | `@hydra1902/harness-tool-subagent-control/list-agents` |
-| `tool-subagent-report` | `@hydra1902/harness-tool-subagent-report` |
-| `tool-subagent` | `@hydra1902/harness-tool-subagent` |
-| `tool-subagent-fork` | `@hydra1902/harness-tool-subagent` |
-| `workflow-worker-thread` | `@hydra1902/harness-workflow-worker-thread` |
-| `tool-workflow` | `@hydra1902/harness-tool-workflow` |
-| `tool-ralph` | `@hydra1902/harness-tool-ralph` |
-| `tool-todo` | `@hydra1902/harness-tool-todo` |
-| `repeat-tool-reminder` | `@hydra1902/harness-repeat-tool-reminder` |
-| `fs-sandbox` | `@hydra1902/harness-fs-sandbox` |
-| `fs-observation-policy` | `@hydra1902/harness-fs-observation-policy` |
-| `tool-fs` | `@hydra1902/harness-tool-fs` |
-| `hooks-claude-code` | `@hydra1902/harness-hooks-claude-code` |
-| `hooks-codex` | `@hydra1902/harness-hooks-codex` |
+| `llm-deepseek` | `@hydraharness/harness-llm-deepseek` |
+| `sandbox` | `@hydraharness/harness-sandbox-local` |
+| `sandbox-policy` | `@hydraharness/harness-sandbox-policy` |
+| `subprocess` | `@hydraharness/harness-subprocess-local` |
+| `bash` | `@hydraharness/harness-bash-sandbox` |
+| `approval` | `@hydraharness/harness-user-approval` |
+| `acp-agent` | `@hydraharness/harness-acp-demo` |
+| `token-meter` | `@hydraharness/harness-token-meter` |
+| `compaction-basic` | `@hydraharness/harness-compaction-basic` |
+| `session-projection` | `@hydraharness/harness-session-projection` |
+| `subagent` | `@hydraharness/harness-subagent` |
+| `subagent-spawn-in-process` | `@hydraharness/harness-subagent-spawn-in-process` |
+| `subagent-fork-in-process` | `@hydraharness/harness-subagent-fork-in-process` |
+| `tool-subagent-control` | `@hydraharness/harness-tool-subagent-control` |
+| `tool-subagent-list-agents` | `@hydraharness/harness-tool-subagent-control/list-agents` |
+| `tool-subagent-report` | `@hydraharness/harness-tool-subagent-report` |
+| `tool-subagent` | `@hydraharness/harness-tool-subagent` |
+| `tool-subagent-fork` | `@hydraharness/harness-tool-subagent` |
+| `workflow-worker-thread` | `@hydraharness/harness-workflow-worker-thread` |
+| `tool-workflow` | `@hydraharness/harness-tool-workflow` |
+| `tool-ralph` | `@hydraharness/harness-tool-ralph` |
+| `tool-todo` | `@hydraharness/harness-tool-todo` |
+| `repeat-tool-reminder` | `@hydraharness/harness-repeat-tool-reminder` |
+| `fs-sandbox` | `@hydraharness/harness-fs-sandbox` |
+| `fs-observation-policy` | `@hydraharness/harness-fs-observation-policy` |
+| `tool-fs` | `@hydraharness/harness-tool-fs` |
+| `hooks-claude-code` | `@hydraharness/harness-hooks-claude-code` |
+| `hooks-codex` | `@hydraharness/harness-hooks-codex` |
 
 Source config: [`examples/acp-agent/cordis.yml`](cordis.yml).
 

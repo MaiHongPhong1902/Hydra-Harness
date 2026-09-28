@@ -1,11 +1,11 @@
 /**
  * Incremental projection of durable agent inbox events.
  *
- * @module @hydra1902/harness-agent/inbox
+ * @module @hydraharness/harness-agent/inbox
  */
 
-import type { MessageId } from '@hydra1902/harness-llm'
-import type { Session, SessionEventMap, UserMessage } from '@hydra1902/harness-session'
+import type { MessageId } from '@hydraharness/harness-llm'
+import type { Session, SessionEventMap, UserMessage } from '@hydraharness/harness-session'
 import type { InboxTarget } from './types.ts'
 
 /** Mutable state privately owned by an {@link Inbox}. */

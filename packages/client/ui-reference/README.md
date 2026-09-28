@@ -1,4 +1,4 @@
-# `@hydra/harness-client-ui-reference`
+# `@hydraharness/harness-client-ui-reference`
 
 Unified Web `@file` and `@session` source. The browser starts the `fileReferences/list` and `sessionReferenceResolver/candidates` Remote calls together for an unquoted token, deterministically orders files before sessions with locale-registered folder/file/session labels, and renders the rows under non-selectable file and session section headings without a redundant raw `reference` source title. Either failed candidate domain degrades independently. An open `@"…` token searches files only.
 
@@ -10,7 +10,7 @@ The `/client` export is the plugin body (`apply`/`inject`) only; candidate encod
 
 ## Model Experience
 
-Indirectly, through `@hydra/harness-file-reference-local` for path guidance and `@hydra/harness-session-reference` for prepared session snapshots.
+Indirectly, through `@hydraharness/harness-file-reference-local` for path guidance and `@hydraharness/harness-session-reference` for prepared session snapshots.
 
 #### KV Cache effect
 

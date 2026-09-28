@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it } from 'vitest'
-import SkillRegistry from '@hydra1902/harness-skill'
-import * as SkillBadge from '@hydra1902/harness-skill-badge'
+import SkillRegistry from '@hydraharness/harness-skill'
+import * as SkillBadge from '@hydraharness/harness-skill-badge'
 
 describe('hydra-skill-badge', () => {
   it('registers and disposes the bundled badge skill', async () => {

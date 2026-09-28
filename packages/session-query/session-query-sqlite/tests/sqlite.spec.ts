@@ -1,18 +1,18 @@
-import { createAssistantMessage, createUserMessage } from '@hydra1902/harness-llm'
+import { createAssistantMessage, createUserMessage } from '@hydraharness/harness-llm'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context, type Fiber } from '@hydra1902/cordis'
+import { Context, type Fiber } from '@hydraharness/cordis'
 import { DatabaseSync } from 'node:sqlite'
 import { chmod, mkdtemp, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@hydra1902/harness-session'
-import type { SessionEvent, SessionHeader, SessionId as SessionIdType } from '@hydra1902/harness-session'
-import SessionPersistence, { SessionPersistenceRevision } from '@hydra1902/harness-session-persistence'
-import type { SessionPersistenceSnapshot } from '@hydra1902/harness-session-persistence'
-import SqliteSessionPersistence from '@hydra1902/harness-session-persistence-sqlite'
+import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@hydraharness/harness-session'
+import type { SessionEvent, SessionHeader, SessionId as SessionIdType } from '@hydraharness/harness-session'
+import SessionPersistence, { SessionPersistenceRevision } from '@hydraharness/harness-session-persistence'
+import type { SessionPersistenceSnapshot } from '@hydraharness/harness-session-persistence'
+import SqliteSessionPersistence from '@hydraharness/harness-session-persistence-sqlite'
 import SqliteSessionQueryEngine, {
   SESSION_QUERY_SQLITE_SCHEMA_VERSION,
-} from '@hydra1902/harness-session-query-sqlite'
+} from '@hydraharness/harness-session-query-sqlite'
 import {
   SESSION_QUERY_DEFAULT_PERSISTED_INSPECT_CONCURRENCY,
   SessionQueryError,
@@ -20,7 +20,7 @@ import {
   type SessionAvailability,
   type SessionQueryErrorCode,
   type SessionSearchRequest,
-} from '@hydra1902/harness-session-query'
+} from '@hydraharness/harness-session-query'
 
 const temporaryDirectories: string[] = []
 

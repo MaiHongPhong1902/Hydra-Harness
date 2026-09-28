@@ -2,7 +2,7 @@
  * Per-session chat store shared by conversation and details registrations.
  * The plugin creates its handle at apply time so identity follows the fiber.
  */
-import { defineStore, type EngineStoreHandle } from '@hydra1902/harness-client-runtime/client'
+import { defineStore, type EngineStoreHandle } from '@hydraharness/harness-client-runtime/client'
 import type { CallId, ChatStoreState, SelectionTarget } from './contract/views.ts'
 
 /** Declared action shape used to give the exported factory a stable return type. */

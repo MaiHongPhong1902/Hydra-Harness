@@ -9,9 +9,9 @@
 
 import { createModels } from '@earendil-works/pi-ai'
 import type { AuthEvent, AuthPrompt, AuthType, Provider } from '@earendil-works/pi-ai'
-import type { Context } from '@hydra1902/cordis'
-import type { AuthorizationMethod, AuthorizationPrompt, AuthorizationSession } from '@hydra1902/harness-authorization'
-import { isCredentialKeySegment } from '@hydra1902/harness-credentials'
+import type { Context } from '@hydraharness/cordis'
+import type { AuthorizationMethod, AuthorizationPrompt, AuthorizationSession } from '@hydraharness/harness-authorization'
+import { isCredentialKeySegment } from '@hydraharness/harness-credentials'
 import { catalogProvider, catalogProviderIds } from './catalog.ts'
 import { recordKeyFor } from './auth.ts'
 import type { PiAiAuthInjection } from './adapter.ts'

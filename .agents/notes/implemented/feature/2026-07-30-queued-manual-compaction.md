@@ -16,7 +16,7 @@ This note extends the [compaction capability seam](2026-06-18-compaction-capabil
 
 ### `/compact` is a command over a backend-independent seam
 
-`@hydra/harness-command-compact` registers one argument-free human command through `ctx.commands`. It calls the third abstract `CompactionEngine` operation, `compactNow(agent, signal)`, and maps the closed `ManualCompactionError` taxonomy (`busy | changed | summary | commit | persistence`) to direct UI results. `command/run` and `command/done` preserve the command lifecycle without entering model history or consuming a model-loop turn.
+`@hydraharness/harness-command-compact` registers one argument-free human command through `ctx.commands`. It calls the third abstract `CompactionEngine` operation, `compactNow(agent, signal)`, and maps the closed `ManualCompactionError` taxonomy (`busy | changed | summary | commit | persistence`) to direct UI results. `command/run` and `command/done` preserve the command lifecycle without entering model history or consuming a model-loop turn.
 
 The command plugin tracks each real handler promise independently of the command executor's abort-aware wait. Its composite lifecycle effect unregisters `/compact` before asynchronously draining handlers that already started, so root teardown reaches quiescence only after backend close and flush work settles.
 
@@ -32,7 +32,7 @@ Maintenance does not create a second queue. Later sends keep their `MessageId`, 
 
 ### One parameterized transaction owns every bracket
 
-`@hydra/harness-compaction-basic` has one region transaction parameterized by bracket owner (`number | null`), stability rule (whole surface or selected span), and an optional flush. It performs one ordering:
+`@hydraharness/harness-compaction-basic` has one region transaction parameterized by bracket owner (`number | null`), stability rule (whole surface or selected span), and an optional flush. It performs one ordering:
 
 1. validate the selected positional range and inspect the durable tail;
 2. reject a live unmatched compaction marker;

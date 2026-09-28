@@ -1,17 +1,17 @@
 /** Test-owned sessions face: the SlotRegistry host contract over declarative fixtures. */
-import type { Context } from '@hydra1902/cordis'
-import type { AttachmentIdType } from '@hydra1902/harness-attachment'
-import { createScope, scopeOf, SessionProvideChannel } from '@hydra1902/harness-client-runtime/client'
-import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { Context } from '@hydraharness/cordis'
+import type { AttachmentIdType } from '@hydraharness/harness-attachment'
+import { createScope, scopeOf, SessionProvideChannel } from '@hydraharness/harness-client-runtime/client'
+import { createSnapshotStore } from '@hydraharness/harness-client-runtime/client'
 import type {
   AgentContext, ConversationSnapshot, ISessions, ObservableSnapshot, ProjectionsFace, SessionFace, SessionId,
   SessionListState, SessionProvideDescriptor, SessionSearchResultItem, SessionSummary, SnapshotStore,
   SubagentAddress,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 // The double reports the wire schema's own search bound, like the production
 // service — a transport-varying limit would be a fiction no client can see.
-import { SESSION_SEARCH_RESULT_LIMIT } from '@hydra1902/harness-host-apiproxy/api'
-import type { HostObservable, SessionMaybeProvideInfo, SessionProvideInfo } from '@hydra1902/harness-client-ui-slots'
+import { SESSION_SEARCH_RESULT_LIMIT } from '@hydraharness/harness-host-apiproxy/api'
+import type { HostObservable, SessionMaybeProvideInfo, SessionProvideInfo } from '@hydraharness/harness-client-ui-slots'
 import { conversationSnapshot } from './fixtures.ts'
 import type { SessionFixture, Stabilizer } from './fixtures.ts'
 
@@ -190,7 +190,7 @@ export class TestSessions implements ISessions {
   }[] = []
 
   async create(opts: {
-    workspaceId?: import('@hydra1902/harness-api-remotes/client').WorkspaceId
+    workspaceId?: import('@hydraharness/harness-api-remotes/client').WorkspaceId
     cwd?: string
     sessionId?: SessionId
     reuseWorkspaceBlank?: true

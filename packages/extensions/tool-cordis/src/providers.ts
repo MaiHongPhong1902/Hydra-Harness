@@ -1,9 +1,9 @@
 /** First-party Host inspect providers registered by the Cordis tool package. */
 
-import type { Context } from '@hydra1902/cordis'
-import { HOST_BUILTIN_INSPECTION } from '@hydra1902/harness-cordis-host-runner'
-import type { HostCordisInspectProviderRegistration } from '@hydra1902/harness-cordis-host-runner'
-import type { JsonValue } from '@hydra1902/harness-session'
+import type { Context } from '@hydraharness/cordis'
+import { HOST_BUILTIN_INSPECTION } from '@hydraharness/harness-cordis-host-runner'
+import type { HostCordisInspectProviderRegistration } from '@hydraharness/harness-cordis-host-runner'
+import type { JsonValue } from '@hydraharness/harness-session'
 import { EVENT_API, queryEventApi, queryServiceApi } from './api-catalog.ts'
 
 const EMPTY_INPUT = { type: 'object', properties: {}, additionalProperties: false } as const

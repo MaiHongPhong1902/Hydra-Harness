@@ -1,9 +1,9 @@
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it } from 'vitest'
-import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra1902/harness-settings'
+import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydraharness/harness-settings'
 import {
   CONVERSATION_SETTINGS_NAMESPACE, DEFAULT_BUSY_ENTER_BEHAVIOR, apply,
-} from '@hydra1902/harness-client-ui-conversation'
+} from '@hydraharness/harness-client-ui-conversation'
 
 class MemorySettings extends SettingsProvider {
   readonly writable = true

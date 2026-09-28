@@ -3,10 +3,10 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { Context } from '@hydra1902/cordis'
-import Include from '@hydra1902/cordis-plugin-include'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import LocalJobRegistry from '@hydra1902/harness-jobs-local'
+import { Context } from '@hydraharness/cordis'
+import Include from '@hydraharness/cordis-plugin-include'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import LocalJobRegistry from '@hydraharness/harness-jobs-local'
 
 let root: string | undefined
 let context: Context | undefined
@@ -23,7 +23,7 @@ describe('jobs-local through a real Loader composition', () => {
     root = await mkdtemp(join(tmpdir(), 'hydra-jobs-local-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@hydra1902/harness-jobs-local'",
+      "- name: '@hydraharness/harness-jobs-local'",
       '  config:',
       '    maxConcurrentJobsPerOwner: 1',
       '',
@@ -36,7 +36,7 @@ describe('jobs-local through a real Loader composition', () => {
     context.loader.internal = {
       version: 'v2',
       async import(specifier: string) {
-        if (specifier === '@hydra1902/harness-jobs-local') return LocalJobRegistry
+        if (specifier === '@hydraharness/harness-jobs-local') return LocalJobRegistry
         throw new Error(`unexpected Loader import: ${specifier}`)
       },
     } as unknown as NonNullable<typeof context.loader.internal>

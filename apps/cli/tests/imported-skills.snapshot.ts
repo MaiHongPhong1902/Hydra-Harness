@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { runLoaderSmoke } from '@hydra1902/harness-loader-smoke'
+import { runLoaderSmoke } from '@hydraharness/harness-loader-smoke'
 
 const binScript = fileURLToPath(new URL('./fixtures/imported-skills/snapshot.ts', import.meta.url))
 const configPath = fileURLToPath(new URL('./fixtures/imported-skills/cordis.yml', import.meta.url))

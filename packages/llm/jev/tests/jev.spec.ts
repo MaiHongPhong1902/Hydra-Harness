@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { SettingsProvider, settingsNamespace } from '@hydra1902/harness-settings'
+import { Context } from '@hydraharness/cordis'
+import { SettingsProvider, settingsNamespace } from '@hydraharness/harness-settings'
 import * as Jev from '../src/index.ts'
 
 let context: Context | undefined

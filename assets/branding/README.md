@@ -10,4 +10,4 @@ Regenerate the client logo files, app/site `hydra.png`, website wordmark, deskto
 uv run --with pillow python scripts/gen-brand-assets.py
 ```
 
-The generator crops transparent padding and scales the supplied artwork without changing its colors. React consumers share `HydraLogo` through `@hydra/harness-client-ui-primitives`; the PNG and hover WebP travel as files next to that module. Electron packages publish their icon assets. Rebuild the apps and documentation site after regeneration.
+The generator crops transparent padding and scales the supplied artwork without changing its colors. React consumers share `HydraLogo` through `@hydraharness/harness-client-ui-primitives`; the PNG and hover WebP travel as files next to that module. Electron packages publish their icon assets. Rebuild the apps and documentation site after regeneration.

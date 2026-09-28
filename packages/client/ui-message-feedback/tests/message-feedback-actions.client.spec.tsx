@@ -9,12 +9,12 @@
 import { useSyncExternalStore } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
-import type { MessageId } from '@hydra1902/harness-client-connection/client'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
+import type { MessageId } from '@hydraharness/harness-client-connection/client'
 import type {
   MessageFeedbackItem, MessageFeedbackRating, MessageFeedbackVersion,
-} from '@hydra1902/harness-message-feedback/types'
+} from '@hydraharness/harness-message-feedback/types'
 import { MessageFeedbackActions } from '../src/client/MessageFeedbackActions.tsx'
 import type { MessageFeedbackActionResult, MessageFeedbackView } from '../src/client/controller.ts'
 import { en } from '../src/client/locales.ts'

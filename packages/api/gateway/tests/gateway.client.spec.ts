@@ -1,8 +1,8 @@
-import { Context, Service } from '@hydra1902/cordis'
-import type { Fiber } from '@hydra1902/cordis'
+import { Context, Service } from '@hydraharness/cordis'
+import type { Fiber } from '@hydraharness/cordis'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
-import type { ConnectionHandle } from '@hydra1902/harness-client-connection/client'
+import type { ConnectionHandle } from '@hydraharness/harness-client-connection/client'
 import type {
   InvocationDescriptor,
   RemoteResult,
@@ -10,12 +10,12 @@ import type {
   TypertContext,
   TypertRemoteScopeApi,
   TypertRemoteNamespace,
-} from '@hydra1902/harness-typert-protocol'
-import TypertRegistry from '@hydra1902/harness-typert-registry'
+} from '@hydraharness/harness-typert-protocol'
+import TypertRegistry from '@hydraharness/harness-typert-registry'
 import type { ClientRemote } from '../src/client/index.ts'
 import { apply, inject } from '../src/client/index.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Events {
     /**
      * Test-only forwarded Host event.
@@ -35,7 +35,7 @@ declare module '@hydra1902/cordis' {
   }
 }
 
-declare module '@hydra1902/harness-typert-protocol' {
+declare module '@hydraharness/harness-typert-protocol' {
   interface TypertRemoteEventSelection extends Record<'fixture/changed' | 'fixture/idle', true> {}
 
   interface TypertContextMap {

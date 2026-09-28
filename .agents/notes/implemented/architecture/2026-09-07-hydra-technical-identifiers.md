@@ -21,10 +21,10 @@ Hydra harness uses the identifiers below without legacy aliases, compatibility e
 | PTY prompt | `hh>` |
 | Test-only globals | `__hh*` |
 | Agent skills and gates | `hydra-*` |
-| SDK subagent package | `@hydra/harness-subagent-sdk`, provider id `hydra-sdk` |
+| SDK subagent package | `@hydraharness/harness-subagent-sdk`, provider id `hydra-sdk` |
 | Obsidian graph root | `Hydra Website Knowledge/` |
 
-[`resolveHydraHome`](2026-07-24-single-harness-home-resolver.md) remains the single home resolver; only its names change. The [repository naming ledger](2026-08-11-repository-naming-contract-and-rename-ledger.md) records `@hydra/harness-subagent-sdk`. Frozen archived Agent Notes stay frozen. Vendored Cordis attribution names the original upstream homes (`shigma/cosmokit`, `shigma/schemastery`, `cordiverse/cordis`).
+[`resolveHydraHome`](2026-07-24-single-harness-home-resolver.md) remains the single home resolver; only its names change. The [repository naming ledger](2026-08-11-repository-naming-contract-and-rename-ledger.md) records `@hydraharness/harness-subagent-sdk`. Frozen archived Agent Notes stay frozen. Vendored Cordis attribution names the original upstream homes (`shigma/cosmokit`, `shigma/schemastery`, `cordiverse/cordis`).
 
 ## Alternatives considered
 

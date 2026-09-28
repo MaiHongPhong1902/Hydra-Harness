@@ -16,9 +16,9 @@ const CONFIG_GLOB = 'packages/*/*/tsdown.config.ts'
 const PLATFORM_SOURCE = 'packages/client/web/src/platform.ts'
 const PARSER_PRELOAD_SOURCE = 'packages/client/modules/src/index.ts'
 const STATIC_PRESET_SOURCE = 'packages/client/tsdown.client.ts'
-const CORDIS = '@hydra1902/cordis'
-const HYDRA_PREFIX = '@hydra1902/harness-'
-const CLIENT_WEB = '@hydra1902/harness-client-web'
+const CORDIS = '@hydraharness/cordis'
+const HYDRA_PREFIX = '@hydraharness/harness-'
+const CLIENT_WEB = '@hydraharness/harness-client-web'
 
 /** One workspace package's browser-module declaration. */
 export interface ClientDeclaration {

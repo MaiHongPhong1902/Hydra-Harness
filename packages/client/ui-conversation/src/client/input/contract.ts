@@ -5,12 +5,12 @@
  * conversation wiring layer alone sees the full SessionInput. InputMachine
  * (machine.ts) is package-private and never exported.
  */
-import type { ClientContext, SnapshotStore } from '@hydra1902/harness-client-runtime/client'
-import type { Branded } from '@hydra1902/harness-brand'
+import type { ClientContext, SnapshotStore } from '@hydraharness/harness-client-runtime/client'
+import type { Branded } from '@hydraharness/harness-brand'
 import type {
   ArbitrateKey, ArbitrateOutcome, CommandClaim, ConsumeTokenRequest, PickOutcome,
   ReferenceInsert, SubmitOutcome, TokenSpan,
-} from '@hydra1902/harness-client-ui-input-trigger/client'
+} from '@hydraharness/harness-client-ui-input-trigger/client'
 import type { QueueRow } from '../contract/queue.ts'
 import type { InputSubmitMode } from '../contract/composer-submission.ts'
 

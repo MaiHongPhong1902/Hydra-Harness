@@ -7,38 +7,38 @@
 # delegation bypass.
 
 - id: persistence
-  name: '@hydra1902/harness-session-persistence-jsonl'
+  name: '@hydraharness/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: none
 
 # file/override/childFiles all default to their HYDRA_SNAPSHOT_* env vars.
 - id: replay
-  name: '@hydra1902/harness-llm-replay'
+  name: '@hydraharness/harness-llm-replay'
 
 # The confining filesystem stack: the wide deployment default lives on the
 # shared policy home; the seeded parent's read-only override must beat it
 # INSIDE the child for the scenario to deny.
 - id: sandbox-policy
-  name: '@hydra1902/harness-sandbox-policy'
+  name: '@hydraharness/harness-sandbox-policy'
   config:
     mode: workspace-write
     workspaceRoot: !!js process.cwd()
 
 - id: fs-sandbox
-  name: '@hydra1902/harness-fs-sandbox'
+  name: '@hydraharness/harness-fs-sandbox'
 
 - id: fs-observation-policy
-  name: '@hydra1902/harness-fs-observation-policy'
+  name: '@hydraharness/harness-fs-observation-policy'
 
 - id: tool-fs
-  name: '@hydra1902/harness-tool-fs'
+  name: '@hydraharness/harness-tool-fs'
 
 # This scenario probes filesystem confinement only, so the bash stack is absent:
 # without it the bundle's `toolBash: false` is required, because `tool-bash` would
 # otherwise wait forever for a `bash` executor this tree never mounts.
 - id: agent
-  name: '@hydra1902/harness-agent-spine-demo'
+  name: '@hydraharness/harness-agent-spine-demo'
   config:
     agents: []
     workspaceContext: false
@@ -49,15 +49,15 @@
     goals: false
 
 - id: subagent
-  name: '@hydra1902/harness-subagent'
+  name: '@hydraharness/harness-subagent'
 
 - id: subagent-spawn-in-process
-  name: '@hydra1902/harness-subagent-spawn-in-process'
+  name: '@hydraharness/harness-subagent-spawn-in-process'
   config:
     providerName: spawn
 
 - id: tool-subagent
-  name: '@hydra1902/harness-tool-subagent'
+  name: '@hydraharness/harness-tool-subagent'
   config:
     provider: spawn
     toolName: subagent

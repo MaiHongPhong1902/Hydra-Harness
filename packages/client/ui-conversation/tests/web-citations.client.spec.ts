@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { ToolResultNode } from '@hydra1902/harness-client-runtime/client'
+import type { ToolResultNode } from '@hydraharness/harness-client-runtime/client'
 import { webCitations } from '../src/client/chat/web-citations.ts'
 
 describe('recorded web citations', () => {

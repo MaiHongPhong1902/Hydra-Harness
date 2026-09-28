@@ -1,19 +1,19 @@
 /**
  * Concrete session-query service with SQLite FTS5 over the live-preferred corpus.
  *
- * @module @hydra1902/harness-session-query-sqlite
+ * @module @hydraharness/harness-session-query-sqlite
  */
 
 import { createHash, randomUUID } from 'node:crypto'
 import type { DatabaseSync } from 'node:sqlite'
-import { Context, Service, type Fiber } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydra1902/harness-session'
-import type SessionPersistence from '@hydra1902/harness-session-persistence'
+import { Context, Service, type Fiber } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydraharness/harness-session'
+import type SessionPersistence from '@hydraharness/harness-session-persistence'
 import type {
   SessionPersistenceRevision,
   SessionPersistenceSnapshot,
-} from '@hydra1902/harness-session-persistence'
+} from '@hydraharness/harness-session-persistence'
 import SessionQueryEngine, {
   SESSION_QUERY_DEFAULT_PERSISTED_INSPECT_CONCURRENCY,
   SESSION_QUERY_READ_WINDOW_MAX,
@@ -21,7 +21,7 @@ import SessionQueryEngine, {
   SessionSearchCursor,
   assertSessionHeadersCompatible,
   buildSessionEventSearchDocuments,
-} from '@hydra1902/harness-session-query'
+} from '@hydraharness/harness-session-query'
 import type {
   Config as SessionQueryConfig,
   SessionEventSearchDocument,
@@ -33,7 +33,7 @@ import type {
   SessionSearchCursor as SessionSearchCursorValue,
   SessionSearchPage,
   SessionSearchRequest,
-} from '@hydra1902/harness-session-query'
+} from '@hydraharness/harness-session-query'
 import {
   type JournalMode,
   openSearchDatabase,
@@ -65,7 +65,7 @@ export {
 /** Boot-context slot for a launcher-owned absolute path to this process's derived query index. */
 export const SESSION_QUERY_SQLITE_PATH_KEY = 'launcherSessionQueryPath'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** Launcher-owned absolute path to this process's disposable derived query index. */
     launcherSessionQueryPath?: string

@@ -1,10 +1,10 @@
 /** Session/workspace fixture shapes and snapshot defaults for the test runtime. */
 import type {
   ConversationSnapshot, ISession, SessionId, SessionSummary, WorkspaceListState,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import {
   EMPTY_CHAT_SNAPSHOT, EMPTY_CONVERSATION_VIEWS,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 
 /**
  * Fixture overrides for the session behavior face: any subset of the

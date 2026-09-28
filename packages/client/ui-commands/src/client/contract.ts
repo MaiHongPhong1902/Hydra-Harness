@@ -3,8 +3,8 @@
  * CommandUiRuntime (`ctx.commandUi`) implements this face; business packages
  * consume `register` alone.
  */
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
-import type { ClientSessionContext } from '@hydra1902/harness-client-ui-input-trigger/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
+import type { ClientSessionContext } from '@hydraharness/harness-client-ui-input-trigger/client'
 
 /** Copy for an option that must be acknowledged before onSelect can run. */
 export interface SelectConfirmation {

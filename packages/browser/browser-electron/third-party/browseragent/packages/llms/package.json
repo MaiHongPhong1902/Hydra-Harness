@@ -1,5 +1,5 @@
 {
-    "name": "@hydra1902/harness-browseragent-llms",
+    "name": "@hydraharness/harness-browseragent-llms",
     "private": true,
     "version": "1.12.4",
     "type": "module",

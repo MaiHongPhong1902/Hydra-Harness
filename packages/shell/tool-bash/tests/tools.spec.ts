@@ -2,25 +2,25 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { CallId } from '@hydra1902/harness-llm'
-import { ShellExecutor } from '@hydra1902/harness-shell'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult } from '@hydra1902/harness-shell'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { TOOL_ABORTED, TOOL_ABORTED_BEFORE_DISPATCH } from '@hydra1902/harness-tools'
-import AgentRegistry from '@hydra1902/harness-agent'
-import type { Agent } from '@hydra1902/harness-agent'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
-import LocalJobRegistry from '@hydra1902/harness-jobs-local'
-import * as ToolTasks from '@hydra1902/harness-tool-jobs'
-import ApprovalService from '@hydra1902/harness-user-approval'
-import type { ApprovalOutcome } from '@hydra1902/harness-user-approval'
-import { LocalBashExecutor } from '@hydra1902/harness-bash-local'
-import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
-import SandboxPolicyService from '@hydra1902/harness-sandbox-policy'
-import * as ToolBash from '@hydra1902/harness-tool-bash'
-import * as BashEnvPlugin from '@hydra1902/harness-shell-env'
+import { Context } from '@hydraharness/cordis'
+import { CallId } from '@hydraharness/harness-llm'
+import { ShellExecutor } from '@hydraharness/harness-shell'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult } from '@hydraharness/harness-shell'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { TOOL_ABORTED, TOOL_ABORTED_BEFORE_DISPATCH } from '@hydraharness/harness-tools'
+import AgentRegistry from '@hydraharness/harness-agent'
+import type { Agent } from '@hydraharness/harness-agent'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import JsonlSessionPersistence from '@hydraharness/harness-session-persistence-jsonl'
+import LocalJobRegistry from '@hydraharness/harness-jobs-local'
+import * as ToolTasks from '@hydraharness/harness-tool-jobs'
+import ApprovalService from '@hydraharness/harness-user-approval'
+import type { ApprovalOutcome } from '@hydraharness/harness-user-approval'
+import { LocalBashExecutor } from '@hydraharness/harness-bash-local'
+import LocalSubprocessRuntime from '@hydraharness/harness-subprocess-local'
+import SandboxPolicyService from '@hydraharness/harness-sandbox-policy'
+import * as ToolBash from '@hydraharness/harness-tool-bash'
+import * as BashEnvPlugin from '@hydraharness/harness-shell-env'
 import { processOutcome } from '../src/background.ts'
 import { renderProcessRead, renderResult } from '../src/render.ts'
 
@@ -505,7 +505,7 @@ describe('background execution through the job runtime', () => {
     const ctx = await setup() // no LocalJobRegistry / ToolTasks
     const result = await call(ctx, 'bash', { command: 'sleep 60', description: 'test command', run_in_background: true })
     expect(result.isError).toBe(true)
-    expect(text(result)).toContain('background jobs unavailable: load @hydra1902/harness-jobs and @hydra1902/harness-tool-jobs')
+    expect(text(result)).toContain('background jobs unavailable: load @hydraharness/harness-jobs and @hydraharness/harness-tool-jobs')
   })
 
   it('a pre-aborted call is skipped before the process starts', async () => {

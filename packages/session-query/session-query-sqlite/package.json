@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-session-query-sqlite",
+  "name": "@hydraharness/harness-session-query-sqlite",
   "description": "Concrete ctx.sessionQuery backend with SQLite FTS5 search",
   "hydra": {
     "plugin": {
@@ -37,27 +37,27 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence": "workspace:^",
-    "@hydra1902/harness-session-query": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence": "workspace:^",
+    "@hydraharness/harness-session-query": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "peerDependenciesMeta": {
-    "@hydra1902/harness-session-persistence": {
+    "@hydraharness/harness-session-persistence": {
       "optional": true
     }
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-persistence": "workspace:^",
-    "@hydra1902/harness-session-persistence-sqlite": "workspace:^",
-    "@hydra1902/harness-session-query": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-persistence": "workspace:^",
+    "@hydraharness/harness-session-persistence-sqlite": "workspace:^",
+    "@hydraharness/harness-session-query": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

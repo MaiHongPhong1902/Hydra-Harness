@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-session-telemetry`.
- * @module @hydra1902/harness-session-telemetry/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-session-telemetry`.
+ * @module @hydraharness/harness-session-telemetry/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-session-telemetry'
+const PACKAGE_NAME = '@hydraharness/harness-session-telemetry'
 
 /** Cordis companion plugin name. */
 export const name = 'session-telemetry-invariant'

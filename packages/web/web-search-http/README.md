@@ -1,4 +1,4 @@
-# @hydra/harness-web-search-http
+# @hydraharness/harness-web-search-http
 
 Serper and Other JSON HTTP search providers for [`ctx.web`](../web/README.md). They share transport and mapping mechanics but retain separate configuration and credentials. Mounting the plugin performs no network calls.
 

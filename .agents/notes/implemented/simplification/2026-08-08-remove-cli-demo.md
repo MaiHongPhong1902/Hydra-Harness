@@ -4,15 +4,15 @@ Status: implemented
 
 ## Problem
 
-After [`hydra --profile headless`](../architecture/2026-08-06-app-owned-command-line.md) became the product one-shot command, `@hydra/harness-cli-demo` remained a second application package for the same job. It carried another executable, argument grammar, app composition, cancellation lifecycle, text/JSON/stream-JSON output contract, built artifact, documentation surface, and test suite. The two entry points also assembled different trees, so a successful demo did not prove the shipped `headless` profile and users had to choose between overlapping commands.
+After [`hydra --profile headless`](../architecture/2026-08-06-app-owned-command-line.md) became the product one-shot command, `@hydraharness/harness-cli-demo` remained a second application package for the same job. It carried another executable, argument grammar, app composition, cancellation lifecycle, text/JSON/stream-JSON output contract, built artifact, documentation surface, and test suite. The two entry points also assembled different trees, so a successful demo did not prove the shipped `headless` profile and users had to choose between overlapping commands.
 
 The replay suites still need canonical session events to pin assembled backend behavior. That testing need does not require a published command or compatibility contract.
 
 ## Decision
 
-Delete `@hydra/harness-cli-demo` completely: its package, bin, parser, app plugin, output formats, tests, workspace references, generated-catalog entries, and active documentation. No alias or compatibility package remains. Source users invoke the product command through `pnpm hydra --profile headless`; it owns final-text stdout, failure diagnostics on stderr, persistence, exit status, and shutdown.
+Delete `@hydraharness/harness-cli-demo` completely: its package, bin, parser, app plugin, output formats, tests, workspace references, generated-catalog entries, and active documentation. No alias or compatibility package remains. Source users invoke the product command through `pnpm hydra --profile headless`; it owns final-text stdout, failure diagnostics on stderr, persistence, exit status, and shutdown.
 
-`examples/headless-agent` becomes an explicit test composition. Its Loader configs mount `@hydra/harness-agent-spine-demo`, one root agent, JSONL persistence, and checkpoint policy as separate rows instead of hiding them behind an app bundle. The support-tier `@hydra/harness-loader-smoke` package owns the shared direct-agent turn helper; unexported example-local drivers select their Loader configuration and render canonical events as JSONL. They are launched only by tests, have no bin, and do not define a supported product output format.
+`examples/headless-agent` becomes an explicit test composition. Its Loader configs mount `@hydraharness/harness-agent-spine-demo`, one root agent, JSONL persistence, and checkpoint policy as separate rows instead of hiding them behind an app bundle. The support-tier `@hydraharness/harness-loader-smoke` package owns the shared direct-agent turn helper; unexported example-local drivers select their Loader configuration and render canonical events as JSONL. They are launched only by tests, have no bin, and do not define a supported product output format.
 
 ## Alternatives considered
 
@@ -23,7 +23,7 @@ Delete `@hydra/harness-cli-demo` completely: its package, bin, parser, app plugi
 
 ## Consequences
 
-This is intentionally breaking. `hydra-cli-demo`, its `--output-format` choices, and imports from `@hydra/harness-cli-demo/src/cli.ts` no longer resolve. There is no public event-stream replacement in this change; callers use `hydra --profile headless` for one-shot execution and must choose an existing protocol API when they need structured automation.
+This is intentionally breaking. `hydra-cli-demo`, its `--output-format` choices, and imports from `@hydraharness/harness-cli-demo/src/cli.ts` no longer resolve. There is no public event-stream replacement in this change; callers use `hydra --profile headless` for one-shot execution and must choose an existing protocol API when they need structured automation.
 
 The repository retains backend replay coverage through test-only infrastructure, while product smoke and built-bin acceptance exercise `hydra --profile headless`. A separate one-shot package may return only if it owns a genuinely independent, versioned protocol that cannot belong to the product launcher; a second spelling or output shim is not enough.
 

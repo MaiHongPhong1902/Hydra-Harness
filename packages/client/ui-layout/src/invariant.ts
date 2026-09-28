@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-client-ui-layout`.
- * @module @hydra1902/harness-client-ui-layout/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-client-ui-layout`.
+ * @module @hydraharness/harness-client-ui-layout/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-client-ui-layout'
+const PACKAGE_NAME = '@hydraharness/harness-client-ui-layout'
 
 /** Cordis companion plugin name. */
 export const name = 'client-ui-layout-invariant'

@@ -1,11 +1,11 @@
 /**
  * Owner-scoped persistent PTY registry. Backends own terminal mechanics while
  * this service owns ids, publication, authorization, and awaited cleanup.
- * @module @hydra1902/harness-terminal
+ * @module @hydraharness/harness-terminal
  */
 
-import { Context, Service } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
+import { Context, Service } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
 import { TerminalBackendCleanupError } from './types.ts'
 import type {
   TerminalBackend,
@@ -45,7 +45,7 @@ export { TerminalBackendCleanupError } from './types.ts'
 /** Opaque identity minted by {@link TerminalSessionService} for one live PTY session. */
 export type TerminalSessionId = TerminalSessionIdValue
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     terminals: TerminalSessionService
   }

@@ -1,16 +1,16 @@
 /**
  * Dynamic Cordis Plugin service: immutable package definitions, one active run
  * per Plugin, human-approved Client activation, and Host/Client invocation.
- * @module @hydra1902/harness-cordis-host-runner
+ * @module @hydraharness/harness-cordis-host-runner
  */
 
-import { Context } from '@hydra1902/cordis'
-import type { Fiber } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { Agent } from '@hydra1902/harness-agent'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { JsonValue } from '@hydra1902/harness-session/types'
-import { TypertRemoteService, Remote } from '@hydra1902/harness-typert-protocol'
+import { Context } from '@hydraharness/cordis'
+import type { Fiber } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { Agent } from '@hydraharness/harness-agent'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { JsonValue } from '@hydraharness/harness-session/types'
+import { TypertRemoteService, Remote } from '@hydraharness/harness-typert-protocol'
 import { isPlugin, normalizeHandler } from './guard.ts'
 import { CordisInspectRegistryService } from './inspect-registry.ts'
 import { missingServices, startHostHalf } from './lifecycle.ts'
@@ -77,7 +77,7 @@ export function ApprovalRequestId(id: string): ApprovalRequestId {
   return id as ApprovalRequestId
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** Process-local dynamic Plugin registry and lifecycle service. */
     dynamicCordisRunner: DynamicCordisRunnerService

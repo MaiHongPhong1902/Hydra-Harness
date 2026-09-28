@@ -7,14 +7,14 @@
  * through one property read; assignment through the tracker proxy and `#`
  * private fields bypass that rebinding.
  */
-import { Service } from '@hydra1902/cordis'
-import type { Context } from '@hydra1902/cordis'
+import { Service } from '@hydraharness/cordis'
+import type { Context } from '@hydraharness/cordis'
 // Type-only imports: a plugin-to-plugin value import is a bundle purity
 // error, so scope resolution goes through the sessions service (scopeOf
 // method) instead of the standalone helper.
-import type { ISessions, SessionFace, SessionId } from '@hydra1902/harness-client-runtime/client'
-import type { SubmitImageAttachment, SubmitOutcome } from '@hydra1902/harness-client-ui-input-trigger/client'
-import type { ImageAttachmentRef, ImageMediaType } from '@hydra1902/harness-attachment'
+import type { ISessions, SessionFace, SessionId } from '@hydraharness/harness-client-runtime/client'
+import type { SubmitImageAttachment, SubmitOutcome } from '@hydraharness/harness-client-ui-input-trigger/client'
+import type { ImageAttachmentRef, ImageMediaType } from '@hydraharness/harness-attachment'
 import type { BrowserAnnotationAttachment, ComposerAttachment } from './contract/slots.ts'
 import type { QueueAction, QueueItemId } from './contract/queue.ts'
 import type { ComposerBlocks } from './input/blocks.ts'

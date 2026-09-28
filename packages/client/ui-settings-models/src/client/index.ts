@@ -6,15 +6,15 @@
  * Export discipline:
  * packages/client/AGENTS.md.
  */
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
-import type { ConnectionHandle, CredentialView } from '@hydra1902/harness-api-remotes/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
+import type { ConnectionHandle, CredentialView } from '@hydraharness/harness-api-remotes/client'
 // Type-only: pulls the shell's SlotMap merge (the 'settings.section' entry).
-import type {} from '@hydra1902/harness-client-ui-settings/client'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@hydra1902/harness-client-locale/client'
+import type {} from '@hydraharness/harness-client-locale/client'
 // Type-only: pulls the ctx.remote merge and the forwarded-event key face
 // (settings/credentials invalidations ride the allowlist) into this program.
-import type {} from '@hydra1902/harness-api-remotes/client'
+import type {} from '@hydraharness/harness-api-remotes/client'
 import { ModelsSection } from './ModelsSection.tsx'
 import type { ModelsSectionInjected } from './ModelsSection.tsx'
 import { ProviderOnboarding } from './ProviderOnboarding.tsx'
@@ -30,7 +30,7 @@ import { WELCOME_NOTICE_SETTINGS_NAMESPACE } from '../onboarding-copy.ts'
 export type { ModelsSectionInjected, ModelsSectionProps } from './ModelsSection.tsx'
 export type { ModelsKey } from './locales.ts'
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The Models page + product-onboarding copy. */
     'settings.models': ModelsKey

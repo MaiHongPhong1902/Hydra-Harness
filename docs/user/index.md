@@ -13,8 +13,8 @@ description: Open-source agent workspace for Web UI, desktop, CLI, browser tools
       <a class="hydra-home-button hydra-home-button-primary" href="https://maihongphong1902.github.io/Hydra-Harness/guide/quickstart">Open the guide</a>
       <a class="hydra-home-button" href="https://github.com/MaiHongPhong1902/Hydra-Harness">View on GitHub</a>
     </div>
-    <p class="hydra-home-install"><span>Interactive launcher</span><code>npx @hydra/harness</code></p>
-    <p class="hydra-home-install"><span>Web UI in scripts</span><code>npx @hydra/harness web</code></p>
+    <p class="hydra-home-install"><span>Interactive launcher</span><code>npx @hydraharness/harness</code></p>
+    <p class="hydra-home-install"><span>Web UI in scripts</span><code>npx @hydraharness/harness web</code></p>
     <p class="hydra-home-install"><span>Desktop from source</span><code>pnpm run desktop</code></p>
   </div>
   <div class="hydra-home-mark">
@@ -79,10 +79,10 @@ Give an agent a workspace, a model, and the permissions it needs. Hydra keeps th
 ### From npm
 
 ```sh
-npx @hydra1902/harness
+npx @hydraharness/harness
 ```
 
-The interactive launcher offers Web, Headless, and Desktop. Desktop currently prints the source-checkout workflow because the npm package does not yet ship a supported Electron artifact. For scripts, CI, or redirected input, use `npx @hydra/harness web` or `npx @hydra/harness --profile headless "<task>"`; the Web UI starts at `http://127.0.0.1:3080`, and `--no-open` prevents the browser from opening automatically.
+The interactive launcher offers Web, Headless, and Desktop. Desktop currently prints the source-checkout workflow because the npm package does not yet ship a supported Electron artifact. For scripts, CI, or redirected input, use `npx @hydraharness/harness web` or `npx @hydraharness/harness --profile headless "<task>"`; the Web UI starts at `http://127.0.0.1:3080`, and `--no-open` prevents the browser from opening automatically.
 
 ### From source
 

@@ -1,6 +1,6 @@
-# @hydra/harness-mcp-registry
+# @hydraharness/harness-mcp-registry
 
-`McpServerRegistry` (`ctx.mcpServers`) owns the user's own MCP server records. The records live in the `mcp-servers` settings namespace, so one added from a configuration surface is written to `$HYDRA_HOME/settings.yaml` and mounts again on the next start; one added by hand-editing that document mounts without a restart. Each enabled record is mounted as an `@hydra/harness-mcp-client` fiber whose `serverName` is the record name, which makes its tools `mcp__<name>__<tool>`.
+`McpServerRegistry` (`ctx.mcpServers`) owns the user's own MCP server records. The records live in the `mcp-servers` settings namespace, so one added from a configuration surface is written to `$HYDRA_HOME/settings.yaml` and mounts again on the next start; one added by hand-editing that document mounts without a restart. Each enabled record is mounted as an `@hydraharness/harness-mcp-client` fiber whose `serverName` is the record name, which makes its tools `mcp__<name>__<tool>`.
 
 ## Service API
 
@@ -22,7 +22,7 @@ Server mounts belong to the registry's Host context and survive disposal of the 
 
 ## Model Experience
 
-Indirectly, through `@hydra/harness-mcp-client`, which registers each mounted server's tools on `ctx.tools` under `mcp__<name>__<tool>`. This package decides which servers are mounted; it assembles no model input of its own.
+Indirectly, through `@hydraharness/harness-mcp-client`, which registers each mounted server's tools on `ctx.tools` under `mcp__<name>__<tool>`. This package decides which servers are mounted; it assembles no model input of its own.
 
 #### KV Cache effect
 
@@ -31,4 +31,4 @@ Independent of this package's own operations, and consequential through them: mo
 ## Known Limitations and Deferred Work
 
 - **No OAuth or bearer-token acquisition** — a remote record authenticates only through the static `headers` it stores, so a server requiring an interactive authorization flow cannot be declared here.
-- **No per-record tool approval** — `defaultToolsApprovalMode` and per-tool overrides exist for imported plugin bundles (`@hydra/harness-plugin-runtime`) but not for these records; a mounted server's tools follow the process-wide approval policy.
+- **No per-record tool approval** — `defaultToolsApprovalMode` and per-tool overrides exist for imported plugin bundles (`@hydraharness/harness-plugin-runtime`) but not for these records; a mounted server's tools follow the process-wide approval policy.

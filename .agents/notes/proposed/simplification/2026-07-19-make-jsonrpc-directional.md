@@ -4,7 +4,7 @@ Status: proposed
 
 ## Problem
 
-The JSON-RPC bridge models both endpoints as symmetric peers although the shipped protocol is directional. The shared transport (now `@hydra/harness-sdk-protocol`, used by the server and by the TypeScript SDK client, which exercises the outbound-request/inbound-notification direction) still implements two halves no endpoint uses: server-originated requests and client-originated notifications. The Python SDK sends requests and receives responses or notifications, but it also queues unused inbound server requests and exposes response helpers.
+The JSON-RPC bridge models both endpoints as symmetric peers although the shipped protocol is directional. The shared transport (now `@hydraharness/harness-sdk-protocol`, used by the server and by the TypeScript SDK client, which exercises the outbound-request/inbound-notification direction) still implements two halves no endpoint uses: server-originated requests and client-originated notifications. The Python SDK sends requests and receives responses or notifications, but it also queues unused inbound server requests and exposes response helpers.
 
 `session/prompt` also reports one settled turn through two protocol shapes. The server emits `session.finished` and then returns the constant `{ accepted: true }`; the Python SDK discards that response and waits for the notification to recover the status. Because the response is written only after the handler returns, the notification necessarily precedes the constant response on the same stream.
 

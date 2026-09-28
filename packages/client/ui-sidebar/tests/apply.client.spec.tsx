@@ -1,10 +1,10 @@
 /** Sidebar shell slot registration and its plain runtime/layout callbacks. */
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
-import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
-import { apply, inject } from '@hydra1902/harness-client-ui-sidebar/client'
-import type { SidebarRootInjected } from '@hydra1902/harness-client-ui-sidebar/client'
+import { SlotRegistry } from '@hydraharness/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydraharness/harness-client-locale/client'
+import { apply, inject } from '@hydraharness/harness-client-ui-sidebar/client'
+import type { SidebarRootInjected } from '@hydraharness/harness-client-ui-sidebar/client'
 
 async function bench(declare = true) {
   const ctx = new Context()

@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-client-web",
+  "name": "@hydraharness/harness-client-web",
   "description": "Web boot kernel: static module table, Cordis loader, framework-free boot page, and UI-renderer handoff",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -27,22 +27,22 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-client-modules": "workspace:^",
-    "@hydra1902/harness-client-ui-renderer": "workspace:^",
-    "@hydra1902/harness-client-ui-primitives": "workspace:^",
-    "@hydra1902/harness-client-ui-slots": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-client-modules": "workspace:^",
+    "@hydraharness/harness-client-ui-renderer": "workspace:^",
+    "@hydraharness/harness-client-ui-primitives": "workspace:^",
+    "@hydraharness/harness-client-ui-slots": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
     "@types/react": "~18.3.1",
     "@types/react-dom": "~18.3.0",
-    "@hydra1902/cordis": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "files": [
     "lib/index.js",

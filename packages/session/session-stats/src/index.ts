@@ -6,10 +6,10 @@
  * compaction cannot change. The plugin owns only the fold; delivery is the
  * seam's.
  *
- * @module @hydra1902/harness-session-stats
+ * @module @hydraharness/harness-session-stats
  */
 
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import { sessionStatsProjectionDefinition } from './projection.ts'
 
 export type * from './types.ts'

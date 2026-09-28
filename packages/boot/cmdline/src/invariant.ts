@@ -1,12 +1,12 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-cmdline`.
- * @module @hydra1902/harness-cmdline/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-cmdline`.
+ * @module @hydraharness/harness-cmdline/invariant
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-cmdline'
+const PACKAGE_NAME = '@hydraharness/harness-cmdline'
 
 /** Cordis companion plugin name. */
 export const name = 'cmdline-invariant'

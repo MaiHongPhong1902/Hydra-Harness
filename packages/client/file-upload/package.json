@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-client-file-upload",
+  "name": "@hydraharness/harness-client-file-upload",
   "description": "Browser background upload service for Blob and ReadableStream request bodies",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -51,11 +51,11 @@
     "lib/types/**/*.d.ts"
   ],
   "peerDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^"
   }
 }

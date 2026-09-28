@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-client-ui-permission-presets",
+  "name": "@hydraharness/harness-client-ui-permission-presets",
   "description": "Permission surfaces: a new-session default in General settings and a current-session /permission popup over the permissions projection",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -35,12 +35,12 @@
     },
     "client": {
       "inject": [
-        "@hydra1902/harness-client-connection",
-        "@hydra1902/harness-client-locale",
-        "@hydra1902/harness-client-runtime",
-        "@hydra1902/harness-client-ui-commands",
-        "@hydra1902/harness-api-remotes",
-        "@hydra1902/harness-client-ui-settings"
+        "@hydraharness/harness-client-connection",
+        "@hydraharness/harness-client-locale",
+        "@hydraharness/harness-client-runtime",
+        "@hydraharness/harness-client-ui-commands",
+        "@hydraharness/harness-api-remotes",
+        "@hydraharness/harness-client-ui-settings"
       ],
       "platform": "web"
     }
@@ -51,31 +51,31 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-api-remotes": "workspace:^",
-    "@hydra1902/harness-client-connection": "workspace:^",
-    "@hydra1902/harness-client-locale": "workspace:^",
-    "@hydra1902/harness-client-runtime": "workspace:^",
-    "@hydra1902/harness-client-ui-commands": "workspace:^",
-    "@hydra1902/harness-client-ui-settings": "workspace:^",
-    "@hydra1902/harness-client-ui-input-trigger": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-permission-presets": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-api-remotes": "workspace:^",
+    "@hydraharness/harness-client-connection": "workspace:^",
+    "@hydraharness/harness-client-locale": "workspace:^",
+    "@hydraharness/harness-client-runtime": "workspace:^",
+    "@hydraharness/harness-client-ui-commands": "workspace:^",
+    "@hydraharness/harness-client-ui-settings": "workspace:^",
+    "@hydraharness/harness-client-ui-input-trigger": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-permission-presets": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-api-remotes": "workspace:^",
-    "@hydra1902/harness-client-connection": "workspace:^",
-    "@hydra1902/harness-client-locale": "workspace:^",
-    "@hydra1902/harness-client-runtime": "workspace:^",
-    "@hydra1902/harness-client-test-runtime": "workspace:^",
-    "@hydra1902/harness-client-ui-commands": "workspace:^",
-    "@hydra1902/harness-client-ui-primitives": "workspace:^",
-    "@hydra1902/harness-client-ui-settings": "workspace:^",
-    "@hydra1902/harness-client-ui-input-trigger": "workspace:^",
-    "@hydra1902/harness-client-ui-slots": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-permission-presets": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-api-remotes": "workspace:^",
+    "@hydraharness/harness-client-connection": "workspace:^",
+    "@hydraharness/harness-client-locale": "workspace:^",
+    "@hydraharness/harness-client-runtime": "workspace:^",
+    "@hydraharness/harness-client-test-runtime": "workspace:^",
+    "@hydraharness/harness-client-ui-commands": "workspace:^",
+    "@hydraharness/harness-client-ui-primitives": "workspace:^",
+    "@hydraharness/harness-client-ui-settings": "workspace:^",
+    "@hydraharness/harness-client-ui-input-trigger": "workspace:^",
+    "@hydraharness/harness-client-ui-slots": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-permission-presets": "workspace:^",
     "@types/react": "~18.3.1",
     "react": "^18.2.0"
   },

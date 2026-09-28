@@ -5,9 +5,9 @@
  * {@link InputTriggerController}; the service only registers sources, resolves
  * controllers by session scope, and relays roster changes.
  */
-import { Service } from '@hydra1902/cordis'
-import type { Context } from '@hydra1902/cordis'
-import type { ClientContext, ISessions, SessionId } from '@hydra1902/harness-client-runtime/client'
+import { Service } from '@hydraharness/cordis'
+import type { Context } from '@hydraharness/cordis'
+import type { ClientContext, ISessions, SessionId } from '@hydraharness/harness-client-runtime/client'
 import type { InputTriggerSource } from '../types.ts'
 import { InputTriggerController } from './controller.ts'
 import type { InputTriggerServiceContract } from './contract.ts'

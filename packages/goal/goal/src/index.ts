@@ -1,20 +1,20 @@
 /**
  * Same-session goal domain: event-sourced state, compare-and-set mutations,
  * and process-local continuation activation.
- * @module @hydra1902/harness-goal
+ * @module @hydraharness/harness-goal
  */
 
 import { randomUUID } from 'node:crypto'
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
 import { z as zod } from 'zod'
 import type { ZodType } from 'zod'
-import { agentEvents } from '@hydra1902/harness-agent'
-import type { Agent } from '@hydra1902/harness-agent'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import { TypertRemoteService, Remote } from '@hydra1902/harness-typert-protocol'
+import { agentEvents } from '@hydraharness/harness-agent'
+import type { Agent } from '@hydraharness/harness-agent'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import { TypertRemoteService, Remote } from '@hydraharness/harness-typert-protocol'
 // Type-only: resolves ctx.sessionProjections for the optional unit child.
-import type {} from '@hydra1902/harness-session-projection'
+import type {} from '@hydraharness/harness-session-projection'
 import {
   applyGoalEvent,
   decodeGoalChange,
@@ -56,7 +56,7 @@ export type * from './domain.ts'
 export { GOAL_CHANGE_VERSION, GoalError, GoalId } from './runtime.ts'
 export { decodeGoalChange, foldGoal, goalChangeRef } from './fold.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     goals: GoalService
   }

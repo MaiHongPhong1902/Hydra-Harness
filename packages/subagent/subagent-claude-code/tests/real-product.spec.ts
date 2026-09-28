@@ -17,16 +17,16 @@ import type {
   SDKMessage,
   SDKSystemMessage,
 } from '@anthropic-ai/claude-agent-sdk'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import type { Agent } from '@hydra1902/harness-agent'
-import SubagentRuntime from '@hydra1902/harness-subagent'
+import type { Agent } from '@hydraharness/harness-agent'
+import SubagentRuntime from '@hydraharness/harness-subagent'
 import type {
   SubprocessHandle,
   SubprocessOutcome,
   SubprocessSpawnSpec,
-} from '@hydra1902/harness-subprocess'
-import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
+} from '@hydraharness/harness-subprocess'
+import LocalSubprocessRuntime from '@hydraharness/harness-subprocess-local'
 import * as claudeCode from '../src/index.ts'
 import type { ClaudeCodePermissionMode } from '../src/run.ts'
 import {

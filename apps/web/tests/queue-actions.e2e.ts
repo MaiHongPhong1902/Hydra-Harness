@@ -10,8 +10,8 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterEach, describe, expect, it, onTestFailed } from 'vitest'
-import { deriveReplayScript, parseSessionLog, type ReplayEntry } from '@hydra1902/harness-llm-replay'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import { deriveReplayScript, parseSessionLog, type ReplayEntry } from '@hydraharness/harness-llm-replay'
+import type { SessionEvent } from '@hydraharness/harness-session'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold,

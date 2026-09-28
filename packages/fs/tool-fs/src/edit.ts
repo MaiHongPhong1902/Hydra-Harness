@@ -2,14 +2,14 @@
  * Model-facing literal edit, unique-match by default. It obtains an optional guard from the
  * single intent slot, calls `ctx.fs.editText` without a separate stat, then records the observed
  * version; no policy means an unconditional atomic edit.
- * @module @hydra1902/harness-tool-fs/src/edit
+ * @module @hydraharness/harness-tool-fs/src/edit
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { defineTool } from '@hydra1902/harness-tools'
-import type { DiffCallView, DiffResultView, ToolResult } from '@hydra1902/harness-tools'
-import type {} from '@hydra1902/harness-fs'
-import type {} from '@hydra1902/harness-system-prompt'
+import type { Context } from '@hydraharness/cordis'
+import { defineTool } from '@hydraharness/harness-tools'
+import type { DiffCallView, DiffResultView, ToolResult } from '@hydraharness/harness-tools'
+import type {} from '@hydraharness/harness-fs'
+import type {} from '@hydraharness/harness-system-prompt'
 import { computeHunkDiffs, diffsFromMeta } from './diff.ts'
 import { remediateFsError } from './error.ts'
 import { sessionResolveOptions } from './session-cwd.ts'

@@ -10,7 +10,7 @@
 import { createServer, type Server } from 'node:http'
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { URL, URLSearchParams } from 'node:url'
-import { LlmError } from '@hydra1902/harness-llm'
+import { LlmError } from '@hydraharness/harness-llm'
 
 /** OAuth client id published by the Antigravity desktop client. */
 export const ANTIGRAVITY_CLIENT_ID =

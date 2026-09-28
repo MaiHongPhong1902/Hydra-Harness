@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
-import type { Agent, AgentStatus } from '@hydra1902/harness-agent'
-import CommandRuntime from '@hydra1902/harness-commands'
-import GoalService from '@hydra1902/harness-goal'
-import type { GoalRef } from '@hydra1902/harness-goal'
-import SessionStore, { Session, SessionId } from '@hydra1902/harness-session'
-import * as commandGoal from '@hydra1902/harness-command-goal'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import AgentRegistry, { Inbox } from '@hydraharness/harness-agent'
+import type { Agent, AgentStatus } from '@hydraharness/harness-agent'
+import CommandRuntime from '@hydraharness/harness-commands'
+import GoalService from '@hydraharness/harness-goal'
+import type { GoalRef } from '@hydraharness/harness-goal'
+import SessionStore, { Session, SessionId } from '@hydraharness/harness-session'
+import * as commandGoal from '@hydraharness/harness-command-goal'
 
 interface Harness {
   readonly ctx: Context
@@ -85,7 +85,7 @@ function ref(goal: NonNullable<ReturnType<GoalService['get']>>): GoalRef {
   return { id: goal.id, revision: goal.revision }
 }
 
-describe('@hydra1902/harness-command-goal registration', () => {
+describe('@hydraharness/harness-command-goal registration', () => {
   it('registers one global command with Loader-safe exports and disposes it', async () => {
     const test = await harness()
     expect(commandGoal.name).toBe('command-goal')

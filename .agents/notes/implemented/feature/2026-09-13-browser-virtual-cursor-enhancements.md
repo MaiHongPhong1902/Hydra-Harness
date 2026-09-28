@@ -8,7 +8,7 @@ The embedded browser simulator mask rendered an AI cursor with a basic linear fr
 
 ## Decision
 
-The virtual pointer engine in `@hydra/harness-browser-electron` implements four dedicated animation subsystems and subpixel coordinate invariants:
+The virtual pointer engine in `@hydraharness/harness-browser-electron` implements four dedicated animation subsystems and subpixel coordinate invariants:
 
 1. **Move trajectory**: Native Playwright actions await the preload's shared `prepare_pointer` path so clicks, hover, typing, and field fills update the virtual cursor. Time-based cubic Bézier interpolation ($N=4$) with natural deflection arc. Movement duration is calculated dynamically via Fitts's law approximation ($150 + 40 \log_2(d + 1)\text{ ms}$). Velocity banking rotates the cursor subtly along the movement tangent ($\pm 10^\circ$), damping to zero before arrival. Subpixel arrival snaps to exact target coordinates when remaining distance is under $0.5\text{px}$.
 2. **Three-phase click**: The cursor filling layer animates a $0.82\times$ squash anchored at the arrow tip (`transform-origin: 29px 15px`), accompanied by a dual-tone expanding shockwave ripple ($0.2\times \to 2.4\times$) and elastic recovery bounce ($1.08\times \to 1.0\times$).

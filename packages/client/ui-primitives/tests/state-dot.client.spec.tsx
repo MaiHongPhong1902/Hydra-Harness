@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { StateDot } from '@hydra1902/harness-client-ui-primitives'
-import type { StateDotState } from '@hydra1902/harness-client-ui-primitives'
+import { StateDot } from '@hydraharness/harness-client-ui-primitives'
+import type { StateDotState } from '@hydraharness/harness-client-ui-primitives'
 
 afterEach(cleanup)
 

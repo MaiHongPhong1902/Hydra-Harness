@@ -5,7 +5,7 @@
  */
 import {
   createSnapshotStore, type SettingsScope, type SnapshotStore,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type {
   BusyEnterBehavior, ComposerSubmitGesture, InputSubmitMode,
 } from '../contract/composer-submission.ts'

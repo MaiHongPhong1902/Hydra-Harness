@@ -18,9 +18,9 @@ And the modality had to be **text**. A screenshot loop needs a vision model, spe
 
 Two packages under a new `browser/` family, and a vendored perception core.
 
-`@hydra/harness-browser-electron` owns `ctx.browsers`: one Electron child process per `Agent`, spawned on that agent's first action and closed with it, holding one window and one `WebContentsView`. The parent speaks NDJSON over the child's stdin/stdout — `{id, method, args}` out, `{id, ok, result|error}` back.
+`@hydraharness/harness-browser-electron` owns `ctx.browsers`: one Electron child process per `Agent`, spawned on that agent's first action and closed with it, holding one window and one `WebContentsView`. The parent speaks NDJSON over the child's stdin/stdout — `{id, method, args}` out, `{id, ok, result|error}` back.
 
-`@hydra/harness-tool-browser` owns everything the model sees: the `browser_*` schemas, the DOM-format prompt section, the character cap, the card titles, the origin approval. Nothing in it knows the browser is Electron.
+`@hydraharness/harness-tool-browser` owns everything the model sees: the `browser_*` schemas, the DOM-format prompt section, the character cap, the card titles, the origin approval. Nothing in it knows the browser is Electron.
 
 The page is perceived and driven by the locally owned BrowserAgent `PageController`, copied from [page-agent](https://github.com/alibaba/page-agent) at `packages/browser/browser-electron/third-party/browseragent/packages/page-controller/` and bundled into the view's preload. It turns the live DOM into a numbered element list — `[12]<button>Save</button>` — and acts by index. Its own header says it is "designed to be independent of LLM", and that is exactly the half taken. PageAgent's ReAct core is an explicit, demoted Hydra tool, not the default loop; see [Hydra-owned browser control](../architecture/2026-09-07-hydra-owned-browser-control.md).
 
@@ -72,7 +72,7 @@ The profile persists at `<harness-home>/browser-profile`, which is the point —
 
 **`contextIsolation: false` to reach the page's world.** Would have made an `execute_javascript` action possible and would have handed every page a path to `require`. Checked instead that `PageController` runs correctly in the isolated world — its React patch is plain `setAttribute`, and the MV3 extension already runs the same code there — so nothing was given up.
 
-**Depending on an external PageController package.** The published build leaves `ai-motion` and its siblings as bare specifiers, and a preload with `sandbox: true` has no module resolver. A self-contained bundle needs the source, so the private `@hydra/harness-browseragent-page-controller` package is tracked here with its provenance and licenses recorded beside it.
+**Depending on an external PageController package.** The published build leaves `ai-motion` and its siblings as bare specifiers, and a preload with `sandbox: true` has no module resolver. A self-contained bundle needs the source, so the private `@hydraharness/harness-browseragent-page-controller` package is tracked here with its provenance and licenses recorded beside it.
 
 ## Consequences
 

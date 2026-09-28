@@ -3,17 +3,17 @@
  * promises to honor `exec.signal`; this wrapper arms that deadline and maps its
  * own expiry to `TOOL_TIMEOUT` without racing or abandoning the tool promise.
  *
- * FIXME: settle the intended `@hydra1902/harness-timeout-guard` rename before the
+ * FIXME: settle the intended `@hydraharness/harness-timeout-guard` rename before the
  * first tagged release — suggestion only, aligning the name with its `guard/`
  * home; decide at resolution time
  * ([regrouping Agent Note](../../../../.agents/notes/implemented/architecture/2026-07-29-package-regrouping.md)).
  *
- * @module @hydra1902/harness-tool-call-timeout-policy
+ * @module @hydraharness/harness-tool-call-timeout-policy
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { deadline, timeoutOf } from '@hydra1902/harness-timeout'
-import type { ToolExecutionResult } from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import { deadline, timeoutOf } from '@hydraharness/harness-timeout'
+import type { ToolExecutionResult } from '@hydraharness/harness-tools'
 
 /**
  * The code owned by this plugin, used BOTH as the internal {@link deadline}

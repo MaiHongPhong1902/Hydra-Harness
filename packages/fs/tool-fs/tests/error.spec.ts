@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { FsError } from '@hydra1902/harness-fs'
+import { FsError } from '@hydraharness/harness-fs'
 import { remediateFsError } from '../src/error.ts'
 
 describe('remediateFsError', () => {

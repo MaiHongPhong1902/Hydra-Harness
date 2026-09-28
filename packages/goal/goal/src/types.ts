@@ -1,16 +1,16 @@
 /**
  * Pure types of the goal domain: the ONE home of the `goal` projection-key
  * declaration plus the durable payload vocabulary it carries, free of this
- * package's host-side imports (cordis events, @hydra1902/harness-agent, @hydra1902/harness-llm, the
+ * package's host-side imports (cordis events, @hydraharness/harness-agent, @hydraharness/harness-llm, the
  * service). Two namespace projections serve it — `./types` for host
  * consumers, `./client` (the browser half-entry's re-export) for client
  * aggregates — with zero content duplication. Host-coupled domain
  * vocabulary (message sources, events, fold shapes) lives in ./domain.ts.
  *
- * @module @hydra1902/harness-goal/types
+ * @module @hydraharness/harness-goal/types
  */
 
-import type { Branded } from '@hydra1902/harness-brand'
+import type { Branded } from '@hydraharness/harness-brand'
 
 /** Identifies one goal across its durable revisions. */
 export type GoalId = Branded<'GoalId'>
@@ -99,7 +99,7 @@ export interface GoalProjection {
   readonly updatedAt: number
 }
 
-declare module '@hydra1902/harness-session-projection/types' {
+declare module '@hydraharness/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     goal: GoalProjection | null
   }

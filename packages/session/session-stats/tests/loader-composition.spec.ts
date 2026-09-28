@@ -10,12 +10,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import Include from '@hydra1902/cordis-plugin-include'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
-import * as SessionStatsPlugin from '@hydra1902/harness-session-stats'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import Include from '@hydraharness/cordis-plugin-include'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import SessionProjectionRegistry from '@hydraharness/harness-session-projection'
+import * as SessionStatsPlugin from '@hydraharness/harness-session-stats'
 
 let root: string | undefined
 let context: Context | undefined
@@ -37,9 +37,9 @@ async function loadYaml(lines: readonly string[]): Promise<Context> {
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@hydra1902/harness-session', SessionStore],
-    ['@hydra1902/harness-session-projection', SessionProjectionRegistry],
-    ['@hydra1902/harness-session-stats', SessionStatsPlugin],
+    ['@hydraharness/harness-session', SessionStore],
+    ['@hydraharness/harness-session-projection', SessionProjectionRegistry],
+    ['@hydraharness/harness-session-stats', SessionStatsPlugin],
   ])
   context.loader.internal = {
     version: 'v2',
@@ -59,9 +59,9 @@ async function loadYaml(lines: readonly string[]): Promise<Context> {
 describe('real Loader composition', () => {
   it('loads the shipped session-stats YAML shape and serves whole-log counts', async () => {
     const loaded = await loadYaml([
-      "- name: '@hydra1902/harness-session'",
-      "- name: '@hydra1902/harness-session-projection'",
-      "- name: '@hydra1902/harness-session-stats'",
+      "- name: '@hydraharness/harness-session'",
+      "- name: '@hydraharness/harness-session-projection'",
+      "- name: '@hydraharness/harness-session-stats'",
     ])
 
     const unloaded = [...loaded.loader.entries()]

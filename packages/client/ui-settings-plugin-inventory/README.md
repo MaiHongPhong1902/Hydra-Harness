@@ -1,4 +1,4 @@
-# @hydra/harness-client-ui-settings-plugin-inventory
+# @hydraharness/harness-client-ui-settings-plugin-inventory
 
 The local Web Settings contribution for OpenAI/Codex plugin bundles. It registers **Plugins**, **Skills**, and **Marketplace** tabs in the existing Plugins section, and contributes its imported-hook catalog to that section's **Hooks** tab through `settings.plugins.hooks.item`. Remote clients only receive the Plugins tab with an unavailable message; local controls are loopback-only.
 

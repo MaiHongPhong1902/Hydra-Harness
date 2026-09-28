@@ -3,17 +3,17 @@
  * every backend uses for its replacement user message, plus the predicate that
  * recognizes persisted checkpoints.
  *
- * The seam itself lives in `@hydra1902/harness-compaction`, which re-exports these
+ * The seam itself lives in `@hydraharness/harness-compaction`, which re-exports these
  * contracts; this module is a pure type/value/predicate outlet (no cordis
  * imports, no module augmentation) so client and wire programs can name the
  * checkpoint source without loading the host plugin's Context merges — the
  * `hydra-commands/brand` shape.
  *
- * @module @hydra1902/harness-compaction/checkpoint
+ * @module @hydraharness/harness-compaction/checkpoint
  */
 
-import type { MessageSource } from '@hydra1902/harness-llm/message'
-import type { CommandId } from '@hydra1902/harness-commands/brand'
+import type { MessageSource } from '@hydraharness/harness-llm/message'
+import type { CommandId } from '@hydraharness/harness-commands/brand'
 import type { CompactionId } from './brand.ts'
 
 const COMPACT_CHECKPOINT_MARKER = Object.freeze({ kind: 'plugin', plugin: 'compact' } as const)

@@ -1,10 +1,10 @@
 /** Browser-safe validation for durable/wire review records. @module */
 import { z } from 'zod'
 import type { ReviewChange } from './types.ts'
-import type { SessionId } from '@hydra1902/harness-session/types'
+import type { SessionId } from '@hydraharness/harness-session/types'
 export type { ChangeId, ReviewChange, ReviewHunk, ReviewMode, ReviewOutcome, WorkspaceReview, WorkspaceReviewFile } from './types.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Events {
     /**
      * A durable record was created or changed; clients refetch its history.

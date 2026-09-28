@@ -1,6 +1,6 @@
 /** Configuration resolution for deterministic tool-result pruning. */
 
-import { deepFreeze } from '@hydra1902/harness-llm'
+import { deepFreeze } from '@hydraharness/harness-llm'
 import type { ResolvedConfig, ToolResultPruneConfig } from './types.ts'
 
 /** Fixed marker substituted for every removed middle span. */

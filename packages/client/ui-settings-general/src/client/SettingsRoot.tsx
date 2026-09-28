@@ -15,7 +15,7 @@ import clsx from 'clsx'
 import {
   IconAgentPresetOutline16, IconArchiveOutline20, IconBrowserOutline16, IconCloseOutline16,
   IconCordisPluginOutline14, IconDataOutline16, IconPersonalizationOutline16, IconSettingsOutline16, Modal,
-} from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-client-ui-primitives'
 import type { SettingsRootComponentProps, SettingsSectionRow } from './shell-contract.ts'
 import css from './SettingsRoot.module.css'
 

@@ -20,10 +20,10 @@
   - img
 - button "Edit":
   - img
-- button "Context injection @hydra/harness-system-prompt":
+- button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
-  - text: Context injection @hydra/harness-system-prompt
+  - text: Context injection @hydraharness/harness-system-prompt
 - button "Think The user is asking for a one-sentence description of event sourcing. This is a straightforward knowledge question that doesn't require any skill loading or tool calls.":
   - img
   - img

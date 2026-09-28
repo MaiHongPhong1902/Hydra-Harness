@@ -1,9 +1,9 @@
 /** Package-owned invariant companion for the Team tool adapter. */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-experimental-tool-agent-team'
+const PACKAGE_NAME = '@hydraharness/harness-experimental-tool-agent-team'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-team-invariant'

@@ -1,4 +1,4 @@
-import type { CallId } from '@hydra1902/harness-llm'
+import type { CallId } from '@hydraharness/harness-llm'
 
 /** Character-budget policy for deterministic tool-result pruning. */
 export interface ToolResultPruneConfig {

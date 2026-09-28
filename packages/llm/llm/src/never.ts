@@ -3,7 +3,7 @@
  * new variant fails compilation at every required handler. Do not use it for declaration-merged
  * unions such as session events or content blocks: handle known variants and explicitly fall
  * through because plugins may add valid unknown cases.
- * @module @hydra1902/harness-llm/never
+ * @module @hydraharness/harness-llm/never
  */
 
 /**

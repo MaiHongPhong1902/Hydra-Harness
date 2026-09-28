@@ -4,7 +4,7 @@
  * per push.
  */
 
-import type { JobId } from '@hydra1902/harness-jobs/brand'
+import type { JobId } from '@hydraharness/harness-jobs/brand'
 
 /**
  * One background job as the client sees it.

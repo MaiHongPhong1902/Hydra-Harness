@@ -5,15 +5,15 @@
 // views. callId/approvalId stay plain string here (narrow to real brands when
 // convenient).
 
-import type { CommandId } from '@hydra1902/harness-commands/brand'
-import type { MessageId } from '@hydra1902/harness-llm/brand'
-import type { ContentBlock } from '@hydra1902/harness-llm/types'
-import type { ImageAttachmentRef } from '@hydra1902/harness-attachment'
-import type { LlmRetryEventData } from '@hydra1902/harness-llm-retry/types'
-import type { TodoItem } from '@hydra1902/harness-session/types'
+import type { CommandId } from '@hydraharness/harness-commands/brand'
+import type { MessageId } from '@hydraharness/harness-llm/brand'
+import type { ContentBlock } from '@hydraharness/harness-llm/types'
+import type { ImageAttachmentRef } from '@hydraharness/harness-attachment'
+import type { LlmRetryEventData } from '@hydraharness/harness-llm-retry/types'
+import type { TodoItem } from '@hydraharness/harness-session/types'
 import type {
   RpcError, SessionId, SubagentAddress, ToolCallView, ToolResultView,
-} from '@hydra1902/harness-api-remotes/client'
+} from '@hydraharness/harness-api-remotes/client'
 import type { PendingInteraction } from './pending.ts'
 import type { ContextProvenanceView, KnownContextForm } from './context-provenance.ts'
 import type {

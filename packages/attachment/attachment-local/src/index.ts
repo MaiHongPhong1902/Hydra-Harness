@@ -1,11 +1,11 @@
-/** Local durable attachment backend rooted below `HYDRA_HOME`. @module @hydra1902/harness-attachment-local */
+/** Local durable attachment backend rooted below `HYDRA_HOME`. @module @hydraharness/harness-attachment-local */
 
 import { join, resolve } from 'node:path'
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { AttachmentStore } from '@hydra1902/harness-attachment'
-import type { FileAttachmentRef, ImageAttachmentLimits, ImageAttachmentRef, SaveFileAttachment, SaveFileStreamAttachment, SaveImageAttachment, StoredImageAttachment } from '@hydra1902/harness-attachment'
-import { resolveHydraHome } from '@hydra1902/harness-home-paths'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { AttachmentStore } from '@hydraharness/harness-attachment'
+import type { FileAttachmentRef, ImageAttachmentLimits, ImageAttachmentRef, SaveFileAttachment, SaveFileStreamAttachment, SaveImageAttachment, StoredImageAttachment } from '@hydraharness/harness-attachment'
+import { resolveHydraHome } from '@hydraharness/harness-home-paths'
 import { readImageFile, saveImageFile, validateImageFile } from './store.ts'
 import { readFileStreamVerbatim, saveFileStreamVerbatim, saveFileVerbatim, storedFilePath } from './file-store.ts'
 

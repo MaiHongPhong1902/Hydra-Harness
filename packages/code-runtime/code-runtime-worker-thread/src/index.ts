@@ -3,19 +3,19 @@
  * and bridges bindings over its message port. This is containment, not a security boundary:
  * model code has bash-equivalent trust despite an empty environment, a heap cap, measured
  * event-loop busy-time and wall-time budgets, and termination that also stops synchronous loops.
- * @module @hydra1902/harness-code-runtime-worker-thread
+ * @module @hydraharness/harness-code-runtime-worker-thread
  */
 
 import { Worker } from 'node:worker_threads'
 import { stripTypeScriptTypes } from 'node:module'
 import type { Readable } from 'node:stream'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
-import { CodeRuntime, DUNDER_MEMBER, PORTABLE_RESERVED_WORDS, RESERVED_BINDING_GLOBALS, RESERVED_ERROR_MEMBERS } from '@hydra1902/harness-code-runtime'
-import type { CodeBindingNamespace, CodeJsonValue, CodeRunFailure, CodeRunRequest, CodeRunResult } from '@hydra1902/harness-code-runtime'
-import { snapshotJsonValue } from '@hydra1902/harness-session'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
+import { CodeRuntime, DUNDER_MEMBER, PORTABLE_RESERVED_WORDS, RESERVED_BINDING_GLOBALS, RESERVED_ERROR_MEMBERS } from '@hydraharness/harness-code-runtime'
+import type { CodeBindingNamespace, CodeJsonValue, CodeRunFailure, CodeRunRequest, CodeRunResult } from '@hydraharness/harness-code-runtime'
+import { snapshotJsonValue } from '@hydraharness/harness-session'
 import type { ReplyMessage, WorkerBootData, WorkerToHost } from './protocol.ts'
 import { jsonStringBytesUpTo, jsonValueBytesUpTo, truncateJsonStringBytes } from './output-json.ts'
 import { decodeWorkerJson, encodeWorkerJson } from './worker-json.ts'

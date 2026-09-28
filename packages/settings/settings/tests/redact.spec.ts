@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
 import { redactSecrets, settingsNamespace } from '../src/index.ts'
 import { MemorySettings } from './memory.ts'
 

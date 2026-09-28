@@ -58,7 +58,7 @@ describe('runModeMenu', () => {
     expect(run.result).toEqual({ kind: 'exit', code: 1 })
     expect(run.output).toContain('pnpm run desktop')
     expect(run.output).toContain('no supported npm Desktop artifact')
-    expect(run.output).not.toContain('npx @hydra1902/harness desktop')
+    expect(run.output).not.toContain('npx @hydraharness/harness desktop')
   })
 
   it('exits successfully on q and EOF', async () => {
@@ -72,6 +72,6 @@ describe('runModeMenu', () => {
     expect(nonTty.error).toContain('requires an interactive terminal')
     const ci = await runMenu('', { ci: '1' })
     expect(ci.result).toEqual({ kind: 'exit', code: 1 })
-    expect(ci.error).toContain('npx @hydra1902/harness web')
+    expect(ci.error).toContain('npx @hydraharness/harness web')
   })
 })

@@ -100,8 +100,8 @@ export function githubSlug(heading: string): string {
 
 /** Return the product fragment for a current Hydra package heading. */
 export function hydraPackageSlug(heading: string): string {
-  return heading.startsWith('@hydra1902/')
-    ? githubSlug(`@hydra/${heading.slice('@hydra1902/'.length)}`)
+  return heading.startsWith('@hydraharness/')
+    ? githubSlug(`@hydra/${heading.slice('@hydraharness/'.length)}`)
     : githubSlug(heading)
 }
 

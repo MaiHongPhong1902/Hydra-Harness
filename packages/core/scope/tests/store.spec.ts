@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import {
   AnonymousEntries,
   createScope,
@@ -8,7 +8,7 @@ import {
   type Scope,
   type ScopeKey,
   type ScopeLayer,
-} from '@hydra1902/harness-scope'
+} from '@hydraharness/harness-scope'
 
 class TestLayer implements ScopeLayer {
   readonly named: NamedEntries<number>

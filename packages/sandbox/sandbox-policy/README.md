@@ -1,4 +1,4 @@
-# @hydra/harness-sandbox-policy — the sandbox policy home (`ctx.sandboxPolicy`)
+# @hydraharness/harness-sandbox-policy — the sandbox policy home (`ctx.sandboxPolicy`)
 
 The single owner of sandbox-policy resolution: the deployment's default [`SandboxMode`](../sandbox/README.md) and fallback root, plus each session's durable mode override and immutable workspace root. Every enforcing capability receives one resolved mode-and-root policy per call; before each request, the model receives the current policy without a separate capability inventory.
 
@@ -32,7 +32,7 @@ A runtime switch is one log-only `sandbox/mode` event on the session it applies 
 
 #### What the model sees
 
-One `sandbox:policy` contribution in the current runtime-context snapshot for every agent session. It does not enumerate mounted capabilities. Tool plugins retain operation and escalation guidance, approval policy contributes separately to the same snapshot, and plan guidance remains `@hydra/harness-plan-mode`'s system section.
+One `sandbox:policy` contribution in the current runtime-context snapshot for every agent session. It does not enumerate mounted capabilities. Tool plugins retain operation and escalation guidance, approval policy contributes separately to the same snapshot, and plan guidance remains `@hydraharness/harness-plan-mode`'s system section.
 
 ##### Read-only
 

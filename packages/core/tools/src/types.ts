@@ -1,11 +1,11 @@
 /**
  * Durable Tool event vocabulary shared with type-only consumers.
  *
- * @module @hydra1902/harness-tools/types
+ * @module @hydraharness/harness-tools/types
  */
 
-import type { CallId } from '@hydra1902/harness-llm/brand'
-import type { ContentBlock } from '@hydra1902/harness-llm/types'
+import type { CallId } from '@hydraharness/harness-llm/brand'
+import type { ContentBlock } from '@hydraharness/harness-llm/types'
 
 /** Payload recorded when one nested Code Mode Tool dispatch starts. */
 export interface CodeDispatchStartEventData {
@@ -22,7 +22,7 @@ export interface CodeDispatchEventData extends CodeDispatchStartEventData {
   content: ContentBlock[]
 }
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /**
      * One sub-dispatch STARTING inside a `run_code` program: the parent

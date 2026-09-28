@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { CodeRuntime } from '@hydra1902/harness-code-runtime'
-import type { CodeRunRequest, CodeRunResult } from '@hydra1902/harness-code-runtime'
+import { Context } from '@hydraharness/cordis'
+import { CodeRuntime } from '@hydraharness/harness-code-runtime'
+import type { CodeRunRequest, CodeRunResult } from '@hydraharness/harness-code-runtime'
 
 /**
  * Minimal concrete runtime: records requests, "executes" by invoking every

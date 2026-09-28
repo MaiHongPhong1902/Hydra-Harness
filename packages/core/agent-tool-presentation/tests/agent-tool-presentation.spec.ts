@@ -7,15 +7,15 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { createScope } from '@hydra1902/harness-scope'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import { CodeRuntime } from '@hydra1902/harness-code-runtime'
-import type { CodeRunRequest, CodeRunResult } from '@hydra1902/harness-code-runtime'
-import ToolRuntime, { RUN_CODE_NAME, defineTool } from '@hydra1902/harness-tools'
-import type { Agent } from '@hydra1902/harness-agent'
-import { SessionId } from '@hydra1902/harness-session'
-import { apply, Config, inject, name } from '@hydra1902/harness-agent-tool-presentation'
+import { Context } from '@hydraharness/cordis'
+import { createScope } from '@hydraharness/harness-scope'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import { CodeRuntime } from '@hydraharness/harness-code-runtime'
+import type { CodeRunRequest, CodeRunResult } from '@hydraharness/harness-code-runtime'
+import ToolRuntime, { RUN_CODE_NAME, defineTool } from '@hydraharness/harness-tools'
+import type { Agent } from '@hydraharness/harness-agent'
+import { SessionId } from '@hydraharness/harness-session'
+import { apply, Config, inject, name } from '@hydraharness/harness-agent-tool-presentation'
 
 /** A runtime that never runs anything: presentation never dispatches. */
 class StubRuntime extends CodeRuntime {

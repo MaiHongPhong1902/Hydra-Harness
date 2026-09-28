@@ -1,9 +1,9 @@
 /**
- * @hydra1902/harness-base — the shared hydra core as a profile bundle. The
+ * @hydraharness/harness-base — the shared hydra core as a profile bundle. The
  * package's substance is `cordis.patch.yml`, declared by the `hydra.bundle.patch`
  * manifest field and resolved by the profile composer through that field;
  * this module carries no runtime API.
- * @module @hydra1902/harness-base
+ * @module @hydraharness/harness-base
  */
 
 export {}

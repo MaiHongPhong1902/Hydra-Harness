@@ -1,8 +1,8 @@
 /** Live/persisted logical-corpus resolution for session-query. */
 
-import type { Context, Fiber } from '@hydra1902/cordis'
-import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydra1902/harness-session'
-import type SessionPersistence from '@hydra1902/harness-session-persistence'
+import type { Context, Fiber } from '@hydraharness/cordis'
+import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydraharness/harness-session'
+import type SessionPersistence from '@hydraharness/harness-session-persistence'
 import type { SessionRecord } from './types.ts'
 import { SessionQueryError } from './config.ts'
 import { assertSessionHeadersCompatible } from './sources.ts'

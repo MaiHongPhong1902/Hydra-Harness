@@ -8,17 +8,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
-import type { Agent } from '@hydra1902/harness-agent'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import type { Session } from '@hydra1902/harness-session'
-import UserQuestionService from '@hydra1902/harness-user-questions'
-import LocalJobRegistry from '@hydra1902/harness-jobs-local'
-import type { JobOutcome } from '@hydra1902/harness-jobs'
-import type { MuxFrame, RpcRequest } from '@hydra1902/harness-host-apiproxy/api'
-import { RpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
-import { createApiProxy } from '@hydra1902/harness-host-apiproxy'
+import { Context } from '@hydraharness/cordis'
+import AgentRegistry, { Inbox } from '@hydraharness/harness-agent'
+import type { Agent } from '@hydraharness/harness-agent'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import type { Session } from '@hydraharness/harness-session'
+import UserQuestionService from '@hydraharness/harness-user-questions'
+import LocalJobRegistry from '@hydraharness/harness-jobs-local'
+import type { JobOutcome } from '@hydraharness/harness-jobs'
+import type { MuxFrame, RpcRequest } from '@hydraharness/harness-host-apiproxy/api'
+import { RpcId } from '@hydraharness/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydraharness/harness-host-apiproxy'
 
 type JobFrame = Extract<MuxFrame, { type: 'session/jobs' }>
 

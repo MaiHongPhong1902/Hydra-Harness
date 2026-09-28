@@ -1,6 +1,6 @@
-# @hydra/harness-tool-browser
+# @hydraharness/harness-tool-browser
 
-The model-facing half of the embedded browser: standard `browser_*` tools over controlled tabs, a selected-viewport screenshot, policy-gated history search, opt-in Full CDP controls, demoted `browser_page_agent_*` controls for the vendored ReAct engine, and the one browser prompt section. The user also has a native tab strip and omnibox; the window, the page, and the process live behind `ctx.browsers` in [@hydra/harness-browser-electron](../browser-electron/README.md).
+The model-facing half of the embedded browser: standard `browser_*` tools over controlled tabs, a selected-viewport screenshot, policy-gated history search, opt-in Full CDP controls, demoted `browser_page_agent_*` controls for the vendored ReAct engine, and the one browser prompt section. The user also has a native tab strip and omnibox; the window, the page, and the process live behind `ctx.browsers` in [@hydraharness/harness-browser-electron](../browser-electron/README.md).
 
 The split is the usual consumer/seam one. Everything the model can see — schema wording, the accessibility-snapshot guidance, the character cap, the card titles — is decided here; nothing here knows that the browser is Electron.
 
@@ -49,7 +49,7 @@ An action the page rejects — a missing index, a `select` that has no such opti
 | `consoleLevel` | `error` | Default diagnostic severity, overridable per call. |
 | `outputDir` | OS temp directory + `hydra-browser-output` | Absolute root for private per-call artifacts. |
 
-`experimentalScriptExecution` belongs to `@hydra/harness-browser-electron`, not this consumer. When the host enables it, `browser_execute_javascript` appears; it runs in PageController's isolated document world and is deliberately not a page-world scripting escape hatch.
+`experimentalScriptExecution` belongs to `@hydraharness/harness-browser-electron`, not this consumer. When the host enables it, `browser_execute_javascript` appears; it runs in PageController's isolated document world and is deliberately not a page-world scripting escape hatch.
 
 The model cap bounds snapshot content and action/diagnostic messages; truncation includes recovery guidance. Headers, readiness, and dialog evidence remain visible. Find and diagnostics do not append the page tree.
 

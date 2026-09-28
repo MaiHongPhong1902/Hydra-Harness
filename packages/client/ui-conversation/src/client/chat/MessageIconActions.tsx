@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode, type Ref } from 'react'
 import {
   IconBranchOutline16, IconCheckOutline16, IconCopyOutline16, IconEditOutline16, Tooltip, writeClipboard,
-} from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-client-ui-primitives'
 import type { ChatViewSlotProps } from '../contract/slots.ts'
 import { formatLatencySeconds, formatMessageClock, formatRunDuration, formatTokensPerSecond } from './message-chrome.ts'
 import { useCalendarDay } from './use-calendar-day.ts'

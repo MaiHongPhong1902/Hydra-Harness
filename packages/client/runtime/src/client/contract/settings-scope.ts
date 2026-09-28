@@ -2,7 +2,7 @@
  * The settings-namespace scope contract. The type lives here, in the common
  * dependency of every feature that owns a preference, while the implementation
  * and its Host transport live with the Settings surface
- * (`@hydra1902/harness-client-ui-settings`): a feature service accepts a scope through
+ * (`@hydraharness/harness-client-ui-settings`): a feature service accepts a scope through
  * `attachSettings` without depending on the surface that binds it, which would
  * otherwise close a reference cycle.
  */

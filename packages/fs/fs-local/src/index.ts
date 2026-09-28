@@ -1,16 +1,16 @@
 /**
  * Host-filesystem implementation of `ctx.fs`. Realpath-derived target identity makes aliases
  * share stale guards, and writes through a symlink update its target without replacing the link.
- * @module @hydra1902/harness-fs-local
+ * @module @hydraharness/harness-fs-local
  */
 
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { unlink } from 'node:fs/promises'
 import { constants as bufferConstants } from 'node:buffer'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import z from '@hydra1902/schemastery'
-import { FileSystem, FsError, FsVersion } from '@hydra1902/harness-fs'
+import z from '@hydraharness/schemastery'
+import { FileSystem, FsError, FsVersion } from '@hydraharness/harness-fs'
 import type {
   FsDirEntry,
   FsEditOutcome,
@@ -21,7 +21,7 @@ import type {
   FsWriteIntent,
   FsWriteOutcome,
   FsSnapshot,
-} from '@hydra1902/harness-fs'
+} from '@hydraharness/harness-fs'
 import {
   applyLiteralEdit,
   listDirectory,

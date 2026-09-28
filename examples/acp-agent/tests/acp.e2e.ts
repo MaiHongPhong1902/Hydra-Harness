@@ -8,7 +8,7 @@ import {
   launchAcpTestAgent,
   type AgentUnderTest,
   type LaunchedAcpTestAgent,
-} from '@hydra1902/harness-acp-snapshot'
+} from '@hydraharness/harness-acp-snapshot'
 import { cleanupAcpExampleTest } from './cleanup.ts'
 
 /** Keyless ACP initialization, stdout framing, and session creation. */

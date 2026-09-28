@@ -7,7 +7,7 @@
 # The DeepSeek adapter. Shipped default: full thinking at max effort on every
 # request; exact-model resolution materializes request defaults before logging.
 - id: llm-deepseek
-  name: '@hydra1902/harness-llm-deepseek'
+  name: '@hydraharness/harness-llm-deepseek'
   config:
     thinking: enabled
     reasoningEffort: max
@@ -24,25 +24,25 @@
 # outside the snapshot harness. The sandbox default + fallback root live on
 # ctx.sandboxPolicy; agent calls resolve both families against the session cwd.
 - id: sandbox
-  name: '@hydra1902/harness-sandbox-local'
+  name: '@hydraharness/harness-sandbox-local'
 
 - id: sandbox-policy
-  name: '@hydra1902/harness-sandbox-policy'
+  name: '@hydraharness/harness-sandbox-policy'
   config:
     mode: !!js "process.env.HYDRA_PERMISSION_MODE ?? (process.env.HYDRA_SNAPSHOT === undefined ? 'workspace-write' : 'danger-full-access')"
     workspaceRoot: !!js process.cwd()
 
 # Managed child-process groups for the bash executor (spawn/kill/output plumbing).
 - id: subprocess
-  name: '@hydra1902/harness-subprocess-local'
+  name: '@hydraharness/harness-subprocess-local'
 
 - id: bash
-  name: '@hydra1902/harness-bash-sandbox'
+  name: '@hydraharness/harness-bash-sandbox'
   config:
     timeoutMs: 60000
 
 - id: approval
-  name: '@hydra1902/harness-user-approval'
+  name: '@hydraharness/harness-user-approval'
   config:
     policy: !!js "(process.env.HYDRA_PERMISSION_MODE ?? (process.env.HYDRA_SNAPSHOT === undefined ? 'workspace-write' : 'danger-full-access')) === 'danger-full-access' ? 'never' : 'ask'"
 
@@ -51,7 +51,7 @@
 # (so it can harvest / isolate the log), else ./.sessions for the demo.
 # Snapshot modes use raw JSONL fixtures; ordinary runs keep the compressed default.
 - id: acp-agent
-  name: '@hydra1902/harness-acp-demo'
+  name: '@hydraharness/harness-acp-demo'
   config:
     provider: deepseek-official
     model: deepseek-v4-pro
@@ -68,12 +68,12 @@
 
 # Replay-aware request pressure; the routed adapter supplies model capacity.
 - id: token-meter
-  name: '@hydra1902/harness-token-meter'
+  name: '@hydraharness/harness-token-meter'
 
 # Summarize an older range after measured pressure or a canonical provider overflow.
 # Ratios scale against the routed model's context window.
 - id: compaction-basic
-  name: '@hydra1902/harness-compaction-basic'
+  name: '@hydraharness/harness-compaction-basic'
   config:
     thresholdRatio: 0.8
     retainRatio: 0.08
@@ -84,21 +84,21 @@
 # its registered units; the catalog surfaces (`list_agents`, subagent listing)
 # fail loud without the capability.
 - id: session-projection
-  name: '@hydra1902/harness-session-projection'
+  name: '@hydraharness/harness-session-projection'
 
 # Expose fresh-child `spawn` and completed-prefix `fork` through separate tool
 # names so multi-child scenarios exercise both transports. These leaves follow
 # the app because it provides `ctx.agents` and `ctx.tools`.
 - id: subagent
-  name: '@hydra1902/harness-subagent'
+  name: '@hydraharness/harness-subagent'
 
 - id: subagent-spawn-in-process
-  name: '@hydra1902/harness-subagent-spawn-in-process'
+  name: '@hydraharness/harness-subagent-spawn-in-process'
   config:
     providerName: spawn
 
 - id: subagent-fork-in-process
-  name: '@hydra1902/harness-subagent-fork-in-process'
+  name: '@hydraharness/harness-subagent-fork-in-process'
   config:
     providerName: fork
 
@@ -107,16 +107,16 @@
 # list plugin registers `list_agents`, served through the sessionProjections
 # registry mounted above. `report` is installed only in continuable child scopes.
 - id: tool-subagent-control
-  name: '@hydra1902/harness-tool-subagent-control'
+  name: '@hydraharness/harness-tool-subagent-control'
 
 - id: tool-subagent-list-agents
-  name: '@hydra1902/harness-tool-subagent-control/list-agents'
+  name: '@hydraharness/harness-tool-subagent-control/list-agents'
 
 - id: tool-subagent-report
-  name: '@hydra1902/harness-tool-subagent-report'
+  name: '@hydraharness/harness-tool-subagent-report'
 
 - id: tool-subagent
-  name: '@hydra1902/harness-tool-subagent'
+  name: '@hydraharness/harness-tool-subagent'
   config:
     provider: spawn
     toolName: subagent
@@ -128,7 +128,7 @@
 # as an explicit foreground-only choice even though agent-spine-demo mounts the
 # generic Job runtime. See .agents/notes/implemented/architecture/2026-08-10-fork-children-stay-one-shot.md.
 - id: tool-subagent-fork
-  name: '@hydra1902/harness-tool-subagent'
+  name: '@hydraharness/harness-tool-subagent'
   config:
     provider: fork
     toolName: subagent_fork
@@ -140,25 +140,25 @@
 # The worker-thread workflow engine fans a model-written JavaScript script's
 # `agent()` calls out through the spawn backend; the adjacent tool exposes it to the model.
 - id: workflow-worker-thread
-  name: '@hydra1902/harness-workflow-worker-thread'
+  name: '@hydraharness/harness-workflow-worker-thread'
   config:
     provider: spawn
 
 - id: tool-workflow
-  name: '@hydra1902/harness-tool-workflow'
+  name: '@hydraharness/harness-tool-workflow'
 
 - id: tool-ralph
-  name: '@hydra1902/harness-tool-ralph'
+  name: '@hydraharness/harness-tool-ralph'
 # `todo_write` replaces the logged whole list for later model requests.
 - id: tool-todo
-  name: '@hydra1902/harness-tool-todo'
+  name: '@hydraharness/harness-tool-todo'
   config:
     allowParallelInProgress: true
 
 # Identical repeat calls trigger advisory context, never a block, at the default
 # thresholds [3, 5, 8]. Only the repeat-tool-reminder snapshot scenario reaches them.
 - id: repeat-tool-reminder
-  name: '@hydra1902/harness-repeat-tool-reminder'
+  name: '@hydraharness/harness-repeat-tool-reminder'
 
 # The filesystem stack rides the SAME sandbox policy as bash: hydra-fs-sandbox
 # replaces hydra-fs-local behind ctx.fs and fences write/edit by the effective
@@ -166,15 +166,15 @@
 # roots, danger-full-access passes through), so read/write/edit are available
 # under every mode. fs-observation-policy (read-before-edit) composes orthogonally on top.
 - id: fs-sandbox
-  name: '@hydra1902/harness-fs-sandbox'
+  name: '@hydraharness/harness-fs-sandbox'
   config:
     cwd: !!js process.cwd()
 
 - id: fs-observation-policy
-  name: '@hydra1902/harness-fs-observation-policy'
+  name: '@hydraharness/harness-fs-observation-policy'
 
 - id: tool-fs
-  name: '@hydra1902/harness-tool-fs'
+  name: '@hydraharness/harness-tool-fs'
 
 # `configPath` is read once at load and resolves from the server launch cwd, not
 # `session/new.cwd`; one `hooks.json` therefore applies to every session and a
@@ -182,7 +182,7 @@
 # commands still run in the session cwd. Warnings use `ctx.logger`, never stdout;
 # see packages/hooks/hooks-claude-code/README.md for the deferred per-session design.
 - id: hooks-claude-code
-  name: '@hydra1902/harness-hooks-claude-code'
+  name: '@hydraharness/harness-hooks-claude-code'
   config:
     configPath: ./hooks.json
 
@@ -190,6 +190,6 @@
 # cannot share Claude's file. It has the same process-level, read-once, missing-is-no-op,
 # logger-only contract. Shipping both bridges lets a scenario seed and exercise either dialect.
 - id: hooks-codex
-  name: '@hydra1902/harness-hooks-codex'
+  name: '@hydraharness/harness-hooks-codex'
   config:
     configPath: ./codex-hooks.json

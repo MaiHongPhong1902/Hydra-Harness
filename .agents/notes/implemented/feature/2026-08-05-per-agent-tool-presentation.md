@@ -4,9 +4,9 @@ Status: implemented
 
 ## Problem
 
-Agent presets compose an agent's tools per session, but not the FORM those tools reach the model in. Code Mode — one `run_code` tool plus a generated TypeScript SDK, replacing a call sequence with one program — was a deployment-wide `mode` field on the host's `@hydra/harness-tools` row. A deployment either ran every session in Code Mode or none, so the obvious product shape ("Code Mode" beside Standard/Minimal/Creative in the preset picker) had nothing to hang on.
+Agent presets compose an agent's tools per session, but not the FORM those tools reach the model in. Code Mode — one `run_code` tool plus a generated TypeScript SDK, replacing a call sequence with one program — was a deployment-wide `mode` field on the host's `@hydraharness/harness-tools` row. A deployment either ran every session in Code Mode or none, so the obvious product shape ("Code Mode" beside Standard/Minimal/Creative in the preset picker) had nothing to hang on.
 
-The naive reading of "move tools down to the agent plane" does not work. `ctx.tools` has host-plane consumers that cannot follow it: `@hydra/harness-agent-loop` reads the registry's private scheduler seam, `hydra-apiproxy` reads its presenters to render tool cards, and every tool plugin registers into it. By the stack's own rule — a service moves into a preset only when ALL of its consumers move with it — the registry stays where it is.
+The naive reading of "move tools down to the agent plane" does not work. `ctx.tools` has host-plane consumers that cannot follow it: `@hydraharness/harness-agent-loop` reads the registry's private scheduler seam, `hydra-apiproxy` reads its presenters to render tool cards, and every tool plugin registers into it. By the stack's own rule — a service moves into a preset only when ALL of its consumers move with it — the registry stays where it is.
 
 ## Decision
 
@@ -21,11 +21,11 @@ Two consequences fell out and are load-bearing:
 
 The SDK prompt section is registered globally by a code-mode deployment (unchanged) and additionally per scope by `presentAs`, where it shadows by name. Its body renders empty for a native scope, which the prompt renderer drops — that is what keeps an agent opting OUT of a code-mode deployment free of an SDK section.
 
-The preset expresses the choice through one row, `@hydra/harness-agent-tool-presentation`, whose whole body is a `presentAs` call. A code mode waits for `ctx.codeRuntime` through `ctx.inject` rather than assuming it: the runtime is host-plane, and a pending row is what `@hydra/harness-agent-presets` already reports as an unusable mount, naming the row — so a preset selecting Code Mode against a runtime-less deployment fails where an operator can act.
+The preset expresses the choice through one row, `@hydraharness/harness-agent-tool-presentation`, whose whole body is a `presentAs` call. A code mode waits for `ctx.codeRuntime` through `ctx.inject` rather than assuming it: the runtime is host-plane, and a pending row is what `@hydraharness/harness-agent-presets` already reports as an unusable mount, naming the row — so a preset selecting Code Mode against a runtime-less deployment fails where an operator can act.
 
 ## Alternatives considered
 
-**A second `ToolRuntime` inside the preset's isolate realm.** Rejected: `@hydra/harness-agent-loop` resolves the registry once from the host context through a private symbol, so a per-agent registry would be invisible to the scheduler. Making the loop registry-per-agent is a far larger change than making one field scope-aware.
+**A second `ToolRuntime` inside the preset's isolate realm.** Rejected: `@hydraharness/harness-agent-loop` resolves the registry once from the host context through a private symbol, so a per-agent registry would be invisible to the scheduler. Making the loop registry-per-agent is a far larger change than making one field scope-aware.
 
 **A top-level key in the preset's own YAML.** Rejected for the reason preset display metadata went to a separate `preset.yml`: the composition is a top-level list of plugin rows and cannot carry sibling keys.
 

@@ -1,21 +1,21 @@
 # Minimal live counterpart for the pwsh-tool-turn snapshot composition.
 - id: llm-deepseek
-  name: '@hydra1902/harness-llm-deepseek'
+  name: '@hydraharness/harness-llm-deepseek'
   config:
     models:
       - id: deepseek-v4-pro
 
 - id: subprocess
-  name: '@hydra1902/harness-subprocess-local'
+  name: '@hydraharness/harness-subprocess-local'
 
 - id: bash
-  name: '@hydra1902/harness-pwsh-local'
+  name: '@hydraharness/harness-pwsh-local'
 
 - id: shell-env
-  name: '@hydra1902/harness-shell-env'
+  name: '@hydraharness/harness-shell-env'
 
 - id: acp-agent
-  name: '@hydra1902/harness-acp-demo'
+  name: '@hydraharness/harness-acp-demo'
   config:
     provider: deepseek-official
     model: deepseek-v4-pro
@@ -32,4 +32,4 @@
     persona: You are a concise snapshot agent working in {{cwd}}.
 
 - id: tool-pwsh
-  name: '@hydra1902/harness-tool-pwsh'
+  name: '@hydraharness/harness-tool-pwsh'

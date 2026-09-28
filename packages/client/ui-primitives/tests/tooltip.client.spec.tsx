@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Tooltip } from '@hydra1902/harness-client-ui-primitives'
+import { Tooltip } from '@hydraharness/harness-client-ui-primitives'
 
 afterEach(cleanup)
 

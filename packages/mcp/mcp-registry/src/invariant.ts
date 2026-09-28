@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-mcp-registry`.
- * @module @hydra1902/harness-mcp-registry/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-mcp-registry`.
+ * @module @hydraharness/harness-mcp-registry/invariant
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 import type { McpServerSnapshot } from './types.ts'
 
-const PACKAGE_NAME = '@hydra1902/harness-mcp-registry'
+const PACKAGE_NAME = '@hydraharness/harness-mcp-registry'
 
 /** Cordis companion plugin name. */
 export const name = 'mcp-registry-invariant'

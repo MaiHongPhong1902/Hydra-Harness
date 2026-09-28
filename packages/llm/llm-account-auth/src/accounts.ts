@@ -8,16 +8,16 @@ import type {
   CredentialInfo,
   CredentialStore,
 } from '@earendil-works/pi-ai'
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import {
   authorizationAccountId,
   type AuthorizationAccount,
   type AuthorizationAccountId,
   type AuthorizationAccounts,
-} from '@hydra1902/harness-authorization'
-import { credentialKey, type CredentialKey, type CredentialRecord } from '@hydra1902/harness-credentials'
-import { LlmError } from '@hydra1902/harness-llm'
-import type { StreamChunk } from '@hydra1902/harness-llm'
+} from '@hydraharness/harness-authorization'
+import { credentialKey, type CredentialKey, type CredentialRecord } from '@hydraharness/harness-credentials'
+import { LlmError } from '@hydraharness/harness-llm'
+import type { StreamChunk } from '@hydraharness/harness-llm'
 
 /** Current durable account-pool record version. */
 export const ACCOUNT_POOL_VERSION = 1

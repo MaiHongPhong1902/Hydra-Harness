@@ -32,26 +32,26 @@ const repoTsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.m
 // session-query consumer/policies, inlined so the package test owns its fixture.
 const CORDIS_YML = `
 - id: llm-deepseek
-  name: '@hydra1902/harness-llm-deepseek'
+  name: '@hydraharness/harness-llm-deepseek'
 - id: subprocess
-  name: '@hydra1902/harness-subprocess-local'
+  name: '@hydraharness/harness-subprocess-local'
 - id: bash
-  name: '@hydra1902/harness-bash-local'
+  name: '@hydraharness/harness-bash-local'
 - id: acp-agent
-  name: '@hydra1902/harness-acp-demo'
+  name: '@hydraharness/harness-acp-demo'
   config:
     provider: deepseek-official
     model: deepseek-v4-flash
     persona: 'You are a test agent.'
     workspaceContext: false
 - id: tool-session-query
-  name: '@hydra1902/harness-tool-session-query'
+  name: '@hydraharness/harness-tool-session-query'
 - id: timeout-policy
-  name: '@hydra1902/harness-tool-call-timeout-policy'
+  name: '@hydraharness/harness-tool-call-timeout-policy'
 - id: spill-local
-  name: '@hydra1902/harness-spill-local'
+  name: '@hydraharness/harness-spill-local'
 - id: spill-policy
-  name: '@hydra1902/harness-spill-policy'
+  name: '@hydraharness/harness-spill-policy'
   config:
     maxInlineBytes: 50000
 `

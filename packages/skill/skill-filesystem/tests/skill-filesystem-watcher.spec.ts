@@ -4,8 +4,8 @@ import { mkdir, realpath, rm, symlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SkillRegistry from '@hydra1902/harness-skill'
+import { Context } from '@hydraharness/cordis'
+import SkillRegistry from '@hydraharness/harness-skill'
 
 interface FakeWatcherControl {
   emitter: EventEmitter

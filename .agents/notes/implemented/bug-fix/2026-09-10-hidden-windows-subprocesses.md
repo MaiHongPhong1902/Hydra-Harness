@@ -9,7 +9,7 @@ A desktop host without a console (such as an Electron desktop host) creates an e
 ## Decision
 
 1. The local subprocess provider sets Node's `windowsHide: true` option for ordinary commands and both `taskkill` paths.
-2. In the Windows ACL sandbox (`@hydra/harness-sandbox-windows-acl`), `createProcessAsUserW` sets `STARTF_USESHOWWINDOW` in `STARTUPINFOW.dwFlags` and `wShowWindow: SW_HIDE` (0) for both `spawnSandboxed` and `spawnSandboxedInherited`. This suppresses console window creation under restricted tokens without triggering the `STATUS_DLL_INIT_FAILED` (0xC0000142) error caused by `CREATE_NO_WINDOW`.
+2. In the Windows ACL sandbox (`@hydraharness/harness-sandbox-windows-acl`), `createProcessAsUserW` sets `STARTF_USESHOWWINDOW` in `STARTUPINFOW.dwFlags` and `wShowWindow: SW_HIDE` (0) for both `spawnSandboxed` and `spawnSandboxedInherited`. This suppresses console window creation under restricted tokens without triggering the `STATUS_DLL_INIT_FAILED` (0xC0000142) error caused by `CREATE_NO_WINDOW`.
 3. When running under Electron (`process.versions.electron !== undefined`), `ELECTRON_RUN_AS_NODE: '1'` is injected into the child environment so `process.execPath` executes as a pure Node CLI process.
 4. In `apps/desktop/main.cjs`, `startTerminal` prefers PowerShell 7 (`pwsh.exe`) when available before falling back to Windows PowerShell 5.1.
 

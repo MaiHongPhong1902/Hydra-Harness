@@ -1,6 +1,6 @@
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it } from 'vitest'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 import * as PluginInventoryInvariant from '../src/invariant.ts'
 
 describe('plugin-inventory invariant companion', () => {

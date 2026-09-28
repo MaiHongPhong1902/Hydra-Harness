@@ -1,4 +1,4 @@
-# @hydra/harness-workspace
+# @hydraharness/harness-workspace
 
 Workspace entity registry (`ctx.workspaceRegistry`) for the Hydra harness: durable workspace records, stable workspace order, and a newest-first candidate session index stored through the domain data form. Consumers see the `Workspace` interface; the entity implementation stays package-private.
 

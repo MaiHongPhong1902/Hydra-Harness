@@ -1,4 +1,4 @@
-import { defineProperty, hyphenate } from '@hydra1902/cosmokit'
+import { defineProperty, hyphenate } from '@hydraharness/cosmokit'
 import { Context } from './context.ts'
 import { Fiber } from './fiber.ts'
 import { createCallable, joinPrototype, symbols, type Tracker } from './utils.ts'

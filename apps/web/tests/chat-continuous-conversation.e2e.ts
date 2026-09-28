@@ -9,9 +9,9 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { CallId, type StreamChunk } from '@hydra1902/harness-llm'
-import type { ReplayEntry, ReplayOverrideDoc } from '@hydra1902/harness-llm-replay'
-import type { SessionEvent, SessionId } from '@hydra1902/harness-session'
+import { CallId, type StreamChunk } from '@hydraharness/harness-llm'
+import type { ReplayEntry, ReplayOverrideDoc } from '@hydraharness/harness-llm-replay'
+import type { SessionEvent, SessionId } from '@hydraharness/harness-session'
 import {
   launchWebScaffold,
   watchConsole,

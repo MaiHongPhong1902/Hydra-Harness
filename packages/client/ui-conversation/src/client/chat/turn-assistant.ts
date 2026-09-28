@@ -1,4 +1,4 @@
-import type { AssistantBlock } from '@hydra1902/harness-client-runtime/client'
+import type { AssistantBlock } from '@hydraharness/harness-client-runtime/client'
 
 /**
  * Collect visible prose from one Assistant lifecycle.

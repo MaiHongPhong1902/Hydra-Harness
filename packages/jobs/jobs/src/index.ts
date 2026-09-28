@@ -2,12 +2,12 @@
  * The background-job Service Definition (`ctx.jobs`). It owns the contract for
  * job ids, session-scoped access, lifecycle state, completion listeners, and
  * owner cleanup while producers retain their execution resources. The
- * process-local registry lives in `@hydra1902/harness-jobs-local`.
- * @module @hydra1902/harness-jobs
+ * process-local registry lives in `@hydraharness/harness-jobs-local`.
+ * @module @hydraharness/harness-jobs
  */
 
-import { Context, Service } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
+import { Context, Service } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
 import type {
   JobDoneListener, JobId, JobRead, JobSnapshot, JobStart, JobsChangedListener,
 } from './types.ts'
@@ -26,7 +26,7 @@ export type {
   JobsChangedListener,
 } from './types.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     jobs: JobRegistry
   }
@@ -65,7 +65,7 @@ export abstract class JobRegistry extends Service {
     // would register a ctx.jobs with no method implementations and fail far
     // from the misconfiguration. Fail loud at load instead.
     if (new.target === JobRegistry) {
-      throw new Error('@hydra1902/harness-jobs is the abstract job registry seam; load an implementation such as @hydra1902/harness-jobs-local instead')
+      throw new Error('@hydraharness/harness-jobs is the abstract job registry seam; load an implementation such as @hydraharness/harness-jobs-local instead')
     }
     super(ctx, 'jobs')
   }

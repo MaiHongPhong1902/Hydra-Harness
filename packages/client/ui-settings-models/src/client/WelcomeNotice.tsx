@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
-import type { SnapshotStore } from '@hydra1902/harness-client-runtime/client'
-import type { InjectFace, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
-import { Button } from '@hydra1902/harness-client-ui-primitives'
+import type { SnapshotStore } from '@hydraharness/harness-client-runtime/client'
+import type { InjectFace, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
+import { Button } from '@hydraharness/harness-client-ui-primitives'
 import type { WelcomeNoticeState, WelcomeNoticeStore } from './welcome-store.ts'
 import type { en } from './locales.ts'
 import { OnboardingModal } from './OnboardingModal.tsx'

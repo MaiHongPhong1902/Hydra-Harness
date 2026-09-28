@@ -1,7 +1,7 @@
 /** Saved global instructions across successive chat turns in a real Loader tree. */
 import { fileURLToPath } from 'node:url'
 import { expect, it } from 'vitest'
-import { runLoaderSmoke } from '@hydra1902/harness-loader-smoke'
+import { runLoaderSmoke } from '@hydraharness/harness-loader-smoke'
 
 it('applies saved custom instructions and their replacements to the next chat request', async () => {
   const binScript = fileURLToPath(new URL('./fixtures/personalization/snapshot.ts', import.meta.url))

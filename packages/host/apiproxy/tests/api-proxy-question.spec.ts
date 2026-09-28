@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import AgentRegistry, { type Agent } from '@hydra1902/harness-agent'
-import SessionStore from '@hydra1902/harness-session'
-import UserQuestionService from '@hydra1902/harness-user-questions'
-import type { ApiProxy, MuxFrame, RpcRequest } from '@hydra1902/harness-host-apiproxy/api'
-import { RpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
+import { Context } from '@hydraharness/cordis'
+import AgentRegistry, { type Agent } from '@hydraharness/harness-agent'
+import SessionStore from '@hydraharness/harness-session'
+import UserQuestionService from '@hydraharness/harness-user-questions'
+import type { ApiProxy, MuxFrame, RpcRequest } from '@hydraharness/harness-host-apiproxy/api'
+import { RpcId } from '@hydraharness/harness-host-apiproxy/api/rpc'
 import { createApiProxy } from '../src/api-proxy.ts'
 
 async function harness(): Promise<{ ctx: Context; api: ApiProxy }> {

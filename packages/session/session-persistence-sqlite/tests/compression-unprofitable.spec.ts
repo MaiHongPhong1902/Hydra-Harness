@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type { SessionEvent } from '@hydraharness/harness-session'
 
 vi.mock('node:zlib', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:zlib')>()

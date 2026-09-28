@@ -5,7 +5,7 @@ import {
   LlmError,
   resolveRetryPolicy,
   streamWithApiKeys,
-} from '@hydra1902/harness-llm'
+} from '@hydraharness/harness-llm'
 
 class RetrySnapshotAdapter extends LlmAdapter {
   requests = 0
@@ -56,7 +56,7 @@ export const inject = ['llm']
 
 /**
  * Register the deterministic provider adapter.
- * @param {import('@hydra1902/cordis').Context} ctx - plugin context carrying the LLM service.
+ * @param {import('@hydraharness/cordis').Context} ctx - plugin context carrying the LLM service.
  */
 export function apply(ctx) {
   ctx.llm.registerAdapter(['deepseek-official'], new RetrySnapshotAdapter())

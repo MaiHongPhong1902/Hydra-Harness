@@ -16,13 +16,13 @@ not make a file part of the Client program — the two faces merge cordis
 both. Moving these files into the Client aggregate makes every Host-service
 access fail to compile.
 
-## Do not import `@hydra/harness-client-*` here
+## Do not import `@hydraharness/harness-client-*` here
 
 Importing a Client package — a value or a type — pulls its whole TypeScript
 project, and every project it references, into the **Host build graph**. That has
 bitten this lane once already: four Client consumer packages reference
 `api/remotes`' Client face, which cannot compile until Host tsdown has generated
-`@hydra/harness-goal/remote`, so the Host build phase ended up waiting on an
+`@hydraharness/harness-goal/remote`, so the Host build phase ended up waiting on an
 artifact it produces itself.
 
 When a scenario needs a Client-owned constant or pure function, mirror it here
@@ -32,11 +32,11 @@ never a silent pass. `scaffold.ts` follows this rule for the welcome-notice
 namespace, acknowledgement field, version, and asserted English copy.
 
 Two kinds of Client import stand. `assembled-boot.ts` drives the shell itself, so
-it imports `AppWebEntry` from `@hydra/harness-client-web` and the boot-manifest
-type from `@hydra/harness-client-modules/client`: booting the real shell is what
+it imports `AppWebEntry` from `@hydraharness/harness-client-web` and the boot-manifest
+type from `@hydraharness/harness-client-modules/client`: booting the real shell is what
 that harness is for, and both packages are already in the Host graph. Separately,
 the chat scenarios import `conversationContextKey` from
-`@hydra/harness-client-runtime/client` because `client/runtime` is reachable
+`@hydraharness/harness-client-runtime/client` because `client/runtime` is reachable
 through the unsplit `directory-picker` packages and pulls nothing further in.
 That reachability is incidental, not a guarantee — if it ever leaves the graph,
 mirror the helper like the rest.

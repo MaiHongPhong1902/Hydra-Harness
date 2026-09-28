@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { SessionId } from '@hydra1902/harness-session'
-import type { SessionEvent, SessionEventMap, SessionEventType } from '@hydra1902/harness-session'
+import { SessionId } from '@hydraharness/harness-session'
+import type { SessionEvent, SessionEventMap, SessionEventType } from '@hydraharness/harness-session'
 import {
   applyTeamEvent,
   emptyTeamFoldState,

@@ -7,7 +7,7 @@
  * locator and retrieval guidance.
  *
  * It registers NO service and owns NO storage or preview mechanics: preview is
- * `@hydra1902/harness-output-retention` (`TextRetainer`), storage is `ctx.spillStore`.
+ * `@hydraharness/harness-output-retention` (`TextRetainer`), storage is `ctx.spillStore`.
  * The policy only decides WHEN to spill and composes the notice.
  *
  * A second arm applies the SAME cap to the durable log: the
@@ -40,18 +40,18 @@
  * replaced content still has its replacement bounded, and value replacements
  * and `block` decisions pass through unchanged.
  *
- * @module @hydra1902/harness-spill-policy
+ * @module @hydraharness/harness-spill-policy
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import { TextRetainer, describeOmitted } from '@hydra1902/harness-output-retention'
-import type { Omitted } from '@hydra1902/harness-output-retention'
-import type { SaveTextSpill, SpillRef } from '@hydra1902/harness-spill'
-import type { SessionId } from '@hydra1902/harness-session'
-import type { CallId } from '@hydra1902/harness-llm'
-import type { PostToolDecision, ToolExecution } from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import { TextRetainer, describeOmitted } from '@hydraharness/harness-output-retention'
+import type { Omitted } from '@hydraharness/harness-output-retention'
+import type { SaveTextSpill, SpillRef } from '@hydraharness/harness-spill'
+import type { SessionId } from '@hydraharness/harness-session'
+import type { CallId } from '@hydraharness/harness-llm'
+import type { PostToolDecision, ToolExecution } from '@hydraharness/harness-tools'
 import type { SpillPolicyExec } from './types.ts'
 
 export type { SpillPolicyExec } from './types.ts'

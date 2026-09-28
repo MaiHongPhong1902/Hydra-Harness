@@ -1,6 +1,6 @@
 /** Browser download state shared by the Session Header button and `/export`. */
 
-import { createSnapshotStore, type SessionId, type SnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import { createSnapshotStore, type SessionId, type SnapshotStore } from '@hydraharness/harness-client-runtime/client'
 
 /** Download phases presented by the shared modal. */
 export type SessionLogDownloadStatus = 'downloading' | 'success' | 'error'

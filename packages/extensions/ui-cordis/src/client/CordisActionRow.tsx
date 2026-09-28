@@ -2,9 +2,9 @@
 
 import {
   IconInspectOutline12, IconStopFill16, IconTrashOutline16, StateDot,
-} from '@hydra1902/harness-client-ui-primitives'
-import type { PropsLocale } from '@hydra1902/harness-client-ui-slots'
-import type { ToolCallViewProps } from '@hydra1902/harness-client-ui-tool/client'
+} from '@hydraharness/harness-client-ui-primitives'
+import type { PropsLocale } from '@hydraharness/harness-client-ui-slots'
+import type { ToolCallViewProps } from '@hydraharness/harness-client-ui-tool/client'
 import { cordisActionCard } from './card-model.ts'
 import css from './CordisRunRow.module.css'
 

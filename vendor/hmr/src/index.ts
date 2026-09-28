@@ -1,18 +1,18 @@
-import { Context, Service, type Plugin } from '@hydra1902/cordis'
-import type { Dict } from '@hydra1902/cosmokit'
-import { ModuleLoader, type ModuleJob, type ResolveResult } from '@hydra1902/cordis-plugin-loader'
-import type { Include } from '@hydra1902/cordis-plugin-include'
+import { Context, Service, type Plugin } from '@hydraharness/cordis'
+import type { Dict } from '@hydraharness/cosmokit'
+import { ModuleLoader, type ModuleJob, type ResolveResult } from '@hydraharness/cordis-plugin-loader'
+import type { Include } from '@hydraharness/cordis-plugin-include'
 import { FSWatcher, watch, type ChokidarOptions } from 'chokidar'
 import { dirname, relative, resolve } from 'node:path'
 import { realpath, stat } from 'node:fs/promises'
 import { handleError } from './error.ts'
-import type {} from '@hydra1902/cordis-plugin-timer'
+import type {} from '@hydraharness/cordis-plugin-timer'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
 import picomatch from 'picomatch'
-import z from '@hydra1902/schemastery'
+import z from '@hydraharness/schemastery'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     hmr: Hmr
   }

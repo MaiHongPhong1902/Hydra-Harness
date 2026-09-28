@@ -1,4 +1,4 @@
-# @hydra/harness-session-title-all-prompts-llm
+# @hydraharness/harness-session-title-all-prompts-llm
 
 Optional `ctx.sessionTitle` provider that summarizes every eligible human message through `ctx.llm`. It registers the `all-prompts` cadence and starts a new revision after each new human prompt, using seeded history as well as child-session prompts. A newer revision aborts and supersedes older work; even a provider that ignores cancellation cannot commit stale output.
 

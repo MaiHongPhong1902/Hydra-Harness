@@ -1,15 +1,15 @@
 /**
  * Obsidian graph memory with bounded contextual recall and approval-gated writes.
- * @module @hydra1902/harness-obsidian-knowledge
+ * @module @hydraharness/harness-obsidian-knowledge
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { credentialRef } from '@hydra1902/harness-credentials'
-import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
-import { defineTool } from '@hydra1902/harness-tools'
-import type {} from '@hydra1902/harness-system-prompt'
-import type {} from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { credentialRef } from '@hydraharness/harness-credentials'
+import { installSettingsSection, settingsNamespace } from '@hydraharness/harness-settings'
+import { defineTool } from '@hydraharness/harness-tools'
+import type {} from '@hydraharness/harness-system-prompt'
+import type {} from '@hydraharness/harness-tools'
 import {
   ObsidianKnowledgeGraph,
   searchTerms,

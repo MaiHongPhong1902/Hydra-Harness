@@ -5,13 +5,13 @@
  * already validates every mutable value before `currentSelection()` can observe it.
  * The empty installer keeps that absence explicit in composed invariant sets.
  *
- * @module @hydra1902/harness-agent-default-model/invariant
+ * @module @hydraharness/harness-agent-default-model/invariant
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-agent-default-model'
+const PACKAGE_NAME = '@hydraharness/harness-agent-default-model'
 
 /** Cordis companion plugin name. */
 export const name = 'agent-default-model-invariant'

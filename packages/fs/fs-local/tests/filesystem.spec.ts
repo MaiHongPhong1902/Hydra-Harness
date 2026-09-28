@@ -12,10 +12,10 @@ import { mkdir, mkdtemp, readFile, realpath, rm, stat, symlink, unlink, utimes, 
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { Context } from '@hydra1902/cordis'
-import { LocalFileSystem } from '@hydra1902/harness-fs-local'
-import { FsVersion } from '@hydra1902/harness-fs'
-import type { FsTarget } from '@hydra1902/harness-fs'
+import { Context } from '@hydraharness/cordis'
+import { LocalFileSystem } from '@hydraharness/harness-fs-local'
+import { FsVersion } from '@hydraharness/harness-fs'
+import type { FsTarget } from '@hydraharness/harness-fs'
 
 let dir: string
 let ctx: Context

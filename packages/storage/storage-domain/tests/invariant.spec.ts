@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { z } from 'zod'
-import Storage from '@hydra1902/harness-storage'
-import InvariantRegistry, { InvariantError } from '@hydra1902/harness-invariants'
-import * as DomainInvariantCompanion from '@hydra1902/harness-storage-domain/invariant'
+import Storage from '@hydraharness/harness-storage'
+import InvariantRegistry, { InvariantError } from '@hydraharness/harness-invariants'
+import * as DomainInvariantCompanion from '@hydraharness/harness-storage-domain/invariant'
 import { DomainFacility, defineDomain, domainTable } from '../src/index.ts'
 import type { DomainChanged } from '../src/events.ts'
 import { MemoryStorageBackend } from './helpers/memory-backend.ts'
@@ -31,7 +31,7 @@ async function setup() {
 
 const invariantViolation: unknown = expect.objectContaining<Partial<InvariantError>>({
   code: 'INVARIANT',
-  packageName: '@hydra1902/harness-storage-domain',
+  packageName: '@hydraharness/harness-storage-domain',
 })
 
 describe('domain change-event invariants', () => {

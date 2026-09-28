@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import { Session, SessionId } from '@hydra1902/harness-session'
-import type { TurnEndReason } from '@hydra1902/harness-session'
-import { foldConsumedWork } from '@hydra1902/harness-agent'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import { Session, SessionId } from '@hydraharness/harness-session'
+import type { TurnEndReason } from '@hydraharness/harness-session'
+import { foldConsumedWork } from '@hydraharness/harness-agent'
 
 /** One pending message, as the inbox records it. */
 function message(text: string) {

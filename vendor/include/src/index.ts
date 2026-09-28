@@ -1,5 +1,5 @@
-import { EntryGroup, EntryTree, isJsExpr, type EntryOptions } from '@hydra1902/cordis-plugin-loader'
-import { Context, Service } from '@hydra1902/cordis'
+import { EntryGroup, EntryTree, isJsExpr, type EntryOptions } from '@hydraharness/cordis-plugin-loader'
+import { Context, Service } from '@hydraharness/cordis'
 import { extname } from 'node:path'
 import { access, constants, readFile, rename, writeFile } from 'node:fs/promises'
 import { setTimeout as delay } from 'node:timers/promises'

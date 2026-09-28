@@ -13,18 +13,18 @@
  * The General-settings row separately writes the default preset for fresh
  * sessions and eligible confirmed blank reuse through the host Settings API.
  */
-import type { ConnectionHandle } from '@hydra1902/harness-api-remotes/client'
+import type { ConnectionHandle } from '@hydraharness/harness-api-remotes/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@hydra1902/harness-client-locale/client'
+import type {} from '@hydraharness/harness-client-locale/client'
 // Type-only: the settings slot types (this package registers a General row).
-import type {} from '@hydra1902/harness-client-ui-settings/client'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
 // Type-only: pulls the ctx.remote merge and the forwarded-event key face
 // (the settings invalidation rides the allowlist) into this program.
-import type {} from '@hydra1902/harness-api-remotes/client'
-import type { ClientContext, SessionFace } from '@hydra1902/harness-client-runtime/client'
-import type { CommandUiContract, SelectOption } from '@hydra1902/harness-client-ui-commands/client'
-import type { ClientSessionContext } from '@hydra1902/harness-client-ui-input-trigger/client'
-import type { PermissionSelect } from '@hydra1902/harness-permission-presets/client'
+import type {} from '@hydraharness/harness-api-remotes/client'
+import type { ClientContext, SessionFace } from '@hydraharness/harness-client-runtime/client'
+import type { CommandUiContract, SelectOption } from '@hydraharness/harness-client-ui-commands/client'
+import type { ClientSessionContext } from '@hydraharness/harness-client-ui-input-trigger/client'
+import type { PermissionSelect } from '@hydraharness/harness-permission-presets/client'
 import { PermissionRow } from './PermissionRow.tsx'
 import type { PermissionRowInjected } from './PermissionRow.tsx'
 import {

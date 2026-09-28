@@ -1,29 +1,29 @@
 /**
  * The ACP automation server app: the default agent spine
- * ({@link @hydra1902/harness-agent-spine-demo}), JSONL session persistence, and
- * the {@link @hydra1902/harness-acp} bridge. The app owns those plugins through one
+ * ({@link @hydraharness/harness-agent-spine-demo}), JSONL session persistence, and
+ * the {@link @hydraharness/harness-acp} bridge. The app owns those plugins through one
  * ordered lifecycle so ACP sessions quiesce before persistence detaches. It
  * writes nothing to stdout.
  * It pre-creates no agents and leaves adapters, executors, and optional tools to
  * the leaf, which must likewise avoid stdout loggers. Named exports are
  * required so Loader retains this plugin's `Config` schema (see
  * docs/postmortem/0001).
- * @module @hydra1902/harness-acp-demo
+ * @module @hydraharness/harness-acp-demo
  */
 
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import { join } from 'node:path'
-import z from '@hydra1902/schemastery'
-import * as acp from '@hydra1902/harness-acp'
-import * as agentCore from '@hydra1902/harness-agent-spine-demo'
-import * as workspaceContext from '@hydra1902/harness-agent-instructions'
-import ToolRuntime, { type Config as ToolsConfig } from '@hydra1902/harness-tools'
+import z from '@hydraharness/schemastery'
+import * as acp from '@hydraharness/harness-acp'
+import * as agentCore from '@hydraharness/harness-agent-spine-demo'
+import * as workspaceContext from '@hydraharness/harness-agent-instructions'
+import ToolRuntime, { type Config as ToolsConfig } from '@hydraharness/harness-tools'
 import JsonlSessionPersistence, {
   JsonlCompressionSchema,
   type JsonlCompression,
-} from '@hydra1902/harness-session-persistence-jsonl'
-import * as sessionCheckpointPolicy from '@hydra1902/harness-session-checkpoint-policy'
-import SqliteSessionQueryEngine from '@hydra1902/harness-session-query-sqlite'
+} from '@hydraharness/harness-session-persistence-jsonl'
+import * as sessionCheckpointPolicy from '@hydraharness/harness-session-checkpoint-policy'
+import SqliteSessionQueryEngine from '@hydraharness/harness-session-query-sqlite'
 
 export const name = 'acp-demo'
 const DEFAULT_PERSISTENCE_ROOT = './.sessions'
@@ -45,9 +45,9 @@ export interface Config {
   maxParallelToolCalls?: number
   /** Deployment persona (the system-prompt plugin's `persona` config). */
   persona?: string
-  /** Explicit model-facing tool order (the system-prompt plugin's `toolOrder` config; see @hydra1902/harness-system-prompt). */
+  /** Explicit model-facing tool order (the system-prompt plugin's `toolOrder` config; see @hydraharness/harness-system-prompt). */
   toolOrder?: string[]
-  /** Tool-registry config — its presentation `mode` (forwarded through agent-spine-demo; see @hydra1902/harness-tools). */
+  /** Tool-registry config — its presentation `mode` (forwarded through agent-spine-demo; see @hydraharness/harness-tools). */
   tools?: ToolsConfig
   /** Hydra harness home directory exposed to bash and used for local skill discovery. */
   hydraHome?: string
@@ -82,7 +82,7 @@ export const Config: z<Config> = z.object({
   maxParallelToolCalls: z.number().step(1).min(1),
   persona: z.string(),
   // The array default is forced to undefined: ABSENT means "lexicographic
-  // order" (the owning @hydra1902/harness-system-prompt schema does the same), while
+  // order" (the owning @hydraharness/harness-system-prompt schema does the same), while
   // schemastery's native [] default would read as an invalid configured list.
   toolOrder: z.array(z.string()).default(undefined as unknown as string[]),
   tools: ToolRuntime.Config,

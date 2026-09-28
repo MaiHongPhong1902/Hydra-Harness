@@ -2,12 +2,12 @@
  * The workspace domain declaration: record schema and the `defineDomain` spec
  * the registry opens. The zod schema is the durable-boundary validator today
  * and the direct source of the RPC wire projection in a later phase.
- * @module @hydra1902/harness-workspace/src/spec
+ * @module @hydraharness/harness-workspace/src/spec
  */
 
 import { z } from 'zod'
-import { SessionId } from '@hydra1902/harness-session'
-import { defineDomain, domainTable } from '@hydra1902/harness-storage-domain'
+import { SessionId } from '@hydraharness/harness-session'
+import { defineDomain, domainTable } from '@hydraharness/harness-storage-domain'
 import type { WorkspaceId } from './types.ts'
 
 /** Workspace id schema at the durable boundary; branding has no runtime representation. */

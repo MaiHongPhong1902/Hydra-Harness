@@ -1,4 +1,4 @@
-# `@hydra/harness-loader-smoke`
+# `@hydraharness/harness-loader-smoke`
 
 Shared subprocess harness for tests that boot an app and `cordis.yml` through the Cordis Loader. `resolveExampleLaunch` selects local `src` mode (tsx and root tsconfig paths) or CI `lib` mode (plain Node and package exports) from an explicit mode or `HYDRA_EXAMPLE_MODE`.
 

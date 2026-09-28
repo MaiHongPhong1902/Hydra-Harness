@@ -1,27 +1,27 @@
 import { describe, expect, it, vi } from 'vitest'
 import { PassThrough } from 'node:stream'
 import { resolve } from 'node:path'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import SessionStore, { Session, SessionId } from '@hydra1902/harness-session'
-import AgentRegistry, { Inbox, type Agent } from '@hydra1902/harness-agent'
-import SandboxProvider from '@hydra1902/harness-sandbox'
-import type { ConfinedArgv, SandboxPolicy } from '@hydra1902/harness-sandbox'
-import SandboxPolicyService, { setSandboxMode } from '@hydra1902/harness-sandbox-policy'
-import TerminalSessionService, { TerminalBackendCleanupError, TerminalSessionId } from '@hydra1902/harness-terminal'
-import type { TerminalSendRequest, TerminalWaitReason } from '@hydra1902/harness-terminal'
-import { BashTerminalBackend, PWSH_PROMPT_SETUP } from '@hydra1902/harness-terminal-bash'
-import { ENCODING_PREAMBLE } from '@hydra1902/harness-pwsh-local'
-import * as ptyLocal from '@hydra1902/harness-terminal-bash'
-import type { ResolvedConfig } from '@hydra1902/harness-terminal-bash/src/config.ts'
-import type { LocalPtySession } from '@hydra1902/harness-terminal-bash/src/session.ts'
-import { SubprocessRuntime } from '@hydra1902/harness-subprocess'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import SessionStore, { Session, SessionId } from '@hydraharness/harness-session'
+import AgentRegistry, { Inbox, type Agent } from '@hydraharness/harness-agent'
+import SandboxProvider from '@hydraharness/harness-sandbox'
+import type { ConfinedArgv, SandboxPolicy } from '@hydraharness/harness-sandbox'
+import SandboxPolicyService, { setSandboxMode } from '@hydraharness/harness-sandbox-policy'
+import TerminalSessionService, { TerminalBackendCleanupError, TerminalSessionId } from '@hydraharness/harness-terminal'
+import type { TerminalSendRequest, TerminalWaitReason } from '@hydraharness/harness-terminal'
+import { BashTerminalBackend, PWSH_PROMPT_SETUP } from '@hydraharness/harness-terminal-bash'
+import { ENCODING_PREAMBLE } from '@hydraharness/harness-pwsh-local'
+import * as ptyLocal from '@hydraharness/harness-terminal-bash'
+import type { ResolvedConfig } from '@hydraharness/harness-terminal-bash/src/config.ts'
+import type { LocalPtySession } from '@hydraharness/harness-terminal-bash/src/session.ts'
+import { SubprocessRuntime } from '@hydraharness/harness-subprocess'
 import type {
   SubprocessHandle,
   SubprocessSpawnSpec,
   SubprocessTerminalHandle,
   SubprocessTerminalSpawnSpec,
-} from '@hydra1902/harness-subprocess'
+} from '@hydraharness/harness-subprocess'
 
 class EmptySandbox extends SandboxProvider {
   confine(_argv: readonly string[], _policy: SandboxPolicy): ConfinedArgv {

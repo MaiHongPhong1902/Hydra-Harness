@@ -1,10 +1,10 @@
 /**
  * Shared insertion-ordered storage and effect ownership for scope-aware registries.
  *
- * @module @hydra1902/harness-scope
+ * @module @hydraharness/harness-scope
  */
 
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import { scopeChainOf, scopeOf } from './index.ts'
 import type { ScopeKey } from './index.ts'
 

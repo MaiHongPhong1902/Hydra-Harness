@@ -12,7 +12,7 @@ import type {
   RequestView,
   ToolCallBlock,
   ToolResultNode,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type {
   TrajectoryCellProps,
   TrajectorySourceBlock,

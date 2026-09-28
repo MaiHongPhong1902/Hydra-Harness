@@ -8,7 +8,7 @@ Generated catalog sections use package-derived fragments, while the product name
 
 ## Decision
 
-Generated tool and configuration catalogs emit `hydraharness` package anchors even though headings and package names use the published `@hydra1902` scope. The `hydraPackageSlug` helper owns the mapping, and both catalog generators call it when rendering package sections.
+Generated tool and configuration catalogs emit `hydraharness` package anchors even though headings and package names use the published `@hydraharness` scope. The `hydraPackageSlug` helper owns the mapping, and both catalog generators call it when rendering package sections.
 
 ## Consequences
 

@@ -9,12 +9,12 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { GoalSnapshot } from '@hydra1902/harness-goal/client'
+import type { GoalSnapshot } from '@hydraharness/harness-goal/client'
 import {
   IconCheckOutline16, IconCloseOutline16, IconEditOutline16, IconGoalOutline16,
   IconPauseOutline16, IconPlayOutline16, IconTrashOutline16, Tooltip,
-} from '@hydra1902/harness-client-ui-primitives'
-import type { PropsLocale } from '@hydra1902/harness-client-ui-slots'
+} from '@hydraharness/harness-client-ui-primitives'
+import type { PropsLocale } from '@hydraharness/harness-client-ui-slots'
 import type { GoalActionResult, GoalBarActions } from './slots.ts'
 import type { GoalKey } from './locales.ts'
 import css from './GoalBar.module.css'
@@ -169,7 +169,7 @@ export function GoalBar({ goal, onEdit, onPause, onResume, onClear, t }: GoalBar
 }
 
 /** Full props of the dock entry: InputZone owner share + session standard kit + injected verbs + the locale seat. */
-export type GoalDockProps = import('@hydra1902/harness-client-ui-slots').PropsRuntime<'conversation.input.dock'> & GoalBarActions & PropsLocale<'goal'>
+export type GoalDockProps = import('@hydraharness/harness-client-ui-slots').PropsRuntime<'conversation.input.dock'> & GoalBarActions & PropsLocale<'goal'>
 
 /** Dock adapter: reads the host-computed 'goal' projection (whole value; absent or null renders nothing). */
 export function GoalDock({ useProjection, onEdit, onPause, onResume, onClear, t }: GoalDockProps) {

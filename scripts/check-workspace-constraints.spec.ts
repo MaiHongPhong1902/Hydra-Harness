@@ -10,15 +10,15 @@ import {
 
 const experimental: WorkspaceManifest = {
   dir: 'packages/experimental/prototype',
-  manifest: { name: '@hydra1902/harness-experimental-prototype', private: true },
+  manifest: { name: '@hydraharness/harness-experimental-prototype', private: true },
 }
 
 describe('package namespace', () => {
   it('accepts Hydra families and rejects foreign or missing names', () => {
     expect(checkPackageNamespace(experimental)).toEqual([])
-    expect(checkPackageNamespace({ dir: 'apps/cli', manifest: { name: '@hydra1902/harness' } })).toEqual([])
-    expect(checkPackageNamespace({ dir: 'vendor/cordis', manifest: { name: '@hydra1902/cordis' } })).toEqual([])
-    for (const name of ['@legacy/hydra-agent', '@hydra1902/agent', undefined]) {
+    expect(checkPackageNamespace({ dir: 'apps/cli', manifest: { name: '@hydraharness/harness' } })).toEqual([])
+    expect(checkPackageNamespace({ dir: 'vendor/cordis', manifest: { name: '@hydraharness/cordis' } })).toEqual([])
+    for (const name of ['@legacy/hydra-agent', '@hydraharness/agent', undefined]) {
       expect(checkPackageNamespace({ dir: 'packages/core/agent', manifest: name === undefined ? {} : { name } })).toHaveLength(1)
     }
   })
@@ -28,9 +28,9 @@ describe('experimental workspace constraints', () => {
   it('requires the experimental package-name prefix', () => {
     expect(checkExperimentalManifest({
       ...experimental,
-      manifest: { ...experimental.manifest, name: '@hydra1902/harness-prototype' },
+      manifest: { ...experimental.manifest, name: '@hydraharness/harness-prototype' },
     })).toEqual([
-      '@hydra1902/harness-prototype: experimental package name must start with "@hydra1902/harness-experimental-"',
+      '@hydraharness/harness-prototype: experimental package name must start with "@hydraharness/harness-experimental-"',
     ])
   })
 
@@ -40,8 +40,8 @@ describe('experimental workspace constraints', () => {
       ...experimental,
       manifest: { ...experimental.manifest, private: false, publishConfig: { access: 'public' } },
     })).toEqual([
-      '@hydra1902/harness-experimental-prototype: experimental package must set "private": true',
-      '@hydra1902/harness-experimental-prototype: experimental package must omit publishConfig',
+      '@hydraharness/harness-experimental-prototype: experimental package must set "private": true',
+      '@hydraharness/harness-experimental-prototype: experimental package must omit publishConfig',
     ])
   })
 
@@ -51,11 +51,11 @@ describe('experimental workspace constraints', () => {
       expect(checkExperimentalDependencyIsolation([experimental, {
         dir: 'packages/core/consumer',
         manifest: {
-          name: '@hydra1902/harness-consumer',
-          [section]: { '@hydra1902/harness-experimental-prototype': 'workspace:^' },
+          name: '@hydraharness/harness-consumer',
+          [section]: { '@hydraharness/harness-experimental-prototype': 'workspace:^' },
         },
       }])).toEqual([
-        `@hydra1902/harness-consumer: ${section}.@hydra1902/harness-experimental-prototype must not reference an experimental package`,
+        `@hydraharness/harness-consumer: ${section}.@hydraharness/harness-experimental-prototype must not reference an experimental package`,
       ])
     },
   )
@@ -64,25 +64,25 @@ describe('experimental workspace constraints', () => {
     const manifests: WorkspaceManifest[] = [experimental, {
       dir: 'packages/core/test-only',
       manifest: {
-        name: '@hydra1902/harness-test-only',
-        devDependencies: { '@hydra1902/harness-experimental-prototype': 'workspace:^' },
+        name: '@hydraharness/harness-test-only',
+        devDependencies: { '@hydraharness/harness-experimental-prototype': 'workspace:^' },
       },
     }, {
       dir: 'packages/experimental/consumer',
       manifest: {
-        name: '@hydra1902/harness-experimental-consumer',
-        dependencies: { '@hydra1902/harness-experimental-prototype': 'workspace:^' },
+        name: '@hydraharness/harness-experimental-consumer',
+        dependencies: { '@hydraharness/harness-experimental-prototype': 'workspace:^' },
       },
     }, {
       dir: 'python/sdk-runtime',
       manifest: {
-        name: '@hydra1902/harness-python-runtime',
-        dependencies: { '@hydra1902/harness-experimental-prototype': 'workspace:^' },
+        name: '@hydraharness/harness-python-runtime',
+        dependencies: { '@hydraharness/harness-experimental-prototype': 'workspace:^' },
       },
     }]
 
     expect(checkExperimentalDependencyIsolation(manifests)).toEqual([
-      '@hydra1902/harness-python-runtime: dependencies.@hydra1902/harness-experimental-prototype must not reference an experimental package',
+      '@hydraharness/harness-python-runtime: dependencies.@hydraharness/harness-experimental-prototype must not reference an experimental package',
     ])
   })
 })

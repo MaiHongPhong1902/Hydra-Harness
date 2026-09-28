@@ -5,7 +5,7 @@
  * traffic in bare sources; binding happens on the React side.
  */
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/shim/with-selector.js'
-import type { HostObservable, SnapshotSelectorHook } from '@hydra1902/harness-client-ui-slots'
+import type { HostObservable, SnapshotSelectorHook } from '@hydraharness/harness-client-ui-slots'
 
 /**
  * Bind a bare observable source to a typed uSES selector hook.

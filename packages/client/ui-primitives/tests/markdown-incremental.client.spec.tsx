@@ -6,7 +6,7 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { Root, RootContent } from 'mdast'
-import { MarkdownText } from '@hydra1902/harness-client-ui-primitives'
+import { MarkdownText } from '@hydraharness/harness-client-ui-primitives'
 import { IncrementalMarkdownParser } from '../src/markdown/incremental.ts'
 import { parseGfm } from '../src/markdown/parse.ts'
 

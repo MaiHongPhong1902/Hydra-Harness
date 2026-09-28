@@ -11,18 +11,18 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { join, sep } from 'node:path'
-import { createUserMessage, CallId } from '@hydra1902/harness-llm'
-import SystemPrompt, { renderPrompt } from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH, type ToolExecution, type ToolExecutionToken } from '@hydra1902/harness-tools'
-import { SubprocessRuntime } from '@hydra1902/harness-subprocess'
-import type { SubprocessCollectedOutputs, SubprocessHandle, SubprocessOutcome, SubprocessOutputRead, SubprocessOutputReader, SubprocessSpawnSpec } from '@hydra1902/harness-subprocess'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+import { createUserMessage, CallId } from '@hydraharness/harness-llm'
+import SystemPrompt, { renderPrompt } from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH, type ToolExecution, type ToolExecutionToken } from '@hydraharness/harness-tools'
+import { SubprocessRuntime } from '@hydraharness/harness-subprocess'
+import type { SubprocessCollectedOutputs, SubprocessHandle, SubprocessOutcome, SubprocessOutputRead, SubprocessOutputReader, SubprocessSpawnSpec } from '@hydraharness/harness-subprocess'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import { rgPath } from '@vscode/ripgrep'
-import { SpillLocator, SpillStore } from '@hydra1902/harness-spill'
-import type { SaveTextSpill, SpillRef } from '@hydra1902/harness-spill'
-import * as ToolFsSearch from '@hydra1902/harness-tool-fs-search'
+import { SpillLocator, SpillStore } from '@hydraharness/harness-spill'
+import type { SaveTextSpill, SpillRef } from '@hydraharness/harness-spill'
+import * as ToolFsSearch from '@hydraharness/harness-tool-fs-search'
 import {
   buildGlobCommand,
   buildGrepCommand,
@@ -37,7 +37,7 @@ import {
   runRipgrep,
   sampleAcrossTopLevel,
   toWorkdirRelative,
-} from '@hydra1902/harness-tool-fs-search'
+} from '@hydraharness/harness-tool-fs-search'
 
 const testToolSignal = new AbortController().signal
 

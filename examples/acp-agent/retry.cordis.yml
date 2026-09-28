@@ -6,12 +6,12 @@
 # adapter fields around `retryPolicy`, while the app patch re-pins the recorded
 # flash model and restates its base fields.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra1902/harness-llm-deepseek'
+        name: '@hydraharness/harness-llm-deepseek'
         config:
           thinking: enabled
           reasoningEffort: max
@@ -26,7 +26,7 @@
             - id: deepseek-v4-flash
             - id: deepseek-v4-pro
       - id: acp-agent
-        name: '@hydra1902/harness-acp-demo'
+        name: '@hydraharness/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash

@@ -1,6 +1,6 @@
-# @hydra/harness-code-runtime-python
+# @hydraharness/harness-code-runtime-python
 
-CPython-subprocess implementation of the [`@hydra/harness-code-runtime`](../code-runtime/README.md) seam. Companion to [`@hydra/harness-code-runtime-worker-thread`](../code-runtime-worker-thread/README.md); trades the Node worker thread for a fresh `python3` subprocess so model code is Python instead of TypeScript.
+CPython-subprocess implementation of the [`@hydraharness/harness-code-runtime`](../code-runtime/README.md) seam. Companion to [`@hydraharness/harness-code-runtime-worker-thread`](../code-runtime-worker-thread/README.md); trades the Node worker thread for a fresh `python3` subprocess so model code is Python instead of TypeScript.
 
 The package owns the wire protocol for that seam: the host-side frame codec and the Python-side mirror of the same message vocabulary.
 
@@ -15,7 +15,7 @@ The host and the CPython subprocess exchange a versionless, JSON-lines protocol 
 
 ## Model Experience
 
-Indirectly, through Code Mode in [`@hydra/harness-tools`](../../core/tools/README.md), which renders this backend's exact completion value when it fits (or an explicit `invalid-output` / `output-limit` failure), plus the exact `[@hydra/harness-code-runtime-python] log capture truncated at <maxLogBytes> bytes` log marker, into a retained `run_code` result.
+Indirectly, through Code Mode in [`@hydraharness/harness-tools`](../../core/tools/README.md), which renders this backend's exact completion value when it fits (or an explicit `invalid-output` / `output-limit` failure), plus the exact `[@hydraharness/harness-code-runtime-python] log capture truncated at <maxLogBytes> bytes` log marker, into a retained `run_code` result.
 
 #### KV Cache effect
 

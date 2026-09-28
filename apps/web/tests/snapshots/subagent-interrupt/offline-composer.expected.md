@@ -17,10 +17,10 @@
   - img
 - button "Edit":
   - img
-- button "Context injection @hydra/harness-system-prompt":
+- button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
-  - text: Context injection @hydra/harness-system-prompt
+  - text: Context injection @hydraharness/harness-system-prompt
 - paragraph: partial
 - status: {{turn-status}}
 - textbox "Parent session offline; sending is unavailable but you can still stop the run" [disabled]

@@ -2,8 +2,8 @@ import { readFile, readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { type SessionEvent } from '@hydra1902/harness-session'
-import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra1902/harness-loader-smoke'
+import { type SessionEvent } from '@hydraharness/harness-session'
+import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydraharness/harness-loader-smoke'
 
 // Keep the Loader config under examples so both modes exercise the same deployable
 // topology: local fixture source plus bare plugins owned by the examples workspace.

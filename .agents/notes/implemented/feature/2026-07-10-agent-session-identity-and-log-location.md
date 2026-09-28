@@ -13,7 +13,7 @@ The boundary must preserve two properties: the owner of a fact decides how to re
 Extend the [`SessionPersistence`](../architecture/2026-06-14-session-persistence.md) seam with a synchronous, side-effect-free location query:
 
 ```ts
-import type { SessionHeader } from '@hydra1902/harness-session'
+import type { SessionHeader } from '@hydraharness/harness-session'
 
 interface SessionLocation {
   readonly kind: string
@@ -31,7 +31,7 @@ The model-facing bash package owns a `ctx.shellEnv` registry. A contributor decl
 
 The registry rebuilds a trusted overlay for every foreground and background bash `ToolExecution`:
 
-- `HYDRA_HOME` is always the absolute configured Harness home. The standalone [`@hydra/harness-home-paths`](../../../../packages/util/home-paths/README.md) utility owns its precedence: explicit `hydraHome`, then ambient `$HYDRA_HOME`, then `~/.hydra`.
+- `HYDRA_HOME` is always the absolute configured Harness home. The standalone [`@hydraharness/harness-home-paths`](../../../../packages/util/home-paths/README.md) utility owns its precedence: explicit `hydraHome`, then ambient `$HYDRA_HOME`, then `~/.hydra`.
 - `HYDRA_SHELL=1` is always present and identifies a model bash child managed by Hydra harness.
 - `HYDRA_SESSION_ID` is present when the execution has an agent and equals `agent.session.header.id`.
 - The built-in persistence translator contributes `HYDRA_SESSION_JSONL` only when `ctx.sessionPersistence.locate(header)` returns `kind: 'jsonl'`.
@@ -54,7 +54,7 @@ A fresh session receives its id before the first turn, so its first bash call ca
 
 Resume reuses the loaded header and therefore the same id and location. Fork and spawn create new session ids and locations. Parent and child calls resolve from their own `ToolExecution.agent`; each command receives an immutable snapshot even when calls overlap. A persistence service replacement affects later collections because the translator queries `ctx.get('sessionPersistence')` at execution time; the registry itself is effect-scoped and HMR-safe.
 
-`hydraHome` is session-independent deployment context. Agent-core resolves one value through `@hydra/harness-home-paths` and routes it to both tool-bash and local skill discovery; standalone consumers call the same resolver. If top-level `hydraHome` and `skills.local.hydraHome` are both supplied and resolve differently, composition fails instead of exposing contradictory homes. Persistence may change independently without freezing its facts into the session prefix.
+`hydraHome` is session-independent deployment context. Agent-core resolves one value through `@hydraharness/harness-home-paths` and routes it to both tool-bash and local skill discovery; standalone consumers call the same resolver. If top-level `hydraHome` and `skills.local.hydraHome` are both supplied and resolve differently, composition fails instead of exposing contradictory homes. Persistence may change independently without freezing its facts into the session prefix.
 
 ## Testing
 

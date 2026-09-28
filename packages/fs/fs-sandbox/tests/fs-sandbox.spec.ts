@@ -13,12 +13,12 @@ import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promis
 import { existsSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { join, parse } from 'node:path'
-import { Context } from '@hydra1902/cordis'
-import { FsError, FsTargetKey } from '@hydra1902/harness-fs'
-import type { FsTarget } from '@hydra1902/harness-fs'
-import SandboxPolicyService from '@hydra1902/harness-sandbox-policy'
-import type { SandboxMode } from '@hydra1902/harness-sandbox'
-import { SandboxedFileSystem } from '@hydra1902/harness-fs-sandbox'
+import { Context } from '@hydraharness/cordis'
+import { FsError, FsTargetKey } from '@hydraharness/harness-fs'
+import type { FsTarget } from '@hydraharness/harness-fs'
+import SandboxPolicyService from '@hydraharness/harness-sandbox-policy'
+import type { SandboxMode } from '@hydraharness/harness-sandbox'
+import { SandboxedFileSystem } from '@hydraharness/harness-fs-sandbox'
 
 let base: string
 let workspace: string

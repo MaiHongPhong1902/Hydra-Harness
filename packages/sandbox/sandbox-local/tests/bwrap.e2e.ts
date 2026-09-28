@@ -4,9 +4,9 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import type { SandboxPolicy } from '@hydra1902/harness-sandbox'
-import { LocalSandboxProvider } from '@hydra1902/harness-sandbox-local'
+import { Context } from '@hydraharness/cordis'
+import type { SandboxPolicy } from '@hydraharness/harness-sandbox'
+import { LocalSandboxProvider } from '@hydraharness/harness-sandbox-local'
 import { bwrapProfileArgs } from '../src/profiles.ts'
 
 /**

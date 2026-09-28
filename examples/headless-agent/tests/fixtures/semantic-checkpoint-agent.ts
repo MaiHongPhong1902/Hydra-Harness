@@ -3,8 +3,8 @@
  * @module semantic-checkpoint-agent
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { SessionId } from '@hydra1902/harness-session'
+import type { Context } from '@hydraharness/cordis'
+import type { SessionId } from '@hydraharness/harness-session'
 
 /** Fixture plugin name. */
 export const name = 'semantic-checkpoint-agent'

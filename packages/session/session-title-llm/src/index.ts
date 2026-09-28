@@ -1,25 +1,25 @@
 /**
  * Shared route, framing, timeout, assembly, and validation policy for
  * model-backed session-title providers.
- * @module @hydra1902/harness-session-title-llm
+ * @module @hydraharness/harness-session-title-llm
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { createUserMessage, BlockAssembler, deepFreeze } from '@hydra1902/harness-llm'
-import type { FinishReason, GenerateOptions, Message } from '@hydra1902/harness-llm'
-import { deadline, MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { createUserMessage, BlockAssembler, deepFreeze } from '@hydraharness/harness-llm'
+import type { FinishReason, GenerateOptions, Message } from '@hydraharness/harness-llm'
+import { deadline, MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import {
   normalizeSessionTitle,
   SessionTitleProviderId,
-} from '@hydra1902/harness-session-title'
+} from '@hydraharness/harness-session-title'
 import type {
   SessionTitleAutomaticMode,
   SessionTitleModelProvenance,
   SessionTitleProviderRequest,
   SessionTitleProviderResult,
   SessionTitleUserMessage,
-} from '@hydra1902/harness-session-title'
+} from '@hydraharness/harness-session-title'
 
 /** Exact model-visible request recorded before one auxiliary title dispatch. */
 export interface SessionTitleLlmRequestEventData {
@@ -37,7 +37,7 @@ export interface SessionTitleLlmRequestEventData {
   readonly maxTokens: number
 }
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /** Log-only pre-dispatch record of one session-title model request. */
     'session/title-llm-request': SessionTitleLlmRequestEventData

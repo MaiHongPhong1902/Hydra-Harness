@@ -1,6 +1,6 @@
 # Imported plugin runtime
 
-`@hydra/harness-plugin-runtime` mounts the shared `ctx.importedPlugins` service in `@hydra/harness-base`. It imports an OpenAI/Codex bundle whose root contains `.codex-plugin/plugin.json` or the portable root `plugin.json` with the Agent Plugins schema, or the shared skills/commands/hooks/MCP subset of an Anthropic Claude bundle whose root contains `.claude-plugin/plugin.json`, from a local folder, Git repository, or marketplace root. A portable manifest defaults to `skills/` and `mcp.json`; its `extensions.com.openai` section contributes host-specific apps, hooks, and interface metadata while canonical skills and MCP declarations stay at the manifest root. Marketplace import accepts `.agents/plugins/marketplace.json`, `.agents/plugins/api_marketplace.json`, the legacy root `marketplace.json`, and standard Git-subdirectory entries; direct plugin imports do not need a catalog.
+`@hydraharness/harness-plugin-runtime` mounts the shared `ctx.importedPlugins` service in `@hydraharness/harness-base`. It imports an OpenAI/Codex bundle whose root contains `.codex-plugin/plugin.json` or the portable root `plugin.json` with the Agent Plugins schema, or the shared skills/commands/hooks/MCP subset of an Anthropic Claude bundle whose root contains `.claude-plugin/plugin.json`, from a local folder, Git repository, or marketplace root. A portable manifest defaults to `skills/` and `mcp.json`; its `extensions.com.openai` section contributes host-specific apps, hooks, and interface metadata while canonical skills and MCP declarations stay at the manifest root. Marketplace import accepts `.agents/plugins/marketplace.json`, `.agents/plugins/api_marketplace.json`, the legacy root `marketplace.json`, and standard Git-subdirectory entries; direct plugin imports do not need a catalog.
 
 The cross-package source-of-truth matrix and Codex compatibility boundary are in the [Settings Plugins ownership and Codex compatibility note](../../../.agents/notes/implemented/architecture/2026-09-14-settings-plugins-ownership-and-codex-compatibility.md).
 
@@ -36,7 +36,7 @@ On Windows, imported hook commands translate `${PLUGIN_ROOT}`, `${PLUGIN_DATA}`,
 
 #### What the model sees
 
-When enabled, each declared skill is available to `@hydra/harness-tool-skill` under a source-qualified provider and collision-free name. Search exposes frontmatter-derived metadata, and exact loading reads the instruction body without mutating its source file.
+When enabled, each declared skill is available to `@hydraharness/harness-tool-skill` under a source-qualified provider and collision-free name. Search exposes frontmatter-derived metadata, and exact loading reads the instruction body without mutating its source file.
 
 #### Token effect
 
@@ -50,7 +50,7 @@ Prefix-stable while the enabled skill candidates and loaded definitions are unch
 
 #### What the model sees
 
-Enabled MCP servers publish host-qualified tools named `mcp__<server>__<tool>` with the server description and input schema. Tool calls retain the MCP result mapping owned by `@hydra/harness-mcp-client`; hook context may add further messages.
+Enabled MCP servers publish host-qualified tools named `mcp__<server>__<tool>` with the server description and input schema. Tool calls retain the MCP result mapping owned by `@hydraharness/harness-mcp-client`; hook context may add further messages.
 
 #### Token effect
 

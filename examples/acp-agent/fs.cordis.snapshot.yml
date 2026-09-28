@@ -5,15 +5,15 @@
 # `deepseek-v4-pro`, but the recorded corpus was captured on flash, and a config
 # patch replaces the whole app config, so the base fields are restated verbatim.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra1902/harness-llm-deepseek'
+        name: '@hydraharness/harness-llm-deepseek'
         disabled: true
       - id: acp-agent
-        name: '@hydra1902/harness-acp-demo'
+        name: '@hydraharness/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -27,15 +27,15 @@
             Verify your work by running the code or tests. Keep answers brief and factual.
       - insert:
           - id: spill-local
-            name: '@hydra1902/harness-spill-local'
+            name: '@hydraharness/harness-spill-local'
             config:
               root: !!js process.env.HYDRA_SNAPSHOT_SPILL_ROOT ?? './.spill'
           - id: spill-policy
-            name: '@hydra1902/harness-spill-policy'
+            name: '@hydraharness/harness-spill-policy'
             config:
               maxInlineBytes: 800
           - id: llm-replay
-            name: '@hydra1902/harness-llm-replay'
+            name: '@hydraharness/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

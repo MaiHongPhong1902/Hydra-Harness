@@ -3,21 +3,21 @@
  * (`goToDefinition`/`findReferences`/`goToImplementation`/`hover`); it converts one-based UTF-16
  * cursor coordinates to the seam's zero-based positions, requires the session workspace with no
  * fallback, caps and renders results, and attaches a configurable timeout budget for
- * `@hydra1902/harness-tool-call-timeout-policy` to enforce. It runtime-injects only `tools`, `lsp`, and `systemPrompt` and
+ * `@hydraharness/harness-tool-call-timeout-policy` to enforce. It runtime-injects only `tools`, `lsp`, and `systemPrompt` and
  * imports no provider.
  *
  * Namespace plugin (named exports, no default export).
- * @module @hydra1902/harness-tool-lsp
+ * @module @hydraharness/harness-tool-lsp
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { defineTool } from '@hydra1902/harness-tools'
-import { assertNever } from '@hydra1902/harness-llm'
-import { LspError } from '@hydra1902/harness-lsp'
-import type {} from '@hydra1902/harness-lsp'
-import type {} from '@hydra1902/harness-system-prompt'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { defineTool } from '@hydraharness/harness-tools'
+import { assertNever } from '@hydraharness/harness-llm'
+import { LspError } from '@hydraharness/harness-lsp'
+import type {} from '@hydraharness/harness-lsp'
+import type {} from '@hydraharness/harness-system-prompt'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import {
   DEFAULT_MAX_LOCATIONS,
   DEFAULT_MAX_RESULT_CHARS,

@@ -10,16 +10,16 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import LlmRuntime from '@hydra1902/harness-llm'
-import { createUserMessage, LlmAdapter } from '@hydra1902/harness-llm'
-import type { GenerateOptions, StreamChunk } from '@hydra1902/harness-llm'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime from '@hydra1902/harness-tools'
-import AgentRegistry, { type Agent } from '@hydra1902/harness-agent'
+import { Context } from '@hydraharness/cordis'
+import LlmRuntime from '@hydraharness/harness-llm'
+import { createUserMessage, LlmAdapter } from '@hydraharness/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydraharness/harness-llm'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime from '@hydraharness/harness-tools'
+import AgentRegistry, { type Agent } from '@hydraharness/harness-agent'
 
-import AgentLoop from '@hydra1902/harness-agent-loop'
+import AgentLoop from '@hydraharness/harness-agent-loop'
 import fc from 'fast-check'
 
 /** A never-exhausting adapter: every model call returns the same short reply. */

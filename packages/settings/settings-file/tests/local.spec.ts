@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
 import { chmod, lstat, mkdir, mkdtemp, readFile, readdir, rename, rm, stat, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { writeFileAtomic } from '@hydra1902/harness-atomic-write'
-import { settingsNamespace } from '@hydra1902/harness-settings'
+import { writeFileAtomic } from '@hydraharness/harness-atomic-write'
+import { settingsNamespace } from '@hydraharness/harness-settings'
 import { FileSettingsProvider, resolveSpec } from '../src/index.ts'
 
 interface ThemeConfig {

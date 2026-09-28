@@ -12,24 +12,24 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
 import {
   createSnapshotStore, EMPTY_CONVERSATION_VIEWS,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type {
   ConversationSnapshot, RunningToolCall, SessionId, SessionListState, ToolResultNode, WorkspaceListState,
-} from '@hydra1902/harness-client-runtime/client'
-import type { ToolResultView } from '@hydra1902/harness-api-remotes/client'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
-import type { SelectionTarget } from '@hydra1902/harness-client-ui-conversation/client'
-import type { ToolCallOwnerProps } from '@hydra1902/harness-client-ui-tool/client'
-import { IconGlobeOutline14 } from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-client-runtime/client'
+import type { ToolResultView } from '@hydraharness/harness-api-remotes/client'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
+import type { SelectionTarget } from '@hydraharness/harness-client-ui-conversation/client'
+import type { ToolCallOwnerProps } from '@hydraharness/harness-client-ui-tool/client'
+import { IconGlobeOutline14 } from '@hydraharness/harness-client-ui-primitives'
 import { webCardModel } from '../src/client/tool/models/web-card-model.ts'
-import { createChatStore } from '@hydra1902/harness-client-ui-conversation/src/client/stores.ts'
+import { createChatStore } from '@hydraharness/harness-client-ui-conversation/src/client/stores.ts'
 import { GenericToolCard } from '../src/client/tool/toolviews/GenericToolCard.tsx'
-import { DetailsPanel } from '@hydra1902/harness-client-ui-conversation/src/client/skeleton/DetailsPanel.tsx'
+import { DetailsPanel } from '@hydraharness/harness-client-ui-conversation/src/client/skeleton/DetailsPanel.tsx'
 import { WebRow, webToolview } from '../src/client/tool/toolviews/web-row.tsx'
 import { renderToolDetails, SessionProviderStub, toolChatSnapshot } from './tool-details-render.client.tsx'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
-import { en } from '@hydra1902/harness-client-ui-conversation/src/client/locales.ts'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
+import { en } from '@hydraharness/harness-client-ui-conversation/src/client/locales.ts'
 
 afterEach(cleanup)
 
@@ -300,7 +300,7 @@ describe('web toolview registration', () => {
           return () => {}
         },
       },
-    } as unknown as import('@hydra1902/cordis').Context
+    } as unknown as import('@hydraharness/cordis').Context
     webToolview.apply(ctx)
     expect(registered.map(r => r.key)).toEqual(['web_search', 'web_fetch'])
     // Both keys claim the conversation locale seat ToolRow's body copy needs.

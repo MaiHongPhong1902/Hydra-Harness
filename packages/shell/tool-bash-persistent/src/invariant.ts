@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-tool-bash-persistent`.
- * @module @hydra1902/harness-tool-bash-persistent/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-tool-bash-persistent`.
+ * @module @hydraharness/harness-tool-bash-persistent/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-tool-bash-persistent'
+const PACKAGE_NAME = '@hydraharness/harness-tool-bash-persistent'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-bash-persistent-invariant'

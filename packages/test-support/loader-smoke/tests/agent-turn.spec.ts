@@ -1,5 +1,5 @@
-import type { Context } from '@hydra1902/cordis'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type { Context } from '@hydraharness/cordis'
+import type { SessionEvent } from '@hydraharness/harness-session'
 import { describe, expect, it, vi } from 'vitest'
 import { runFixtureTurn } from '../src/agent-turn.ts'
 

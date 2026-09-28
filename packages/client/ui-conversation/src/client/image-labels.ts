@@ -1,7 +1,7 @@
 /** Attachment error and limit copy owned by the conversation input flow. */
 
-import type { ImageAttachmentLimits } from '@hydra1902/harness-attachment'
-import type { Translate } from '@hydra1902/harness-client-ui-slots'
+import type { ImageAttachmentLimits } from '@hydraharness/harness-attachment'
+import type { Translate } from '@hydraharness/harness-client-ui-slots'
 import type { ConversationKey } from './locales.ts'
 
 /**

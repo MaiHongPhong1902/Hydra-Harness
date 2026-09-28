@@ -22,15 +22,15 @@
  * and a hole has exactly one declaring entry — they carry the same owner
  * contract and the same occupant.
  */
-import type { HostDescriptionSource } from '@hydra1902/harness-client-connection/client'
-import type { HostObservable, PropsHooks, PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore } from '@hydra1902/harness-client-ui-slots'
+import type { HostDescriptionSource } from '@hydraharness/harness-client-connection/client'
+import type { HostObservable, PropsHooks, PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore } from '@hydraharness/harness-client-ui-slots'
 // Type-only: pull the owner SlotMap merges into programs that resolve the
 // runtime shares below.
-import type {} from '@hydra1902/harness-client-ui-sidebar/client'
-import type {} from '@hydra1902/harness-client-ui-conversation/client'
+import type {} from '@hydraharness/harness-client-ui-sidebar/client'
+import type {} from '@hydraharness/harness-client-ui-conversation/client'
 import type {
   SessionId, SessionSearchResultItem, WorkspaceId, WorkspaceView,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type { createWorkspaceViewStore } from '../stores.ts'
 
 /**
@@ -51,7 +51,7 @@ export interface DirectoryFlowOwnerProps {
   onError: (message: string) => void
 }
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface SlotMap {
     /** Directory-flow hole under the conversation empty-state picker (declared by the WorkspacePicker entry). */
     'conversation.hero.workspace.directoryFlow': { kind: 'single'; scope: 'root'; owner: DirectoryFlowOwnerProps }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import * as SettingsInvariant from '@hydra1902/harness-client-ui-settings/invariant'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+import { Context } from '@hydraharness/cordis'
+import * as SettingsInvariant from '@hydraharness/harness-client-ui-settings/invariant'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 
 describe('invariant companion', () => {
   it('registers under the package name with an empty installer', async () => {
@@ -11,7 +11,7 @@ describe('invariant companion', () => {
   })
 
   it('node-half apply is a no-op host placeholder', async () => {
-    const { apply } = await import('@hydra1902/harness-client-ui-settings')
+    const { apply } = await import('@hydraharness/harness-client-ui-settings')
     apply()
     expect(true).toBe(true) // reaching here without throw is the contract
   })

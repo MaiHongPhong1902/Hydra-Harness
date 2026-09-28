@@ -1,6 +1,6 @@
 /**
  * Error vocabulary of the domain data form.
- * @module @hydra1902/harness-storage-domain/src/error
+ * @module @hydraharness/harness-storage-domain/src/error
  */
 
 /** Discriminant codes carried by every {@link DomainError}. */

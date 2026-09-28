@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import type { SessionId, SessionSummary } from '@hydra1902/harness-api-remotes/client'
+import type { SessionId, SessionSummary } from '@hydraharness/harness-api-remotes/client'
 import { flattenLineage } from '../src/client/sessions/lineage.ts'
 
 const s = (id: string, updatedAt: number, parent?: string): SessionSummary => ({

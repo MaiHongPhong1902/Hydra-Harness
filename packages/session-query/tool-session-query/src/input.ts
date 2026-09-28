@@ -1,21 +1,21 @@
 /**
  * Model argument schemas, normalization, and filter construction.
  *
- * @module @hydra1902/harness-tool-session-query/input
+ * @module @hydraharness/harness-tool-session-query/input
  */
 
 import {
   SessionId,
   type SessionEventType,
   type SessionId as SessionIdValue,
-} from '@hydra1902/harness-session'
+} from '@hydraharness/harness-session'
 import {
   SessionQueryError,
   type SessionAvailability,
   type SessionEventMetadataFilter,
   type SessionEventSurface,
   type SessionResultFilter,
-} from '@hydra1902/harness-session-query'
+} from '@hydraharness/harness-session-query'
 
 interface SessionSearchArgs {
   query: string

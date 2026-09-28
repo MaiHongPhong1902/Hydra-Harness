@@ -1,7 +1,7 @@
 - listitem:
-  - button "ui-settings @hydra/harness-client-ui-settings Core Running":
+  - button "ui-settings @hydraharness/harness-client-ui-settings Core Running":
     - strong: ui-settings
-    - code: "@hydra/harness-client-ui-settings"
+    - code: "@hydraharness/harness-client-ui-settings"
     - text: Core Running
   - text: Enabled
   - switch "Disable plugin ui-settings" [checked]

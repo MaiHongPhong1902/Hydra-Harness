@@ -3,10 +3,10 @@
   - img
 - button "Edit":
   - img
-- button "Context injection @hydra/harness-system-prompt":
+- button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
-  - text: Context injection @hydra/harness-system-prompt
+  - text: Context injection @hydraharness/harness-system-prompt
 - button "Think The user wants me to use the workflow tool exactly once with specific parameters. Let me carefully follow the instructions:":
   - img
   - img

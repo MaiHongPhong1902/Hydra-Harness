@@ -1,12 +1,12 @@
 # Embedded Browser
 
-The embedded-browser seam: one Electron window per `Agent`, started on that agent's first action and closed with it, driven through [page-agent](https://github.com/alibaba/page-agent)'s `PageController` running in each controlled tab's preload. Two packages — the seam and process owner ([@hydra/harness-browser-electron](../../packages/browser/browser-electron), `ctx.browsers`), and the Consumer ([@hydra/harness-tool-browser](../../packages/browser/tool-browser), the `browser_*` tool schemas and the accessibility-snapshot prompt section). Browsing is **one optional capability**, not part of the agent-loop spine, so its vocabulary lives here rather than in [core.md](core.md).
+The embedded-browser seam: one Electron window per `Agent`, started on that agent's first action and closed with it, driven through [page-agent](https://github.com/alibaba/page-agent)'s `PageController` running in each controlled tab's preload. Two packages — the seam and process owner ([@hydraharness/harness-browser-electron](../../packages/browser/browser-electron), `ctx.browsers`), and the Consumer ([@hydraharness/harness-tool-browser](../../packages/browser/tool-browser), the `browser_*` tool schemas and the accessibility-snapshot prompt section). Browsing is **one optional capability**, not part of the agent-loop spine, so its vocabulary lives here rather than in [core.md](core.md).
 
 Source: [`packages/browser/browser-electron/src/types.ts`](../../packages/browser/browser-electron/src/types.ts)
 
 ## Why there is no provider registry
 
-Unlike [web.md](web.md), this seam has exactly one implementation and names it in the package: `@hydra/harness-browser-electron` both defines `ctx.browsers` and owns the Electron process behind it. A single-purpose plugin stays one package until a second backend actually exists; splitting the definition out now would be an interface with one implementation.
+Unlike [web.md](web.md), this seam has exactly one implementation and names it in the package: `@hydraharness/harness-browser-electron` both defines `ctx.browsers` and owns the Electron process behind it. A single-purpose plugin stays one package until a second backend actually exists; splitting the definition out now would be an interface with one implementation.
 
 The page-control modality is an accessibility snapshot, not pixels. Chromium Accessibility.getFullAXTree supplies roles, accessible names, and states, joined to private action refs (`[12]<button>Save</button>`). Native Playwright locators execute indexed and named actions on the controlled tab; PageController remains the private snapshot and fallback path. A user-created Browser annotation is a separate composer path that may attach a bounded screenshot of a selected element or viewport region. The native chrome and the model share one controlled-tab inventory and a functional omnibox.
 
@@ -84,7 +84,7 @@ interface BrowserState {
 
 Each `BrowserTabState` in `tabs` has a stable `id`, `url`, `title`, `status` (`loading` or `complete`), and `active` flag.
 
-`header`, `content`, and `footer` arrive already formatted by the Hydra preload. `content` starts from roles, accessible names, and selected states, retains bounded `id`/`href` compatibility metadata, and includes plain page text not represented by an indexed control. The preload's `MutationObserver` waits for a short quiet period after semantic DOM mutations, then compares accessibility lines and reports bounded shown, hidden, expanded, collapsed, changed, and focused entries in `uiChanges`. `@hydra/harness-tool-browser` omits only explicitly ignored accessibility nodes, ranks again, then cuts only `content` to the full (`browser_state` / `browser_navigate`) or compact (~4k) budget. Indices stay PageController's because the model projection never renumbers the seam's selector map.
+`header`, `content`, and `footer` arrive already formatted by the Hydra preload. `content` starts from roles, accessible names, and selected states, retains bounded `id`/`href` compatibility metadata, and includes plain page text not represented by an indexed control. The preload's `MutationObserver` waits for a short quiet period after semantic DOM mutations, then compares accessibility lines and reports bounded shown, hidden, expanded, collapsed, changed, and focused entries in `uiChanges`. `@hydraharness/harness-tool-browser` omits only explicitly ignored accessibility nodes, ranks again, then cuts only `content` to the full (`browser_state` / `browser_navigate`) or compact (~4k) budget. Indices stay PageController's because the model projection never renumbers the seam's selector map.
 
 ## Actions
 

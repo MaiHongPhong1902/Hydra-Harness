@@ -13,10 +13,10 @@
   - img
 - button "Edit":
   - img
-- button "Context injection @hydra/harness-system-prompt":
+- button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
-  - text: Context injection @hydra/harness-system-prompt
+  - text: Context injection @hydraharness/harness-system-prompt
 - button "Ran commands" [expanded]:
   - img
   - text: Ran commands

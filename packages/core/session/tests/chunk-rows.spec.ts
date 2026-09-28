@@ -6,10 +6,10 @@
 
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { CallId } from '@hydra1902/harness-llm'
-import type { StreamChunk } from '@hydra1902/harness-llm'
-import { decodeStorageRecord, packChunkRuns } from '@hydra1902/harness-session'
-import type { ChunkRow, SessionEvent, StorageRecord } from '@hydra1902/harness-session'
+import { CallId } from '@hydraharness/harness-llm'
+import type { StreamChunk } from '@hydraharness/harness-llm'
+import { decodeStorageRecord, packChunkRuns } from '@hydraharness/harness-session'
+import type { ChunkRow, SessionEvent, StorageRecord } from '@hydraharness/harness-session'
 
 /** Build an `assistant/chunk` event with the exact live-append shape. */
 function chunkEvent(seq: number, time: number, chunk: StreamChunk, turn = 1, step = 1): SessionEvent {

@@ -26,7 +26,7 @@
  * @module hydra-llm-pi-ai/adapter
  */
 
-import { streamWithApiKeys } from '@hydra1902/harness-llm'
+import { streamWithApiKeys } from '@hydraharness/harness-llm'
 import { createModels, getSupportedThinkingLevels } from '@earendil-works/pi-ai'
 import type {
   Api,
@@ -45,8 +45,8 @@ import {
   LlmAdapter,
   LlmError,
   ReasoningEffortId,
-} from '@hydra1902/harness-llm'
-import { withHttpProxy } from '@hydra1902/harness-llm/proxy'
+} from '@hydraharness/harness-llm'
+import { withHttpProxy } from '@hydraharness/harness-llm/proxy'
 import type {
   GenerateOptions,
   LlmModelInfo,
@@ -55,9 +55,9 @@ import type {
   ReasoningEffortId as ReasoningEffortIdType,
   ResolvedRetryPolicy,
   StreamChunk,
-} from '@hydra1902/harness-llm'
-import type { AttachmentStore } from '@hydra1902/harness-attachment'
-import { idleWatchdog, timeoutOf } from '@hydra1902/harness-timeout'
+} from '@hydraharness/harness-llm'
+import type { AttachmentStore } from '@hydraharness/harness-attachment'
+import { idleWatchdog, timeoutOf } from '@hydraharness/harness-timeout'
 import type { ResolvedPiAiProviderProfile } from './config.ts'
 import { toPiContext } from './context.ts'
 import { toStreamChunks } from './stream.ts'

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   AuthorizationAttemptView, AuthorizationEntryView, AuthorizationUsageView, IApiClient,
-} from '@hydra1902/harness-api-remotes/client'
+} from '@hydraharness/harness-api-remotes/client'
 import { messageOf } from './store.ts'
 import type { en } from './locales.ts'
 import styles from './ModelsSection.module.css'

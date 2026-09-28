@@ -1,9 +1,9 @@
 /** Durable research budgets shared by one delegation root, enforced before tool dispatch. */
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { delegationRoot } from '@hydra1902/harness-subagent'
-import { HarnessError } from '@hydra1902/harness-llm'
-import { deadline, timeoutOf } from '@hydra1902/harness-timeout'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { delegationRoot } from '@hydraharness/harness-subagent'
+import { HarnessError } from '@hydraharness/harness-llm'
+import { deadline, timeoutOf } from '@hydraharness/harness-timeout'
 
 /** Cordis plugin name. */
 export const name = 'research-policy'
@@ -27,7 +27,7 @@ export const Config: z<Config> = z.object({
   maxSearchCalls: z.number(), maxQueries: z.number(), maxFetches: z.number(), maxBrowserCalls: z.number(), maxDurationMs: z.number(),
 })
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /** Research attempt charged before dispatch; failures and cancellations retain the charge. */
     'research/charge': { owner: SessionId; kind: 'search' | 'fetch' | 'browser'; queries: number }

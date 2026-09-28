@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { Context } from '@hydra1902/cordis'
-import { AttachmentError, AttachmentId } from '@hydra1902/harness-attachment'
-import type { ImageAttachmentRef, SaveImageAttachment } from '@hydra1902/harness-attachment'
-import type { Agent } from '@hydra1902/harness-agent'
+import type { Context } from '@hydraharness/cordis'
+import { AttachmentError, AttachmentId } from '@hydraharness/harness-attachment'
+import type { ImageAttachmentRef, SaveImageAttachment } from '@hydraharness/harness-attachment'
+import type { Agent } from '@hydraharness/harness-agent'
 import {
   AcpContentError,
   admitAcpPrompt,

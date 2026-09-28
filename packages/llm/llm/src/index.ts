@@ -3,10 +3,10 @@
  * API. Exports the `LlmRuntime` default, the abstract `LlmAdapter` for
  * provider backends, and `BlockAssembler` for chunk assembly.
  *
- * @module @hydra1902/harness-llm
+ * @module @hydraharness/harness-llm
  */
 
-import { Context, Service } from '@hydra1902/cordis'
+import { Context, Service } from '@hydraharness/cordis'
 import type {
   GenerateOptions,
   LlmConfigurableProvider,
@@ -29,7 +29,7 @@ import type { LlmCallConfig, LlmCallConfigAdapterDefaults } from './call-config.
 import { HarnessError, INVALID_CREDENTIAL_CODE } from './error.ts'
 import { normalizeLlmFailure } from './adapter-failure.ts'
 import { normalizeApiKey } from './api-key.ts'
-import type { FileAttachmentRef } from '@hydra1902/harness-attachment'
+import type { FileAttachmentRef } from '@hydraharness/harness-attachment'
 import { contentHasFile, fileHandleText, projectFilesToText } from './content.ts'
 
 export * from './attribution.ts'
@@ -46,7 +46,7 @@ export { BlockAssembler } from './assembler.ts'
 export { callConfigEquals, deepFreeze, isAgentLoopRequest, markAgentLoopRequest } from './call-config.ts'
 export type { LlmCallConfig, LlmCallConfigAdapterDefaults } from './call-config.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     llm: LlmRuntime
   }

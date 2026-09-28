@@ -1,11 +1,11 @@
 /** Injected faces and the Package-owned `tool.view.cordis` slot declaration. */
 
-import type { SessionId } from '@hydra1902/harness-client-connection/client'
-import type { HostObservable } from '@hydra1902/harness-client-ui-slots'
+import type { SessionId } from '@hydraharness/harness-client-connection/client'
+import type { HostObservable } from '@hydraharness/harness-client-ui-slots'
 import type {
   CordisRunActivity, CordisRunFailure, CordisUserRunRequest, DynamicCordisLivePackage,
   DynamicCordisRenderFailure,
-} from '@hydra1902/harness-cordis-client-runner/client'
+} from '@hydraharness/harness-cordis-client-runner/client'
 import type { CordisActionResult } from './dynamic-port.ts'
 import type { CordisInventory } from './inventory.ts'
 import type { CordisRunCardPointer, CordisRunCardStore } from './run-card-index.ts'
@@ -20,7 +20,7 @@ export interface CordisToolViewOwnerProps {
   readonly pluginRunId: CordisDynamicPluginRunId
 }
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface SlotMap {
     /**
      * Interactive Package-owned region rendered inside the latest eligible

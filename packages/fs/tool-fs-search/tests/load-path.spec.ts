@@ -1,5 +1,5 @@
 /**
- * Real-load-path guard for @hydra1902/harness-tool-fs-search. `tool-fs-search` is
+ * Real-load-path guard for @hydraharness/harness-tool-fs-search. `tool-fs-search` is
  * a NAMESPACE plugin with `inject` — so a stray `export default apply` would
  * make the cordis Loader's `unwrapExports` (`exports.default ?? exports`)
  * collapse the module to the bare `apply` function, DROPPING `inject`. The
@@ -15,12 +15,12 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime from '@hydra1902/harness-tools'
-import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
-import * as toolFsSearch from '@hydra1902/harness-tool-fs-search'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime from '@hydraharness/harness-tools'
+import LocalSubprocessRuntime from '@hydraharness/harness-subprocess-local'
+import * as toolFsSearch from '@hydraharness/harness-tool-fs-search'
 
 describe('hydra-tool-fs-search real-load-path guard', () => {
   it('has no default export and keeps name/inject/Config through unwrapExports', () => {

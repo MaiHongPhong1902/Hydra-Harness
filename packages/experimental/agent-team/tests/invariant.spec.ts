@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import InvariantService, { InvariantError } from '@hydra1902/harness-invariants'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import { Context } from '@hydraharness/cordis'
+import InvariantService, { InvariantError } from '@hydraharness/harness-invariants'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
 import * as TeamInvariant from '../src/invariant.ts'
 import { TeamId, TeamTaskId } from '../src/types.ts'
 
@@ -38,7 +38,7 @@ describe('Agent Teams stream invariant', () => {
       })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@hydra1902/harness-experimental-agent-team',
+      packageName: '@hydraharness/harness-experimental-agent-team',
     }))
     expect(invalid.events).toEqual([])
   })
@@ -63,7 +63,7 @@ describe('Agent Teams stream invariant', () => {
       })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@hydra1902/harness-experimental-agent-team',
+      packageName: '@hydraharness/harness-experimental-agent-team',
     }))
     expect(session.events).toEqual([])
   })

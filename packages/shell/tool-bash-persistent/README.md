@@ -1,4 +1,4 @@
-# @hydra/harness-tool-bash-persistent
+# @hydraharness/harness-tool-bash-persistent
 
 Model-facing `bash(command)` backed by one owner-scoped `ctx.terminals` shell. The package owns the tool contract and shell reuse; deployments select the PTY backend and sandbox policy.
 

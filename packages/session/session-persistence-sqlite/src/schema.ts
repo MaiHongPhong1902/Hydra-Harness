@@ -1,6 +1,6 @@
 /**
  * SQLite schema ownership and durable-row validation.
- * @module @hydra1902/harness-session-persistence-sqlite/schema
+ * @module @hydraharness/harness-session-persistence-sqlite/schema
  */
 
 import { randomUUID } from 'node:crypto'
@@ -11,7 +11,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import {
   SessionId,
   type SessionHeader,
-} from '@hydra1902/harness-session'
+} from '@hydraharness/harness-session'
 import { sql } from './sql.ts'
 
 /** Current physical-record schema with packed and compressed event rows. */

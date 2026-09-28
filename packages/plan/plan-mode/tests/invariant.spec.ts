@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SessionStore, { Session, SessionId, type SessionEvent } from '@hydra1902/harness-session'
-import * as PlanModeInvariant from '@hydra1902/harness-plan-mode/invariant'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+import { Context } from '@hydraharness/cordis'
+import SessionStore, { Session, SessionId, type SessionEvent } from '@hydraharness/harness-session'
+import * as PlanModeInvariant from '@hydraharness/harness-plan-mode/invariant'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

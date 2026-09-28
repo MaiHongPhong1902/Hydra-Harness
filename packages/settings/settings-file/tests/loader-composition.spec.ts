@@ -11,11 +11,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import Include from '@hydra1902/cordis-plugin-include'
-import z from '@hydra1902/schemastery'
-import { settingsNamespace, type SettingsScope } from '@hydra1902/harness-settings'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import Include from '@hydraharness/cordis-plugin-include'
+import z from '@hydraharness/schemastery'
+import { settingsNamespace, type SettingsScope } from '@hydraharness/harness-settings'
 import FileSettingsProvider from '../src/index.ts'
 
 interface ThemeConfig {
@@ -79,7 +79,7 @@ async function loadComposition(
     ...withSettings
       ? [
         '- id: settings',
-        "  name: '@hydra1902/harness-settings-file'",
+        "  name: '@hydraharness/harness-settings-file'",
         '  config:',
         `    path: ${JSON.stringify(settingsPath)}`,
         '    debounceMs: 10',
@@ -96,7 +96,7 @@ async function loadComposition(
   await ctx.plugin(Loader)
   ctx.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@hydra1902/harness-settings-file', FileSettingsProvider],
+    ['@hydraharness/harness-settings-file', FileSettingsProvider],
     ['test-settings-consumer', consumer],
   ])
   ctx.loader.internal = {

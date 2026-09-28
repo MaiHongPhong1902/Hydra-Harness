@@ -3,9 +3,9 @@
  * @module subagent-settlement-fence
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type {} from '@hydra1902/harness-agent-loop'
-import type {} from '@hydra1902/harness-subagent'
+import type { Context } from '@hydraharness/cordis'
+import type {} from '@hydraharness/harness-agent-loop'
+import type {} from '@hydraharness/harness-subagent'
 
 /** Fixture plugin name. */
 export const name = 'subagent-settlement-fence'

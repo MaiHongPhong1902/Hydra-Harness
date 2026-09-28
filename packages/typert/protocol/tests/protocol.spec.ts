@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   bindTypertRemote,
@@ -11,9 +11,9 @@ import {
   type TypertContext,
   type TypertForwardableEvent,
   type TypertRemoteEvent,
-} from '@hydra1902/harness-typert-protocol'
+} from '@hydraharness/harness-typert-protocol'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Events {
     /**
      * Test-only one-way event: bound to no Scope and returning nothing.
@@ -34,7 +34,7 @@ declare module '@hydra1902/cordis' {
   }
 }
 
-declare module '@hydra1902/harness-typert-protocol' {
+declare module '@hydraharness/harness-typert-protocol' {
   interface TypertContextMap {
     metaFixture: TypertContext<string>
   }

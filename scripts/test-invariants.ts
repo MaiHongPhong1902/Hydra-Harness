@@ -6,16 +6,16 @@
  */
 
 import { expect } from 'vitest'
-import { FiberState, Inject, RegistryService, ValidationError } from '@hydra1902/cordis'
-import type { Context, Plugin } from '@hydra1902/cordis'
-import { AttachmentStore } from '@hydra1902/harness-attachment'
+import { FiberState, Inject, RegistryService, ValidationError } from '@hydraharness/cordis'
+import type { Context, Plugin } from '@hydraharness/cordis'
+import { AttachmentStore } from '@hydraharness/harness-attachment'
 import type {
   ImageAttachmentLimits,
   ImageAttachmentRef,
   SaveImageAttachment,
   StoredImageAttachment,
-} from '@hydra1902/harness-attachment'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+} from '@hydraharness/harness-attachment'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 
 declare global {
   interface ImportMeta {

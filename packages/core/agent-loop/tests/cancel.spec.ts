@@ -1,4 +1,4 @@
-import { CallId, createUserMessage } from '@hydra1902/harness-llm'
+import { CallId, createUserMessage } from '@hydraharness/harness-llm'
 /**
  * Tests for the queue-aware `Agent.cancel()` primitive. The default clears
  * queued and steering work, while `keepInbox` preserves pending input for a
@@ -8,13 +8,13 @@ import { CallId, createUserMessage } from '@hydra1902/harness-llm'
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import LlmRuntime from '@hydra1902/harness-llm'
-import SessionStore, { SessionId, TurnEndReason } from '@hydra1902/harness-session'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { defineContentToolFixture, TOOL_ABORTED_BEFORE_DISPATCH } from '@hydra1902/harness-tools'
-import AgentRegistry, { type Agent } from '@hydra1902/harness-agent'
-import AgentLoop from '@hydra1902/harness-agent-loop'
+import { Context } from '@hydraharness/cordis'
+import LlmRuntime from '@hydraharness/harness-llm'
+import SessionStore, { SessionId, TurnEndReason } from '@hydraharness/harness-session'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture, TOOL_ABORTED_BEFORE_DISPATCH } from '@hydraharness/harness-tools'
+import AgentRegistry, { type Agent } from '@hydraharness/harness-agent'
+import AgentLoop from '@hydraharness/harness-agent-loop'
 import { MockAdapter, textResponse, toolCallResponse } from './mock-adapter.ts'
 
 function driverDone(agent: Agent): Promise<void> {

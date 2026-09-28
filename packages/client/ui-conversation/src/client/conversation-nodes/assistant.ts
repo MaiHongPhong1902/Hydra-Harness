@@ -1,23 +1,23 @@
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   AssistantBlock, AssistantMessageNode, ConversationLocation, ConversationMatch,
   ConversationNodeContext, ConversationNodeDefinition,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import {
   emptyAssistantBlock, isAppendSurfaceEvent, isTokenDelta, toAssistantBlock, toAssistantBlocks,
-} from '@hydra1902/harness-client-runtime/client'
-import type {} from '@hydra1902/harness-llm-retry/types'
+} from '@hydraharness/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-llm-retry/types'
 import type { AssistantChatData } from '../contract/chat-nodes.ts'
 import { CHAT_SYNTHETIC_SEQ_OFFSETS, chatNode } from './common.ts'
 
-declare module '@hydra1902/harness-client-ui-conversation/client' {
+declare module '@hydraharness/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Streaming, settled, or interrupted Assistant step. */
     'assistant-step': AssistantChatData
   }
 }
 
-declare module '@hydra1902/harness-client-runtime/client' {
+declare module '@hydraharness/harness-client-runtime/client' {
   interface ConversationStepDataMap {
     /** Streaming, settled, or interrupted Assistant material for this Step. */
     'assistant-step': AssistantChatData

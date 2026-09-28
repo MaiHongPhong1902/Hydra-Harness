@@ -8,13 +8,13 @@
  * client half (see the contract module doc). Export discipline:
  * packages/client/AGENTS.md.
  */
-import type { ConnectionHandle } from '@hydra1902/harness-client-connection/client'
-import type { HostObservable } from '@hydra1902/harness-client-ui-slots'
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
+import type { ConnectionHandle } from '@hydraharness/harness-client-connection/client'
+import type { HostObservable } from '@hydraharness/harness-client-ui-slots'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@hydra1902/harness-client-locale/client'
+import type {} from '@hydraharness/harness-client-locale/client'
 // Type-only: pulls the settings section SlotMap merge into this plugin.
-import type {} from '@hydra1902/harness-client-ui-settings/client'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
 import type { WorkspaceBrowserInjected, WorkspacePickerInjected } from './contract/slots.ts'
 import { createWorkspaceViewStore } from './stores.ts'
 import { WorkspaceBrowser } from './WorkspaceBrowser.tsx'
@@ -29,7 +29,7 @@ export type {
 } from './contract/slots.ts'
 export type { WorkspaceKey } from './locales.ts'
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The workspace browsing region and pick/create flow copy. */
     workspace: WorkspaceKey

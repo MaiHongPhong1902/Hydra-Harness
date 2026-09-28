@@ -1,4 +1,4 @@
-# @hydra/harness-tool-ask-user
+# @hydraharness/harness-tool-ask-user
 
 Model-facing `ask_user_question` tool over `ctx.userQuestions`. It lets the model ask the human a concise question for a user-owned choice or missing information before continuing, including when approval prompts are disabled. Execution permission follows the current sandbox and approval policy through the acting tool's approval flow; a question answer grants no permission and cannot override a denial. When the request clearly implies an available tool or execution path, the model should choose it itself instead of asking the user to choose between tools or implementation options.
 

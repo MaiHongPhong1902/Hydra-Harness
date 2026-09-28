@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { DirectoryListing } from '@hydra1902/harness-client-runtime/client'
-import { DirectoryBrowseError } from '@hydra1902/harness-client-runtime/client'
+import type { DirectoryListing } from '@hydraharness/harness-client-runtime/client'
+import { DirectoryBrowseError } from '@hydraharness/harness-client-runtime/client'
 import { DirectoryBrowser } from '../src/client/DirectoryBrowser.tsx'
 
 afterEach(cleanup)

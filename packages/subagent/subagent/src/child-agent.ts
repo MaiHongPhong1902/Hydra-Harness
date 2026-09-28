@@ -5,26 +5,26 @@
  * provider driver and the continuation manager compose children this way, so
  * depth accounting, lineage stamping, and delegation policy have one home.
  *
- * @module @hydra1902/harness-subagent/child-agent
+ * @module @hydraharness/harness-subagent/child-agent
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Agent, AgentOptions, CreateAgentOptions } from '@hydra1902/harness-agent'
-import type { SandboxMode } from '@hydra1902/harness-sandbox'
-import type { Session, SessionId } from '@hydra1902/harness-session'
-import type { ToolRestriction } from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import type { Agent, AgentOptions, CreateAgentOptions } from '@hydraharness/harness-agent'
+import type { SandboxMode } from '@hydraharness/harness-sandbox'
+import type { Session, SessionId } from '@hydraharness/harness-session'
+import type { ToolRestriction } from '@hydraharness/harness-tools'
 // Type-only: make `ctx.get('sandboxPolicy')` / `ctx.get('approval')` resolve
 // to the policy services when composed — delegation consumes both
 // opportunistically (the documented `ctx.get` pattern), never as a hard dep —
 // and merge the `sandbox/mode` / `approval/policy` session-event payloads.
-import type {} from '@hydra1902/harness-sandbox-policy'
-import type {} from '@hydra1902/harness-user-approval'
+import type {} from '@hydraharness/harness-sandbox-policy'
+import type {} from '@hydraharness/harness-user-approval'
 // Type-only: make `ctx.get('agentPresets')` resolve to the preset roster when
 // composed — a child inherits its parent's composition opportunistically (the
 // documented `ctx.get` pattern), never as a hard dep. A rosterless deployment
 // keeps its model-facing rows on the host plane, where the child already sees
 // them through the tool registry's global layer.
-import type {} from '@hydra1902/harness-agent-presets'
+import type {} from '@hydraharness/harness-agent-presets'
 import { delegationDepthOf } from './depth.ts'
 
 /** Thrown when starting a child would exceed the requested depth cap. */

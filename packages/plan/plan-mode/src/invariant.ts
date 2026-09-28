@@ -1,10 +1,10 @@
-/** Package-owned durable plan-mode invariants. @module @hydra1902/harness-plan-mode/invariant */
+/** Package-owned durable plan-mode invariants. @module @hydraharness/harness-plan-mode/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-plan-mode'
+const PACKAGE_NAME = '@hydraharness/harness-plan-mode'
 
 /** Cordis companion plugin name. */
 export const name = 'plan-mode-invariant'

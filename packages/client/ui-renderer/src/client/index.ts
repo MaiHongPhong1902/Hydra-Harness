@@ -6,8 +6,8 @@
 import { createElement, useLayoutEffect, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot, hydrateRoot, type Root } from 'react-dom/client'
-import type { Context } from '@hydra1902/cordis'
-import type { SnapshotSelectorHook } from '@hydra1902/harness-client-ui-slots'
+import type { Context } from '@hydraharness/cordis'
+import type { SnapshotSelectorHook } from '@hydraharness/harness-client-ui-slots'
 import { createSlotRenderer } from './scoped-slots.tsx'
 import { buildRenderApp } from './app.tsx'
 
@@ -17,7 +17,7 @@ export type UseSession<Snap extends object = object> = SnapshotSelectorHook<Snap
 export type {
   ChainRenderOpts, HostObservable, RenderOpts, SessionProvideInfo, SnapshotSelectorHook,
   SlotRenderer, SlotRendererHost, StoreInstanceLike,
-} from '@hydra1902/harness-client-ui-slots'
+} from '@hydraharness/harness-client-ui-slots'
 export type { SessionProviderProps } from './session-provider.tsx'
 
 /** Mount operation exposed to the framework-free boot kernel. */
@@ -30,7 +30,7 @@ export interface UiRendererService {
   mount: (container: HTMLElement) => () => void
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** Mount face provided after the UI renderer activates. */
     uiRenderer: UiRendererService

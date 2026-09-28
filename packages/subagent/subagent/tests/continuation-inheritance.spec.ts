@@ -10,18 +10,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
-import AgentLoop from '@hydra1902/harness-agent-loop'
-import { mountAgentLoopTestDependencies } from '@hydra1902/harness-agent-loop-testkit'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import SandboxPolicyService, { effectiveSandboxMode, setSandboxMode } from '@hydra1902/harness-sandbox-policy'
-import { SessionId } from '@hydra1902/harness-session'
-import type { SessionEvent } from '@hydra1902/harness-session'
-import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
-import * as SubagentFork from '@hydra1902/harness-subagent-fork-in-process'
-import * as SubagentSpawn from '@hydra1902/harness-subagent-spawn-in-process'
-import ApprovalService, { effectiveApprovalPolicy } from '@hydra1902/harness-user-approval'
+import { Context } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
+import AgentLoop from '@hydraharness/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydraharness/harness-agent-loop-testkit'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import SandboxPolicyService, { effectiveSandboxMode, setSandboxMode } from '@hydraharness/harness-sandbox-policy'
+import { SessionId } from '@hydraharness/harness-session'
+import type { SessionEvent } from '@hydraharness/harness-session'
+import JsonlSessionPersistence from '@hydraharness/harness-session-persistence-jsonl'
+import * as SubagentFork from '@hydraharness/harness-subagent-fork-in-process'
+import * as SubagentSpawn from '@hydraharness/harness-subagent-spawn-in-process'
+import ApprovalService, { effectiveApprovalPolicy } from '@hydraharness/harness-user-approval'
 import { MockAdapter, textResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import SubagentRuntime from '../src/index.ts'
 
@@ -104,7 +104,7 @@ describe('continuable policy inheritance', () => {
     const runtimeContext = loaded.events.find(
       (event): event is SessionEvent<'user/message'> => event.type === 'user/message'
         && event.data.source.kind === 'plugin'
-        && event.data.source.plugin === '@hydra1902/harness-system-prompt',
+        && event.data.source.plugin === '@hydraharness/harness-system-prompt',
     )
     const contextText = runtimeContext?.data.content
       .flatMap(block => block.type === 'text' ? [block.text] : [])

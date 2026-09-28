@@ -1,22 +1,22 @@
 /**
  * Caller identity, workspace authorization, and visible lineage projection.
  *
- * @module @hydra1902/harness-tool-session-query/workspace-access
+ * @module @hydraharness/harness-tool-session-query/workspace-access
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { HarnessError } from '@hydra1902/harness-llm'
+import type { Context } from '@hydraharness/cordis'
+import { HarnessError } from '@hydraharness/harness-llm'
 import {
   SessionId,
   type SessionEvent,
   type SessionHeader,
   type SessionId as SessionIdValue,
-} from '@hydra1902/harness-session'
+} from '@hydraharness/harness-session'
 import type {
   SessionLineageNode,
   SessionRecord,
-} from '@hydra1902/harness-session-query'
-import type { ToolRunContext } from '@hydra1902/harness-tools'
+} from '@hydraharness/harness-session-query'
+import type { ToolRunContext } from '@hydraharness/harness-tools'
 import { serviceBoundary } from './service-boundary.ts'
 
 interface Caller {

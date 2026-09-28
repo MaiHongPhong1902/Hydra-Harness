@@ -5,12 +5,12 @@
  */
 
 import { expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
-import SubagentRuntime from '@hydra1902/harness-subagent'
-import type { SubagentProvider } from '@hydra1902/harness-subagent'
+import { Context } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
+import SubagentRuntime from '@hydraharness/harness-subagent'
+import type { SubagentProvider } from '@hydraharness/harness-subagent'
 import WorkerThreadWorkflowEngine from '../src/index.ts'
-import { SessionId } from '@hydra1902/harness-session'
+import { SessionId } from '@hydraharness/harness-session'
 
 // A fresh thread compiles the source runtime. Leave contention headroom on
 // shared CI runners without weakening any engine-level timeout assertion.

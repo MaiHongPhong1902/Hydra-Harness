@@ -26,12 +26,12 @@ The example keeps the producer declarations and client contribution in one block
 
 ```ts ignore-check
 import { createElement } from 'react'
-import type { Branded } from '@hydra1902/harness-brand'
+import type { Branded } from '@hydraharness/harness-brand'
 import type {
   ClientContext, ConversationLocation, ConversationNodeContext,
   ConversationNodeDefinition,
-} from '@hydra1902/harness-client-runtime/client'
-import type { ChatNodeViewProps } from '@hydra1902/harness-client-ui-conversation/client'
+} from '@hydraharness/harness-client-runtime/client'
+import type { ChatNodeViewProps } from '@hydraharness/harness-client-ui-conversation/client'
 
 type ReviewId = Branded<'ReviewId'>
 
@@ -56,7 +56,7 @@ interface ReviewEndData {
   readonly summary: string
 }
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /**
      * Opens one durable review job.
@@ -86,13 +86,13 @@ interface ReviewChatData {
   readonly summary?: string
 }
 
-declare module '@hydra1902/harness-client-ui-conversation/client' {
+declare module '@hydraharness/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     'review-job': ReviewChatData
   }
 }
 
-declare module '@hydra1902/harness-client-runtime/client' {
+declare module '@hydraharness/harness-client-runtime/client' {
   interface ConversationStepDataMap {
     'review-job': ReviewChatData
   }

@@ -41,7 +41,7 @@ const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 const CLIENT_TYPE_PROGRAM = 'tsconfig.client.json'
 
 /** Compile-shell workspace whose dist `hydra web` serves. */
-const SHELL_PACKAGE = '@hydra1902/harness-web-frontend'
+const SHELL_PACKAGE = '@hydraharness/harness-web-frontend'
 
 /**
  * Test infrastructure builds through the client preset but never enters the

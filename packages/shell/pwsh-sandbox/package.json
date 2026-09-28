@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-pwsh-sandbox",
+  "name": "@hydraharness/harness-pwsh-sandbox",
   "description": "Sandbox-consuming implementation of the Hydra harness PowerShell executor seam (confines every command via ctx.sandbox, reports denial/enforcement result facts)",
   "hydra": {
     "plugin": {
@@ -37,21 +37,21 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-shell": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-pwsh-local": "workspace:^",
-    "@hydra1902/harness-sandbox": "workspace:^",
-    "@hydra1902/harness-sandbox-policy": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-shell": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-pwsh-local": "workspace:^",
+    "@hydraharness/harness-sandbox": "workspace:^",
+    "@hydraharness/harness-sandbox-policy": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-shell": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-pwsh-local": "workspace:^",
-    "@hydra1902/harness-sandbox": "workspace:^",
-    "@hydra1902/harness-sandbox-local": "workspace:^",
-    "@hydra1902/harness-sandbox-policy": "workspace:^",
-    "@hydra1902/harness-subprocess-local": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-shell": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-pwsh-local": "workspace:^",
+    "@hydraharness/harness-sandbox": "workspace:^",
+    "@hydraharness/harness-sandbox-local": "workspace:^",
+    "@hydraharness/harness-sandbox-policy": "workspace:^",
+    "@hydraharness/harness-subprocess-local": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

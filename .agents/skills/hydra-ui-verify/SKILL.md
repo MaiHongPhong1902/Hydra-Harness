@@ -29,7 +29,7 @@ $env:HYDRA_SNAPSHOT = 'replay'
 pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/ui-controls.e2e.ts
 ```
 
-Choose additional files from the changed feature, rather than copying a fixed whole-repository test list. After a valid build, the existing desktop smoke is `pnpm --filter @hydra/harness-desktop run smoke`; give state-changing smoke runs a temporary `HYDRA_HOME` instead of the user's profile.
+Choose additional files from the changed feature, rather than copying a fixed whole-repository test list. After a valid build, the existing desktop smoke is `pnpm --filter @hydraharness/harness-desktop run smoke`; give state-changing smoke runs a temporary `HYDRA_HOME` instead of the user's profile.
 
 ## Observe meaningful behavior
 

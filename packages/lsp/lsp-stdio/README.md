@@ -1,4 +1,4 @@
-# @hydra/harness-lsp-stdio
+# @hydraharness/harness-lsp-stdio
 
 A **generic stdio language-server backend** for `ctx.lsp`. One plugin instance accepts a named server table and registers one isolated provider per entry. It reads through `ctx.fs` and launches through `ctx.subprocess`, so the server and source always inhabit the mounted execution world. This is a generic host, not a language-server catalog or installer — deployments configure commands and mappings explicitly; presets belong in `cordis.yml` overlays.
 
@@ -44,11 +44,11 @@ The provider trusts its configured server and claims no sandbox confinement. It 
 
 ## Model Experience
 
-Indirectly, through `@hydra/harness-tool-lsp`, which surfaces this provider's normalized results; this host contributes no prompt or schema itself.
+Indirectly, through `@hydraharness/harness-tool-lsp`, which surfaces this provider's normalized results; this host contributes no prompt or schema itself.
 
 #### KV Cache effect
 
-No direct invalidation; `@hydra/harness-tool-lsp` owns request-prefix changes.
+No direct invalidation; `@hydraharness/harness-tool-lsp` owns request-prefix changes.
 
 ## Known Limitations and Deferred Work
 

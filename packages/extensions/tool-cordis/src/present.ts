@@ -1,6 +1,6 @@
 /** Pure replay-safe render intents for Cordis tools. */
 
-import type { GenericCallView } from '@hydra1902/harness-tools'
+import type { GenericCallView } from '@hydraharness/harness-tools'
 
 /**
  * Render a runtime-inspection call.

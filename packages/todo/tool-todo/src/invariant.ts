@@ -1,10 +1,10 @@
-/** Package-owned durable todo-snapshot invariants. @module @hydra1902/harness-tool-todo/invariant */
+/** Package-owned durable todo-snapshot invariants. @module @hydraharness/harness-tool-todo/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-tool-todo'
+const PACKAGE_NAME = '@hydraharness/harness-tool-todo'
 const TODO_STATUSES = new Set(['pending', 'in_progress', 'completed'])
 
 /** Cordis companion plugin name. */

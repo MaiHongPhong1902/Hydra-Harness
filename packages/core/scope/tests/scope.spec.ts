@@ -1,9 +1,9 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { bindScopeParent, carrierKeyOf, createScope, isScopeCarrier, scopeChainOf, scopeOf, scopeParentOf, scopeTarget } from '@hydra1902/harness-scope'
-import type { Scope, Scoped } from '@hydra1902/harness-scope'
+import { Context } from '@hydraharness/cordis'
+import { bindScopeParent, carrierKeyOf, createScope, isScopeCarrier, scopeChainOf, scopeOf, scopeParentOf, scopeTarget } from '@hydraharness/harness-scope'
+import type { Scope, Scoped } from '@hydraharness/harness-scope'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Events {
     /**
      * Test-only event for scope-filtered dispatch.

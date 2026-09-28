@@ -3,14 +3,14 @@
 //
 // The 'conversation.input.dock' SlotMap declaration lives in
 // ../contract/slots.ts beside the other input-region slots.
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import { useEffect, useId, useMemo, useState } from 'react'
-import type { PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
-import type { SessionId } from '@hydra1902/harness-client-runtime/client'
+import type { PropsLocale, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
+import type { SessionId } from '@hydraharness/harness-client-runtime/client'
 import {
   IconCheckOutline16, IconChevronDownOutline14, IconChevronUpOutline14, IconCloseOutline16,
   IconEditOutline16, IconQueueOutline14, IconSendOutline14, IconTrashOutline16, Tooltip,
-} from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-client-ui-primitives'
 import type { QueueAction, QueueItemId } from '../contract/queue.ts'
 import { NS } from '../locales.ts'
 import css from './QueueDock.module.css'

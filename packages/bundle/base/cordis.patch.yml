@@ -14,40 +14,40 @@
 
 - insert:
     - id: timer
-      name: '@hydra1902/cordis-plugin-timer'
+      name: '@hydraharness/cordis-plugin-timer'
       description: Schedules Cordis tasks and timers used by other plugins.
       application: Run delayed and recurring Host work when a plugin registers a timer.
       pluginType: core
 
     - id: hmr
-      name: '@hydra1902/cordis-plugin-hmr'
+      name: '@hydraharness/cordis-plugin-hmr'
       description: Reloads changed plugin modules during development.
       application: Apply local plugin edits without restarting the entire Host.
       config:
         root: ['.']
 
     - id: llm
-      name: '@hydra1902/harness-llm'
+      name: '@hydraharness/harness-llm'
       pluginType: core
 
     - id: session
-      name: '@hydra1902/harness-session'
+      name: '@hydraharness/harness-session'
       pluginType: core
 
     - id: typert
-      name: '@hydra1902/harness-typert-registry'
+      name: '@hydraharness/harness-typert-registry'
       pluginType: core
 
     - id: typert-loader
-      name: '@hydra1902/harness-typert-loader'
+      name: '@hydraharness/harness-typert-loader'
       pluginType: core
 
     - id: typert-gateway
-      name: '@hydra1902/harness-api-gateway'
+      name: '@hydraharness/harness-api-gateway'
       pluginType: core
 
     - id: session-title
-      name: '@hydra1902/harness-session-title'
+      name: '@hydraharness/harness-session-title'
       pluginType: core
       config:
         fallbackMaxWords: 5
@@ -55,7 +55,7 @@
         maxTitleBytes: 80
 
     - id: session-title-llm
-      name: '@hydra1902/harness-session-title-first-prompt-llm'
+      name: '@hydraharness/harness-session-title-first-prompt-llm'
       config:
         targetWords: 5
         targetCjkCharacters: 10
@@ -64,36 +64,36 @@
         timeoutMs: 60000
 
     - id: user-questions
-      name: '@hydra1902/harness-user-questions'
+      name: '@hydraharness/harness-user-questions'
 
     - id: agent
-      name: '@hydra1902/harness-agent'
+      name: '@hydraharness/harness-agent'
       pluginType: core
 
     # The transport-independent default for Agents created by entry points.
     # Settings may supply a saved selection; consumers read it at creation time.
     - id: agent-default-model
-      name: '@hydra1902/harness-agent-default-model'
+      name: '@hydraharness/harness-agent-default-model'
       pluginType: core
       config:
         provider: deepseek-official
         model: deepseek-v4-flash
 
     - id: jobs
-      name: '@hydra1902/harness-jobs-local'
+      name: '@hydraharness/harness-jobs-local'
       pluginType: core
 
     - id: llm-retry
-      name: '@hydra1902/harness-llm-retry'
+      name: '@hydraharness/harness-llm-retry'
 
     - id: llm-call-log
-      name: '@hydra1902/harness-llm-call-log'
+      name: '@hydraharness/harness-llm-call-log'
 
     # User-settings document (`$HYDRA_HOME/settings.yaml`, hot-reloaded): a
     # `llm-deepseek:` or `llm-pi-ai:` section there overrides the adapter entries
     # below without a restart, and is what the web Models page writes.
     - id: settings
-      name: '@hydra1902/harness-settings-file'
+      name: '@hydraharness/harness-settings-file'
       pluginType: core
 
     # Credential sources: inherited environment over the managed
@@ -101,13 +101,13 @@
     # Adapters resolve references per request; the Models page writes only the
     # managed document, which is never materialized into the process environment.
     - id: credentials
-      name: '@hydra1902/harness-credentials-local'
+      name: '@hydraharness/harness-credentials-local'
       pluginType: core
 
     # Provider-owned login flows use the shared credential record store and
     # expose browser-safe notices/prompts through the Host authorization API.
     - id: authorization
-      name: '@hydra1902/harness-authorization'
+      name: '@hydraharness/harness-authorization'
       pluginType: core
 
     # The pi-ai multi-provider twin, mounted dormant: zero routes (and no extra
@@ -118,16 +118,16 @@
     # adapters exist is composition; which providers run is the user's settings
     # document.
     - id: llm-pi-ai
-      name: '@hydra1902/harness-llm-pi-ai'
+      name: '@hydraharness/harness-llm-pi-ai'
       pluginType: core
 
     # Account SDKs load only for login or requests on an enabled account route.
     - id: llm-account-auth
-      name: '@hydra1902/harness-llm-account-auth'
+      name: '@hydraharness/harness-llm-account-auth'
       pluginType: core
 
     - id: session-persistence-jsonl
-      name: '@hydra1902/harness-session-persistence-jsonl'
+      name: '@hydraharness/harness-session-persistence-jsonl'
       pluginType: core
       config:
         root: !!js hydraHomePath('sessions')
@@ -136,7 +136,7 @@
     # keep content-addressed references that this shared backend resolves for
     # provider requests and authorized history reads.
     - id: attachment-local
-      name: '@hydra1902/harness-attachment-local'
+      name: '@hydraharness/harness-attachment-local'
 
     # Full-text session search is opt-in. `openAt: never` keeps
     # ctx.sessionQuery mounted — exact reads, titles, and lineage traces
@@ -147,7 +147,7 @@
     # `first-search` or `startup` in a later patch layer (profile
     # cordis.patch.yml or a --patch overlay), typically with a durable `path`.
     - id: session-query-sqlite
-      name: '@hydra1902/harness-session-query-sqlite'
+      name: '@hydraharness/harness-session-query-sqlite'
       config:
         path: ':memory:'
         openAt: never
@@ -156,7 +156,7 @@
     # through its registered units, so the `list_agents` surface below fails
     # loud without it; web layers reuse this same mount for list rows.
     - id: session-projection
-      name: '@hydra1902/harness-session-projection'
+      name: '@hydraharness/harness-session-projection'
       pluginType: core
 
     # Session telemetry is mounted but disabled by default. HYDRA_TELEMETRY_MODE
@@ -179,7 +179,7 @@
     # promise never settles. Every CLI exit path drains it by disposing the root
     # on SIGINT/SIGTERM.
     - id: session-telemetry-otel
-      name: '@hydra1902/harness-session-telemetry-otel'
+      name: '@hydraharness/harness-session-telemetry-otel'
       config:
         mode: !!js process.env.HYDRA_TELEMETRY_MODE || 'DISABLED'
         shutdownTimeoutMillis: 3000
@@ -194,7 +194,7 @@
           exportTimeoutMillis: 1500
 
     - id: subprocess
-      name: '@hydra1902/harness-subprocess-local'
+      name: '@hydraharness/harness-subprocess-local'
       pluginType: core
 
     # Semantic navigation is available to coding presets when a local language
@@ -202,11 +202,11 @@
     # so a machine without a server does not fail Host startup; setting
     # HYDRA_LSP_COMMAND enables the TypeScript-compatible stdio route.
     - id: lsp
-      name: '@hydra1902/harness-lsp'
+      name: '@hydraharness/harness-lsp'
       pluginType: core
 
     - id: lsp-stdio
-      name: '@hydra1902/harness-lsp-stdio'
+      name: '@hydraharness/harness-lsp-stdio'
       pluginType: core
       disabled: !!js process.env.HYDRA_LSP_COMMAND === undefined
       config:
@@ -224,36 +224,36 @@
     # The environment remains an explicit deployment override; otherwise fresh
     # sessions pin workspace-write + ask through the permission service below.
     - id: sandbox
-      name: '@hydra1902/harness-sandbox-local'
+      name: '@hydraharness/harness-sandbox-local'
       pluginType: core
 
     - id: sandbox-policy
-      name: '@hydra1902/harness-sandbox-policy'
+      name: '@hydraharness/harness-sandbox-policy'
       pluginType: core
       config:
         mode: !!js process.env.HYDRA_PERMISSION_MODE ?? 'workspace-write'
         workspaceRoot: !!js process.cwd()
 
     - id: bash-sandbox
-      name: '@hydra1902/harness-bash-sandbox'
+      name: '@hydraharness/harness-bash-sandbox'
       pluginType: core
       disabled: !!js process.platform === 'win32'
       config:
         timeoutMs: 60000
 
     - id: pwsh-sandbox
-      name: '@hydra1902/harness-pwsh-sandbox'
+      name: '@hydraharness/harness-pwsh-sandbox'
       pluginType: core
       disabled: !!js process.platform !== 'win32'
 
     - id: approval
-      name: '@hydra1902/harness-user-approval'
+      name: '@hydraharness/harness-user-approval'
       pluginType: core
       config:
         policy: !!js "(process.env.HYDRA_PERMISSION_MODE ?? 'workspace-write') === 'danger-full-access' ? 'never' : 'ask'"
 
     - id: permission
-      name: '@hydra1902/harness-permission-presets'
+      name: '@hydraharness/harness-permission-presets'
       pluginType: core
       config:
         presets:
@@ -268,67 +268,67 @@
             approval: never
 
     - id: shell-env
-      name: '@hydra1902/harness-shell-env'
+      name: '@hydraharness/harness-shell-env'
       pluginType: core
 
     - id: tool-bash
-      name: '@hydra1902/harness-tool-bash'
+      name: '@hydraharness/harness-tool-bash'
       disabled: !!js process.platform === 'win32'
 
     - id: tool-pwsh
-      name: '@hydra1902/harness-tool-pwsh'
+      name: '@hydraharness/harness-tool-pwsh'
       disabled: !!js process.platform !== 'win32'
 
     - id: tool-jobs
-      name: '@hydra1902/harness-tool-jobs'
+      name: '@hydraharness/harness-tool-jobs'
 
     - id: fs-observation-policy
-      name: '@hydra1902/harness-fs-observation-policy'
+      name: '@hydraharness/harness-fs-observation-policy'
       pluginType: core
 
     - id: tool-fs
-      name: '@hydra1902/harness-tool-fs'
+      name: '@hydraharness/harness-tool-fs'
 
     - id: fs-review
-      name: '@hydra1902/harness-fs-review'
+      name: '@hydraharness/harness-fs-review'
 
     - id: tool-fs-search
-      name: '@hydra1902/harness-tool-fs-search'
+      name: '@hydraharness/harness-tool-fs-search'
       config:
         sampleOverCapGlobResults: false
 
     - id: agent-instructions
-      name: '@hydra1902/harness-agent-instructions'
+      name: '@hydraharness/harness-agent-instructions'
       config:
         maxBytes: 65536
 
     # Personality preference: settings-backed tone selector for the system
     # prompt, logged to each session as durable prompt provenance.
     - id: personalization
-      name: '@hydra1902/harness-personalization'
+      name: '@hydraharness/harness-personalization'
 
     - id: skill
-      name: '@hydra1902/harness-skill'
+      name: '@hydraharness/harness-skill'
       pluginType: core
 
     - id: skill-filesystem
-      name: '@hydra1902/harness-skill-filesystem'
+      name: '@hydraharness/harness-skill-filesystem'
 
     - id: skill-badge
-      name: '@hydra1902/harness-skill-badge'
+      name: '@hydraharness/harness-skill-badge'
       disabled: true
 
     - id: tool-skill
-      name: '@hydra1902/harness-tool-skill'
+      name: '@hydraharness/harness-tool-skill'
 
     - id: commands
-      name: '@hydra1902/harness-commands'
+      name: '@hydraharness/harness-commands'
       pluginType: core
 
     # Imported OpenAI/Codex plugin bundles are shared by every profile. The
     # runtime owns immutable bundles, per-plugin data, and reversible loading.
     - id: plugin-runtime
-      name: '@hydra1902/harness-plugin-runtime'
+      name: '@hydraharness/harness-plugin-runtime'
       pluginType: core
 
     # The user's own MCP servers and hooks, stored in `$HYDRA_HOME/settings.yaml`
@@ -337,28 +337,28 @@
     # a server or hook added from the Settings page survives a restart and one
     # added by hand-editing the document takes effect without one.
     - id: mcp-registry
-      name: '@hydra1902/harness-mcp-registry'
+      name: '@hydraharness/harness-mcp-registry'
       pluginType: core
 
     - id: hooks-registry
-      name: '@hydra1902/harness-hooks-registry'
+      name: '@hydraharness/harness-hooks-registry'
       pluginType: core
 
     - id: command-feedback
-      name: '@hydra1902/harness-command-feedback'
+      name: '@hydraharness/harness-command-feedback'
 
     - id: goal
-      name: '@hydra1902/harness-goal'
+      name: '@hydraharness/harness-goal'
       pluginType: core
 
     - id: goal-round-driver
-      name: '@hydra1902/harness-goal-round-driver'
+      name: '@hydraharness/harness-goal-round-driver'
 
     - id: command-goal
-      name: '@hydra1902/harness-command-goal'
+      name: '@hydraharness/harness-command-goal'
 
     - id: plan-mode
-      name: '@hydra1902/harness-plan-mode'
+      name: '@hydraharness/harness-plan-mode'
       config:
         section: |
               You are in plan mode. Stay in plan mode until exit_plan_mode succeeds or the user switches the session mode. Imperative language to implement changes means plan the implementation, not execute it. A user's conversational agreement — including an answer confirming something you asked — approves nothing and does not end plan mode; fold the confirmed decision into the plan and submit it through exit_plan_mode.
@@ -374,32 +374,32 @@
               When ready, call exit_plan_mode with the complete plan markdown, starting with a # title. Make exit_plan_mode the only and final tool call in that assistant response: it presents the plan for approval, and implementation begins only in a later step after approval. Do not paste the final plan as a plain reply or ask "should I proceed?" through prose or ask_user_question. If review rejects it, incorporate the feedback and present again. If the review channel is unavailable or aborted, stay in plan mode and ask the user to switch modes manually; do not proceed with implementation.
 
     - id: token-meter
-      name: '@hydra1902/harness-token-meter'
+      name: '@hydraharness/harness-token-meter'
       pluginType: core
 
     - id: compaction-basic
-      name: '@hydra1902/harness-compaction-basic'
+      name: '@hydraharness/harness-compaction-basic'
 
     # Human `/compact`: one useful reduction below the automatic threshold. Backend
     # independent, so it follows whichever compaction service this leaf mounts.
     - id: command-compact
-      name: '@hydra1902/harness-command-compact'
+      name: '@hydraharness/harness-command-compact'
 
     - id: subagent
-      name: '@hydra1902/harness-subagent'
+      name: '@hydraharness/harness-subagent'
       config:
         maxActivePerTree: 4
         maxChildrenPerTree: 8
       pluginType: core
 
     - id: subagent-spawn-in-process
-      name: '@hydra1902/harness-subagent-spawn-in-process'
+      name: '@hydraharness/harness-subagent-spawn-in-process'
       pluginType: core
       config:
         providerName: spawn
 
     - id: subagent-fork-in-process
-      name: '@hydra1902/harness-subagent-fork-in-process'
+      name: '@hydraharness/harness-subagent-fork-in-process'
       pluginType: core
       config:
         providerName: fork
@@ -407,13 +407,13 @@
     # Continuable background children are selected per delegation tool. The
     # separately loaded follow-up tool registers the one global `send_message`.
     - id: tool-subagent-control
-      name: '@hydra1902/harness-tool-subagent-control'
+      name: '@hydraharness/harness-tool-subagent-control'
 
     - id: tool-subagent-list-agents
-      name: '@hydra1902/harness-tool-subagent-control/list-agents'
+      name: '@hydraharness/harness-tool-subagent-control/list-agents'
 
     - id: tool-subagent
-      name: '@hydra1902/harness-tool-subagent'
+      name: '@hydraharness/harness-tool-subagent'
       config:
         provider: spawn
         toolName: subagent
@@ -424,7 +424,7 @@
     # fork children install neither, keeping the parent's request prefix.
     # See .agents/notes/implemented/architecture/2026-08-10-fork-children-stay-one-shot.md.
     - id: tool-subagent-fork
-      name: '@hydra1902/harness-tool-subagent'
+      name: '@hydraharness/harness-tool-subagent'
       config:
         provider: fork
         toolName: subagent_fork
@@ -432,68 +432,68 @@
 
     # Optional direct-child return channel; absent from roots and one-shot agents.
     - id: tool-subagent-report
-      name: '@hydra1902/harness-tool-subagent-report'
+      name: '@hydraharness/harness-tool-subagent-report'
 
     - id: workflow-worker-thread
-      name: '@hydra1902/harness-workflow-worker-thread'
+      name: '@hydraharness/harness-workflow-worker-thread'
       config:
         provider: spawn
 
     - id: tool-workflow
-      name: '@hydra1902/harness-tool-workflow'
+      name: '@hydraharness/harness-tool-workflow'
 
     - id: timeout-policy
-      name: '@hydra1902/harness-tool-call-timeout-policy'
+      name: '@hydraharness/harness-tool-call-timeout-policy'
 
     - id: spill-local
-      name: '@hydra1902/harness-spill-local'
+      name: '@hydraharness/harness-spill-local'
       pluginType: core
 
     - id: spill-policy
-      name: '@hydra1902/harness-spill-policy'
+      name: '@hydraharness/harness-spill-policy'
       pluginType: core
       config:
         maxInlineBytes: 50000
 
     # Durability checkpoints before each model request and top-level dispatch.
     - id: session-checkpoint-policy
-      name: '@hydra1902/harness-session-checkpoint-policy'
+      name: '@hydraharness/harness-session-checkpoint-policy'
       pluginType: core
 
     # Compacts oversized tool results before the broader conversation compactor
     # runs, preserving the model-visible result within the configured budget.
     - id: tool-result-pruner
-      name: '@hydra1902/harness-compaction-tool-result-pruner'
+      name: '@hydraharness/harness-compaction-tool-result-pruner'
       config:
         thresholdChars: 8192
         headChars: 4096
         tailChars: 1024
 
     - id: tool-todo
-      name: '@hydra1902/harness-tool-todo'
+      name: '@hydraharness/harness-tool-todo'
       config:
         allowParallelInProgress: true
 
     # Persisted same-session goals reach the model and the slash menu here; the
     # domain, driver, and `/goal` command are above.
     - id: tool-goal
-      name: '@hydra1902/harness-tool-goal'
+      name: '@hydraharness/harness-tool-goal'
 
     # Fresh-agent Ralph iteration over a build-time-fixed script.
     - id: tool-ralph
-      name: '@hydra1902/harness-tool-ralph'
+      name: '@hydraharness/harness-tool-ralph'
       config:
         subagentProvider: spawn
         maxRounds: 64
 
     - id: tool-str-replace-editor
-      name: '@hydra1902/harness-tool-str-replace-editor'
+      name: '@hydraharness/harness-tool-str-replace-editor'
       config:
         maxOutputChars: 16000
 
     # Consecutive-repeat reminders on the tool chain.
     - id: repeat-tool-reminder
-      name: '@hydra1902/harness-repeat-tool-reminder'
+      name: '@hydraharness/harness-repeat-tool-reminder'
       config:
         thresholds: [3, 5, 8]
         argumentsPreviewChars: 500
@@ -501,30 +501,30 @@
     # Every mode enables the stable model-facing web_search tool. Search provider
     # selection is saved independently of the active chat model in Settings.
     - id: research-policy
-      name: '@hydra1902/harness-research-policy'
+      name: '@hydraharness/harness-research-policy'
 
     - id: web
-      name: '@hydra1902/harness-web'
+      name: '@hydraharness/harness-web'
       pluginType: core
       config:
         requireSearchSelection: true
 
     - id: web-search-deepseek
-      name: '@hydra1902/harness-web-search-deepseek'
+      name: '@hydraharness/harness-web-search-deepseek'
       pluginType: core
 
     - id: web-search-http
-      name: '@hydra1902/harness-web-search-http'
+      name: '@hydraharness/harness-web-search-http'
       pluginType: core
 
     - id: web-fetch-http
-      name: '@hydra1902/harness-web-fetch-http'
+      name: '@hydraharness/harness-web-fetch-http'
       pluginType: core
       config:
         timeoutMs: 45000
 
     - id: tool-web
-      name: '@hydra1902/harness-tool-web'
+      name: '@hydraharness/harness-tool-web'
       config:
         fetch: true
         searchTimeoutMs: 60000
@@ -536,26 +536,26 @@
     # profile directory persists so an SSO login survives the session — and
     # carries the prompt-injection exposure the package README documents.
     - id: browser-electron
-      name: '@hydra1902/harness-browser-electron'
+      name: '@hydraharness/harness-browser-electron'
       pluginType: core
 
     # Recalls graph-linked Obsidian knowledge through MCP, plus approval-gated
     # knowledge saves. Independent of Browser tooling.
     - id: obsidian-knowledge
-      name: '@hydra1902/harness-obsidian-knowledge'
+      name: '@hydraharness/harness-obsidian-knowledge'
 
     # ── rows every mode mounts, whose values each overlay may state ──────────────
 
     # The tool registry. Presentation mode is a deployment choice; omitting it here
     # keeps the schema default (native).
     - id: tools
-      name: '@hydra1902/harness-tools'
+      name: '@hydraharness/harness-tools'
       pluginType: core
 
     # The deployment persona is a deployment choice; plan-mode and tool plugins own
     # their own prompt sections.
     - id: system-prompt
-      name: '@hydra1902/harness-system-prompt'
+      name: '@hydraharness/harness-system-prompt'
       pluginType: core
       config:
         persona: ''
@@ -563,7 +563,7 @@
     # Agents created at startup. The base stays empty; raw overlays may create
     # agents, while Web creates sessions on client request.
     - id: agent-loop
-      name: '@hydra1902/harness-agent-loop'
+      name: '@hydraharness/harness-agent-loop'
       pluginType: core
       config:
         agents: []
@@ -571,7 +571,7 @@
     # The sandboxed filesystem provider. `cwd` defaults to `process.cwd()`; an
     # overlay can pin another workspace.
     - id: fs-sandbox
-      name: '@hydra1902/harness-fs-sandbox'
+      name: '@hydraharness/harness-fs-sandbox'
       pluginType: core
 
     # The native DeepSeek adapter. No key or endpoint is inlined: both resolve per
@@ -579,19 +579,19 @@
     # key coming from the credential store below. Thinking defaults are a deployment
     # choice.
     - id: llm-deepseek
-      name: '@hydra1902/harness-llm-deepseek'
+      name: '@hydraharness/harness-llm-deepseek'
       pluginType: core
 
     # Optional TypeSafe Jev decision capability. It is dormant by default;
     # enabling it never changes the LLM provider catalog.
     - id: jev
-      name: '@hydra1902/harness-jev'
+      name: '@hydraharness/harness-jev'
       pluginGroup: jev
       disabled: true
 
     # Jev's bounded consumer: the model may ask for a candidate browser-action
     # decision, while the existing browser executor retains authority.
     - id: browser-decisions
-      name: '@hydra1902/harness-browser-decisions'
+      name: '@hydraharness/harness-browser-decisions'
       pluginGroup: jev
       disabled: true

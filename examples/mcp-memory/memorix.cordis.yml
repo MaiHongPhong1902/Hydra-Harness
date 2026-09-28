@@ -2,7 +2,7 @@
 # first; Hydra starts it but does not run a package manager.
 - insert:
     - id: memory-memorix
-      name: '@hydra1902/harness-mcp-client'
+      name: '@hydraharness/harness-mcp-client'
       config:
         serverName: memorix
         transport: stdio

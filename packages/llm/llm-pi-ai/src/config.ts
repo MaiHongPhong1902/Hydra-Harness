@@ -15,13 +15,13 @@
  */
 
 import type { CacheRetention, ChatTemplateKwargValue, ModelThinkingLevel, Provider, ThinkingBudgets, Transport } from '@earendil-works/pi-ai'
-import z from '@hydra1902/schemastery'
-import { credentialRef } from '@hydra1902/harness-credentials'
-import type { CredentialRef } from '@hydra1902/harness-credentials'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
-import { resolveRetryPolicy, RetryPolicySchema } from '@hydra1902/harness-llm'
-import { normalizeHttpProxy } from '@hydra1902/harness-llm/proxy'
-import type { ResolvedRetryPolicy, RetryPolicyConfig } from '@hydra1902/harness-llm'
+import z from '@hydraharness/schemastery'
+import { credentialRef } from '@hydraharness/harness-credentials'
+import type { CredentialRef } from '@hydraharness/harness-credentials'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
+import { resolveRetryPolicy, RetryPolicySchema } from '@hydraharness/harness-llm'
+import { normalizeHttpProxy } from '@hydraharness/harness-llm/proxy'
+import type { ResolvedRetryPolicy, RetryPolicyConfig } from '@hydraharness/harness-llm'
 import {
   CACHE_CONTROL_FORMATS,
   CHAT_TEMPLATE_VARS,

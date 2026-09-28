@@ -5,7 +5,7 @@
  * (winnt.h / accctrl.h / aclapi.h / securitybaseapi.h / sddl.h /
  * processthreadsapi.h / fileapi.h / namedpipeapi.h / synchapi.h / winbase.h);
  * struct layouts are asserted at load time against verify/abi-probe.cpp.
- * @module @hydra1902/harness-sandbox-windows-acl/ffi
+ * @module @hydraharness/harness-sandbox-windows-acl/ffi
  */
 
 import koffi from 'koffi'

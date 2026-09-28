@@ -7,21 +7,21 @@
 # `llm-deepseek:` section there overrides the adapter entry below without a
 # restart.
 - id: settings
-  name: '@hydra1902/harness-settings-file'
+  name: '@hydraharness/harness-settings-file'
 
 # Credential store: the live process environment over `$HYDRA_HOME/.credentials.yaml`
 # (owner-only file, hot-reloaded). The adapter resolves `DEEPSEEK_API_KEY`
 # through it at each request, so no key is inlined in this file.
 - id: credentials
-  name: '@hydra1902/harness-credentials-local'
+  name: '@hydraharness/harness-credentials-local'
 
-# The DeepSeek adapter. Swap to '@hydra1902/harness-llm-pi-ai' for the pi-ai-backed
+# The DeepSeek adapter. Swap to '@hydraharness/harness-llm-pi-ai' for the pi-ai-backed
 # twin (a `providers` dict keyed by route; `reasoning: high` replaces
 # thinking/reasoningEffort). Shipped default: full thinking at max effort on
 # every request. Exact-model resolution materializes request defaults before
 # the request header is logged.
 - id: llm-deepseek
-  name: '@hydra1902/harness-llm-deepseek'
+  name: '@hydraharness/harness-llm-deepseek'
   config:
     thinking: enabled
     reasoningEffort: max
@@ -33,16 +33,16 @@
 
 # Managed child-process groups for the bash executor (spawn/kill/output plumbing).
 - id: subprocess
-  name: '@hydra1902/harness-subprocess-local'
+  name: '@hydraharness/harness-subprocess-local'
 
 - id: bash
-  name: '@hydra1902/harness-bash-local'
+  name: '@hydraharness/harness-bash-local'
   config:
     timeoutMs: 60000
 
 # The example composition pre-creates one fresh `main` agent for its test driver.
 - id: agent-spine
-  name: '@hydra1902/harness-agent-spine-demo'
+  name: '@hydraharness/harness-agent-spine-demo'
   config:
     agents:
       - id: main
@@ -61,20 +61,20 @@
       factual.
 
 - id: persistence
-  name: '@hydra1902/harness-session-persistence-jsonl'
+  name: '@hydraharness/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: !!js "process.env.HYDRA_SNAPSHOT === undefined ? 'zstd' : 'none'"
 
 - id: checkpoint-policy
-  name: '@hydra1902/harness-session-checkpoint-policy'
+  name: '@hydraharness/harness-session-checkpoint-policy'
 
 # Summarize an older range when derived history approaches the context window.
 - id: token-meter
-  name: '@hydra1902/harness-token-meter'
+  name: '@hydraharness/harness-token-meter'
 
 - id: compaction-basic
-  name: '@hydra1902/harness-compaction-basic'
+  name: '@hydraharness/harness-compaction-basic'
   config:
     thresholdRatio: 0.8
     retainRatio: 0.16
@@ -84,20 +84,20 @@
 # Projection registry: durable subagent identity (mode/label) folds through
 # its registered units; subagent catalog reads fail loud without the capability.
 - id: session-projection
-  name: '@hydra1902/harness-session-projection'
+  name: '@hydraharness/harness-session-projection'
 
 # Expose fresh-child `spawn` and completed-prefix `fork` through independent
 # in-process backends.
 - id: subagent
-  name: '@hydra1902/harness-subagent'
+  name: '@hydraharness/harness-subagent'
 
 - id: subagent-spawn-in-process
-  name: '@hydra1902/harness-subagent-spawn-in-process'
+  name: '@hydraharness/harness-subagent-spawn-in-process'
   config:
     providerName: spawn
 
 - id: subagent-fork-in-process
-  name: '@hydra1902/harness-subagent-fork-in-process'
+  name: '@hydraharness/harness-subagent-fork-in-process'
   config:
     providerName: fork
 
@@ -105,13 +105,13 @@
 # separately loaded control registers global `send_message`; `report` is
 # installed only in continuable child scopes.
 - id: tool-subagent-control
-  name: '@hydra1902/harness-tool-subagent-control'
+  name: '@hydraharness/harness-tool-subagent-control'
 
 - id: tool-subagent-report
-  name: '@hydra1902/harness-tool-subagent-report'
+  name: '@hydraharness/harness-tool-subagent-report'
 
 - id: tool-subagent
-  name: '@hydra1902/harness-tool-subagent'
+  name: '@hydraharness/harness-tool-subagent'
   config:
     provider: spawn
     toolName: subagent
@@ -123,7 +123,7 @@
 # as an explicit foreground-only choice even though agent-spine-demo mounts the
 # generic Job runtime. See .agents/notes/implemented/architecture/2026-08-10-fork-children-stay-one-shot.md.
 - id: tool-subagent-fork
-  name: '@hydra1902/harness-tool-subagent'
+  name: '@hydraharness/harness-tool-subagent'
   config:
     provider: fork
     toolName: subagent_fork
@@ -134,33 +134,33 @@
 # The worker-thread workflow engine fans a model-written JavaScript script's
 # `agent()` calls out through the spawn backend.
 - id: workflow-worker-thread
-  name: '@hydra1902/harness-workflow-worker-thread'
+  name: '@hydraharness/harness-workflow-worker-thread'
   config:
     provider: spawn
 
 - id: tool-workflow
-  name: '@hydra1902/harness-tool-workflow'
+  name: '@hydraharness/harness-tool-workflow'
 
 # A separate fixed consumer demonstrates fresh-agent Ralph iteration without
 # changing the workflow tool or same-session goal behavior.
 - id: tool-ralph
-  name: '@hydra1902/harness-tool-ralph'
+  name: '@hydraharness/harness-tool-ralph'
 
 # `todo_write` replaces the logged whole list.
 - id: tool-todo
-  name: '@hydra1902/harness-tool-todo'
+  name: '@hydraharness/harness-tool-todo'
   config:
     allowParallelInProgress: true
 
 # Policy loads before the model-facing filesystem tools so writes and edits
 # require an observed file. Relative paths resolve from the process cwd.
 - id: fs-local
-  name: '@hydra1902/harness-fs-local'
+  name: '@hydraharness/harness-fs-local'
   config:
     cwd: !!js process.cwd()
 
 - id: fs-observation-policy
-  name: '@hydra1902/harness-fs-observation-policy'
+  name: '@hydraharness/harness-fs-observation-policy'
 
 - id: tool-fs
-  name: '@hydra1902/harness-tool-fs'
+  name: '@hydraharness/harness-tool-fs'

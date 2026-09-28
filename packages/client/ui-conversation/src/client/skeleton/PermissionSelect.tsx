@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import clsx from 'clsx'
-import type { PermissionSelect as PermissionSelectValue } from '@hydra1902/harness-permission-presets/client'
-import { IconChevronDownOutline14, Menu, RiskConfirmation } from '@hydra1902/harness-client-ui-primitives'
-import type { MenuEntry } from '@hydra1902/harness-client-ui-primitives'
+import type { PermissionSelect as PermissionSelectValue } from '@hydraharness/harness-permission-presets/client'
+import { IconChevronDownOutline14, Menu, RiskConfirmation } from '@hydraharness/harness-client-ui-primitives'
+import type { MenuEntry } from '@hydraharness/harness-client-ui-primitives'
 import type { ComposerBarProps } from '../contract/slots.ts'
 import css from './PermissionSelect.module.css'
 

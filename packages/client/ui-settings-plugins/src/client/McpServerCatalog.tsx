@@ -12,8 +12,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import type {
   McpServerDefinitionRequest, McpServerSnapshot, McpServerTransport,
-} from '@hydra1902/harness-api-remotes/client'
-import { Button, IconPlusOutline16, Input, Modal, Switch } from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-api-remotes/client'
+import { Button, IconPlusOutline16, Input, Modal, Switch } from '@hydraharness/harness-client-ui-primitives'
 import type { PluginsSettingsLocaleKey } from './locales.ts'
 import css from './PluginsSettingsSection.module.css'
 

@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { ModelSelection } from '@hydra1902/harness-api-remotes/client'
-import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { ModelSelection } from '@hydraharness/harness-api-remotes/client'
+import { createSnapshotStore } from '@hydraharness/harness-client-runtime/client'
 import type { ComponentProps } from 'react'
 import type { ModelDirectoryState } from '../src/client/directory.ts'
 import { ModelSelect } from '../src/client/ModelSelect.tsx'
 import { en } from '../src/client/locales.ts'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 
 // The seat's key domain is model ∪ common; the stub mirrors the real lookup
 // chain: package dictionary, then common vocabulary, then the key.

@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-Agent scoping ([decision](2026-07-08-agent-scope-contexts.md), [runtime design](2026-07-12-agent-scope-runtime-design.md)) gives scope-aware registries the same recurring shape: one global registration layer plus one exact agent layer. Seven registration facades use that shape: `tools.register`, `tools.restrict`, and `tools.guard` in `@hydra/harness-tools`; `SystemPrompt.section`, `SystemPrompt.tools`, and `SystemPrompt.variable` in `@hydra/harness-system-prompt`; and `CommandRuntime.register` in `@hydra/harness-commands`.
+Agent scoping ([decision](2026-07-08-agent-scope-contexts.md), [runtime design](2026-07-12-agent-scope-runtime-design.md)) gives scope-aware registries the same recurring shape: one global registration layer plus one exact agent layer. Seven registration facades use that shape: `tools.register`, `tools.restrict`, and `tools.guard` in `@hydraharness/harness-tools`; `SystemPrompt.section`, `SystemPrompt.tools`, and `SystemPrompt.variable` in `@hydraharness/harness-system-prompt`; and `CommandRuntime.register` in `@hydraharness/harness-commands`.
 
 Without a shared primitive, each facade repeats the lifecycle choreography around its domain state: derive visibility from the calling context, create a scoped container on demand, attach ownership to the same Cordis fiber, install undo before notifying observers, return Cordis's exact disposer, and reclaim empty scoped state. Separate maps and collection types also leave a service without one object representing a scope's complete contribution.
 
@@ -18,7 +18,7 @@ The shared part is lifecycle and insertion-ordered storage, not registry policy.
 
 ## Decision
 
-`@hydra/harness-scope` provides a key-agnostic `store.ts` implementation module. The package continues to peer on Cordis and `@hydra/harness-invariants`, and its invariant companion remains unchanged. The package root exports four storage symbols: `ScopeLayer`, `ScopedLayers`, `NamedEntries`, and `AnonymousEntries`. `EntryValues` remains internal, and `store.ts` is not a package subpath.
+`@hydraharness/harness-scope` provides a key-agnostic `store.ts` implementation module. The package continues to peer on Cordis and `@hydraharness/harness-invariants`, and its invariant companion remains unchanged. The package root exports four storage symbols: `ScopeLayer`, `ScopedLayers`, `NamedEntries`, and `AnonymousEntries`. `EntryValues` remains internal, and `store.ts` is not a package subpath.
 
 `ScopeLayer` keeps the aggregate concept explicit while requiring only whole-layer emptiness. A service defines one concrete layer whose tables and domain helpers fit that service; `ScopedLayers` owns construction, selection, lifecycle attachment, notification, and aggregate reclamation.
 
@@ -80,11 +80,11 @@ export class AnonymousEntries<V> {
 
 ## Registry migrations
 
-`@hydra/harness-tools` defines one `ToolLayer` containing named tools plus anonymous compiled restrictions and guard registrations. `ToolRuntime` retains its private domain resolver for visible definitions, pre-restriction known names, restrictable global names, scoped shadowing, restrictions, and reserved `run_code` insertion. Guard evaluation live-iterates global then scoped registrations: additions to a nonempty generation can run in the current dispatch, while a self-replacement after draining the guard table begins with the next dispatch.
+`@hydraharness/harness-tools` defines one `ToolLayer` containing named tools plus anonymous compiled restrictions and guard registrations. `ToolRuntime` retains its private domain resolver for visible definitions, pre-restriction known names, restrictable global names, scoped shadowing, restrictions, and reserved `run_code` insertion. Guard evaluation live-iterates global then scoped registrations: additions to a nonempty generation can run in the current dispatch, while a self-replacement after draining the guard table begins with the next dispatch.
 
-`@hydra/harness-system-prompt` defines one `PromptLayer` containing named sections and variables plus anonymous tool providers. Assembly merges sections before evaluating them, so a shadowed provider is never called. Tool-provider membership is materialized once per assembly. Variable providers live-iterate global then scoped tables: additions to a nonempty generation can run in the current assembly, while a self-replacement after draining the variable table begins with the next assembly.
+`@hydraharness/harness-system-prompt` defines one `PromptLayer` containing named sections and variables plus anonymous tool providers. Assembly merges sections before evaluating them, so a shadowed provider is never called. Tool-provider membership is materialized once per assembly. Variable providers live-iterate global then scoped tables: additions to a nonempty generation can run in the current assembly, while a self-replacement after draining the variable table begins with the next assembly.
 
-`@hydra/harness-commands` defines a one-table layer containing `NamedEntries<RegisteredCommand>`. Effective views use `merge()`, while `CommandRuntime` retains definition normalization and freezing, exact duplicate diagnostics, sorted immutable descriptors, direct execution, HMR cleanup, and independently contained `commands/change` observers.
+`@hydraharness/harness-commands` defines a one-table layer containing `NamedEntries<RegisteredCommand>`. Effective views use `merge()`, while `CommandRuntime` retains definition normalization and freezing, exact duplicate diagnostics, sorted immutable descriptors, direct execution, HMR cleanup, and independently contained `commands/change` observers.
 
 All seven facades keep validation and diagnostics in their owning registry and continue to return the exact Cordis disposer. The migration changes neither public registry behavior nor model-, human-, wire-, persistence-, or configuration-visible output.
 
@@ -118,7 +118,7 @@ All seven facades keep validation and diagnostics in their owning registry and c
 
 ## Verification
 
-- `@hydra/harness-scope` unit tests cover global construction, lazy scoped construction, non-creating reads, named merge order and shadowing, aggregate reclamation, factory and action failure cleanup, notification ordering and rollback, `notify: false`, effect labels, exact disposer identity, idempotent teardown, caller-owned duplicate errors, independent anonymous duplicates, live iterators, and drained-generation detachment.
+- `@hydraharness/harness-scope` unit tests cover global construction, lazy scoped construction, non-creating reads, named merge order and shadowing, aggregate reclamation, factory and action failure cleanup, notification ordering and rollback, `notify: false`, effect labels, exact disposer identity, idempotent teardown, caller-owned duplicate errors, independent anonymous duplicates, live iterators, and drained-generation detachment.
 - Focused tool, system-prompt, and command suites cover restrictions, reserved transport handling, known/restrictable-name agreement, guard re-entrancy and self-replacement, validation order, exact diagnostics, section shadow-before-evaluate, provider snapshot membership, variable re-entrancy and self-replacement, contained command observers, frozen and sorted views, direct execution, and lifecycle disposal.
 - The scoped core-data type-equivalence check ties `ScopeLayer` documentation to its source declaration. Repository documentation, module-graph, build, hygiene, coverage, and built-artifact gates exercise the root export and package boundary.
 - Existing ACP, headless, and TUI keyless snapshots remain the regression boundary for tool schemas and prompt assembly; TUI coverage owns human commands. The implementation does not update any expected transcript.

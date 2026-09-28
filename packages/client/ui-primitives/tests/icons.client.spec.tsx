@@ -3,10 +3,10 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import * as primitives from '@hydra1902/harness-client-ui-primitives'
+import * as primitives from '@hydraharness/harness-client-ui-primitives'
 import {
   IconApiOutline14, IconArchiveOutline20, IconFolderClose16, IconGoalOutline16, IconSendOutline16,
-} from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-client-ui-primitives'
 import { hydraHoverData } from '../src/hydra-hover-data.ts'
 import { hydraLogoData } from '../src/hydra-logo-data.ts'
 

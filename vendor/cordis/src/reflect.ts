@@ -1,5 +1,5 @@
-import { defineProperty, isNullable } from '@hydra1902/cosmokit'
-import type { Dict } from '@hydra1902/cosmokit'
+import { defineProperty, isNullable } from '@hydraharness/cosmokit'
+import type { Dict } from '@hydraharness/cosmokit'
 import { Context } from './context.ts'
 import { getTraceable, symbols, withProps } from './utils.ts'
 import { Fiber, FiberState } from './fiber.ts'

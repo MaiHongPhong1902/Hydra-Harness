@@ -3,8 +3,8 @@
  * Copyright (C) 2026 SimonLuvRamen
  * All rights reserved.
  */
-import { InvokeError, LLM, type Tool } from '@hydra/harness-browseragent-llms'
-import type { BrowserState, PageController } from '@hydra/harness-browseragent-page-controller'
+import { InvokeError, LLM, type Tool } from '@hydraharness/harness-browseragent-llms'
+import type { BrowserState, PageController } from '@hydraharness/harness-browseragent-page-controller'
 import chalk from 'chalk'
 import * as z from 'zod/v4'
 

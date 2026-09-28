@@ -1,10 +1,10 @@
 /** Host plugin inventory and enablement controls registered into Web Settings. */
 
-import type {} from '@hydra1902/harness-client-locale/client'
-import type { ClientContext, ISessions } from '@hydra1902/harness-client-runtime/client'
-import type { ConnectionHandle } from '@hydra1902/harness-client-connection/client'
-import type { HostObservable } from '@hydra1902/harness-client-ui-slots'
-import type {} from '@hydra1902/harness-client-ui-settings/client'
+import type {} from '@hydraharness/harness-client-locale/client'
+import type { ClientContext, ISessions } from '@hydraharness/harness-client-runtime/client'
+import type { ConnectionHandle } from '@hydraharness/harness-client-connection/client'
+import type { HostObservable } from '@hydraharness/harness-client-ui-slots'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
 import { MarketplaceSettingsTab, type MarketplaceSettingsTabInjected } from './MarketplaceSettingsTab.tsx'
 import { ImportedPluginCapabilitiesTab, type ImportedPluginCapabilitiesTabInjected, type NativeSkillControls } from './ImportedPluginCapabilitiesTab.tsx'
 import {
@@ -24,7 +24,7 @@ export type { ImportedPluginCapabilitiesTabInjected, ImportedPluginCapabilitiesT
 export type { MarketplaceSettingsTabInjected, MarketplaceSettingsTabProps } from './MarketplaceSettingsTab.tsx'
 export type { PluginInventoryLocaleKey } from './locales.ts'
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Host plugin inventory copy and mutation labels. */
     'settings.pluginInventory': PluginInventoryLocaleKey

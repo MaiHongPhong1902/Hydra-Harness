@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-jev",
+  "name": "@hydraharness/harness-jev",
   "description": "Optional TypeSafe Jev decision capability for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -25,18 +25,18 @@
   "files": ["lib/index.js", "lib/invariant.js", "lib/types/**/*.d.ts"],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-credentials": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-launch-environment": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-launch-environment": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-credentials": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-launch-environment": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-launch-environment": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/schemastery": "workspace:^"
   }
 }

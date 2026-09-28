@@ -1,11 +1,11 @@
-# @hydra/harness-atomic-write
+# @hydraharness/harness-atomic-write
 
-Zero-dependency atomic file replacement shared by file-backed stores that must never leave partial, symlink-hijacked, or wider-than-intended content on disk — the user-settings document (`@hydra/harness-settings-file`) and the credentials store (`@hydra/harness-credentials-local`).
+Zero-dependency atomic file replacement shared by file-backed stores that must never leave partial, symlink-hijacked, or wider-than-intended content on disk — the user-settings document (`@hydraharness/harness-settings-file`) and the credentials store (`@hydraharness/harness-credentials-local`).
 
 ## Surface
 
 ```ts
-import { withFileLock, writeFileAtomic } from '@hydra1902/harness-atomic-write'
+import { withFileLock, writeFileAtomic } from '@hydraharness/harness-atomic-write'
 
 declare const text: string
 declare const render: (previous: string) => string

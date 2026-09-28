@@ -50,5 +50,5 @@ export function isCordisGroupEntry(value: unknown): value is Record<string, unkn
     && value !== null
     && Array.isArray((value as Record<string, unknown>).config)
     && ((value as Record<string, unknown>).group === true
-      || (value as Record<string, unknown>).name === '@hydra1902/cordis-plugin-group')
+      || (value as Record<string, unknown>).name === '@hydraharness/cordis-plugin-group')
 }

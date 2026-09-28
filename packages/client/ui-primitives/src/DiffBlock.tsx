@@ -49,7 +49,7 @@ interface DiffRow {
   text: string
 }
 
-/** Local exhaustiveness helper — this package does not depend on `@hydra1902/harness-llm`. */
+/** Local exhaustiveness helper — this package does not depend on `@hydraharness/harness-llm`. */
 /* v8 ignore next 3 -- closed-union backstop; only reached if a row kind is forged */
 function assertNever(value: never): never {
   throw new Error(`unreachable diff row kind: ${String(value)}`)

@@ -186,8 +186,8 @@ export function packCliBundle(
         for (const [dependency, range] of Object.entries(dependencies)) {
           if (byName.has(dependency)) {
             queue.push(dependency)
-          } else if (dependency.startsWith('@hydra1902/')
-            && dependency !== '@hydra1902/node-addon-landlock-run') {
+          } else if (dependency.startsWith('@hydraharness/')
+            && dependency !== '@hydraharness/node-addon-landlock-run') {
             throw new Error(packageInfo.name + ' refers to unbundled package ' + dependency)
           } else {
             addExternal(external, optionalExternal, dependency, range,

@@ -3,16 +3,16 @@
  * with logged model context without vetoing or rewriting calls. Configuration
  * and chain semantics live in the package README; rationale lives in the
  * repeat-tool-reminder Agent Note.
- * @module @hydra1902/harness-repeat-tool-reminder
+ * @module @hydraharness/harness-repeat-tool-reminder
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { Agent, PreStepDecision } from '@hydra1902/harness-agent'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { MessageSource } from '@hydra1902/harness-llm'
-import type { UserMessage } from '@hydra1902/harness-session'
-import type { PostToolDecision, ToolExecution } from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { Agent, PreStepDecision } from '@hydraharness/harness-agent'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { MessageSource } from '@hydraharness/harness-llm'
+import type { UserMessage } from '@hydraharness/harness-session'
+import type { PostToolDecision, ToolExecution } from '@hydraharness/harness-tools'
 
 export const name = 'repeat-tool-reminder'
 

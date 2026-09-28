@@ -6,14 +6,14 @@
  */
 
 import { z } from 'zod'
-import { canonicalHeader } from '@hydra1902/harness-session'
-import type { ProjectionDefinition } from '@hydra1902/harness-session-projection'
+import { canonicalHeader } from '@hydraharness/harness-session'
+import type { ProjectionDefinition } from '@hydraharness/harness-session-projection'
 import { estimateSystemTokens, estimateToolsTokens } from './estimate.ts'
 import { foldSurfaceProjection } from './surface-projection.ts'
 // Import for the `contextBreakdown` SessionProjectionStateMap key merge.
 import type {} from './projection.ts'
 
-declare module '@hydra1902/harness-session-projection/types' {
+declare module '@hydraharness/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     contextBreakdown: ContextBreakdownState
   }

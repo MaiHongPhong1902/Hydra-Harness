@@ -17,8 +17,8 @@ import type {
   DynamicCordisResolveAck,
   DynamicCordisRunResolution,
   DynamicCordisRunResponse,
-} from '@hydra1902/harness-api-remotes/client'
-import type { SessionId } from '@hydra1902/harness-client-connection/client'
+} from '@hydraharness/harness-api-remotes/client'
+import type { SessionId } from '@hydraharness/harness-client-connection/client'
 import { errorDetails } from './runtime.ts'
 import type { CordisErrorDetails, CordisObservable, DynamicCordisPackageRunner } from './runtime.ts'
 

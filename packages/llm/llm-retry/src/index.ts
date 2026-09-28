@@ -2,16 +2,16 @@
  * Provider-routed model-request retry policy on the agent loop's request
  * recovery extension point. Each scheduled retry is durable before its cancellable wait.
  *
- * @module @hydra1902/harness-llm-retry
+ * @module @hydraharness/harness-llm-retry
  */
 
 import { randomUUID } from 'node:crypto'
-import type { Context, Events } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { Agent, RequestErrorAction } from '@hydra1902/harness-agent'
-import { isAgentLoopRequest, withApiKeyAttempt } from '@hydra1902/harness-llm'
-import type { ApiKeyAttempt, GenerateOptions, LlmFailure, ResolvedRetryPolicy, StreamChunk } from '@hydra1902/harness-llm'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type { Context, Events } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { Agent, RequestErrorAction } from '@hydraharness/harness-agent'
+import { isAgentLoopRequest, withApiKeyAttempt } from '@hydraharness/harness-llm'
+import type { ApiKeyAttempt, GenerateOptions, LlmFailure, ResolvedRetryPolicy, StreamChunk } from '@hydraharness/harness-llm'
+import type { SessionEvent } from '@hydraharness/harness-session'
 import { RetryId } from './brand.ts'
 import type { LlmRetryEventData } from './types.ts'
 

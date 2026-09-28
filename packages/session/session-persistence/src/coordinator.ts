@@ -2,10 +2,10 @@
  * Shared buffering, serialization, adoption, repair, and disposal orchestration
  * for first-party backends. Third-party backends may implement the public
  * persistence seam directly.
- * @module @hydra1902/harness-session-persistence/coordinator
+ * @module @hydraharness/harness-session-persistence/coordinator
  */
 
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import {
   adoptSessionEvent,
   interruptedTurnClosers,
@@ -14,9 +14,9 @@ import {
   SessionPreparation,
   snapshotJsonValue,
   snapshotSessionEvent,
-} from '@hydra1902/harness-session'
-import type { Session, SessionEvent, SessionId, SessionHeader } from '@hydra1902/harness-session'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
+} from '@hydraharness/harness-session'
+import type { Session, SessionEvent, SessionId, SessionHeader } from '@hydraharness/harness-session'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import type { SessionInspection, SessionLocation } from './index.ts'
 import type { SessionPersistenceRevision } from './revision.ts'
 import { observeQueuedAbort, SessionPreparations } from './preparations.ts'
@@ -1149,7 +1149,7 @@ export class PersistenceCoordinator<TornMarker = unknown> {
     ctx.on('session/disposed', (session) => { this.retire(session) })
 
     // HMR: a hot reload does not replay session/created, so seed existing live
-    // sessions (mirrors @hydra1902/harness-invariants).
+    // sessions (mirrors @hydraharness/harness-invariants).
     for (const session of ctx.sessions.list()) void this.initFor(session)
   }
 

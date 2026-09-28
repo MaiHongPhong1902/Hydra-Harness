@@ -7,15 +7,15 @@
  * Feature-owned rows and sections stay with their features.
  * Export discipline: packages/client/AGENTS.md.
  */
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
-import type { ConnectionHandle } from '@hydra1902/harness-api-remotes/client'
-import { resolveSlotLabel } from '@hydra1902/harness-client-ui-slots'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
+import type { ConnectionHandle } from '@hydraharness/harness-api-remotes/client'
+import { resolveSlotLabel } from '@hydraharness/harness-client-ui-slots'
 // Type-only: the settings slot declarations plus the ctx.settingsScope Context
 // merge. Cross-plugin collaboration goes through the service, never a value
 // import (client bundle purity gate).
-import type {} from '@hydra1902/harness-client-ui-settings/client'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
 // Type-only: pulls ctx.locale into this program.
-import type {} from '@hydra1902/harness-client-locale/client'
+import type {} from '@hydraharness/harness-client-locale/client'
 import type {
   SettingsOnboardingStep, SettingsRootInjected, SettingsSectionRow,
 } from './shell-contract.ts'
@@ -38,7 +38,7 @@ export type { SettingsDocumentState } from './settings-document-store.ts'
 export { SettingsDocumentStore } from './settings-document-store.ts'
 export type { SettingsKey } from './locales.ts'
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Shell chrome + shell-owned General section copy. */
     settings: SettingsKey

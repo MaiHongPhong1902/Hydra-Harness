@@ -13,14 +13,14 @@
  * error. The module owns no catalog state and does not consult Activation,
  * Agent-registry, continuation-manager, or provider state.
  *
- * @module @hydra1902/harness-subagent
+ * @module @hydraharness/harness-subagent
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydra1902/harness-session'
-import type { SessionPersistence } from '@hydra1902/harness-session-persistence'
-import type { SessionProjectionRegistry } from '@hydra1902/harness-session-projection'
-import type { SessionProjectionCache } from '@hydra1902/harness-session-projection-cache'
+import type { Context } from '@hydraharness/cordis'
+import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydraharness/harness-session'
+import type { SessionPersistence } from '@hydraharness/harness-session-persistence'
+import type { SessionProjectionRegistry } from '@hydraharness/harness-session-projection'
+import type { SessionProjectionCache } from '@hydraharness/harness-session-projection-cache'
 import { SubagentError } from './error.ts'
 import type { SubagentIdentityProjection } from './projection-types.ts'
 
@@ -191,7 +191,7 @@ async function prepareListing(
   // deployment configuration error, never an empty success.
   if (projections === undefined) {
     throw new SubagentError(
-      'listing subagents requires the sessionProjections registry (load @hydra1902/harness-session-projection)',
+      'listing subagents requires the sessionProjections registry (load @hydraharness/harness-session-projection)',
       'SUBAGENT_CONTROL_PROJECTIONS_UNAVAILABLE',
     )
   }
@@ -201,7 +201,7 @@ async function prepareListing(
   const sessions = ctx.get('sessions')
   if (sessions === undefined) {
     throw new SubagentError(
-      'listing subagents requires the session store (load @hydra1902/harness-session)',
+      'listing subagents requires the session store (load @hydraharness/harness-session)',
       'SUBAGENT_CONTROL_SESSION_STORE_UNAVAILABLE',
     )
   }

@@ -8,7 +8,7 @@ Per-session preset mounts made the model-facing registry surface per-agent while
 
 ## Decision
 
-A preset is one composition per PROCESS, not one per session. The roster mounts it once under a synthetic standing scope; each agent joins by binding its scope key to the mount's (`bindScopeParent(agentKey, standingKey)`). Two `@hydra/harness-scope` mechanisms carry everything: registration views walk the parent chain (`agent → preset → global`, nearest shadowing farthest), and scoped dispatch admits listeners tagged with an ancestor of the carrier key — upward only, so a sibling preset's listeners stay deaf.
+A preset is one composition per PROCESS, not one per session. The roster mounts it once under a synthetic standing scope; each agent joins by binding its scope key to the mount's (`bindScopeParent(agentKey, standingKey)`). Two `@hydraharness/harness-scope` mechanisms carry everything: registration views walk the parent chain (`agent → preset → global`, nearest shadowing farthest), and scoped dispatch admits listeners tagged with an ancestor of the carrier key — upward only, so a sibling preset's listeners stay deaf.
 
 ## Consequences
 

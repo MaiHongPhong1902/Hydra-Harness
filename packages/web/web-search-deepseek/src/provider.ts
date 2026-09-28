@@ -3,18 +3,18 @@
  * `web_search_20250305` server tool. Each search costs a model turn, but returns structured
  * result blocks; absence of those blocks is an error rather than a prose-scraping fallback.
  * The wire format and native `fetch` client are provider-private and do not use `ctx.llm`.
- * @module @hydra1902/harness-web-search-deepseek/provider
+ * @module @hydraharness/harness-web-search-deepseek/provider
  */
 
-import { WebError, SearchProviderError, searchHttpError, WEB_SEARCH_CAPABILITIES } from '@hydra1902/harness-web'
+import { WebError, SearchProviderError, searchHttpError, WEB_SEARCH_CAPABILITIES } from '@hydraharness/harness-web'
 import type {
   WebSearchProvider,
   WebSearchRequest,
   WebSearchResult,
   WebSearchSource,
-} from '@hydra1902/harness-web'
-import type { CredentialRef } from '@hydra1902/harness-credentials'
-import type {} from '@hydra1902/harness-session'
+} from '@hydraharness/harness-web'
+import type { CredentialRef } from '@hydraharness/harness-credentials'
+import type {} from '@hydraharness/harness-session'
 import type {
   AnthropicResponse,
   ContentBlock,
@@ -28,7 +28,7 @@ export const DEEPSEEK_PROVIDER_ID = 'deepseek-official'
 /**
  * Default endpoint: DeepSeek's Anthropic-compatible API, `/v1` included
  * (`/messages` is appended). This is NOT the chat-completions base
- * (`https://api.deepseek.com`) `@hydra1902/harness-llm-deepseek` uses, so this
+ * (`https://api.deepseek.com`) `@hydraharness/harness-llm-deepseek` uses, so this
  * provider does NOT reuse `$DEEPSEEK_BASE_URL` — only the API key is shared.
  */
 export const DEEPSEEK_DEFAULT_BASE_URL = 'https://api.deepseek.com/anthropic/v1'
@@ -76,7 +76,7 @@ export interface DeepSeekSearchLlmRequest {
   }
 }
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /** Secret-free auxiliary DeepSeek search request recorded before dispatch. */
     'web/deepseek-search-llm-request': DeepSeekSearchLlmRequest

@@ -8,7 +8,7 @@ Compact browser results showed a structural diff, but the model had no explicit 
 
 ## Decision
 
-The preload `MutationObserver` marks a document dirty for semantic DOM mutations, waits briefly for the UI to settle, and compares bounded accessibility snapshots. `@hydra/harness-tool-browser` exposes the resulting `uiChanges` section with newly shown and hidden lines, disclosure transitions, changed nodes, and focus. The model-facing prompt tells the agent to inspect shown or expanded content first. Existing numeric indexes remain unchanged, and an empty delta is omitted.
+The preload `MutationObserver` marks a document dirty for semantic DOM mutations, waits briefly for the UI to settle, and compares bounded accessibility snapshots. `@hydraharness/harness-tool-browser` exposes the resulting `uiChanges` section with newly shown and hidden lines, disclosure transitions, changed nodes, and focus. The model-facing prompt tells the agent to inspect shown or expanded content first. Existing numeric indexes remain unchanged, and an empty delta is omitted.
 
 ## Alternatives considered
 

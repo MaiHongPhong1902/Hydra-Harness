@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import { MessageText } from '@hydra1902/harness-client-ui-primitives'
-import type { PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import { MessageText } from '@hydraharness/harness-client-ui-primitives'
+import type { PropsLocale, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
 import type { GoalCommandInputData } from './goal-command-input.ts'
 import css from './GoalCommandInputView.module.css'
 

@@ -2,19 +2,19 @@
  * Owner-scoped embedded browser. One agent gets one Electron window, started
  * on its first action and closed with the agent, driven through the upstream
  * PageAgent runtime running in the view's preload.
- * @module @hydra1902/harness-browser-electron
+ * @module @hydraharness/harness-browser-electron
  */
 
 import { constants } from 'node:fs'
 import { access, realpath, stat } from 'node:fs/promises'
 import { isAbsolute, join } from 'node:path'
-import { Context, Service } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { Agent } from '@hydra1902/harness-agent'
-import { resolveHydraHome } from '@hydra1902/harness-home-paths'
-import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
-import type { ApprovalRequest } from '@hydra1902/harness-user-approval'
-import '@hydra1902/harness-user-questions'
+import { Context, Service } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { Agent } from '@hydraharness/harness-agent'
+import { resolveHydraHome } from '@hydraharness/harness-home-paths'
+import { installSettingsSection, settingsNamespace } from '@hydraharness/harness-settings'
+import type { ApprovalRequest } from '@hydraharness/harness-user-approval'
+import '@hydraharness/harness-user-questions'
 import { launchBrowser } from './child.ts'
 import type { BrowserChild, BrowserChildProcess } from './child.ts'
 import { executePageAgentLlm } from './page-agent-llm.ts'
@@ -126,7 +126,7 @@ const DISABLED_BROWSER_SETTINGS: BrowserSettings = Object.freeze({
   controlEnabled: false,
 })
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     browsers: BrowserSessionService
   }

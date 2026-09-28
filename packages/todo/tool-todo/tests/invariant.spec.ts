@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SessionStore, { type Session, type SessionEvent } from '@hydra1902/harness-session'
-import ToolRuntime from '@hydra1902/harness-tools'
-import * as ToolTodo from '@hydra1902/harness-tool-todo'
-import * as TodoInvariant from '@hydra1902/harness-tool-todo/invariant'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+import { Context } from '@hydraharness/cordis'
+import SessionStore, { type Session, type SessionEvent } from '@hydraharness/harness-session'
+import ToolRuntime from '@hydraharness/harness-tools'
+import * as ToolTodo from '@hydraharness/harness-tool-todo'
+import * as TodoInvariant from '@hydraharness/harness-tool-todo/invariant'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

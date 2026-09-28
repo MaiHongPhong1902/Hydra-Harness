@@ -1,4 +1,4 @@
-# @hydra/harness-client-ui-workspace
+# @hydraharness/harness-client-ui-workspace
 
 Shared Workspace browser, picker, and archive-restoration plugin. `WorkspaceBrowser` fills the sidebar's `sidebar.workspaces` slot, `WorkspacePicker` fills the page-local Session Intent hero's `conversation.hero.workspace` slot, and the Archived sessions page fills `settings.section`; the browser and picker use the same Workspace menu and add flow.
 

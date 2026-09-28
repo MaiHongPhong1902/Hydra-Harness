@@ -10,13 +10,13 @@ When a capability is general enough to need replaceable providers, such as Bash 
 
 The Bash execution capability consists of:
 
-- **Service Definition** (`@hydra/harness-shell`) — defines the Cordis service and Bash request and result types
-- **Service Provider** (`@hydra/harness-bash-local`) — executes commands on the local machine
-- **Consumer** (`@hydra/harness-tool-bash`) — exposes the capability as a model-callable tool
+- **Service Definition** (`@hydraharness/harness-shell`) — defines the Cordis service and Bash request and result types
+- **Service Provider** (`@hydraharness/harness-bash-local`) — executes commands on the local machine
+- **Consumer** (`@hydraharness/harness-tool-bash`) — exposes the capability as a model-callable tool
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌──────────────┐
-│  @hydra1902/harness-shell   │────▶│  @hydra1902/harness-bash-local  │     │ @hydra1902/harness-tool-bash│
+│  @hydraharness/harness-shell   │────▶│  @hydraharness/harness-bash-local  │     │ @hydraharness/harness-tool-bash│
 │(definition) │     │    (provider)     │     │(consumer/tool)│
 └─────────────┘     └──────────────────┘     └──────────────┘
        ▲                                            │
@@ -32,7 +32,7 @@ One Service Definition can have multiple providers selected through `cordis.yml`
 
 ```yaml
 # Local execution
-- name: '@hydra1902/harness-bash-local'
+- name: '@hydraharness/harness-bash-local'
 
 # Replace this row with another package that provides the same service.
 ```
@@ -59,9 +59,9 @@ The [capability-seam reference](../../../capability-seams.md) owns the current b
 
 ```ts ignore-check
 // packages/my-cap/my-cap/src/index.ts
-import { Service, type Context } from '@hydra1902/cordis'
+import { Service, type Context } from '@hydraharness/cordis'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     myCap: MyCapService
   }
@@ -89,8 +89,8 @@ export interface MyCapResult {
 
 ```ts ignore-check
 // packages/my-cap/my-cap-local/src/index.ts
-import type { Context } from '@hydra1902/cordis'
-import { MyCapService, type MyCapRequest, type MyCapResult } from '@hydra1902/harness-my-cap'
+import type { Context } from '@hydraharness/cordis'
+import { MyCapService, type MyCapRequest, type MyCapResult } from '@hydraharness/harness-my-cap'
 
 class MyCapLocal extends MyCapService {
   async execute(request: MyCapRequest): Promise<MyCapResult> {
@@ -110,8 +110,8 @@ export function apply(ctx: Context) {
 
 ```ts ignore-check
 // packages/my-cap/tool-my-cap/src/index.ts
-import type { Context } from '@hydra1902/cordis'
-import { defineTool } from '@hydra1902/harness-tools'
+import type { Context } from '@hydraharness/cordis'
+import { defineTool } from '@hydraharness/harness-tools'
 
 export const name = 'tool-my-cap'
 export const inject = ['tools', 'myCap']
@@ -138,8 +138,8 @@ export function apply(ctx: Context) {
 ### Compose them in cordis.yml
 
 ```yaml
-- name: '@hydra1902/harness-my-cap-local'
-- name: '@hydra1902/harness-tool-my-cap'
+- name: '@hydraharness/harness-my-cap-local'
+- name: '@hydraharness/harness-tool-my-cap'
 ```
 
 ## Design points

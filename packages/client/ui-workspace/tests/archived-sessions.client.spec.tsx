@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type {
   SessionId, SessionListState, WorkspaceId, WorkspaceListState, WorkspaceView,
-} from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-client-runtime/client'
 import type { ArchivedSessionsSectionProps } from '../src/client/ArchivedSessionsSection.tsx'
 import { ArchivedSessionsSection } from '../src/client/ArchivedSessionsSection.tsx'
 import { en } from '../src/client/locales.ts'

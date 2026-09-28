@@ -8,7 +8,7 @@
  */
 
 import * as React from 'react'
-import type { CordisDynamicPluginId } from '@hydra1902/harness-api-remotes/client'
+import type { CordisDynamicPluginId } from '@hydraharness/harness-api-remotes/client'
 
 /** A mountable plugin as the closure must return it (FUNCTION or OBJECT form). */
 export interface DynamicCordisEvaluatedPlugin {

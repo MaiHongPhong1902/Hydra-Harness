@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-llm",
+  "name": "@hydraharness/harness-llm",
   "description": "Provider-neutral LLM service interface for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -55,21 +55,21 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-attachment": "workspace:^",
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-attachment": "workspace:^",
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^",
+    "@hydraharness/schemastery": "workspace:^",
     "undici": "^7.28.0"
   },
   "devDependencies": {
-    "@hydra1902/harness-attachment": "workspace:^",
-    "@hydra1902/harness-brand": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-timeout": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-attachment": "workspace:^",
+    "@hydraharness/harness-brand": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-timeout": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

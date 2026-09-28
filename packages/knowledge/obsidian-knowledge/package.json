@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-obsidian-knowledge",
+  "name": "@hydraharness/harness-obsidian-knowledge",
   "description": "Token-bounded Obsidian graph memory with approval-gated knowledge saves",
   "hydra": {
     "plugin": {
@@ -37,29 +37,29 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-atomic-write": "workspace:^",
-    "@hydra1902/harness-credentials": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-atomic-write": "workspace:^",
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^",
+    "@hydraharness/schemastery": "workspace:^",
     "@modelcontextprotocol/sdk": "^1.12.0"
   },
   "devDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-atomic-write": "workspace:^",
-    "@hydra1902/harness-credentials": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/harness-user-approval": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-atomic-write": "workspace:^",
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/harness-user-approval": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
     "zod": "^4.4.3"
   }
 }

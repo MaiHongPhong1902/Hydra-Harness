@@ -1,5 +1,5 @@
 {
-    "name": "@hydra1902/harness-browseragent-page-controller",
+    "name": "@hydraharness/harness-browseragent-page-controller",
     "private": true,
     "version": "1.12.4",
     "type": "module",

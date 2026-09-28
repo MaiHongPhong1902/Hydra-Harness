@@ -1,4 +1,4 @@
-# @hydra/harness-goal
+# @hydraharness/harness-goal
 
 Event-sourced same-session goal state. The service retains one current completion objective in an agent's existing session while keeping permission to continue as process-local activation. The [goal-domain Agent Note](../../../.agents/notes/implemented/feature/2026-07-19-persisted-same-session-goal-domain.md) owns the design rationale; the [goal type catalog](../../../docs/subsystems/goal.md) records the literal data shapes.
 
@@ -6,7 +6,7 @@ Event-sourced same-session goal state. The service retains one current completio
 
 ```yaml
 - id: goal
-  name: '@hydra1902/harness-goal'
+  name: '@hydraharness/harness-goal'
   config:
     defaultMaxGoalRounds: 256
 ```
@@ -29,7 +29,7 @@ The separately published `./invariant` companion maintains an independent fold o
 
 ## Extension points
 
-Policy plugins call the service verbs and react to the scoped `goal/changed` event. A continuation consumer admits rounds as `user/message` events with `GoalMessageSource`; ordinary human turns never increment `roundsStarted`. Consumers use the `Agent` interface and events rather than importing `@hydra/harness-agent-loop`.
+Policy plugins call the service verbs and react to the scoped `goal/changed` event. A continuation consumer admits rounds as `user/message` events with `GoalMessageSource`; ordinary human turns never increment `roundsStarted`. Consumers use the `Agent` interface and events rather than importing `@hydraharness/harness-agent-loop`.
 
 ## Model Experience
 

@@ -6,10 +6,10 @@
  * @module hydra-llm-deepseek/serialize
  */
 
-import { contentHasImage, LlmError, offloadRequestImages } from '@hydra1902/harness-llm'
-import type { ContentBlock, GenerateOptions, Message } from '@hydra1902/harness-llm'
-import { AttachmentError } from '@hydra1902/harness-attachment'
-import type { AttachmentStore } from '@hydra1902/harness-attachment'
+import { contentHasImage, LlmError, offloadRequestImages } from '@hydraharness/harness-llm'
+import type { ContentBlock, GenerateOptions, Message } from '@hydraharness/harness-llm'
+import { AttachmentError } from '@hydraharness/harness-attachment'
+import type { AttachmentStore } from '@hydraharness/harness-attachment'
 import type {
   WireImageContentPart,
   WireMessage,

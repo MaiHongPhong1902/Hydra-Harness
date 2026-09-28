@@ -29,10 +29,10 @@
  * composes the wire.
  */
 
-import type {} from '@hydra1902/cordis'
+import type {} from '@hydraharness/cordis'
 import type { ClientModuleSystem } from './system.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** The client module system the web shell builds at boot (provided by the `./client` wrapper plugin). */
     modules: ClientModuleLoader

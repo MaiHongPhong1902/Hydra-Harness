@@ -2,9 +2,9 @@
 /** Section and provider editor behavior over a scripted wire face. */
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import Schema from '@hydra1902/schemastery'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
-import type { RpcResponse, SettingsNamespaceView } from '@hydra1902/harness-api-remotes/client'
+import Schema from '@hydraharness/schemastery'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
+import type { RpcResponse, SettingsNamespaceView } from '@hydraharness/harness-api-remotes/client'
 import {
   ModelsSection, providerCopy, providerTargetLabel, removeProviderProfile,
   revealOfficialDeepSeek,
@@ -16,7 +16,7 @@ import {
   DeepSeekModelsEditor, formatCapacity, modelDrafts, parseCapacity, validateDeepSeekModels,
 } from '../src/client/DeepSeekModelsEditor.tsx'
 import { apiKeyFailure } from '../src/client/apiKey.ts'
-import { SettingsDescribeMirror } from '@hydra1902/harness-client-ui-settings/src/client/settings-mirror.ts'
+import { SettingsDescribeMirror } from '@hydraharness/harness-client-ui-settings/src/client/settings-mirror.ts'
 import { deriveKeyRef, ModelsSettingsStore } from '../src/client/store.ts'
 import { en } from '../src/client/locales.ts'
 import {

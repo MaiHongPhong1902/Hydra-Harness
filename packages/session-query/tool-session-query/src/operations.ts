@@ -1,20 +1,20 @@
 /**
  * Tool operation orchestration over session-query service capabilities.
  *
- * @module @hydra1902/harness-tool-session-query/operations
+ * @module @hydraharness/harness-tool-session-query/operations
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { HarnessError } from '@hydra1902/harness-llm'
-import type { SessionId } from '@hydra1902/harness-session'
+import type { Context } from '@hydraharness/cordis'
+import { HarnessError } from '@hydraharness/harness-llm'
+import type { SessionId } from '@hydraharness/harness-session'
 import {
   SessionQueryError,
   type SessionEventSearchPage,
   type SessionEventSurface,
   type SessionRecord,
   type SessionSearchCursor,
-} from '@hydra1902/harness-session-query'
-import type { ToolRunContext } from '@hydra1902/harness-tools'
+} from '@hydraharness/harness-session-query'
+import type { ToolRunContext } from '@hydraharness/harness-tools'
 import { toolInput } from './input.ts'
 import { presentation } from './presentation.ts'
 import { serviceBoundary } from './service-boundary.ts'

@@ -38,10 +38,10 @@
   - img
 - button "Edit":
   - img
-- button "Context injection @hydra/harness-system-prompt":
+- button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
-  - text: Context injection @hydra/harness-system-prompt
+  - text: Context injection @hydraharness/harness-system-prompt
 - button "Think The user wants me to use the web_fetch tool exactly once to fetch http://127.0.0.1:43117/menu.html, then reply with exactly \"DONE\". Let me do that.":
   - img
   - img

@@ -3,7 +3,7 @@
  * the plugin appears in the host cordis.yml / Loader; the browser half ships
  * via exports["./client"], discovered through the package.json hydra.client
  * declaration. Plan behavior itself (the /plan command, the plan projection
- * unit, the policy section) is owned by `@hydra1902/harness-plan-mode`,
+ * unit, the policy section) is owned by `@hydraharness/harness-plan-mode`,
  * composed independently on the host roster.
  */
 

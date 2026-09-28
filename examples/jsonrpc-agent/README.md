@@ -16,7 +16,7 @@ The surrounding runtime also loads JSONL session persistence and automatic conte
 | Variable | Purpose |
 |---|---|
 | `DEEPSEEK_API_KEY` | Credential passed to the OpenAI-compatible host endpoint |
-| `DEEPSEEK_BASE_URL` | Host endpoint used by `@hydra/harness-llm-deepseek` |
+| `DEEPSEEK_BASE_URL` | Host endpoint used by `@hydraharness/harness-llm-deepseek` |
 | `HYDRA_CWD` | Agent workspace for bash and filesystem tools |
 | `HYDRA_CONTEXT_WINDOW` | Context capacity recorded for the `HYDRA_MODEL` catalog entry in the minimal variant |
 | `HYDRA_MAX_TOKENS_AS_SUCCESS` | `true` (default) accepts token-limited results; `false` reports them as errors |

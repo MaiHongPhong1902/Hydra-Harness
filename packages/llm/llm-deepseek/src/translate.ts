@@ -8,8 +8,8 @@
  * @module hydra-llm-deepseek/translate
  */
 
-import { CallId, EMPTY_RESPONSE_CODE, LlmError } from '@hydra1902/harness-llm'
-import type { ContentBlock, FinishReason, StreamChunk, TokenUsage } from '@hydra1902/harness-llm'
+import { CallId, EMPTY_RESPONSE_CODE, LlmError } from '@hydraharness/harness-llm'
+import type { ContentBlock, FinishReason, StreamChunk, TokenUsage } from '@hydraharness/harness-llm'
 import { DONE } from './sse.ts'
 import type { WireChunk, WireUsage } from './types.ts'
 

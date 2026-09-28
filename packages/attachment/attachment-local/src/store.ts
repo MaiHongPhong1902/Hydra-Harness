@@ -7,13 +7,13 @@ import { dirname, join, parse, resolve } from 'node:path'
 import {
   AttachmentError,
   AttachmentId,
-} from '@hydra1902/harness-attachment'
+} from '@hydraharness/harness-attachment'
 import type {
   ImageAttachmentLimits,
   ImageAttachmentRef,
   SaveImageAttachment,
   StoredImageAttachment,
-} from '@hydra1902/harness-attachment'
+} from '@hydraharness/harness-attachment'
 import { detectImage, probeImage } from './image.ts'
 
 const ID_PATTERN = /^sha256:([a-f0-9]{64})$/

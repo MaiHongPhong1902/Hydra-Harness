@@ -1,14 +1,14 @@
 /**
  * Model-facing, workspace-authorized session-history search and read tools.
  *
- * @module @hydra1902/harness-tool-session-query
+ * @module @hydraharness/harness-tool-session-query
  */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
-import { defineTool } from '@hydra1902/harness-tools'
-import type {} from '@hydra1902/harness-system-prompt'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
+import { defineTool } from '@hydraharness/harness-tools'
+import type {} from '@hydraharness/harness-system-prompt'
 import { toolInput } from './input.ts'
 import { operations } from './operations.ts'
 import { presentation } from './presentation.ts'

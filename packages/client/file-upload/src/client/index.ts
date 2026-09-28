@@ -1,6 +1,6 @@
 /** Browser background-upload Cordis service. */
 
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import { FileUploadRuntime } from './runtime.ts'
 
 export type {
@@ -13,7 +13,7 @@ export type {
   FileUploadService,
 } from './contract.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** Browser service for non-aggregating Blob and byte-stream uploads. */
     fileUpload: import('./contract.ts').FileUploadService

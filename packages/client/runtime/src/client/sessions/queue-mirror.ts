@@ -1,6 +1,6 @@
-import type { ContentBlock } from '@hydra1902/harness-llm/types'
-import type { MuxFrame } from '@hydra1902/harness-api-remotes/client'
-import type { SessionEvent } from '@hydra1902/harness-session/types'
+import type { ContentBlock } from '@hydraharness/harness-llm/types'
+import type { MuxFrame } from '@hydraharness/harness-api-remotes/client'
+import type { SessionEvent } from '@hydraharness/harness-session/types'
 import type { QueuedMessage } from './conversation.ts'
 
 const QUEUE_PREVIEW_CHARS = 200

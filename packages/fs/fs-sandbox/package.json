@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-fs-sandbox",
+  "name": "@hydraharness/harness-fs-sandbox",
   "description": "Sandbox-enforcing implementation of the Hydra harness filesystem seam: fences write/edit by the per-call sandbox mode (read-only denies mutation, workspace-write contains it to the workspace + temp roots) while reads pass through",
   "hydra": {
     "plugin": {
@@ -37,19 +37,19 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-fs": "workspace:^",
-    "@hydra1902/harness-fs-local": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-sandbox": "workspace:^",
-    "@hydra1902/harness-sandbox-policy": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-fs": "workspace:^",
+    "@hydraharness/harness-fs-local": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-sandbox": "workspace:^",
+    "@hydraharness/harness-sandbox-policy": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-fs": "workspace:^",
-    "@hydra1902/harness-fs-local": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-sandbox": "workspace:^",
-    "@hydra1902/harness-sandbox-policy": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-fs": "workspace:^",
+    "@hydraharness/harness-fs-local": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-sandbox": "workspace:^",
+    "@hydraharness/harness-sandbox-policy": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

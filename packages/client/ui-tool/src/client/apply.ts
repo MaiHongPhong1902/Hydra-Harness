@@ -1,7 +1,7 @@
 /** Register the Tool call tree, details renderer, and built-in atomic views. */
-import type { ConnectionHandle } from '@hydra1902/harness-client-connection/client'
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
-import type {} from '@hydra1902/harness-client-ui-conversation/client'
+import type { ConnectionHandle } from '@hydraharness/harness-client-connection/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-client-ui-conversation/client'
 import { ToolCallTree } from './tool/ToolCallTree.tsx'
 import { ToolDetails } from './tool/ToolDetails.tsx'
 import { CONVERSATION_NS as NS } from './locale.ts'

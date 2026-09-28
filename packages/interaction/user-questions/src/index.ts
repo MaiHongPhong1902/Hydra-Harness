@@ -1,17 +1,17 @@
 /**
  * Service Definition for the user-questions capability seam (`ctx.userQuestions`): a UI-backed service for
  * pausing an agent tool call until the human answers a question. The model-
- * facing tool lives in `@hydra1902/harness-tool-ask-user`; UI packages provide
+ * facing tool lives in `@hydraharness/harness-tool-ask-user`; UI packages provide
  * the single active provider.
  *
- * @module @hydra1902/harness-user-questions
+ * @module @hydraharness/harness-user-questions
  */
 
-import { Context, Service } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
-import { HarnessError } from '@hydra1902/harness-llm'
+import { Context, Service } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
+import { HarnessError } from '@hydraharness/harness-llm'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     userQuestions: UserQuestionService
   }

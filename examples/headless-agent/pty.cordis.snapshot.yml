@@ -1,24 +1,24 @@
 # Keyless opt-in PTY composition for the headless stream-json snapshot.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra1902/harness-llm-deepseek'
+        name: '@hydraharness/harness-llm-deepseek'
         disabled: true
       - insert:
           - id: sandbox-policy
-            name: '@hydra1902/harness-sandbox-policy'
+            name: '@hydraharness/harness-sandbox-policy'
             config:
               mode: danger-full-access
           - id: pty
-            name: '@hydra1902/harness-terminal'
+            name: '@hydraharness/harness-terminal'
           - id: pty-snapshot-backend
             name: '../acp-agent/pty-snapshot-backend.mjs'
           - id: tool-terminal
-            name: '@hydra1902/harness-tool-terminal'
+            name: '@hydraharness/harness-tool-terminal'
             config:
               maxResultBytes: 64
           - id: llm-replay
-            name: '@hydra1902/harness-llm-replay'
+            name: '@hydraharness/harness-llm-replay'

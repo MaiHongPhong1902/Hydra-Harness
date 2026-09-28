@@ -1,3 +1,3 @@
 import { clientBundle } from '../../client/tsdown.client.ts'
 
-export default clientBundle('@hydra1902/harness-api-gateway', ['lib/types/index.js', 'lib/types/invariant.js'])
+export default clientBundle('@hydraharness/harness-api-gateway', ['lib/types/index.js', 'lib/types/invariant.js'])

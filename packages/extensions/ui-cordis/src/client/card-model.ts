@@ -1,6 +1,6 @@
 /** Replay-stable view models for Cordis lifecycle Tool calls. */
 
-import type { ToolCallViewProps } from '@hydra1902/harness-client-ui-tool/client'
+import type { ToolCallViewProps } from '@hydraharness/harness-client-ui-tool/client'
 import type {
   CordisDynamicPackageId, CordisDynamicPluginId, CordisDynamicPluginRunId, CordisDynamicRunMode,
 } from './events.ts'

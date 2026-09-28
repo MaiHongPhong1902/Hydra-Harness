@@ -2,7 +2,7 @@
 import { lookup } from 'node:dns'
 import { BlockList, isIP, type LookupFunction } from 'node:net'
 import { Agent } from 'undici'
-import { WebError } from '@hydra1902/harness-web'
+import { WebError } from '@hydraharness/harness-web'
 
 const blocked = new BlockList()
 for (const [address, prefix] of [

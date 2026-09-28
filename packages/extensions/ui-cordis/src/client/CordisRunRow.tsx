@@ -3,9 +3,9 @@
 import { useEffect } from 'react'
 import {
   IconCodeOutline16, IconInspectOutline12, StateDot,
-} from '@hydra1902/harness-client-ui-primitives'
-import type { InjectFace, PropsLocale, PropsRenderSlots } from '@hydra1902/harness-client-ui-slots'
-import type { ToolCallViewProps } from '@hydra1902/harness-client-ui-tool/client'
+} from '@hydraharness/harness-client-ui-primitives'
+import type { InjectFace, PropsLocale, PropsRenderSlots } from '@hydraharness/harness-client-ui-slots'
+import type { ToolCallViewProps } from '@hydraharness/harness-client-ui-tool/client'
 import { cordisRunCard } from './card-model.ts'
 import { cordisToolViewKey } from './run-card-index.ts'
 import type { CordisRunCardFace } from './slots.ts'

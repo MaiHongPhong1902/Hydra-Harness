@@ -4,14 +4,14 @@
  * api-gateway's own coverage); each established connection generation emits
  * `connection/reset` for generation-scoped cache invalidation.
  */
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it } from 'vitest'
-import type { ConnectionHandle, ConnectionSinks } from '@hydra1902/harness-api-remotes/client'
-import TypertRegistry from '@hydra1902/harness-typert-registry'
+import type { ConnectionHandle, ConnectionSinks } from '@hydraharness/harness-api-remotes/client'
+import TypertRegistry from '@hydraharness/harness-typert-registry'
 // Type-only: the api-remotes facade carries both the allowlist's selection seat
 // and the owner packages' `./types` declarations, which together give `$on` its
 // key face and per-event listener signatures.
-import type {} from '@hydra1902/harness-api-remotes/client'
+import type {} from '@hydraharness/harness-api-remotes/client'
 import * as RuntimeClient from '../src/client/index.ts'
 import { FakeApiClient, fakeRemote } from './fake-api.client.ts'
 

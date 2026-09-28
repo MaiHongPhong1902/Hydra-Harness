@@ -6,22 +6,22 @@ Status: implemented
 
 The harness had two inconsistent conventions for "where does Hydra harness user data live":
 
-- `@hydra/harness-home` resolved `configured ?? $HYDRA_HOME ?? ~/.hydra`.
-- `@hydra/harness-home-paths` shipped a **second** `resolveHydraHome` with the same precedence plus tilde expansion — a near-duplicate of `hydra-home` that no gate flagged because the two lived in different packages and had already drifted (only one expanded tildes).
+- `@hydraharness/harness-home` resolved `configured ?? $HYDRA_HOME ?? ~/.hydra`.
+- `@hydraharness/harness-home-paths` shipped a **second** `resolveHydraHome` with the same precedence plus tilde expansion — a near-duplicate of `hydra-home` that no gate flagged because the two lived in different packages and had already drifted (only one expanded tildes).
 
 Two resolvers for the same cross-cutting fact meant there was no single home policy.
 
 ## Decision
 
-One resolver owns the harness home, in `@hydra/harness-home-paths`, single-root:
+One resolver owns the harness home, in `@hydraharness/harness-home-paths`, single-root:
 
 ```
 explicit configured path  >  $HYDRA_HOME  >  ~/.hydra
 ```
 
-An empty or whitespace-only `$HYDRA_HOME` is treated as unset; otherwise `resolve('')` would silently place the home at the current working directory. The harness keeps all user data under one root; there is no XDG config/data/cache split. `hydraHomePath(...segments)` joins deployment-owned children onto that root, and `@hydra/harness-app-boot` exposes it to Loader `!!js` config expressions before mounting entries, so shipped compositions derive `sessions` and `storages` without copying the resolver. `hydraHomeDisplay()` names a resolved root symbolically for user-facing paths — `~/.hydra` for the default home, `$HYDRA_HOME` for any configured home — so the user-global `AGENTS.md` label never leaks an absolute machine path. It replaces agent-instructions's bespoke default-vs-`$HYDRA_HOME` check.
+An empty or whitespace-only `$HYDRA_HOME` is treated as unset; otherwise `resolve('')` would silently place the home at the current working directory. The harness keeps all user data under one root; there is no XDG config/data/cache split. `hydraHomePath(...segments)` joins deployment-owned children onto that root, and `@hydraharness/harness-app-boot` exposes it to Loader `!!js` config expressions before mounting entries, so shipped compositions derive `sessions` and `storages` without copying the resolver. `hydraHomeDisplay()` names a resolved root symbolically for user-facing paths — `~/.hydra` for the default home, `$HYDRA_HOME` for any configured home — so the user-global `AGENTS.md` label never leaks an absolute machine path. It replaces agent-instructions's bespoke default-vs-`$HYDRA_HOME` check.
 
-`@hydra/harness-home` is deleted. Its three importers (`@hydra/harness-tool-bash`, `@hydra/harness-skill-filesystem`, `@hydra/harness-agent-spine-demo`) import `resolveHydraHome` from `@hydra/harness-home-paths`.
+`@hydraharness/harness-home` is deleted. Its three importers (`@hydraharness/harness-tool-bash`, `@hydraharness/harness-skill-filesystem`, `@hydraharness/harness-agent-spine-demo`) import `resolveHydraHome` from `@hydraharness/harness-home-paths`.
 
 `hydra-telemetry` and its separate home policy are absent under the [SDK project toolchain removal](../simplification/2026-08-11-remove-sdk-project-toolchain.md), leaving this resolver as the sole home policy.
 
@@ -33,4 +33,4 @@ An empty or whitespace-only `$HYDRA_HOME` is treated as unset; otherwise `resolv
 
 ## Consequences
 
-- One home fact, one resolver. `@hydra/harness-home-paths` is the sole owner; the `util/` group loses the `home` package.
+- One home fact, one resolver. `@hydraharness/harness-home-paths` is the sole owner; the `util/` group loses the `home` package.

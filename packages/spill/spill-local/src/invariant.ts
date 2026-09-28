@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-spill-local`.
- * @module @hydra1902/harness-spill-local/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-spill-local`.
+ * @module @hydraharness/harness-spill-local/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-spill-local'
+const PACKAGE_NAME = '@hydraharness/harness-spill-local'
 
 /** Cordis companion plugin name. */
 export const name = 'spill-local-invariant'

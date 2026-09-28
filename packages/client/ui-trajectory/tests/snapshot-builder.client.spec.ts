@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { RequestView } from '@hydra1902/harness-client-runtime/client'
+import type { RequestView } from '@hydraharness/harness-client-runtime/client'
 import type {
   TrajectoryContribution, TrajectoryConversationViewNode, TrajectoryRequestHeaderState,
 } from '../src/client/trajectory-contract.ts'

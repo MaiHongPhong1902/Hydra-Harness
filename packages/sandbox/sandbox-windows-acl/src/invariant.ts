@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-sandbox-windows-acl`.
- * @module @hydra1902/harness-sandbox-windows-acl/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-sandbox-windows-acl`.
+ * @module @hydraharness/harness-sandbox-windows-acl/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-sandbox-windows-acl'
+const PACKAGE_NAME = '@hydraharness/harness-sandbox-windows-acl'
 
 /** Cordis companion plugin name. */
 export const name = 'sandbox-windows-acl-invariant'

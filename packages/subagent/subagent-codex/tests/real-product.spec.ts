@@ -13,16 +13,16 @@ import { tmpdir } from 'node:os'
 import { delimiter, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { Agent } from '@hydra1902/harness-agent'
-import SubagentRuntime from '@hydra1902/harness-subagent'
+import type { Agent } from '@hydraharness/harness-agent'
+import SubagentRuntime from '@hydraharness/harness-subagent'
 import type {
   SubprocessHandle,
   SubprocessOutcome,
   SubprocessSpawnSpec,
-} from '@hydra1902/harness-subprocess'
-import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
+} from '@hydraharness/harness-subprocess'
+import LocalSubprocessRuntime from '@hydraharness/harness-subprocess-local'
 import * as codex from '../src/index.ts'
 import type { CodexPermissionMode } from '../src/run.ts'
 import {

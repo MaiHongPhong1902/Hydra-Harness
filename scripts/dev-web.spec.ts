@@ -61,7 +61,7 @@ it('rebuilds a client-plugin bundle after its source changes', async () => {
       if ((error as NodeJS.ErrnoException).code !== 'EPERM') throw error
       await symlink(join(import.meta.dirname, '..', 'node_modules'), join(root, 'node_modules'), 'junction')
     }
-    await writeFile(join(root, 'package.json'), JSON.stringify({ name: '@hydra-test/dev-web-watch', private: true, type: 'module' }))
+    await writeFile(join(root, 'package.json'), JSON.stringify({ name: '@hydraharness-test/dev-web-watch', private: true, type: 'module' }))
     await writeFile(join(root, 'tsdown.config.ts'), `
 import { defineConfig } from 'tsdown'
 export default defineConfig({

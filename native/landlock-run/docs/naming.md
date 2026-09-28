@@ -2,11 +2,11 @@
 
 ## npm packages
 
-The public package family belongs to the `@hydra` scope and uses the `node-addon-landlock-run` package prefix; platform packages append platform information only:
+The public package family belongs to the `@hydraharness` scope and uses the `node-addon-landlock-run` package prefix; platform packages append platform information only:
 
 ```text
-@hydra/node-addon-landlock-run
-@hydra/node-addon-landlock-run-<platform>
+@hydraharness/node-addon-landlock-run
+@hydraharness/node-addon-landlock-run-<platform>
 ```
 
 Platform suffixes carry no libc component (binaries are static musl) and no variant component — variants stay inside `prebuilds.json` and binary filenames.

@@ -7,25 +7,25 @@
  * addresses the session's agent by sessionId — sessions are always
  * agent-backed.
  */
-import { Service } from '@hydra1902/cordis'
-import type { Context } from '@hydra1902/cordis'
+import { Service } from '@hydraharness/cordis'
+import type { Context } from '@hydraharness/cordis'
 // Type-only: pulls the ctx.remote merge and the forwarded-event key face
 // (`commands/change` rides the allowlist) into this program.
-import type {} from '@hydra1902/harness-api-remotes/client'
-import type { CommandResult } from '@hydra1902/harness-commands/types'
-import type { ClientContext, ISessions, SessionId } from '@hydra1902/harness-client-runtime/client'
-import type { TranslateNS } from '@hydra1902/harness-client-locale/client'
+import type {} from '@hydraharness/harness-api-remotes/client'
+import type { CommandResult } from '@hydraharness/harness-commands/types'
+import type { ClientContext, ISessions, SessionId } from '@hydraharness/harness-client-runtime/client'
+import type { TranslateNS } from '@hydraharness/harness-client-locale/client'
 import type {
   CandidateRequest, ClientSessionContext, CommandClaim, PickOutcome, InputTriggerCandidate, InputTriggerPick,
   SubmitEnvelope, SubmitImageAttachment, SubmitOutcome,
-} from '@hydra1902/harness-client-ui-input-trigger/client'
+} from '@hydraharness/harness-client-ui-input-trigger/client'
 import type { CommandContribution, CommandDecoration, CommandUiContract } from './contract.ts'
 import type { CommandDescriptor } from './directory.ts'
 import { CommandDirectory } from './directory.ts'
 import { PopupSelectController } from './popup.ts'
 import type { TokenSegment } from './popup.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Events {
     /**
      * This browser client completed one admitted Host command execution.

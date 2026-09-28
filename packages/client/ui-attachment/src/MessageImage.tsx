@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { ImageAttachmentRef } from '@hydra1902/harness-attachment'
+import type { ImageAttachmentRef } from '@hydraharness/harness-attachment'
 import { ImageLightbox } from './ImageLightbox.tsx'
 import type { ImageLightboxLabels } from './ImageLightbox.tsx'
 import css from './MessageImage.module.css'

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { BlockAssembler, EMPTY_RESPONSE_CODE, LlmError } from '@hydra1902/harness-llm'
-import type { StreamChunk } from '@hydra1902/harness-llm'
+import { BlockAssembler, EMPTY_RESPONSE_CODE, LlmError } from '@hydraharness/harness-llm'
+import type { StreamChunk } from '@hydraharness/harness-llm'
 import { DONE } from '../src/sse.ts'
 import { mapFinishReason, mapUsage, translate } from '../src/translate.ts'
 

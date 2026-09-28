@@ -4,7 +4,7 @@ Status: proposed
 
 ## Problem
 
-A cold (persisted, unattached) session has no authoritative stored answer to "when did the user last prompt here". `@hydra/harness-host-apiproxy` serves `updatedAt` from the optional projection cache's `lastPromptAt`, falling back to `createdAt`, and the Web client sorts its Session tree by that value. The cache is fail-soft and checkpointed asynchronously, so a missing or delayed row makes a recently prompted Session sort too old.
+A cold (persisted, unattached) session has no authoritative stored answer to "when did the user last prompt here". `@hydraharness/harness-host-apiproxy` serves `updatedAt` from the optional projection cache's `lastPromptAt`, falling back to `createdAt`, and the Web client sorts its Session tree by that value. The cache is fail-soft and checkpointed asynchronously, so a missing or delayed row makes a recently prompted Session sort too old.
 
 The gateway previously used JSONL artifact mtime when available. mtime answers a different question: when the artifact was last written. Every durable write refreshes it, including a truncate-repair of a torn tail, synthetic closers that balance an interrupted turn, and the [`session/end-seed` boundary](../../implemented/architecture/2026-07-30-session-end-seed-log-boundary.md) appended during pickup. That approximation promoted a Session merely because it was opened. The [bounded cold blank verification](../../implemented/bug-fix/2026-08-13-bounded-cold-blank-verification.md) removed mtime ordering and accepted the cache's conservative "too old" failure direction as an interim tradeoff.
 

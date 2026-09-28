@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createServer } from 'node:http'
-import { Context } from '@hydra1902/cordis'
-import { CredentialProvider, credentialKey } from '@hydra1902/harness-credentials'
+import { Context } from '@hydraharness/cordis'
+import { CredentialProvider, credentialKey } from '@hydraharness/harness-credentials'
 import type { Credential } from '@earendil-works/pi-ai'
 import type {
   CredentialInfo,
@@ -11,10 +11,10 @@ import type {
   CredentialRecordInfo,
   CredentialRef,
   ResolvedCredential,
-} from '@hydra1902/harness-credentials'
+} from '@hydraharness/harness-credentials'
 import { createAccountPool, emptyAuthContext, parseAccountPool } from '../src/accounts.ts'
 import { readAccountUsage } from '../src/usage.ts'
-import type { StreamChunk } from '@hydra1902/harness-llm'
+import type { StreamChunk } from '@hydraharness/harness-llm'
 
 const usageMocks = vi.hoisted(() => ({ chatgptRefresh: vi.fn(), antigravityRefresh: vi.fn(), oauthAvailable: true }))
 vi.mock('@earendil-works/pi-ai/providers/openai-codex', async (load) => {

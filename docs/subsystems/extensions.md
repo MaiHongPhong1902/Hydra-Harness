@@ -299,7 +299,7 @@ Source: [`packages/hooks/hooks-registry/src/index.ts`](../../packages/hooks/hook
 
 ### `ctx.importedPlugins` — `ImportedPluginRuntime`
 
-Shared `@hydra1902/harness-base` service for every imported bundle, not a Web-only facility.
+Shared `@hydraharness/harness-base` service for every imported bundle, not a Web-only facility.
 
 ```ts cordis-catalog
 /**

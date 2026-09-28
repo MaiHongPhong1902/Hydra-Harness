@@ -3,11 +3,11 @@
  * record of the child's declared composition before its first request, so a
  * later cold resume can reconstruct it from its own log.
  *
- * @module @hydra1902/harness-subagent/descriptor-seed
+ * @module @hydraharness/harness-subagent/descriptor-seed
  */
 
-import { Session } from '@hydra1902/harness-session'
-import type { SessionEvent, SessionId } from '@hydra1902/harness-session'
+import { Session } from '@hydraharness/harness-session'
+import type { SessionEvent, SessionId } from '@hydraharness/harness-session'
 import type { SubagentDescriptorData } from './descriptor.ts'
 
 /**

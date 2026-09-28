@@ -3,19 +3,19 @@
  * the cancellable generated Remote namespaces in parallel with deterministic
  * ordering and labels.
  *
- * @module @hydra1902/harness-client-ui-reference/client
+ * @module @hydraharness/harness-client-ui-reference/client
  */
 // Type-only: pulls the generated Remote API and ctx.remote merge through the Client assembly boundary.
-import type {} from '@hydra1902/harness-api-remotes/client'
+import type {} from '@hydraharness/harness-api-remotes/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@hydra1902/harness-client-locale/client'
-import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-client-locale/client'
+import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
 import type {
   ClientSessionContext, InputTriggerServiceContract, InputTriggerSource,
-} from '@hydra1902/harness-client-ui-input-trigger/client'
-import { formatFileMention } from '@hydra1902/harness-file-reference/grammar'
-import type { FileReferenceCandidate } from '@hydra1902/harness-file-reference/types'
-import type { SessionReferenceMentionCandidate } from '@hydra1902/harness-session-reference/types'
+} from '@hydraharness/harness-client-ui-input-trigger/client'
+import { formatFileMention } from '@hydraharness/harness-file-reference/grammar'
+import type { FileReferenceCandidate } from '@hydraharness/harness-file-reference/types'
+import type { SessionReferenceMentionCandidate } from '@hydraharness/harness-session-reference/types'
 import { en, NS, type ReferenceKey } from './locales.ts'
 
 /** Required services: the trigger registry, the Remote namespaces, and the copy. */

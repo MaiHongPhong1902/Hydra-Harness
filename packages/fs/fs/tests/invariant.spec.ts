@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { FsTargetKey, FsVersion } from '@hydra1902/harness-fs'
-import type { FsTarget } from '@hydra1902/harness-fs'
-import * as FsInvariant from '@hydra1902/harness-fs/invariant'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+import { Context } from '@hydraharness/cordis'
+import { FsTargetKey, FsVersion } from '@hydraharness/harness-fs'
+import type { FsTarget } from '@hydraharness/harness-fs'
+import * as FsInvariant from '@hydraharness/harness-fs/invariant'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

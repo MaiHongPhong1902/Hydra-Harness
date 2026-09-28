@@ -1,7 +1,7 @@
 /** Persisted agent edit history and inline review actions. @module */
 import { useEffect, useMemo, useState, type MouseEvent } from 'react'
-import type { InjectFace, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
-import type { ReviewChange, ReviewHunk, ReviewMode, WorkspaceReviewFile } from '@hydra1902/harness-fs-review/client'
+import type { InjectFace, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
+import type { ReviewChange, ReviewHunk, ReviewMode, WorkspaceReviewFile } from '@hydraharness/harness-fs-review/client'
 import type { ReviewHistory, ReviewSnapshot } from './history.ts'
 import { DiffView } from './DiffView.tsx'
 import css from './Review.module.css'

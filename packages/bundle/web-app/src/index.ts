@@ -1,5 +1,5 @@
 /**
- * @hydra1902/harness-web-app — the browser-surface bundle's runtime glue plugin
+ * @hydraharness/harness-web-app — the browser-surface bundle's runtime glue plugin
  * plus the bundle patch (`cordis.patch.yml`, declared by the `hydra.bundle.patch`
  * manifest field). The plugin owns the browser-surface glue: it resolves
  * the built frontend dist (workspace knowledge of this bundle, never user
@@ -8,26 +8,26 @@
  * variable, the URL line, and the default-browser handoff. App command-line
  * values arrive through the `webStartup` service expressions in the bundle
  * patch.
- * @module @hydra1902/harness-web-app
+ * @module @hydraharness/harness-web-app
  */
 
 import { spawn, type ChildProcess } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { networkInterfaces } from 'node:os'
 import { fileURLToPath } from 'node:url'
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { PreStepDecision } from '@hydra1902/harness-agent'
-import { addHarnessSourceSection } from '@hydra1902/harness-app-boot'
-import * as FrontendStatic from '@hydra1902/harness-host-frontend-static'
-import { launchEnvironmentOf } from '@hydra1902/harness-launch-environment'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { UserMessage } from '@hydra1902/harness-session'
-import { scrubbedParentEnv } from '@hydra1902/harness-subprocess'
-import type {} from '@hydra1902/cordis-plugin-loader'
-import type {} from '@hydra1902/harness-host-webserver'
-import type {} from '@hydra1902/harness-system-prompt'
-import type {} from '@hydra1902/harness-shell-env'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { PreStepDecision } from '@hydraharness/harness-agent'
+import { addHarnessSourceSection } from '@hydraharness/harness-app-boot'
+import * as FrontendStatic from '@hydraharness/harness-host-frontend-static'
+import { launchEnvironmentOf } from '@hydraharness/harness-launch-environment'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { UserMessage } from '@hydraharness/harness-session'
+import { scrubbedParentEnv } from '@hydraharness/harness-subprocess'
+import type {} from '@hydraharness/cordis-plugin-loader'
+import type {} from '@hydraharness/harness-host-webserver'
+import type {} from '@hydraharness/harness-system-prompt'
+import type {} from '@hydraharness/harness-shell-env'
 
 /** Stable Cordis plugin name. */
 export const name = 'web-app'
@@ -187,7 +187,7 @@ function localWebUrl(ctx: Context): string {
 function resolveDistIndex(): string {
   const require = createRequire(import.meta.url)
   try {
-    return require.resolve('@hydra1902/harness-web-frontend/dist/index.html')
+    return require.resolve('@hydraharness/harness-web-frontend/dist/index.html')
   } catch {
     /* v8 ignore next 2 -- reachable only on a checkout without a built dist; the test tree builds it */
     throw new Error('web-app: frontend dist not built; run pnpm run build from the repository root first')

@@ -1,4 +1,4 @@
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   export class Service { protected readonly __service?: never }
 
   export interface Context {}

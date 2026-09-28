@@ -1,17 +1,17 @@
 /**
- * `@hydra1902/harness-web-search-exa`: registers an Exa-backed `WebSearchProvider`
+ * `@hydraharness/harness-web-search-exa`: registers an Exa-backed `WebSearchProvider`
  * with `ctx.web`. A function/namespace plugin (NOT a default-export service):
  * a search provider does not own the `ctx.web` key — it registers INTO the
- * seam's provider registry, exactly as `@hydra1902/harness-llm-deepseek`
- * registers an adapter into `ctx.llm`. The key is owned by `@hydra1902/harness-web`.
+ * seam's provider registry, exactly as `@hydraharness/harness-llm-deepseek`
+ * registers an adapter into `ctx.llm`. The key is owned by `@hydraharness/harness-web`.
  *
- * @module @hydra1902/harness-web-search-exa
+ * @module @hydraharness/harness-web-search-exa
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { launchEnvironmentOf } from '@hydra1902/harness-launch-environment'
-import z from '@hydra1902/schemastery'
-import type {} from '@hydra1902/harness-web'
+import type { Context } from '@hydraharness/cordis'
+import { launchEnvironmentOf } from '@hydraharness/harness-launch-environment'
+import z from '@hydraharness/schemastery'
+import type {} from '@hydraharness/harness-web'
 import {
   ExaSearchProvider,
   EXA_DEFAULT_BASE_URL,

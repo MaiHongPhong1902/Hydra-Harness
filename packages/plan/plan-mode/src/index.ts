@@ -20,22 +20,22 @@
  * Agent Note:
  * - .agents/notes/implemented/simplification/2026-07-22-plan-specific-collaboration-state.md
  *
- * @module @hydra1902/harness-plan-mode
+ * @module @hydraharness/harness-plan-mode
  */
 
-import { Context, Service } from '@hydra1902/cordis'
+import { Context, Service } from '@hydraharness/cordis'
 import { z as zod } from 'zod'
 import type { ZodType } from 'zod'
-import type { Agent, PreStepDecision } from '@hydra1902/harness-agent'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { Session, SessionEvent, UserMessage } from '@hydra1902/harness-session'
-import { defineTool } from '@hydra1902/harness-tools'
-import type {} from '@hydra1902/harness-system-prompt'
-import { UserQuestionError } from '@hydra1902/harness-user-questions'
+import type { Agent, PreStepDecision } from '@hydraharness/harness-agent'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { Session, SessionEvent, UserMessage } from '@hydraharness/harness-session'
+import { defineTool } from '@hydraharness/harness-tools'
+import type {} from '@hydraharness/harness-system-prompt'
+import { UserQuestionError } from '@hydraharness/harness-user-questions'
 // Type-only edge: resolves `ctx.commands` for the optional command child.
-import type { CommandId } from '@hydra1902/harness-commands'
+import type { CommandId } from '@hydraharness/harness-commands'
 // Type-only: resolves ctx.sessionProjections for the optional unit child.
-import type {} from '@hydra1902/harness-session-projection'
+import type {} from '@hydraharness/harness-session-projection'
 import type { PlanProjection } from './types.ts'
 // The `plan` projection-key declaration lives in src/types.ts (its one home);
 // this re-export projects the type face onto the package root AND keeps the
@@ -43,7 +43,7 @@ import type { PlanProjection } from './types.ts'
 // declarations still receive the SessionProjectionMap merge.
 export type * from './types.ts'
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /**
      * Whether plan mode is in force from this point on: log-only, non-surface,
@@ -54,7 +54,7 @@ declare module '@hydra1902/harness-session/types' {
   }
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     planMode: PlanModeController
   }
@@ -151,7 +151,7 @@ interface PlanUnitState {
   running: { commandId: CommandId; wanted: boolean } | null
 }
 
-declare module '@hydra1902/harness-session-projection/types' {
+declare module '@hydraharness/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     plan: PlanUnitState
   }

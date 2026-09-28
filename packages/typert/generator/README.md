@@ -1,4 +1,4 @@
-# @hydra/harness-typert-generator
+# @hydraharness/harness-typert-generator
 
 TypeScript project analyzer and model-driven Typert generator. It converts the developer-authored source type tree into compiler-independent `FaceModel` and `TypeGraph` data before any artifact is rendered. Static analysis can consume that model without Cordis; emitters never receive TypeScript AST or checker objects.
 

@@ -1,4 +1,4 @@
-# @hydra/harness-skill-badge
+# @hydraharness/harness-skill-badge
 
 Optional bundled skill provider that contributes `hydra-badge` to `ctx.skills`. The skill supplies the official “powered by Hydra harness” Markdown snippets and the packaged Hydra PNG for documents and image uploads.
 
@@ -8,7 +8,7 @@ The provider exposes its packaged `assets/` directory as the skill resource base
 
 ## Model Experience
 
-Indirectly, through `@hydra/harness-tool-skill`, which renders a bounded matching summary on search and the selected skill body on exact load.
+Indirectly, through `@hydraharness/harness-tool-skill`, which renders a bounded matching summary on search and the selected skill body on exact load.
 
 #### KV Cache effect
 

@@ -11,7 +11,7 @@
 
 import { spawnSync } from 'node:child_process'
 import koffi from 'koffi'
-import type { SubprocessTerminalSignal } from '@hydra1902/harness-subprocess'
+import type { SubprocessTerminalSignal } from '@hydraharness/harness-subprocess'
 import type { ProcessIdentity, ProcessInspector } from './process-inspector.ts'
 
 /** One Toolhelp32 process-table row. */

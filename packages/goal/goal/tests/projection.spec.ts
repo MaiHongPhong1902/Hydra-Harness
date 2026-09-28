@@ -9,16 +9,16 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
-import type { Agent, AgentStatus } from '@hydra1902/harness-agent'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { UserMessage } from '@hydra1902/harness-session'
-import SessionStore from '@hydra1902/harness-session'
-import type { Session } from '@hydra1902/harness-session'
-import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
-import GoalService, { applyGoalProjection, foldGoal } from '@hydra1902/harness-goal'
-import type { GoalRef } from '@hydra1902/harness-goal'
+import { Context } from '@hydraharness/cordis'
+import AgentRegistry, { Inbox } from '@hydraharness/harness-agent'
+import type { Agent, AgentStatus } from '@hydraharness/harness-agent'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { UserMessage } from '@hydraharness/harness-session'
+import SessionStore from '@hydraharness/harness-session'
+import type { Session } from '@hydraharness/harness-session'
+import SessionProjectionRegistry from '@hydraharness/harness-session-projection'
+import GoalService, { applyGoalProjection, foldGoal } from '@hydraharness/harness-goal'
+import type { GoalRef } from '@hydraharness/harness-goal'
 
 interface Bench {
   ctx: Context

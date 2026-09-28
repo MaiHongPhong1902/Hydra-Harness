@@ -3,24 +3,24 @@
 # while the session is offline, then resumes through the public agent service.
 
 - id: persistence
-  name: '@hydra1902/harness-session-persistence-jsonl'
+  name: '@hydraharness/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: none
 
 - id: replay
-  name: '@hydra1902/harness-llm-replay'
+  name: '@hydraharness/harness-llm-replay'
   config:
     file: !!js process.env.HYDRA_SNAPSHOT_FILE
     overrideFile: !!js process.env.HYDRA_SNAPSHOT_OVERRIDE
 
 - id: fs-local
-  name: '@hydra1902/harness-fs-local'
+  name: '@hydraharness/harness-fs-local'
   config:
     cwd: !!js process.cwd()
 
 - id: agent
-  name: '@hydra1902/harness-agent-spine-demo'
+  name: '@hydraharness/harness-agent-spine-demo'
   config:
     agents: []
     workspaceContext:

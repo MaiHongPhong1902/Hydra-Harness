@@ -1,10 +1,10 @@
-# @hydra/harness-subagent-codex
+# @hydraharness/harness-subagent-codex
 
-This package registers a Profile-named Codex subagent provider whose default name is `codex`. Each accepted run starts the official package-local Codex wrapper with `app-server --stdio` in the delegating Session's workspace, creates one ephemeral Codex thread, submits one self-contained text task, and returns either the selected final answer or a separate safe failure diagnostic through the shared [`@hydra/harness-subagent`](../subagent/README.md) result contract.
+This package registers a Profile-named Codex subagent provider whose default name is `codex`. Each accepted run starts the official package-local Codex wrapper with `app-server --stdio` in the delegating Session's workspace, creates one ephemeral Codex thread, submits one self-contained text task, and returns either the selected final answer or a separate safe failure diagnostic through the shared [`@hydraharness/harness-subagent`](../subagent/README.md) result contract.
 
 ## Start and ownership
 
-`start(request)` accepts only a non-empty sequence of text blocks and derives the child cwd from the parent Session. It then spawns the fixed command through [`@hydra/harness-subprocess`](../../subprocess/subprocess/README.md), performs `initialize` → `initialized`, maps the Profile-selected mode into official `thread/start` approval/reviewer/sandbox fields beside `{ cwd, ephemeral: true }`, and publishes the run only after Codex returns a valid ephemeral thread. A failure or cancellation before publication closes the wire, terminates the managed process tree, waits for it to exit, and rejects `start()`. Non-cancellation rejections expose only the fixed `initialize` or `thread-start` stage plus an already observed process outcome; raw product and Host errors remain on internal cause chains.
+`start(request)` accepts only a non-empty sequence of text blocks and derives the child cwd from the parent Session. It then spawns the fixed command through [`@hydraharness/harness-subprocess`](../../subprocess/subprocess/README.md), performs `initialize` → `initialized`, maps the Profile-selected mode into official `thread/start` approval/reviewer/sandbox fields beside `{ cwd, ephemeral: true }`, and publishes the run only after Codex returns a valid ephemeral thread. A failure or cancellation before publication closes the wire, terminates the managed process tree, waits for it to exit, and rejects `start()`. Non-cancellation rejections expose only the fixed `initialize` or `thread-start` stage plus an already observed process outcome; raw product and Host errors remain on internal cause chains.
 
 The published `run.result` starts exactly one turn. It accepts only notifications for that run's thread and turn, then waits for the authoritative `turn/completed` terminal notification. The latest `agentMessage` with `phase: "final_answer"` wins; when Codex emits no explicit final phase, the latest message with `phase: null` is the compatibility fallback. Commentary never replaces either answer, and a successful turn with no nonblank answer settles as an error.
 
@@ -38,18 +38,18 @@ Production resolves the `codex` bin declared by its pinned `@openai/codex@0.147.
 This package is an optional Profile Bundle. Install it into the target Profile, then restart that Profile; installation brings the official wrapper and one compatible native platform payload into that Profile, while the declared `cordis.patch.yml` layer registers only the dormant `codex` Host provider and starts no Codex process. Removing the package withdraws that provider and its private runtime closure on the next Profile start.
 
 ```sh
-hydra plugin --profile <name> add @hydra1902/harness-subagent-codex
-hydra plugin --profile <name> remove @hydra1902/harness-subagent-codex
+hydra plugin --profile <name> add @hydraharness/harness-subagent-codex
+hydra plugin --profile <name> remove @hydraharness/harness-subagent-codex
 hydra --profile <name>
 ```
 
-Installation controls Host availability, not model permission. The Bundle supplies the dormant default `codex` row; the Profile may replace that row's complete config or mount additional rows with distinct `providerName`, `permissionMode`, and `env` values. Loading an instance starts no Codex process until a bound tool calls it. Each `@hydra/harness-tool-subagent` row names one provider and needs its own `toolName`, so the model sees static tools rather than a dynamic provider selector. Full Agent Presets carry a matching default product tool row with `disabled: true`; copy a preset and remove that field to expose `subagent_codex` only to agents composed from the copy. Its `one-shot` policy keeps omitted or `false` `run_in_background` calls in the foreground, while explicit `true` returns a parent-owned Job id for `job_output` or `job_kill`. The base host and full presets already provide the generic Job registry and controls.
+Installation controls Host availability, not model permission. The Bundle supplies the dormant default `codex` row; the Profile may replace that row's complete config or mount additional rows with distinct `providerName`, `permissionMode`, and `env` values. Loading an instance starts no Codex process until a bound tool calls it. Each `@hydraharness/harness-tool-subagent` row names one provider and needs its own `toolName`, so the model sees static tools rather than a dynamic provider selector. Full Agent Presets carry a matching default product tool row with `disabled: true`; copy a preset and remove that field to expose `subagent_codex` only to agents composed from the copy. Its `one-shot` policy keeps omitted or `false` `run_in_background` calls in the foreground, while explicit `true` returns a parent-owned Job id for `job_output` or `job_kill`. The base host and full presets already provide the generic Job registry and controls.
 
-The standalone composition below shows the complete explicit capability. A Profile based on `@hydra/harness-base` keeps its existing Job rows, adds the product provider and tool rows, and does not mount duplicate Job services.
+The standalone composition below shows the complete explicit capability. A Profile based on `@hydraharness/harness-base` keeps its existing Job rows, adds the product provider and tool rows, and does not mount duplicate Job services.
 
 ```yaml
 - id: subagent-codex-safe
-  name: '@hydra1902/harness-subagent-codex'
+  name: '@hydraharness/harness-subagent-codex'
   config:
     providerName: codex-safe
     permissionMode: never
@@ -57,7 +57,7 @@ The standalone composition below shows the complete explicit capability. A Profi
       OPENAI_API_KEY: !!js process.env.OPENAI_API_KEY
 
 - id: subagent-codex-bypass
-  name: '@hydra1902/harness-subagent-codex'
+  name: '@hydraharness/harness-subagent-codex'
   config:
     providerName: codex-bypass
     permissionMode: dangerously-bypass-approvals-and-sandbox
@@ -67,13 +67,13 @@ The standalone composition below shows the complete explicit capability. A Profi
 
 ```yaml
 - id: jobs
-  name: '@hydra1902/harness-jobs-local'
+  name: '@hydraharness/harness-jobs-local'
 
 - id: tool-jobs
-  name: '@hydra1902/harness-tool-jobs'
+  name: '@hydraharness/harness-tool-jobs'
 
 - id: tool-subagent-codex-safe
-  name: '@hydra1902/harness-tool-subagent'
+  name: '@hydraharness/harness-tool-subagent'
   disabled: true
   config:
     provider: codex-safe
@@ -82,7 +82,7 @@ The standalone composition below shows the complete explicit capability. A Profi
     maxDepth: provider-managed
 
 - id: tool-subagent-codex-bypass
-  name: '@hydra1902/harness-tool-subagent'
+  name: '@hydraharness/harness-tool-subagent'
   config:
     provider: codex-bypass
     toolName: subagent_codex_bypass
@@ -118,7 +118,7 @@ Independent of the parent request cache. Reuse depends only on Codex's own provi
 
 #### What the model sees
 
-Through `@hydra/harness-tool-subagent`, a foreground call gives the parent the selected final Codex answer or an error containing the stop reason and optional safe diagnostic for a non-completed result. The diagnostic can distinguish the fixed error-info category, protocol stage, numeric HTTP status, and observed process outcome without copying product prose. A background call first returns a Job id; the generic job controls later deliver a completion notice, expose the same final answer or failed status detail through `job_output`, and let `job_kill` request cancellation. Codex commentary, reasoning, tool activity, raw stderr, workspace diffs, usage, product ids, commands, paths, and protocol payloads are not copied into the parent Session.
+Through `@hydraharness/harness-tool-subagent`, a foreground call gives the parent the selected final Codex answer or an error containing the stop reason and optional safe diagnostic for a non-completed result. The diagnostic can distinguish the fixed error-info category, protocol stage, numeric HTTP status, and observed process outcome without copying product prose. A background call first returns a Job id; the generic job controls later deliver a completion notice, expose the same final answer or failed status detail through `job_output`, and let `job_kill` request cancellation. Codex commentary, reasoning, tool activity, raw stderr, workspace diffs, usage, product ids, commands, paths, and protocol payloads are not copied into the parent Session.
 
 #### Token effect
 

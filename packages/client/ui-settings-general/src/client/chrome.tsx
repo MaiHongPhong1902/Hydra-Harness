@@ -4,8 +4,8 @@
  * The shell renders the surrounding chrome (button, nav heading row) and
  * reads each entry's `label` option for aria text.
  */
-import { IconSettingsOutline14, IconSettingsOutline16 } from '@hydra1902/harness-client-ui-primitives'
-import type { PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import { IconSettingsOutline14, IconSettingsOutline16 } from '@hydraharness/harness-client-ui-primitives'
+import type { PropsLocale, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
 import css from './chrome.module.css'
 
 /** Trigger content props: the sidebar column state + the standard locale seat. */

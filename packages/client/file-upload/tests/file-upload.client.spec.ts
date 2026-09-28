@@ -1,4 +1,4 @@
-import { Context, FiberState } from '@hydra1902/cordis'
+import { Context, FiberState } from '@hydraharness/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apply } from '../src/client/index.ts'
 import { fileUploadWorker, FileUploadRuntime } from '../src/client/runtime.ts'

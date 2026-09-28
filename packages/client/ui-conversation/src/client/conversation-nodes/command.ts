@@ -1,16 +1,16 @@
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   CommandNode, CompactionSummaryNode, ConversationMatch, ConversationNodeContext,
   ConversationNodeDefinition,
-} from '@hydra1902/harness-client-runtime/client'
-import { isReplacementSurfaceEvent } from '@hydra1902/harness-client-runtime/client'
-import type { CompactionCheckpointSource } from '@hydra1902/harness-compaction/checkpoint'
-import type {} from '@hydra1902/harness-compaction/types'
-import type {} from '@hydra1902/harness-commands/types'
+} from '@hydraharness/harness-client-runtime/client'
+import { isReplacementSurfaceEvent } from '@hydraharness/harness-client-runtime/client'
+import type { CompactionCheckpointSource } from '@hydraharness/harness-compaction/checkpoint'
+import type {} from '@hydraharness/harness-compaction/types'
+import type {} from '@hydraharness/harness-commands/types'
 import type { ManualCompactionChatData } from '../contract/chat-nodes.ts'
 import { chatNode } from './common.ts'
 
-declare module '@hydra1902/harness-client-ui-conversation/client' {
+declare module '@hydraharness/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Ordinary slash-command lifecycle. */
     command: CommandNode

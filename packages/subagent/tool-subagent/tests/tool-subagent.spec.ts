@@ -2,25 +2,25 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import { CallId } from '@hydra1902/harness-llm'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH } from '@hydra1902/harness-tools'
-import { assembleContextFor, type Agent } from '@hydra1902/harness-agent'
-import AgentRegistry from '@hydra1902/harness-agent'
-import AgentLoop from '@hydra1902/harness-agent-loop'
-import { mountAgentLoopTestDependencies } from '@hydra1902/harness-agent-loop-testkit'
-import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
-import SubagentRuntime from '@hydra1902/harness-subagent'
-import type { SubagentStartRequest } from '@hydra1902/harness-subagent'
-import LocalJobRegistry from '@hydra1902/harness-jobs-local'
-import * as SubagentSpawn from '@hydra1902/harness-subagent-spawn-in-process'
-import * as ToolTasks from '@hydra1902/harness-tool-jobs'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import { CallId } from '@hydraharness/harness-llm'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH } from '@hydraharness/harness-tools'
+import { assembleContextFor, type Agent } from '@hydraharness/harness-agent'
+import AgentRegistry from '@hydraharness/harness-agent'
+import AgentLoop from '@hydraharness/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydraharness/harness-agent-loop-testkit'
+import JsonlSessionPersistence from '@hydraharness/harness-session-persistence-jsonl'
+import SubagentRuntime from '@hydraharness/harness-subagent'
+import type { SubagentStartRequest } from '@hydraharness/harness-subagent'
+import LocalJobRegistry from '@hydraharness/harness-jobs-local'
+import * as SubagentSpawn from '@hydraharness/harness-subagent-spawn-in-process'
+import * as ToolTasks from '@hydraharness/harness-tool-jobs'
 import { MockAdapter, textResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import * as mock from './scripted-provider.ts'
 import * as tool from '../src/index.ts'
-import { SessionId } from '@hydra1902/harness-session'
+import { SessionId } from '@hydraharness/harness-session'
 
 const testToolSignal = new AbortController().signal
 
@@ -919,7 +919,7 @@ describe('hydra-tool-subagent background mode', () => {
     const ctx = await setup({ provider: 'mock' })
     const result = await callSubagent(ctx, { description: 'd', prompt: 'p', run_in_background: true })
     expect(result.isError).toBe(true)
-    expect(text(result)).toContain('background jobs unavailable: load @hydra1902/harness-jobs')
+    expect(text(result)).toContain('background jobs unavailable: load @hydraharness/harness-jobs')
   })
 
   it('skips background startup when the tool signal is already aborted', async () => {

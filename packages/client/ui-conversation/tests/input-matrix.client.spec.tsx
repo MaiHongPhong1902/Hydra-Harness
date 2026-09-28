@@ -7,14 +7,14 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
 import {
   createSnapshotStore, EMPTY_CHAT_SNAPSHOT, EMPTY_CONVERSATION_VIEWS,
-} from '@hydra1902/harness-client-runtime/client'
-import type { ClientContext, ConversationSnapshot, SessionId } from '@hydra1902/harness-client-runtime/client'
-import type { SubmitImageAttachment, SubmitOutcome } from '@hydra1902/harness-client-ui-input-trigger/client'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+} from '@hydraharness/harness-client-runtime/client'
+import type { ClientContext, ConversationSnapshot, SessionId } from '@hydraharness/harness-client-runtime/client'
+import type { SubmitImageAttachment, SubmitOutcome } from '@hydraharness/harness-client-ui-input-trigger/client'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 import type { DraftAttachmentId } from '../src/client/input/contract.ts'
 import { SessionInputShell } from '../src/client/input/facade.ts'
 import { InputBar } from '../src/client/skeleton/InputBar.tsx'

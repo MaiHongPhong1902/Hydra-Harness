@@ -7,17 +7,17 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mkdtemp, readFile, realpath, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@hydra1902/cordis'
-import type { Agent } from '@hydra1902/harness-agent'
-import AgentLoop from '@hydra1902/harness-agent-loop'
-import { mountAgentLoopTestDependencies } from '@hydra1902/harness-agent-loop-testkit'
-import SandboxedFileSystem from '@hydra1902/harness-fs-sandbox'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import SandboxPolicyService, { setSandboxMode } from '@hydra1902/harness-sandbox-policy'
-import { SessionId, type SessionEvent } from '@hydra1902/harness-session'
-import * as ToolFs from '@hydra1902/harness-tool-fs'
-import ApprovalService from '@hydra1902/harness-user-approval'
-import { snapshotSubagentDescriptor } from '@hydra1902/harness-subagent'
+import { Context } from '@hydraharness/cordis'
+import type { Agent } from '@hydraharness/harness-agent'
+import AgentLoop from '@hydraharness/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydraharness/harness-agent-loop-testkit'
+import SandboxedFileSystem from '@hydraharness/harness-fs-sandbox'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import SandboxPolicyService, { setSandboxMode } from '@hydraharness/harness-sandbox-policy'
+import { SessionId, type SessionEvent } from '@hydraharness/harness-session'
+import * as ToolFs from '@hydraharness/harness-tool-fs'
+import ApprovalService from '@hydraharness/harness-user-approval'
+import { snapshotSubagentDescriptor } from '@hydraharness/harness-subagent'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import { startInProcessRun } from '../src/index.ts'
 
@@ -114,7 +114,7 @@ describe('in-process policy inheritance', () => {
       const runtimeContext = child.session.events.find(
         (event): event is SessionEvent<'user/message'> => event.type === 'user/message'
           && event.data.source.kind === 'plugin'
-          && event.data.source.plugin === '@hydra1902/harness-system-prompt',
+          && event.data.source.plugin === '@hydraharness/harness-system-prompt',
       )
       if (request === undefined || runtimeContext === undefined) throw new Error('child request lacks its runtime policy context')
       expect(runtimeContext.seq).toBeLessThan(request.seq)

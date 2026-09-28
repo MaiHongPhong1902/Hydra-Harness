@@ -1,4 +1,4 @@
-# @hydra/harness-experimental-agent-team
+# @hydraharness/harness-experimental-agent-team
 
 Implicit-root Agent Teams domain. `ctx.agentTeams` owns a flat Lead/teammate roster, a durable peer mailbox, and a shared task DAG in the Lead Session log. The [Agent Teams Agent Note](../../../.agents/notes/implemented/feature/2026-08-05-agent-teams.md) owns the coordination and isolation decisions; the [Team subsystem catalog](../../../docs/subsystems/agent-team.md) records the literal durable shapes and service API.
 
@@ -6,7 +6,7 @@ Implicit-root Agent Teams domain. `ctx.agentTeams` owns a flat Lead/teammate ros
 
 ```yaml
 - id: agent-team
-  name: '@hydra1902/harness-experimental-agent-team'
+  name: '@hydraharness/harness-experimental-agent-team'
   config:
     maxMembers: 8
     maxTasks: 256
@@ -59,7 +59,7 @@ Each delivered peer message is a user-role message. A short first text block nam
 
 #### Token effect
 
-Each peer delivery adds the sender prefix plus message content to the target history. Task and roster mutations add no model tokens; their model-facing representation belongs to `@hydra/harness-experimental-tool-agent-team` results.
+Each peer delivery adds the sender prefix plus message content to the target history. Task and roster mutations add no model tokens; their model-facing representation belongs to `@hydraharness/harness-experimental-tool-agent-team` results.
 
 #### KV Cache effect
 

@@ -7,9 +7,9 @@
 // narrow row never clips it; the durable list itself renders in the TodoPanel
 // above the composer, so the row stays one line until expanded.
 
-import { IconChecklistOutline14 } from '@hydra1902/harness-client-ui-primitives'
-import type { Context } from '@hydra1902/cordis'
-import type { PropsLocale } from '@hydra1902/harness-client-ui-slots'
+import { IconChecklistOutline14 } from '@hydraharness/harness-client-ui-primitives'
+import type { Context } from '@hydraharness/cordis'
+import type { PropsLocale } from '@hydraharness/harness-client-ui-slots'
 import type { ToolCallViewProps } from '../../contract/slots.ts'
 import { toolRowModel } from '../models/tool-call-model.ts'
 import { ToolRow } from '../components/ToolRow.tsx'

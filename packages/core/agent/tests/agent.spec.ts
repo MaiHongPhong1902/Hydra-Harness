@@ -1,12 +1,12 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { Context, Service, symbols } from '@hydra1902/cordis'
-import { createUserMessage, freezeMessage } from '@hydra1902/harness-llm'
-import { Session, SessionId, type UserMessage } from '@hydra1902/harness-session'
+import { Context, Service, symbols } from '@hydraharness/cordis'
+import { createUserMessage, freezeMessage } from '@hydraharness/harness-llm'
+import { Session, SessionId, type UserMessage } from '@hydraharness/harness-session'
 import AgentRegistry, {
   agentEvents,
   Inbox,
-} from '@hydra1902/harness-agent'
-import TypertRegistry from '@hydra1902/harness-typert-registry'
+} from '@hydraharness/harness-agent'
+import TypertRegistry from '@hydraharness/harness-typert-registry'
 
 import type {
   Agent,
@@ -15,7 +15,7 @@ import type {
   AgentStatus,
   CreateAgentOptions,
   ResumeAgentOptions,
-} from '@hydra1902/harness-agent'
+} from '@hydraharness/harness-agent'
 
 function stubAgent(rawId: string, overrides: Partial<Agent> = {}): Agent {
   const id = SessionId(rawId)
@@ -155,8 +155,8 @@ describe('AgentRegistry', () => {
     expect(lookup).toMatchObject({
       parameter: 'agent',
       wire: 'agentId',
-      hostTypeSymbol: '@hydra1902/harness-agent#Agent',
-      wireTypeSymbol: '@hydra1902/harness-session/types#SessionId',
+      hostTypeSymbol: '@hydraharness/harness-agent#Agent',
+      wireTypeSymbol: '@hydraharness/harness-session/types#SessionId',
     })
     expect(lookup?.resolve(agent.id)).toBe(agent)
     expect(ctx.typert.contexts.getHost('agent')?.resolve(agent.id)).toBe(agent.ctx)

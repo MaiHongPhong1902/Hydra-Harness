@@ -1,7 +1,7 @@
-/** Package-owned workflow lifecycle invariants. @module @hydra1902/harness-workflow/invariant */
+/** Package-owned workflow lifecycle invariants. @module @hydraharness/harness-workflow/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 import type {
   WorkflowAgentEndInfo,
   WorkflowAgentInfo,
@@ -9,7 +9,7 @@ import type {
   WorkflowRunInfo,
 } from './types.ts'
 
-const PACKAGE_NAME = '@hydra1902/harness-workflow'
+const PACKAGE_NAME = '@hydraharness/harness-workflow'
 
 /** Cordis companion plugin name. */
 export const name = 'workflow-invariant'

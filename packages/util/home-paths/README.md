@@ -1,4 +1,4 @@
-# @hydra/harness-home-paths
+# @hydraharness/harness-home-paths
 
 Shared filesystem path helpers for Hydra harness user data.
 

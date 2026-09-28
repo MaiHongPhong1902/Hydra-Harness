@@ -8,7 +8,7 @@ Imported skill frontmatter was parsed one line at a time, so Ponytail's folded d
 
 ## Decision
 
-Filesystem and imported-plugin providers share `parseSkillDocument` from `@hydra/harness-skill`. It uses the existing YAML dependency and the established invocation-policy coercion. Invalid imported metadata rejects installation or enablement; the filesystem provider retains its warning-and-skip behavior. Imported exact loads reparse the current policy and reject a renamed document. Discovery and loading therefore enforce the same permissions without relying on immutable-cache conventions to protect against an external file edit.
+Filesystem and imported-plugin providers share `parseSkillDocument` from `@hydraharness/harness-skill`. It uses the existing YAML dependency and the established invocation-policy coercion. Invalid imported metadata rejects installation or enablement; the filesystem provider retains its warning-and-skip behavior. Imported exact loads reparse the current policy and reject a renamed document. Discovery and loading therefore enforce the same permissions without relying on immutable-cache conventions to protect against an external file edit.
 
 Alias summaries carry the registry-owned `aliasFor` name. Search and automatic routing rank all visible names, prefer an alias on equal scores, and retain one match per canonical definition before limits or confidence checks. The registry keeps aliases available for exact loading and user commands; native names and competing aliases retain their existing precedence.
 

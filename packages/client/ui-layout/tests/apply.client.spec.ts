@@ -6,15 +6,15 @@
 // and the invariant companion ride along — one line exposes the aggregate
 // coverage gate still requires exercised.
 
-import { Context } from '@hydra1902/cordis'
-import { stubSettingsScope } from '@hydra1902/harness-client-test-runtime'
+import { Context } from '@hydraharness/cordis'
+import { stubSettingsScope } from '@hydraharness/harness-client-test-runtime'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
-import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
-import { apply as themeApply, inject as themeInject, ThemeRuntime } from '@hydra1902/harness-client-ui-theme/client'
-import { apply, inject, LayoutController } from '@hydra1902/harness-client-ui-layout/client'
-import { apply as nodeApply } from '@hydra1902/harness-client-ui-layout'
-import * as invariant from '@hydra1902/harness-client-ui-layout/invariant'
+import { SlotRegistry } from '@hydraharness/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydraharness/harness-client-locale/client'
+import { apply as themeApply, inject as themeInject, ThemeRuntime } from '@hydraharness/harness-client-ui-theme/client'
+import { apply, inject, LayoutController } from '@hydraharness/harness-client-ui-layout/client'
+import { apply as nodeApply } from '@hydraharness/harness-client-ui-layout'
+import * as invariant from '@hydraharness/harness-client-ui-layout/invariant'
 
 beforeEach(() => {
   document.head.querySelectorAll('meta[name="theme-color"]').forEach((node) => { node.remove() })
@@ -123,7 +123,7 @@ describe('node half + invariant companion', () => {
     // The /invariant subpath types live in lib/types (build product); assert
     // the API so the call stays typed where lint runs without a build.
     const dispose = await (invariant as { apply: (ctx: never) => Promise<() => void> }).apply(ctx)
-    expect(register).toHaveBeenCalledWith('@hydra1902/harness-client-ui-layout', expect.any(Function))
+    expect(register).toHaveBeenCalledWith('@hydraharness/harness-client-ui-layout', expect.any(Function))
     // The installer is the declared no-op — calling it must not throw.
     expect(() => { (register.mock.calls[0]![1] as (c: never) => void)(undefined as never) }).not.toThrow()
     expect(dispose).toBeTypeOf('function')

@@ -20,7 +20,7 @@ A **bundle** is a distribution format for Cordis config rows and the code they m
 
 Each declares itself in its own `package.json` under a `hydra` field: `hydra.profile` lists a profile's bundles, and `hydra.bundle` points at a bundle's patch file.
 
-[`@hydra/harness-base`](../packages/bundle/base/README.md) is the first layer of every profile: model adapters, tools, persistence, sandbox and approval policy, settings, credentials, telemetry. [`@hydra/harness-web-app`](../packages/bundle/web-app/README.md) adds the browser application; [`@hydra/harness-headless`](../packages/bundle/headless/README.md) adds a one-shot runner with no server at all.
+[`@hydraharness/harness-base`](../packages/bundle/base/README.md) is the first layer of every profile: model adapters, tools, persistence, sandbox and approval policy, settings, credentials, telemetry. [`@hydraharness/harness-web-app`](../packages/bundle/web-app/README.md) adds the browser application; [`@hydraharness/harness-headless`](../packages/bundle/headless/README.md) adds a one-shot runner with no server at all.
 
 Layers apply to an empty entry list in this order: each bundle in the profile's listed order, then the profile's `cordis.patch.yml`, then the home-level one, then any `--patch` overlay. A patch targets a row by id and replaces its whole config, or inserts new rows.
 
@@ -113,7 +113,7 @@ New behavior attaches to a documented extension point. Changing the loop itself 
 | Add a model-facing capability | register on `ctx.tools`; its schema joins prompt assembly |
 | Give one session a different capability set | compose an agent preset; a service row there needs an `isolate` realm |
 | Add shell execution | register a `ctx.shell` backend; the local one spawns through `ctx.subprocess` |
-| Add persistent terminal execution | register a `ctx.terminals` backend plus `@hydra/harness-tool-terminal` |
+| Add persistent terminal execution | register a `ctx.terminals` backend plus `@hydraharness/harness-tool-terminal` |
 | Add a human command | register on `ctx.commands`; it dispatches without a model turn |
 | Add background work | register on `ctx.jobs`; `job_*` tools collect or stop it |
 | Add filesystem access or policy | register a `ctx.fs` provider or listen to `fs/*` events |

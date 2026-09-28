@@ -1,4 +1,4 @@
-# @hydra/harness-browser-electron
+# @hydraharness/harness-browser-electron
 
 Owner-scoped embedded browser. `BrowserSessionService` registers as `ctx.browsers`, starts one Electron window per `Agent` on that agent's first action, and closes it with the agent. Its native chrome lets the user add, select, and close tabs, follows the desktop light/dark theme, and shows an agent status line, HTTPS lock, loading spinner, and tab favicons. Hydra owns the reasoning loop: each controlled page exposes a Playwright-style accessibility snapshot with numbered refs; PageController remains the private DOM execution fallback for those refs. `PageAgentCore` is constructed only when an explicit `page_agent_run` arrives. Hydra harness keeps the upstream Panel out of the webpage and hides PageController's index boxes and labels while retaining the simulator cursor and explicit annotation selection. The gradient follows pending browser commands, including activity received before document initialization; the virtual cursor remains visible during manual browsing without blocking input. The native toolbar fits narrow panels, overflowing tabs scroll horizontally, and the page viewport follows the panel dimensions. Playwright pointer and form actions await the simulator cursor movement through the preload before executing the native action. Indexed clicks reject when their viewport point is covered by another page element, so actions cannot click through popups or headers.
 
@@ -29,7 +29,7 @@ Hydra is a public fork of DeepSeek Harness (DSH). The Electron browser integrati
 
 Each document owns one `MutationObserver` for child, visibility, disclosure, role, and style changes. It ignores Hydra overlays and waits for a short quiet period before comparing accessibility entries by DOM identity. The optional `uiChanges` reports at most 20 shown, hidden, expanded, collapsed, or changed entries per category plus newly focused content. Readiness reads retain these deltas until returning the final state.
 
-The seam contains no tool schema, prompt, or model-facing rendering policy. It owns durable browser settings, native policy enforcement, and Host approvals for browsing, downloads, uploads, sensitive-history searches, and Full CDP operations; `@hydra/harness-tool-browser` owns everything the model sees.
+The seam contains no tool schema, prompt, or model-facing rendering policy. It owns durable browser settings, native policy enforcement, and Host approvals for browsing, downloads, uploads, sensitive-history searches, and Full CDP operations; `@hydraharness/harness-tool-browser` owns everything the model sees.
 
 ## Settings and browser management
 
@@ -74,14 +74,14 @@ In standalone use, `BrowserSessionService` talks to its Electron child in NDJSON
 
 The simulator cursor uses DOM APIs to construct its SVG indicator so pages enforcing Trusted Types can initialize the browser controller and accept form input. The [Trusted Types decision](../../../.agents/notes/implemented/bug-fix/2026-09-26-trusted-types-browser-login.md) owns the rationale.
 
-`pnpm install` links the private `@hydra/harness-browseragent-core`, `@hydra/harness-browseragent-llms`, and `@hydra/harness-browseragent-page-controller` packages from the tracked [`third-party/browseragent`](third-party/browseragent) source. No submodule or external checkout is required. The source retains its upstream MIT license and attribution in [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
+`pnpm install` links the private `@hydraharness/harness-browseragent-core`, `@hydraharness/harness-browseragent-llms`, and `@hydraharness/harness-browseragent-page-controller` packages from the tracked [`third-party/browseragent`](third-party/browseragent) source. No submodule or external checkout is required. The source retains its upstream MIT license and attribution in [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
 
 ## Rebuilding the preload
 
 `electron-app/preload.cjs` is committed. Regenerate it when the local BrowserAgent source or `preload.entry.js` changes:
 
 ```
-pnpm --filter @hydra1902/harness-browser-electron run build:preload
+pnpm --filter @hydraharness/harness-browser-electron run build:preload
 ```
 
 The BrowserAgent source already contains Hydra's cursor and mask changes, so the build has no external checkout or patch overlay step.
@@ -117,7 +117,7 @@ Set `homeUrl` only in the user's profile patch when a deployment has one trusted
 
 #### What the model sees
 
-Nothing directly. This package registers no prompt and no tool; `@hydra/harness-tool-browser` owns the visible schemas, the accessibility-snapshot prompt section, and the result text.
+Nothing directly. This package registers no prompt and no tool; `@hydraharness/harness-tool-browser` owns the visible schemas, the accessibility-snapshot prompt section, and the result text.
 
 #### Token effect
 

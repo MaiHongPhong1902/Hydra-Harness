@@ -8,7 +8,7 @@
  *
  * The browser half never reaches this module — it is evaluated by the client-side runner in a
  * closure, with its own facade.
- * @module @hydra1902/harness-cordis-host-runner/sandbox
+ * @module @hydraharness/harness-cordis-host-runner/sandbox
  */
 
 import { createContext, runInContext, Script } from 'node:vm'

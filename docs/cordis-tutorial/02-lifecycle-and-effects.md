@@ -9,7 +9,7 @@ For a resource Cordis does not already manage — a timer, a connection, a watch
 Create `lifecycle.ts` in `tmp/cordis-tutorial`:
 
 ```ts
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 
 export const name = 'lifecycle-demo'
 

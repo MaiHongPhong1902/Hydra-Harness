@@ -1,6 +1,6 @@
 /** Test double for the client settings-scope seam. */
 import { vi } from 'vitest'
-import type { SettingsScope, SettingsScopeSnapshot } from '@hydra1902/harness-client-runtime/client'
+import type { SettingsScope, SettingsScopeSnapshot } from '@hydraharness/harness-client-runtime/client'
 
 /** Handle over one stubbed scope: the scope, its write spy, and publication controls. */
 export interface StubSettingsScope<T> {

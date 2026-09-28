@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { RpcResponse } from '@hydra1902/harness-api-remotes/client'
-import { Context } from '@hydra1902/cordis'
-import { SettingsSchemaService } from '@hydra1902/harness-client-ui-settings/src/client/schema.ts'
-import { SettingsDescribeMirror } from '@hydra1902/harness-client-ui-settings/src/client/settings-mirror.ts'
-import { SettingsScopeController } from '@hydra1902/harness-client-ui-settings/src/client/settings-scope.ts'
+import type { RpcResponse } from '@hydraharness/harness-api-remotes/client'
+import { Context } from '@hydraharness/cordis'
+import { SettingsSchemaService } from '@hydraharness/harness-client-ui-settings/src/client/schema.ts'
+import { SettingsDescribeMirror } from '@hydraharness/harness-client-ui-settings/src/client/settings-mirror.ts'
+import { SettingsScopeController } from '@hydraharness/harness-client-ui-settings/src/client/settings-scope.ts'
 import { decodeWelcomeSection, WelcomeNoticeStore } from '../src/client/welcome-store.ts'
 import {
   WELCOME_NOTICE_ACK_FIELD, WELCOME_NOTICE_SETTINGS_NAMESPACE, WELCOME_NOTICE_VERSION,

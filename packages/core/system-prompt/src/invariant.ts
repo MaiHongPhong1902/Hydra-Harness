@@ -1,10 +1,10 @@
-/** Package-owned prompt-assembly invariants. @module @hydra1902/harness-system-prompt/invariant */
+/** Package-owned prompt-assembly invariants. @module @hydraharness/harness-system-prompt/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 import type { PromptAssembly } from './index.ts'
 
-const PACKAGE_NAME = '@hydra1902/harness-system-prompt'
+const PACKAGE_NAME = '@hydraharness/harness-system-prompt'
 const VARIABLE_NAME = /^[a-z][a-z0-9_]*$/
 
 /** Cordis companion plugin name. */

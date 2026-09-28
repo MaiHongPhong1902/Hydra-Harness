@@ -1,10 +1,10 @@
 /** Optional unary TypeSafe Jev decision capability. */
 
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { credentialRef, type CredentialRef } from '@hydra1902/harness-credentials'
-import { launchEnvironmentOf } from '@hydra1902/harness-launch-environment'
-import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { credentialRef, type CredentialRef } from '@hydraharness/harness-credentials'
+import { launchEnvironmentOf } from '@hydraharness/harness-launch-environment'
+import { installSettingsSection, settingsNamespace } from '@hydraharness/harness-settings'
 
 /** JSON accepted by the Jev API. */
 export type JevEntry = string | number | boolean | null | JevEntry[] | { readonly [key: string]: JevEntry }
@@ -76,7 +76,7 @@ export interface JevService {
   systemOne(request: JevSystemOneRequest, options?: JevRequestOptions): Promise<JevSystemOneResult>
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context { jev: JevService }
 }
 

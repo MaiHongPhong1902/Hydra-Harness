@@ -1,8 +1,8 @@
 /** Jev credential editor over the Host's resolved provider configuration. */
 import { useState, type ReactNode } from 'react'
-import type { InjectFace, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
-import type { SettingsDescribeFace } from '@hydra1902/harness-client-ui-settings/client'
-import type {} from '@hydra1902/harness-client-ui-settings-models/client'
+import type { InjectFace, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
+import type { SettingsDescribeFace } from '@hydraharness/harness-client-ui-settings/client'
+import type {} from '@hydraharness/harness-client-ui-settings-models/client'
 import styles from './JevProviderOption.module.css'
 
 /** Settings supply configuration; credential writes return acknowledgement only. */

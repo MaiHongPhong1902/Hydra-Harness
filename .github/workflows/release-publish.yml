@@ -138,4 +138,4 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           cli_version=$(node -p "require('./apps/cli/package.json').version")
-          npm dist-tag add "@hydra1902/harness@$cli_version" latest
+          npm dist-tag add "@hydraharness/harness@$cli_version" latest

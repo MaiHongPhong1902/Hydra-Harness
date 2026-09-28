@@ -1,8 +1,8 @@
 /** The package's node half: an empty host body and an explained empty invariant companion. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+import { Context } from '@hydraharness/cordis'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 import { apply } from '../src/index.ts'
 import * as PersonalizationInvariant from '../src/invariant.ts'
 

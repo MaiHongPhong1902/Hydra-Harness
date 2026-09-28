@@ -5,9 +5,9 @@
  * settings surface.
  */
 import { useState } from 'react'
-import type { PropsLocale, PropsRuntime, PropsStore } from '@hydra1902/harness-client-ui-slots'
-import { IconChevronDownOutline14, Menu } from '@hydra1902/harness-client-ui-primitives'
-import type {} from '@hydra1902/harness-client-ui-settings/client'
+import type { PropsLocale, PropsRuntime, PropsStore } from '@hydraharness/harness-client-ui-slots'
+import { IconChevronDownOutline14, Menu } from '@hydraharness/harness-client-ui-primitives'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
 import type { createLanguageRowStore } from './settings-store.ts'
 import css from './LanguageRow.module.css'
 

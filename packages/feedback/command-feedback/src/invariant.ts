@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-command-feedback`.
- * @module @hydra1902/harness-command-feedback/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-command-feedback`.
+ * @module @hydraharness/harness-command-feedback/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-command-feedback'
+const PACKAGE_NAME = '@hydraharness/harness-command-feedback'
 
 /** Cordis companion plugin name. */
 export const name = 'command-feedback-invariant'

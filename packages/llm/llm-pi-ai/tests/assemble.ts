@@ -5,9 +5,9 @@
  * one-shot convenience method.
  */
 
-import { BlockAssembler } from '@hydra1902/harness-llm'
-import type { Context } from '@hydra1902/cordis'
-import type { FinishReason, GenerateOptions, Message, TokenUsage } from '@hydra1902/harness-llm'
+import { BlockAssembler } from '@hydraharness/harness-llm'
+import type { Context } from '@hydraharness/cordis'
+import type { FinishReason, GenerateOptions, Message, TokenUsage } from '@hydraharness/harness-llm'
 
 export interface AssembledResult {
   message: Message

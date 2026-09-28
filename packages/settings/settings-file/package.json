@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-settings-file",
+  "name": "@hydraharness/harness-settings-file",
   "description": "File-backed settings provider (settings.yaml) for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -37,22 +37,22 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-atomic-write": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-home-paths": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-atomic-write": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-home-paths": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
     "chokidar": "^4.0.3",
-    "@hydra1902/schemastery": "workspace:^",
+    "@hydraharness/schemastery": "workspace:^",
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@hydra1902/harness-atomic-write": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-home-paths": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-atomic-write": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-home-paths": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

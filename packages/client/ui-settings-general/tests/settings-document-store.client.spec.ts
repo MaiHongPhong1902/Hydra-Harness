@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { RpcResponse } from '@hydra1902/harness-api-remotes/client'
-import { SettingsDescribeMirror } from '@hydra1902/harness-client-ui-settings/src/client/settings-mirror.ts'
+import type { RpcResponse } from '@hydraharness/harness-api-remotes/client'
+import { SettingsDescribeMirror } from '@hydraharness/harness-client-ui-settings/src/client/settings-mirror.ts'
 import { SettingsDocumentStore } from '../src/client/settings-document-store.ts'
 
 /** Store over a real mirror derived from the same fake wire. */

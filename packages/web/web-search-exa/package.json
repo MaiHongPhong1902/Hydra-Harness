@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-web-search-exa",
+  "name": "@hydraharness/harness-web-search-exa",
   "description": "Exa-backed search provider for the Hydra harness web capability seam (ctx.web)",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -32,18 +32,18 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-launch-environment": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-web": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-launch-environment": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-web": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-launch-environment": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-web": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-launch-environment": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-web": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

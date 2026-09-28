@@ -51,7 +51,7 @@ export type SettingsPathOpView =
 
 /**
  * The personalization custom-instructions document (`$HYDRA_HOME/AGENTS.md`,
- * the same fixed user-global file `@hydra1902/harness-agent-instructions` discovers).
+ * the same fixed user-global file `@hydraharness/harness-agent-instructions` discovers).
  */
 export interface InstructionsDocumentView {
   /** Raw file content; the empty string when the file does not exist yet. */

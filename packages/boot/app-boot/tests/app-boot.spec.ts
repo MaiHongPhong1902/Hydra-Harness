@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os'
 import { join, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SystemPrompt, { renderPrompt } from '@hydra1902/harness-system-prompt'
+import { Context } from '@hydraharness/cordis'
+import SystemPrompt, { renderPrompt } from '@hydraharness/harness-system-prompt'
 import {
   addHarnessSourceSection, assertEntriesActivated, assertEntriesLoaded, boot,
   FAIL_LOUD_RELEASE_TIMEOUT_MS, HARNESS_SOURCE_SECTION,
@@ -563,12 +563,12 @@ describe('boot', () => {
     const dir = tmp()
     const harness = tmp()
     const absolutePlugin = join(dir, 'absolute.mjs')
-    const shadow = join(dir, 'node_modules', '@hydra1902', 'harness-system-prompt')
-    const harnessPlugin = join(harness, 'node_modules', '@hydra1902', 'harness-system-prompt')
+    const shadow = join(dir, 'node_modules', '@hydraharness', 'harness-system-prompt')
+    const harnessPlugin = join(harness, 'node_modules', '@hydraharness', 'harness-system-prompt')
     mkdirSync(shadow, { recursive: true })
     mkdirSync(harnessPlugin, { recursive: true })
     writeFileSync(join(shadow, 'package.json'), JSON.stringify({
-      name: '@hydra1902/harness-system-prompt',
+      name: '@hydraharness/harness-system-prompt',
       type: 'module',
       exports: './index.mjs',
     }))
@@ -579,7 +579,7 @@ describe('boot', () => {
       '',
     ].join('\n'))
     writeFileSync(join(harnessPlugin, 'package.json'), JSON.stringify({
-      name: '@hydra1902/harness-system-prompt',
+      name: '@hydraharness/harness-system-prompt',
       type: 'module',
       exports: './index.mjs',
     }))
@@ -593,7 +593,7 @@ describe('boot', () => {
     writeFileSync(absolutePlugin, 'export function apply(ctx) { ctx.provide("absolutePluginLoaded", true) }\n')
     const entries = [
       '- id: prompt',
-      "  name: '@hydra1902/harness-system-prompt'",
+      "  name: '@hydraharness/harness-system-prompt'",
       '- id: relative',
       "  name: './relative.mjs'",
     ]

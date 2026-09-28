@@ -16,7 +16,7 @@ The path derivation, global `harness:source` ownership, and `-99` ordering remai
 
 ## Verification
 
-The `@hydra/harness-app-boot` unit test pins the exact text and its ordering. The CLI keyless PTY smoke inspects the assembled request header. The TUI `source-checkout-workdir` snapshot mounts the section with `/opt/hydra-source`, asks “what's the workdir?” through a recorded DeepSeek V4 turn, and requires the replayed transcript to run `pwd` and report the generated workspace rather than the checkout.
+The `@hydraharness/harness-app-boot` unit test pins the exact text and its ordering. The CLI keyless PTY smoke inspects the assembled request header. The TUI `source-checkout-workdir` snapshot mounts the section with `/opt/hydra-source`, asks “what's the workdir?” through a recorded DeepSeek V4 turn, and requires the replayed transcript to run `pwd` and report the generated workspace rather than the checkout.
 
 ## Alternatives considered
 

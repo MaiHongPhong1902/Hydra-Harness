@@ -1,11 +1,11 @@
-/** Package-owned scoped-dispatch invariants. @module @hydra1902/harness-scope/invariant */
+/** Package-owned scoped-dispatch invariants. @module @hydraharness/harness-scope/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
-import { carrierKeyOf, isScopeCarrier } from '@hydra1902/harness-scope'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
+import { carrierKeyOf, isScopeCarrier } from '@hydraharness/harness-scope'
 import { scopedSubjectResolverFor } from './scoped-events.generated.ts'
 
-const PACKAGE_NAME = '@hydra1902/harness-scope'
+const PACKAGE_NAME = '@hydraharness/harness-scope'
 
 /** Cordis companion plugin name. */
 export const name = 'scope-invariant'

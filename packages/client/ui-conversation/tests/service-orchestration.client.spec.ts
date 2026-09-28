@@ -3,11 +3,11 @@
 // TestSessions mints tagged scopes through the production createScope, so the
 // service's scopeOf/binding path runs against production resolution (no local
 // tag probe).
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { AttachmentId } from '@hydra1902/harness-attachment'
-import { makeTranslate, SlotTestRuntime } from '@hydra1902/harness-client-test-runtime'
-import type { QueuedMessage, SessionFace } from '@hydra1902/harness-client-runtime/client'
+import { AttachmentId } from '@hydraharness/harness-attachment'
+import { makeTranslate, SlotTestRuntime } from '@hydraharness/harness-client-test-runtime'
+import type { QueuedMessage, SessionFace } from '@hydraharness/harness-client-runtime/client'
 import { ComposerBlockRegistry } from '../src/client/input/blocks.ts'
 import { InputHub } from '../src/client/input/hub.ts'
 import { ConversationController, UnsupportedImageMediaTypeError } from '../src/client/service.ts'

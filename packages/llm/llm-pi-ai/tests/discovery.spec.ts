@@ -1,9 +1,9 @@
 import { createServer } from 'node:http'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import LlmRuntime, { userAgent } from '@hydra1902/harness-llm'
-import * as LlmPiAi from '@hydra1902/harness-llm-pi-ai'
+import { Context } from '@hydraharness/cordis'
+import LlmRuntime, { userAgent } from '@hydraharness/harness-llm'
+import * as LlmPiAi from '@hydraharness/harness-llm-pi-ai'
 import { discoverModels } from '../src/discovery.ts'
 
 const servers: Server[] = []

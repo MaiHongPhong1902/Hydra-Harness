@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { SessionId } from '@hydra1902/harness-session'
-import { SessionSearchCursor, type SessionQueryErrorCode } from '@hydra1902/harness-session-query'
+import { SessionId } from '@hydraharness/harness-session'
+import { SessionSearchCursor, type SessionQueryErrorCode } from '@hydraharness/harness-session-query'
 import {
   buildEventWhere,
   buildSessionWhere,

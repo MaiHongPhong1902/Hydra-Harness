@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-loader-smoke`.
- * @module @hydra1902/harness-loader-smoke/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-loader-smoke`.
+ * @module @hydraharness/harness-loader-smoke/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-loader-smoke'
+const PACKAGE_NAME = '@hydraharness/harness-loader-smoke'
 
 /** Cordis companion plugin name. */
 export const name = 'loader-smoke-invariant'

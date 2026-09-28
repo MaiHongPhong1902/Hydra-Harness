@@ -7,14 +7,14 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { createUserMessage } from '@hydra1902/harness-llm'
+import { createUserMessage } from '@hydraharness/harness-llm'
 import {
   SESSION_FORMAT_VERSION,
   Session,
   SessionId,
-} from '@hydra1902/harness-session'
-import type {} from '@hydra1902/harness-session-reference/types'
-import type {} from '@hydra1902/harness-session-title'
+} from '@hydraharness/harness-session'
+import type {} from '@hydraharness/harness-session-reference/types'
+import type {} from '@hydraharness/harness-session-title'
 import {
   assertFixtureInventory,
   captureStableAria,

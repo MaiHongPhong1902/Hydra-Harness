@@ -1,18 +1,18 @@
 /**
  * Package-owned relational invariants for the session event log. Load this
- * companion beside `@hydra1902/harness-invariants` to enable the checks.
+ * companion beside `@hydraharness/harness-invariants` to enable the checks.
  *
- * @module @hydra1902/harness-session/invariant
+ * @module @hydraharness/harness-session/invariant
  */
 
-import type { Context } from '@hydra1902/cordis'
-import { assertNever } from '@hydra1902/harness-llm'
-import type { CallId } from '@hydra1902/harness-llm'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
+import type { Context } from '@hydraharness/cordis'
+import { assertNever } from '@hydraharness/harness-llm'
+import type { CallId } from '@hydraharness/harness-llm'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
 import { TOOL_NOT_STARTED } from './repair.ts'
 
-const PACKAGE_NAME = '@hydra1902/harness-session'
+const PACKAGE_NAME = '@hydraharness/harness-session'
 
 /** Cordis companion plugin name. */
 export const name = 'session-invariant'

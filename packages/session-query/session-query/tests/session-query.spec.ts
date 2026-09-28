@@ -1,15 +1,15 @@
-import { createUserMessage, createMessage } from '@hydra1902/harness-llm'
+import { createUserMessage, createMessage } from '@hydraharness/harness-llm'
 import { describe, expect, it, vi } from 'vitest'
-import { Context, type Fiber } from '@hydra1902/cordis'
-import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@hydra1902/harness-session'
-import type { SessionEvent, SessionHeader, SessionId as SessionIdType } from '@hydra1902/harness-session'
-import SessionPersistence, { SessionPersistenceCorruptionError, SessionPersistenceRevision } from '@hydra1902/harness-session-persistence'
+import { Context, type Fiber } from '@hydraharness/cordis'
+import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@hydraharness/harness-session'
+import type { SessionEvent, SessionHeader, SessionId as SessionIdType } from '@hydraharness/harness-session'
+import SessionPersistence, { SessionPersistenceCorruptionError, SessionPersistenceRevision } from '@hydraharness/harness-session-persistence'
 import SessionQueryEngine, {
   SESSION_QUERY_DEFAULT_PERSISTED_INSPECT_CONCURRENCY,
   type SessionEventSurface,
   type SessionQueryErrorCode,
-} from '@hydra1902/harness-session-query'
-import { SessionTitleProviderId } from '@hydra1902/harness-session-title'
+} from '@hydraharness/harness-session-query'
+import { SessionTitleProviderId } from '@hydraharness/harness-session-title'
 import { TestSessionQueryEngine } from './test-service.ts'
 
 function header(id: string, createdAt = 1, extra: Partial<SessionHeader> = {}): SessionHeader {

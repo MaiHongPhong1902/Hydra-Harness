@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-web-search-deepseek",
+  "name": "@hydraharness/harness-web-search-deepseek",
   "description": "DeepSeek-backed search provider (native web_search via the Anthropic-compatible API) for the Hydra harness web capability seam (ctx.web)",
   "hydra": {
     "plugin": {
@@ -37,27 +37,27 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-credentials": "workspace:^",
-    "@hydra1902/harness-launch-environment": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-web": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-launch-environment": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-web": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-credentials": "workspace:^",
-    "@hydra1902/harness-credentials-local": "workspace:^",
-    "@hydra1902/harness-launch-environment": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-web": "workspace:^",
-    "@hydra1902/cordis": "workspace:^",
-    "@hydra1902/harness-settings": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-credentials-local": "workspace:^",
+    "@hydraharness/harness-launch-environment": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-web": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-settings": "workspace:^"
   }
 }

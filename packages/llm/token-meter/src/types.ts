@@ -1,10 +1,10 @@
 /**
  * Public configuration and measurement vocabulary for replay token metering.
  *
- * @module @hydra1902/harness-token-meter/types
+ * @module @hydraharness/harness-token-meter/types
  */
 
-import type { TokenUsage } from '@hydra1902/harness-llm'
+import type { TokenUsage } from '@hydraharness/harness-llm'
 
 export type { ContextBreakdownProjection, ContextPressureProjection, TokenUsageProjection } from './projection.ts'
 

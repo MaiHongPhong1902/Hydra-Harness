@@ -22,18 +22,18 @@
  * that do not use a `./typert` artifact (hand-written wire schemas,
  * tests, non-loader compositions).
  *
- * @module @hydra1902/harness-typert-loader
+ * @module @hydraharness/harness-typert-loader
  */
 
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type {} from '@hydra1902/cordis-plugin-loader'
-import type {} from '@hydra1902/harness-typert-registry'
-import type { TypertContribution } from '@hydra1902/harness-typert-registry/types'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type {} from '@hydraharness/cordis-plugin-loader'
+import type {} from '@hydraharness/harness-typert-registry'
+import type { TypertContribution } from '@hydraharness/harness-typert-registry/types'
 
 /** The package.json exports key naming a package's host-face typert artifact. */
 export const TYPERT_HOST_EXPORT = './typert'

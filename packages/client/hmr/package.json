@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-client-hmr",
+  "name": "@hydraharness/harness-client-hmr",
   "description": "Dev-only hot-reload driver for script-loaded client entries: SSE rebuilt frames → invalidate/prefetch → fiber swap through the vendored Loader entry",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -41,21 +41,21 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-client-modules": "workspace:^",
-    "@hydra1902/harness-host-webserver": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-client-modules": "workspace:^",
+    "@hydraharness/harness-host-webserver": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-client-modules": "workspace:^",
-    "@hydra1902/harness-host-webserver": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-client-modules": "workspace:^",
+    "@hydraharness/harness-host-webserver": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "files": [
     "lib/index.js",

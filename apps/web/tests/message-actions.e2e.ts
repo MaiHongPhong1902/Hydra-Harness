@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { SessionId } from '@hydra1902/harness-session'
-import { LlmAdapter, type GenerateOptions, type StreamChunk } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydraharness/harness-session'
+import { LlmAdapter, type GenerateOptions, type StreamChunk } from '@hydraharness/harness-llm'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden, fixtureUserPrompts,
   launchWebScaffold, parseSeedFixture, realizeSeedFixture, renderSeedFixture, seedSession, watchConsole, webSnapshotMode, type WebScaffold,

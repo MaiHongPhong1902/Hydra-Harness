@@ -10,8 +10,8 @@ import {
   createToolResultMessage,
   createUserMessage,
   isTokenDelta,
-} from '@hydra1902/harness-llm/message'
-import { CallId } from '@hydra1902/harness-llm/brand'
+} from '@hydraharness/harness-llm/message'
+import { CallId } from '@hydraharness/harness-llm/brand'
 import type {
   AssistantMessage,
   ContentBlock,
@@ -19,24 +19,24 @@ import type {
   TokenUsage,
   ToolResultMessage,
   UserMessage,
-} from '@hydra1902/harness-llm'
-import type { AttachmentIdType, ImageAttachmentRef } from '@hydra1902/harness-attachment'
+} from '@hydraharness/harness-llm'
+import type { AttachmentIdType, ImageAttachmentRef } from '@hydraharness/harness-attachment'
 import type {
   SessionEvent,
   SessionId,
   TodoItem,
-} from '@hydra1902/harness-session/types'
+} from '@hydraharness/harness-session/types'
 // Type-only: the brand constructor is host-side; the fixture casts at its
 // wire-fabrication boundary (the schema layer's one-cast-point posture).
-import type { CommandId } from '@hydra1902/harness-commands/brand'
-import type { CommandDescriptor, CommandExecution, CommandResult } from '@hydra1902/harness-commands/types'
-import { deriveEventMessage, foldSurface } from '@hydra1902/harness-session/surface'
+import type { CommandId } from '@hydraharness/harness-commands/brand'
+import type { CommandDescriptor, CommandExecution, CommandResult } from '@hydraharness/harness-commands/types'
+import { deriveEventMessage, foldSurface } from '@hydraharness/harness-session/surface'
 import type {
   ApiProxy, ClientRequest, ClientResponse, HistoryEntry, HostFrame, MuxFrame, RpcReceipt,
   ModelProviderGroup, ModelSelection, RpcRequest, RpcResponse, RpcResult, ServerRequest, ServerResponse, SessionSummary,
   ToolCallView, ToolEventView, ToolResultView, WorkspaceId, WorkspaceView,
 } from './api.ts'
-import type { RequestPayload, ResponseValue, RpcMethodMap } from '@hydra1902/harness-host-apiproxy/api'
+import type { RequestPayload, ResponseValue, RpcMethodMap } from '@hydraharness/harness-host-apiproxy/api'
 import { AbstractApiClient, RpcId, SESSION_SEARCH_RESULT_LIMIT } from './api.ts'
 import { randomUuid } from './random-uuid.ts'
 import type { ClientConnectionRpc } from '../rpc.ts'
@@ -180,7 +180,7 @@ const SEARCH_MATCHES_FIXTURE: { path: string; matches: { lineNumber: number; lin
 /**
  * The model-facing grep render text for the sample — what a UI without a search
  * card shows, attached as the view's `content`. Mirrors the real grep
- * presenter's shape (see formatGrepOutput in @hydra1902/harness-tool-fs-search): a
+ * presenter's shape (see formatGrepOutput in @hydraharness/harness-tool-fs-search): a
  * `Found X of Y matches` header, the matches grouped under file headers with
  * `Line N:` rows, then a spill-recovery footer.
  */
@@ -208,7 +208,7 @@ const SEARCH_PATHS_FIXTURE = [
 /**
  * The model-facing glob render text — the newline-joined path list plus a
  * spill-recovery footer, mirroring the real glob presenter's shape (see
- * formatGlobOutput in @hydra1902/harness-tool-fs-search).
+ * formatGlobOutput in @hydraharness/harness-tool-fs-search).
  */
 const SEARCH_PATHS_TEXT = [
   ...SEARCH_PATHS_FIXTURE,
@@ -1379,7 +1379,7 @@ function backscanTodos(log: readonly SessionEvent[]): TodoItem[] | undefined {
   return undefined
 }
 
-/** Fixture-local mirror of the goal projection value (@hydra1902/harness-goal's GoalProjection shape). */
+/** Fixture-local mirror of the goal projection value (@hydraharness/harness-goal's GoalProjection shape). */
 interface FxGoalProjection {
   goal: {
     id: string
@@ -1550,9 +1550,9 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
    * roster a GUI journey sees after writing is the text it wrote.
    */
   const fixturePresets = new Map<string, { trust: 'system' | 'user'; content: string }>([
-    ['standard', { trust: 'system', content: "- id: tool-bash\n  name: '@hydra1902/harness-tool-bash'\n" }],
-    ['minimal', { trust: 'system', content: "- id: tool-web-search\n  name: '@hydra1902/harness-tool-web-search'\n" }],
-    ['my-agent', { trust: 'user', content: "- id: tool-read\n  name: '@hydra1902/harness-tool-read'\n" }],
+    ['standard', { trust: 'system', content: "- id: tool-bash\n  name: '@hydraharness/harness-tool-bash'\n" }],
+    ['minimal', { trust: 'system', content: "- id: tool-web-search\n  name: '@hydraharness/harness-tool-web-search'\n" }],
+    ['my-agent', { trust: 'user', content: "- id: tool-read\n  name: '@hydraharness/harness-tool-read'\n" }],
   ])
   let fixtureDefaultPreset = 'standard'
   const nextTurn = new Map<SessionId, number>([[sid('fx-alpha'), 75]])

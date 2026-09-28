@@ -11,12 +11,12 @@
  * stop-on-throw) or touch the agent loop. Composed by a backend in its
  * constructor.
  *
- * @module @hydra1902/harness-session-telemetry/coordinator
+ * @module @hydraharness/harness-session-telemetry/coordinator
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import type { Agent } from '@hydra1902/harness-agent'
+import type { Context } from '@hydraharness/cordis'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import type { Agent } from '@hydraharness/harness-agent'
 import type { SessionTelemetrySink, SessionTelemetryRecord, SessionTelemetrySeverity } from './index.ts'
 
 /** Whether capture follows live events or reads the canonical log only when requested. */

@@ -1,5 +1,5 @@
 /** Test-owned Remote face: `$on` subscriptions driven by the internal forwarded-event plumbing. */
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 
 /**
  * Remote service test double for the forwarded-event path. Feature specs need

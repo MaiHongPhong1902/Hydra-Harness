@@ -1,6 +1,6 @@
-# @hydra/harness-hooks-registry
+# @hydraharness/harness-hooks-registry
 
-`HookRecordRegistry` (`ctx.hookRecords`) owns the user's own hook records. The records live in the `hooks` settings namespace, so one added from a configuration surface is written to `$HYDRA_HOME/settings.yaml` and mounts again on the next start; one added by hand-editing that document mounts without a restart. Each enabled record is mounted on its dialect's bridge — `@hydra/harness-hooks-claude-code` or `@hydra/harness-hooks-codex` — which owns the payloads, matcher semantics, and extension-point mapping.
+`HookRecordRegistry` (`ctx.hookRecords`) owns the user's own hook records. The records live in the `hooks` settings namespace, so one added from a configuration surface is written to `$HYDRA_HOME/settings.yaml` and mounts again on the next start; one added by hand-editing that document mounts without a restart. Each enabled record is mounted on its dialect's bridge — `@hydraharness/harness-hooks-claude-code` or `@hydraharness/harness-hooks-codex` — which owns the payloads, matcher semantics, and extension-point mapping.
 
 ## Service API
 
@@ -24,7 +24,7 @@ Mounts belong to the registry's Host context, so they retain their declared serv
 
 ## Model Experience
 
-Indirectly, through the bridge a record mounts. `@hydra/harness-hooks-claude-code` and `@hydra/harness-hooks-codex` own everything a hook injects into a request — `SessionStart` and `UserPromptSubmit` context, `PostToolUse` feedback, `Stop` continuation messages — and this package decides only which of their configurations are live. It assembles no model input of its own.
+Indirectly, through the bridge a record mounts. `@hydraharness/harness-hooks-claude-code` and `@hydraharness/harness-hooks-codex` own everything a hook injects into a request — `SessionStart` and `UserPromptSubmit` context, `PostToolUse` feedback, `Stop` continuation messages — and this package decides only which of their configurations are live. It assembles no model input of its own.
 
 #### KV Cache effect
 

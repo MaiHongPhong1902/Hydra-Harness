@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import Lsp, {
   finalExtension,
   LspError,
@@ -7,7 +7,7 @@ import Lsp, {
   type LspProvider,
   type LspProviderQuery,
   type LspQueryResult,
-} from '@hydra1902/harness-lsp'
+} from '@hydraharness/harness-lsp'
 
 /** A scripted provider that records the queries it receives. */
 function makeProvider(

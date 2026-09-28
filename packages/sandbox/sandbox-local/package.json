@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-sandbox-local",
+  "name": "@hydraharness/harness-sandbox-local",
   "description": "Local process-sandbox backends for the Hydra harness sandbox seam: bwrap, the npm-distributed landlock-run launcher, macOS Seatbelt, or the Windows ACL restricted-token runner — functionally probed, fail-closed",
   "hydra": {
     "plugin": {
@@ -37,22 +37,22 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-sandbox": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-sandbox": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra1902/harness-sandbox-windows-acl": "workspace:^",
-    "@hydra1902/node-addon-landlock-run": "workspace:^",
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/harness-sandbox-windows-acl": "workspace:^",
+    "@hydraharness/node-addon-landlock-run": "workspace:^",
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-sandbox": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-sandbox": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

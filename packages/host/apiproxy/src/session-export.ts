@@ -20,13 +20,13 @@
  */
 
 import { Zip, ZipDeflate } from 'fflate'
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   AttachmentStore, FileAttachmentRef, ImageAttachmentRef,
-} from '@hydra1902/harness-attachment'
-import type { SessionLineageNode, SessionQueryEngine } from '@hydra1902/harness-session-query'
-import type { SessionId, SessionStore } from '@hydra1902/harness-session'
-import type { SessionPersistence, SessionRawArtifact } from '@hydra1902/harness-session-persistence'
+} from '@hydraharness/harness-attachment'
+import type { SessionLineageNode, SessionQueryEngine } from '@hydraharness/harness-session-query'
+import type { SessionId, SessionStore } from '@hydraharness/harness-session'
+import type { SessionPersistence, SessionRawArtifact } from '@hydraharness/harness-session-persistence'
 
 /** Valid fflate DEFLATE levels accepted by session-log export. */
 export type SessionLogCompressionLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9

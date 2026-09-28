@@ -1,16 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import Include from '@hydra1902/cordis-plugin-include'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import Include from '@hydraharness/cordis-plugin-include'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import LlmRuntime, { createUserMessage, LlmAdapter  } from '@hydra1902/harness-llm'
-import type { GenerateOptions, StreamChunk } from '@hydra1902/harness-llm'
-import SessionStore, { SessionId } from '@hydra1902/harness-session'
-import SessionTitleService from '@hydra1902/harness-session-title'
-import * as providerPlugin from '@hydra1902/harness-session-title-first-prompt-llm'
+import LlmRuntime, { createUserMessage, LlmAdapter  } from '@hydraharness/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydraharness/harness-llm'
+import SessionStore, { SessionId } from '@hydraharness/harness-session'
+import SessionTitleService from '@hydraharness/harness-session-title'
+import * as providerPlugin from '@hydraharness/harness-session-title-first-prompt-llm'
 
 let root: string | undefined
 let context: Context | undefined
@@ -36,14 +36,14 @@ async function loadComposition(): Promise<Context> {
   root = await mkdtemp(join(tmpdir(), 'hydra-title-loader-'))
   const configPath = join(root, 'cordis.yml')
   await writeFile(configPath, [
-    "- name: '@hydra1902/harness-llm'",
-    "- name: '@hydra1902/harness-session'",
-    "- name: '@hydra1902/harness-session-title'",
+    "- name: '@hydraharness/harness-llm'",
+    "- name: '@hydraharness/harness-session'",
+    "- name: '@hydraharness/harness-session-title'",
     '  config:',
     '    fallbackMaxWords: 5',
     '    fallbackMaxBytes: 40',
     '    maxTitleBytes: 80',
-    "- name: '@hydra1902/harness-session-title-first-prompt-llm'",
+    "- name: '@hydraharness/harness-session-title-first-prompt-llm'",
     '  config:',
     '    targetWords: 5',
     '    targetCjkCharacters: 10',
@@ -60,10 +60,10 @@ async function loadComposition(): Promise<Context> {
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@hydra1902/harness-llm', LlmRuntime],
-    ['@hydra1902/harness-session', SessionStore],
-    ['@hydra1902/harness-session-title', SessionTitleService],
-    ['@hydra1902/harness-session-title-first-prompt-llm', providerPlugin],
+    ['@hydraharness/harness-llm', LlmRuntime],
+    ['@hydraharness/harness-session', SessionStore],
+    ['@hydraharness/harness-session-title', SessionTitleService],
+    ['@hydraharness/harness-session-title-first-prompt-llm', providerPlugin],
   ])
   context.loader.internal = {
     version: 'v2',

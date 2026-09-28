@@ -1,8 +1,8 @@
 /** Package-local scripted child boundary for deterministic tool-subagent tests. */
 
-import type { Context } from '@hydra1902/cordis'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import { SessionId } from '@hydra1902/harness-session'
+import type { Context } from '@hydraharness/cordis'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import { SessionId } from '@hydraharness/harness-session'
 import type {
   SubagentCapabilities,
   SubagentProvider,
@@ -10,7 +10,7 @@ import type {
   SubagentRun,
   SubagentStartRequest,
   SubagentStopReason,
-} from '@hydra1902/harness-subagent'
+} from '@hydraharness/harness-subagent'
 
 const DEFAULT_CAPABILITIES: SubagentCapabilities = {
   outputSchema: true,

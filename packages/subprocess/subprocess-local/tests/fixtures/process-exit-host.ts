@@ -1,8 +1,8 @@
 import { access, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@hydra1902/cordis'
-import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
+import { Context } from '@hydraharness/cordis'
+import LocalSubprocessRuntime from '@hydraharness/harness-subprocess-local'
 
 const [kind, trigger, root] = process.argv.slice(2)
 if ((kind !== 'ordinary' && kind !== 'terminal')

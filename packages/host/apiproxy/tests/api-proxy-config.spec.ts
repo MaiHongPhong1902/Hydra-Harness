@@ -9,18 +9,18 @@ import { mkdtemp, readFile, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import AgentRegistry from '@hydra1902/harness-agent'
-import SessionStore from '@hydra1902/harness-session'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime from '@hydra1902/harness-tools'
-import UserQuestionService from '@hydra1902/harness-user-questions'
-import LlmRuntime, { LlmAdapter } from '@hydra1902/harness-llm'
-import type { GenerateOptions, LlmModelInfo, LlmProviderInfo, StreamChunk } from '@hydra1902/harness-llm'
-import { SettingsProvider, settingsNamespace } from '@hydra1902/harness-settings'
-import type { SettingsNamespace } from '@hydra1902/harness-settings'
-import { CredentialProvider } from '@hydra1902/harness-credentials'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import AgentRegistry from '@hydraharness/harness-agent'
+import SessionStore from '@hydraharness/harness-session'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime from '@hydraharness/harness-tools'
+import UserQuestionService from '@hydraharness/harness-user-questions'
+import LlmRuntime, { LlmAdapter } from '@hydraharness/harness-llm'
+import type { GenerateOptions, LlmModelInfo, LlmProviderInfo, StreamChunk } from '@hydraharness/harness-llm'
+import { SettingsProvider, settingsNamespace } from '@hydraharness/harness-settings'
+import type { SettingsNamespace } from '@hydraharness/harness-settings'
+import { CredentialProvider } from '@hydraharness/harness-credentials'
 import type {
   CredentialInfo,
   CredentialKey,
@@ -29,11 +29,11 @@ import type {
   CredentialRecordInfo,
   CredentialRef,
   ResolvedCredential,
-} from '@hydra1902/harness-credentials'
+} from '@hydraharness/harness-credentials'
 import type { HostFrame } from '../src/api/index.ts'
 import type { RpcRequest, RpcResponse } from '../src/api/rpc.ts'
 import { RpcId } from '../src/api/rpc.ts'
-import { AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE } from '@hydra1902/harness-agent-default-model'
+import { AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE } from '@hydraharness/harness-agent-default-model'
 import { createApiProxy } from '../src/api-proxy.ts'
 
 const DEFAULTS = { defaultModelSelection: () => ({ provider: 'p', model: 'm' }), cwd: '/tmp' }
@@ -276,7 +276,7 @@ describe('settings domain', () => {
     const api = createApiProxy(ctx, DEFAULTS)
     const error = expectErr(await api.settings.describe(request({})))
     expect(error.code).toBe('internal')
-    expect(error.message).toContain('@hydra1902/harness-settings-file')
+    expect(error.message).toContain('@hydraharness/harness-settings-file')
   })
 
   it('describes layered redacted namespaces with their secret slots', async () => {
@@ -619,7 +619,7 @@ describe('credentials domain', () => {
     const api = createApiProxy(ctx, DEFAULTS)
     const error = expectErr(await api.credentials.describe(request({ refs: ['A'] })))
     expect(error.code).toBe('internal')
-    expect(error.message).toContain('@hydra1902/harness-credentials-local')
+    expect(error.message).toContain('@hydraharness/harness-credentials-local')
   })
 
   it('describes value-free views and flips state through set/unset with frames', async () => {

@@ -1,6 +1,6 @@
 /** Locale preference stored in the Host user-settings document. */
 
-import z from '@hydra1902/schemastery'
+import z from '@hydraharness/schemastery'
 
 /** Settings namespace owned by the locale plugin. */
 export const LOCALE_SETTINGS_NAMESPACE = 'locale'

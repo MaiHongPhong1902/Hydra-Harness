@@ -3,12 +3,12 @@
  * family (`--host`, `--port`, `--trusted-host`, `--no-open`) and its `--help`
  * text, then provides the immutable values as {@link WEB_STARTUP_SERVICE}.
  * Ordinary rows inject that service before reading it from lazy config.
- * @module @hydra1902/harness-web-app/startup
+ * @module @hydraharness/harness-web-app/startup
  */
 
 import { Command } from 'commander'
-import type { Context } from '@hydra1902/cordis'
-import { parseCmdline } from '@hydra1902/harness-cmdline'
+import type { Context } from '@hydraharness/cordis'
+import { parseCmdline } from '@hydraharness/harness-cmdline'
 
 /** Stable Cordis plugin name. */
 export const name = 'web-startup'

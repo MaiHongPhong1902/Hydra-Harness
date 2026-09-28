@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
-import { AttachmentId } from '@hydra1902/harness-attachment'
-import type { AttachmentStore, ImageAttachmentRef } from '@hydra1902/harness-attachment'
-import { CallId, createMessage, createUserMessage, OFFLOADED_IMAGE_TEXT } from '@hydra1902/harness-llm'
-import type { ContentBlock, GenerateOptions, Message } from '@hydra1902/harness-llm'
+import { AttachmentId } from '@hydraharness/harness-attachment'
+import type { AttachmentStore, ImageAttachmentRef } from '@hydraharness/harness-attachment'
+import { CallId, createMessage, createUserMessage, OFFLOADED_IMAGE_TEXT } from '@hydraharness/harness-llm'
+import type { ContentBlock, GenerateOptions, Message } from '@hydraharness/harness-llm'
 import { toPiContext } from '../src/context.ts'
 import { toPiAssistant } from '../src/replay.ts'
 

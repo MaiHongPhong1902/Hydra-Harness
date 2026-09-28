@@ -4,12 +4,12 @@
  * prompt and settles when the whole agent next becomes idle.
  * Mirrors the Python SDK's `HydraHarness`/`Session` pair.
  *
- * @module @hydra1902/harness-sdk-client/api
+ * @module @hydraharness/harness-sdk-client/api
  */
 
 import { randomUUID } from 'node:crypto'
 import { resolve } from 'node:path'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type { SessionEvent } from '@hydraharness/harness-session'
 import { HarnessClient, isRecord, SdkProtocolError } from './client.ts'
 import type { ContentBlock, HydraHarnessOptions, HarnessClientOptions, HarnessNotification, RunResult } from './types.ts'
 

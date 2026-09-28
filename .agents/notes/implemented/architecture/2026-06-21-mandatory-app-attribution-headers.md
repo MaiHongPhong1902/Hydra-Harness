@@ -26,7 +26,7 @@ Provider-neutral app attribution is mandatory at the LLM adapter boundary, using
 
 OpenRouter app attribution is deliberately not implemented. `HTTP-Referer`, `X-OpenRouter-Title`, `X-Title`, and `X-OpenRouter-Categories` are OpenRouter-specific product-surface headers, not provider-neutral model-request attribution. They can be proposed later by an OpenRouter adapter or explicit OpenRouter mode, with its own privacy/product decision, tests, and docs. Until then, even requests pointed at OpenRouter send only the shared `User-Agent` attribution from this decision.
 
-The provider-neutral identity is owned by `@hydra/harness-llm` (`packages/llm/llm/src/attribution.ts`), not by individual adapters. `AppIdentity` contains only public product facts needed to build `User-Agent`, and the default `APP_IDENTITY` values:
+The provider-neutral identity is owned by `@hydraharness/harness-llm` (`packages/llm/llm/src/attribution.ts`), not by individual adapters. `AppIdentity` contains only public product facts needed to build `User-Agent`, and the default `APP_IDENTITY` values:
 
 - product token for `User-Agent`: `hydra-harness`
 - version: read from the owning package's manifest via `createRequire`, never a hand-copied constant
@@ -49,10 +49,10 @@ Endpoint detection is not part of this Agent Note because no endpoint-specific m
 
 The landed contract:
 
-- `@hydra/harness-llm` documents the mandatory `User-Agent` attribution contract for `LlmAdapter` authors (`LlmAdapter` JSDoc, package README, and the adapter-contract section of `docs/subsystems/llm-streaming.md`).
+- `@hydraharness/harness-llm` documents the mandatory `User-Agent` attribution contract for `LlmAdapter` authors (`LlmAdapter` JSDoc, package README, and the adapter-contract section of `docs/subsystems/llm-streaming.md`).
 - A shared helper (`attributionHeaders` / `userAgent`) constructs the app identity and the standard `User-Agent` value from package metadata, so adapters do not hand-copy version constants.
-- `@hydra/harness-llm-deepseek` sends the shared `User-Agent` on every request and its mock-server suite asserts the exact value.
-- `@hydra/harness-llm-pi-ai` sends the same `User-Agent` through pi-ai's `StreamOptions.headers` hook and its mock-server suite asserts the exact value.
+- `@hydraharness/harness-llm-deepseek` sends the shared `User-Agent` on every request and its mock-server suite asserts the exact value.
+- `@hydraharness/harness-llm-pi-ai` sends the same `User-Agent` through pi-ai's `StreamOptions.headers` hook and its mock-server suite asserts the exact value.
 - No adapter sends OpenRouter-specific attribution headers (`HTTP-Referer`, `X-OpenRouter-Title`, `X-Title`, `X-OpenRouter-Categories`) as part of this decision.
 - No app-attribution field carries secrets, local paths, session ids, prompt text, model output, user email, or per-user stable identifiers.
 - The adapter READMEs state the `User-Agent` attribution policy and explicitly avoid documenting OpenRouter app attribution as implemented behavior.

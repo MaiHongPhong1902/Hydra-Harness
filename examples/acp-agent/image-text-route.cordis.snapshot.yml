@@ -3,15 +3,15 @@
 # text-only, so the strict read_image gate refuses and no image ever enters
 # the durable log.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra1902/harness-llm-deepseek'
+        name: '@hydraharness/harness-llm-deepseek'
         disabled: true
       - id: acp-agent
-        name: '@hydra1902/harness-acp-demo'
+        name: '@hydraharness/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -25,9 +25,9 @@
             Verify your work by running the code or tests. Keep answers brief and factual.
       - insert:
           - id: attachment-local
-            name: '@hydra1902/harness-attachment-local'
+            name: '@hydraharness/harness-attachment-local'
           - id: llm-replay
-            name: '@hydra1902/harness-llm-replay'
+            name: '@hydraharness/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

@@ -1,15 +1,15 @@
 # Opt-in persistent PTY composition for the PTY snapshot scenario. The base
 # deployment already owns the shared sandbox provider and policy.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - insert:
           - id: pty
-            name: '@hydra1902/harness-terminal'
+            name: '@hydraharness/harness-terminal'
           - id: terminal-bash
-            name: '@hydra1902/harness-terminal-bash'
+            name: '@hydraharness/harness-terminal-bash'
             config:
               pollIntervalMs: 10
               exactProbeAfterMs: 20
@@ -18,4 +18,4 @@
               timeoutMs: 2000
               disposeGraceMs: 500
           - id: tool-terminal
-            name: '@hydra1902/harness-tool-terminal'
+            name: '@hydraharness/harness-tool-terminal'

@@ -10,7 +10,7 @@ Every `browser_*` result can put up to 16k characters of text DOM into the sessi
 
 Hydra is the only reasoning loop. The locally owned BrowserAgent source provides PageController: a numbered text DOM and indexed or named clicks, typing, and scrolls. `third-party/browseragent/` keeps the upstream APIs and attribution while carrying Hydra's mask changes. `browser_page_agent_run` remains an explicit tool and is demoted in the prompt; Hydra is not told to poll it. `PageAgentCore` is constructed only when that tool runs.
 
-`@hydra/harness-tool-browser` returns a full snapshot only for `browser_state` and `browser_navigate`. Every other action result is compact: the Hydra preload ranks `*[` lines, then typical form controls, then the rest, without changing PageController indices; the consumer cuts that ranked list to 4k characters, shortens the header, and uses a one-line tab summary when only one tab is open.
+`@hydraharness/harness-tool-browser` returns a full snapshot only for `browser_state` and `browser_navigate`. Every other action result is compact: the Hydra preload ranks `*[` lines, then typical form controls, then the rest, without changing PageController indices; the consumer cuts that ranked list to 4k characters, shortens the header, and uses a one-line tab summary when only one tab is open.
 
 Hydra-owned PageController actions close the index-churn gap without a second model: `browser_find` matches a visible name and may scroll internally; click/type/select accept `name` as well as `index`; `browser_fill` types several fields in one call and re-resolves each field after the previous one; `browser_forward` is a first-class tool beside `browser_back`.
 

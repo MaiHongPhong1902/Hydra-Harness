@@ -1,4 +1,4 @@
-import { defineProperty } from '@hydra1902/cosmokit'
+import { defineProperty } from '@hydraharness/cosmokit'
 import { Context } from './context.ts'
 import { createCallable, joinPrototype, symbols, type Tracker } from './utils.ts'
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /** Inspect the public Codex provider composition without invoking the product. */
 
-import { boot, loadOverlayPatches, resolveConfigPath } from '@hydra1902/harness-app-boot'
-import type {} from '@hydra1902/harness-subagent'
-import type {} from '@hydra1902/harness-tools'
+import { boot, loadOverlayPatches, resolveConfigPath } from '@hydraharness/harness-app-boot'
+import type {} from '@hydraharness/harness-subagent'
+import type {} from '@hydraharness/harness-tools'
 
 const configPath = process.argv[2]
 const bundlePatchPath = process.argv[3]

@@ -12,8 +12,8 @@
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import type { SessionId, WorkspaceId } from '@hydra1902/harness-client-runtime/client'
-import type { PropsRenderSlots, PropsRuntime, PropsStore } from '@hydra1902/harness-client-ui-slots'
+import type { SessionId, WorkspaceId } from '@hydraharness/harness-client-runtime/client'
+import type { PropsRenderSlots, PropsRuntime, PropsStore } from '@hydraharness/harness-client-ui-slots'
 import {
   computeColumns, DETAILS_MAX, DETAILS_MIN,
   SIDEBAR_AUTO_COLLAPSE, SIDEBAR_DEFAULT, SIDEBAR_MAX, SIDEBAR_MIN,

@@ -3,300 +3,300 @@
 
 # Hydra Base Composition
 
-The @hydra1902/harness-base bundle patch every profile applies first; mode bundles (@hydra1902/harness-web-app, @hydra1902/harness-headless) and the user's profile layer patch over it.
+The @hydraharness/harness-base bundle patch every profile applies first; mode bundles (@hydraharness/harness-web-app, @hydraharness/harness-headless) and the user's profile layer patch over it.
 
 ```mermaid
 flowchart LR
   cfg["packages/bundle/base/cordis.patch.yml<br/>cordis.yml"]
-  plugin_hydra_base_timer["timer<br/>@hydra1902/cordis-plugin-timer"]
+  plugin_hydra_base_timer["timer<br/>@hydraharness/cordis-plugin-timer"]
   cfg --> plugin_hydra_base_timer
-  plugin_hydra_base_hmr["hmr<br/>@hydra1902/cordis-plugin-hmr"]
+  plugin_hydra_base_hmr["hmr<br/>@hydraharness/cordis-plugin-hmr"]
   cfg --> plugin_hydra_base_hmr
-  plugin_hydra_base_llm["llm<br/>@hydra1902/harness-llm"]
+  plugin_hydra_base_llm["llm<br/>@hydraharness/harness-llm"]
   cfg --> plugin_hydra_base_llm
-  plugin_hydra_base_session["session<br/>@hydra1902/harness-session"]
+  plugin_hydra_base_session["session<br/>@hydraharness/harness-session"]
   cfg --> plugin_hydra_base_session
-  plugin_hydra_base_typert["typert<br/>@hydra1902/harness-typert-registry"]
+  plugin_hydra_base_typert["typert<br/>@hydraharness/harness-typert-registry"]
   cfg --> plugin_hydra_base_typert
-  plugin_hydra_base_typert_loader["typert-loader<br/>@hydra1902/harness-typert-loader"]
+  plugin_hydra_base_typert_loader["typert-loader<br/>@hydraharness/harness-typert-loader"]
   cfg --> plugin_hydra_base_typert_loader
-  plugin_hydra_base_typert_gateway["typert-gateway<br/>@hydra1902/harness-api-gateway"]
+  plugin_hydra_base_typert_gateway["typert-gateway<br/>@hydraharness/harness-api-gateway"]
   cfg --> plugin_hydra_base_typert_gateway
-  plugin_hydra_base_session_title["session-title<br/>@hydra1902/harness-session-title"]
+  plugin_hydra_base_session_title["session-title<br/>@hydraharness/harness-session-title"]
   cfg --> plugin_hydra_base_session_title
-  plugin_hydra_base_session_title_llm["session-title-llm<br/>@hydra1902/harness-session-title-first-prompt-llm"]
+  plugin_hydra_base_session_title_llm["session-title-llm<br/>@hydraharness/harness-session-title-first-prompt-llm"]
   cfg --> plugin_hydra_base_session_title_llm
-  plugin_hydra_base_user_questions["user-questions<br/>@hydra1902/harness-user-questions"]
+  plugin_hydra_base_user_questions["user-questions<br/>@hydraharness/harness-user-questions"]
   cfg --> plugin_hydra_base_user_questions
-  plugin_hydra_base_agent["agent<br/>@hydra1902/harness-agent"]
+  plugin_hydra_base_agent["agent<br/>@hydraharness/harness-agent"]
   cfg --> plugin_hydra_base_agent
-  plugin_hydra_base_agent_default_model["agent-default-model<br/>@hydra1902/harness-agent-default-model"]
+  plugin_hydra_base_agent_default_model["agent-default-model<br/>@hydraharness/harness-agent-default-model"]
   cfg --> plugin_hydra_base_agent_default_model
-  plugin_hydra_base_jobs["jobs<br/>@hydra1902/harness-jobs-local"]
+  plugin_hydra_base_jobs["jobs<br/>@hydraharness/harness-jobs-local"]
   cfg --> plugin_hydra_base_jobs
-  plugin_hydra_base_llm_retry["llm-retry<br/>@hydra1902/harness-llm-retry"]
+  plugin_hydra_base_llm_retry["llm-retry<br/>@hydraharness/harness-llm-retry"]
   cfg --> plugin_hydra_base_llm_retry
-  plugin_hydra_base_llm_call_log["llm-call-log<br/>@hydra1902/harness-llm-call-log"]
+  plugin_hydra_base_llm_call_log["llm-call-log<br/>@hydraharness/harness-llm-call-log"]
   cfg --> plugin_hydra_base_llm_call_log
-  plugin_hydra_base_settings["settings<br/>@hydra1902/harness-settings-file"]
+  plugin_hydra_base_settings["settings<br/>@hydraharness/harness-settings-file"]
   cfg --> plugin_hydra_base_settings
-  plugin_hydra_base_credentials["credentials<br/>@hydra1902/harness-credentials-local"]
+  plugin_hydra_base_credentials["credentials<br/>@hydraharness/harness-credentials-local"]
   cfg --> plugin_hydra_base_credentials
-  plugin_hydra_base_authorization["authorization<br/>@hydra1902/harness-authorization"]
+  plugin_hydra_base_authorization["authorization<br/>@hydraharness/harness-authorization"]
   cfg --> plugin_hydra_base_authorization
-  plugin_hydra_base_llm_pi_ai["llm-pi-ai<br/>@hydra1902/harness-llm-pi-ai"]
+  plugin_hydra_base_llm_pi_ai["llm-pi-ai<br/>@hydraharness/harness-llm-pi-ai"]
   cfg --> plugin_hydra_base_llm_pi_ai
-  plugin_hydra_base_llm_account_auth["llm-account-auth<br/>@hydra1902/harness-llm-account-auth"]
+  plugin_hydra_base_llm_account_auth["llm-account-auth<br/>@hydraharness/harness-llm-account-auth"]
   cfg --> plugin_hydra_base_llm_account_auth
-  plugin_hydra_base_session_persistence_jsonl["session-persistence-jsonl<br/>@hydra1902/harness-session-persistence-jsonl"]
+  plugin_hydra_base_session_persistence_jsonl["session-persistence-jsonl<br/>@hydraharness/harness-session-persistence-jsonl"]
   cfg --> plugin_hydra_base_session_persistence_jsonl
-  plugin_hydra_base_attachment_local["attachment-local<br/>@hydra1902/harness-attachment-local"]
+  plugin_hydra_base_attachment_local["attachment-local<br/>@hydraharness/harness-attachment-local"]
   cfg --> plugin_hydra_base_attachment_local
-  plugin_hydra_base_session_query_sqlite["session-query-sqlite<br/>@hydra1902/harness-session-query-sqlite"]
+  plugin_hydra_base_session_query_sqlite["session-query-sqlite<br/>@hydraharness/harness-session-query-sqlite"]
   cfg --> plugin_hydra_base_session_query_sqlite
-  plugin_hydra_base_session_projection["session-projection<br/>@hydra1902/harness-session-projection"]
+  plugin_hydra_base_session_projection["session-projection<br/>@hydraharness/harness-session-projection"]
   cfg --> plugin_hydra_base_session_projection
-  plugin_hydra_base_session_telemetry_otel["session-telemetry-otel<br/>@hydra1902/harness-session-telemetry-otel"]
+  plugin_hydra_base_session_telemetry_otel["session-telemetry-otel<br/>@hydraharness/harness-session-telemetry-otel"]
   cfg --> plugin_hydra_base_session_telemetry_otel
-  plugin_hydra_base_subprocess["subprocess<br/>@hydra1902/harness-subprocess-local"]
+  plugin_hydra_base_subprocess["subprocess<br/>@hydraharness/harness-subprocess-local"]
   cfg --> plugin_hydra_base_subprocess
-  plugin_hydra_base_lsp["lsp<br/>@hydra1902/harness-lsp"]
+  plugin_hydra_base_lsp["lsp<br/>@hydraharness/harness-lsp"]
   cfg --> plugin_hydra_base_lsp
-  plugin_hydra_base_lsp_stdio["lsp-stdio<br/>@hydra1902/harness-lsp-stdio"]
+  plugin_hydra_base_lsp_stdio["lsp-stdio<br/>@hydraharness/harness-lsp-stdio"]
   cfg --> plugin_hydra_base_lsp_stdio
-  plugin_hydra_base_sandbox["sandbox<br/>@hydra1902/harness-sandbox-local"]
+  plugin_hydra_base_sandbox["sandbox<br/>@hydraharness/harness-sandbox-local"]
   cfg --> plugin_hydra_base_sandbox
-  plugin_hydra_base_sandbox_policy["sandbox-policy<br/>@hydra1902/harness-sandbox-policy"]
+  plugin_hydra_base_sandbox_policy["sandbox-policy<br/>@hydraharness/harness-sandbox-policy"]
   cfg --> plugin_hydra_base_sandbox_policy
-  plugin_hydra_base_bash_sandbox["bash-sandbox<br/>@hydra1902/harness-bash-sandbox"]
+  plugin_hydra_base_bash_sandbox["bash-sandbox<br/>@hydraharness/harness-bash-sandbox"]
   cfg --> plugin_hydra_base_bash_sandbox
-  plugin_hydra_base_pwsh_sandbox["pwsh-sandbox<br/>@hydra1902/harness-pwsh-sandbox"]
+  plugin_hydra_base_pwsh_sandbox["pwsh-sandbox<br/>@hydraharness/harness-pwsh-sandbox"]
   cfg --> plugin_hydra_base_pwsh_sandbox
-  plugin_hydra_base_approval["approval<br/>@hydra1902/harness-user-approval"]
+  plugin_hydra_base_approval["approval<br/>@hydraharness/harness-user-approval"]
   cfg --> plugin_hydra_base_approval
-  plugin_hydra_base_permission["permission<br/>@hydra1902/harness-permission-presets"]
+  plugin_hydra_base_permission["permission<br/>@hydraharness/harness-permission-presets"]
   cfg --> plugin_hydra_base_permission
-  plugin_hydra_base_shell_env["shell-env<br/>@hydra1902/harness-shell-env"]
+  plugin_hydra_base_shell_env["shell-env<br/>@hydraharness/harness-shell-env"]
   cfg --> plugin_hydra_base_shell_env
-  plugin_hydra_base_tool_bash["tool-bash<br/>@hydra1902/harness-tool-bash"]
+  plugin_hydra_base_tool_bash["tool-bash<br/>@hydraharness/harness-tool-bash"]
   cfg --> plugin_hydra_base_tool_bash
-  plugin_hydra_base_tool_pwsh["tool-pwsh<br/>@hydra1902/harness-tool-pwsh"]
+  plugin_hydra_base_tool_pwsh["tool-pwsh<br/>@hydraharness/harness-tool-pwsh"]
   cfg --> plugin_hydra_base_tool_pwsh
-  plugin_hydra_base_tool_jobs["tool-jobs<br/>@hydra1902/harness-tool-jobs"]
+  plugin_hydra_base_tool_jobs["tool-jobs<br/>@hydraharness/harness-tool-jobs"]
   cfg --> plugin_hydra_base_tool_jobs
-  plugin_hydra_base_fs_observation_policy["fs-observation-policy<br/>@hydra1902/harness-fs-observation-policy"]
+  plugin_hydra_base_fs_observation_policy["fs-observation-policy<br/>@hydraharness/harness-fs-observation-policy"]
   cfg --> plugin_hydra_base_fs_observation_policy
-  plugin_hydra_base_tool_fs["tool-fs<br/>@hydra1902/harness-tool-fs"]
+  plugin_hydra_base_tool_fs["tool-fs<br/>@hydraharness/harness-tool-fs"]
   cfg --> plugin_hydra_base_tool_fs
-  plugin_hydra_base_fs_review["fs-review<br/>@hydra1902/harness-fs-review"]
+  plugin_hydra_base_fs_review["fs-review<br/>@hydraharness/harness-fs-review"]
   cfg --> plugin_hydra_base_fs_review
-  plugin_hydra_base_tool_fs_search["tool-fs-search<br/>@hydra1902/harness-tool-fs-search"]
+  plugin_hydra_base_tool_fs_search["tool-fs-search<br/>@hydraharness/harness-tool-fs-search"]
   cfg --> plugin_hydra_base_tool_fs_search
-  plugin_hydra_base_agent_instructions["agent-instructions<br/>@hydra1902/harness-agent-instructions"]
+  plugin_hydra_base_agent_instructions["agent-instructions<br/>@hydraharness/harness-agent-instructions"]
   cfg --> plugin_hydra_base_agent_instructions
-  plugin_hydra_base_personalization["personalization<br/>@hydra1902/harness-personalization"]
+  plugin_hydra_base_personalization["personalization<br/>@hydraharness/harness-personalization"]
   cfg --> plugin_hydra_base_personalization
-  plugin_hydra_base_skill["skill<br/>@hydra1902/harness-skill"]
+  plugin_hydra_base_skill["skill<br/>@hydraharness/harness-skill"]
   cfg --> plugin_hydra_base_skill
-  plugin_hydra_base_skill_filesystem["skill-filesystem<br/>@hydra1902/harness-skill-filesystem"]
+  plugin_hydra_base_skill_filesystem["skill-filesystem<br/>@hydraharness/harness-skill-filesystem"]
   cfg --> plugin_hydra_base_skill_filesystem
-  plugin_hydra_base_skill_badge["skill-badge<br/>@hydra1902/harness-skill-badge"]
+  plugin_hydra_base_skill_badge["skill-badge<br/>@hydraharness/harness-skill-badge"]
   cfg --> plugin_hydra_base_skill_badge
-  plugin_hydra_base_tool_skill["tool-skill<br/>@hydra1902/harness-tool-skill"]
+  plugin_hydra_base_tool_skill["tool-skill<br/>@hydraharness/harness-tool-skill"]
   cfg --> plugin_hydra_base_tool_skill
-  plugin_hydra_base_commands["commands<br/>@hydra1902/harness-commands"]
+  plugin_hydra_base_commands["commands<br/>@hydraharness/harness-commands"]
   cfg --> plugin_hydra_base_commands
-  plugin_hydra_base_plugin_runtime["plugin-runtime<br/>@hydra1902/harness-plugin-runtime"]
+  plugin_hydra_base_plugin_runtime["plugin-runtime<br/>@hydraharness/harness-plugin-runtime"]
   cfg --> plugin_hydra_base_plugin_runtime
-  plugin_hydra_base_mcp_registry["mcp-registry<br/>@hydra1902/harness-mcp-registry"]
+  plugin_hydra_base_mcp_registry["mcp-registry<br/>@hydraharness/harness-mcp-registry"]
   cfg --> plugin_hydra_base_mcp_registry
-  plugin_hydra_base_hooks_registry["hooks-registry<br/>@hydra1902/harness-hooks-registry"]
+  plugin_hydra_base_hooks_registry["hooks-registry<br/>@hydraharness/harness-hooks-registry"]
   cfg --> plugin_hydra_base_hooks_registry
-  plugin_hydra_base_command_feedback["command-feedback<br/>@hydra1902/harness-command-feedback"]
+  plugin_hydra_base_command_feedback["command-feedback<br/>@hydraharness/harness-command-feedback"]
   cfg --> plugin_hydra_base_command_feedback
-  plugin_hydra_base_goal["goal<br/>@hydra1902/harness-goal"]
+  plugin_hydra_base_goal["goal<br/>@hydraharness/harness-goal"]
   cfg --> plugin_hydra_base_goal
-  plugin_hydra_base_goal_round_driver["goal-round-driver<br/>@hydra1902/harness-goal-round-driver"]
+  plugin_hydra_base_goal_round_driver["goal-round-driver<br/>@hydraharness/harness-goal-round-driver"]
   cfg --> plugin_hydra_base_goal_round_driver
-  plugin_hydra_base_command_goal["command-goal<br/>@hydra1902/harness-command-goal"]
+  plugin_hydra_base_command_goal["command-goal<br/>@hydraharness/harness-command-goal"]
   cfg --> plugin_hydra_base_command_goal
-  plugin_hydra_base_plan_mode["plan-mode<br/>@hydra1902/harness-plan-mode"]
+  plugin_hydra_base_plan_mode["plan-mode<br/>@hydraharness/harness-plan-mode"]
   cfg --> plugin_hydra_base_plan_mode
-  plugin_hydra_base_token_meter["token-meter<br/>@hydra1902/harness-token-meter"]
+  plugin_hydra_base_token_meter["token-meter<br/>@hydraharness/harness-token-meter"]
   cfg --> plugin_hydra_base_token_meter
-  plugin_hydra_base_compaction_basic["compaction-basic<br/>@hydra1902/harness-compaction-basic"]
+  plugin_hydra_base_compaction_basic["compaction-basic<br/>@hydraharness/harness-compaction-basic"]
   cfg --> plugin_hydra_base_compaction_basic
-  plugin_hydra_base_command_compact["command-compact<br/>@hydra1902/harness-command-compact"]
+  plugin_hydra_base_command_compact["command-compact<br/>@hydraharness/harness-command-compact"]
   cfg --> plugin_hydra_base_command_compact
-  plugin_hydra_base_subagent["subagent<br/>@hydra1902/harness-subagent"]
+  plugin_hydra_base_subagent["subagent<br/>@hydraharness/harness-subagent"]
   cfg --> plugin_hydra_base_subagent
-  plugin_hydra_base_subagent_spawn_in_process["subagent-spawn-in-process<br/>@hydra1902/harness-subagent-spawn-in-process"]
+  plugin_hydra_base_subagent_spawn_in_process["subagent-spawn-in-process<br/>@hydraharness/harness-subagent-spawn-in-process"]
   cfg --> plugin_hydra_base_subagent_spawn_in_process
-  plugin_hydra_base_subagent_fork_in_process["subagent-fork-in-process<br/>@hydra1902/harness-subagent-fork-in-process"]
+  plugin_hydra_base_subagent_fork_in_process["subagent-fork-in-process<br/>@hydraharness/harness-subagent-fork-in-process"]
   cfg --> plugin_hydra_base_subagent_fork_in_process
-  plugin_hydra_base_tool_subagent_control["tool-subagent-control<br/>@hydra1902/harness-tool-subagent-control"]
+  plugin_hydra_base_tool_subagent_control["tool-subagent-control<br/>@hydraharness/harness-tool-subagent-control"]
   cfg --> plugin_hydra_base_tool_subagent_control
-  plugin_hydra_base_tool_subagent_list_agents["tool-subagent-list-agents<br/>@hydra1902/harness-tool-subagent-control/list-agents"]
+  plugin_hydra_base_tool_subagent_list_agents["tool-subagent-list-agents<br/>@hydraharness/harness-tool-subagent-control/list-agents"]
   cfg --> plugin_hydra_base_tool_subagent_list_agents
-  plugin_hydra_base_tool_subagent["tool-subagent<br/>@hydra1902/harness-tool-subagent"]
+  plugin_hydra_base_tool_subagent["tool-subagent<br/>@hydraharness/harness-tool-subagent"]
   cfg --> plugin_hydra_base_tool_subagent
-  plugin_hydra_base_tool_subagent_fork["tool-subagent-fork<br/>@hydra1902/harness-tool-subagent"]
+  plugin_hydra_base_tool_subagent_fork["tool-subagent-fork<br/>@hydraharness/harness-tool-subagent"]
   cfg --> plugin_hydra_base_tool_subagent_fork
-  plugin_hydra_base_tool_subagent_report["tool-subagent-report<br/>@hydra1902/harness-tool-subagent-report"]
+  plugin_hydra_base_tool_subagent_report["tool-subagent-report<br/>@hydraharness/harness-tool-subagent-report"]
   cfg --> plugin_hydra_base_tool_subagent_report
-  plugin_hydra_base_workflow_worker_thread["workflow-worker-thread<br/>@hydra1902/harness-workflow-worker-thread"]
+  plugin_hydra_base_workflow_worker_thread["workflow-worker-thread<br/>@hydraharness/harness-workflow-worker-thread"]
   cfg --> plugin_hydra_base_workflow_worker_thread
-  plugin_hydra_base_tool_workflow["tool-workflow<br/>@hydra1902/harness-tool-workflow"]
+  plugin_hydra_base_tool_workflow["tool-workflow<br/>@hydraharness/harness-tool-workflow"]
   cfg --> plugin_hydra_base_tool_workflow
-  plugin_hydra_base_timeout_policy["timeout-policy<br/>@hydra1902/harness-tool-call-timeout-policy"]
+  plugin_hydra_base_timeout_policy["timeout-policy<br/>@hydraharness/harness-tool-call-timeout-policy"]
   cfg --> plugin_hydra_base_timeout_policy
-  plugin_hydra_base_spill_local["spill-local<br/>@hydra1902/harness-spill-local"]
+  plugin_hydra_base_spill_local["spill-local<br/>@hydraharness/harness-spill-local"]
   cfg --> plugin_hydra_base_spill_local
-  plugin_hydra_base_spill_policy["spill-policy<br/>@hydra1902/harness-spill-policy"]
+  plugin_hydra_base_spill_policy["spill-policy<br/>@hydraharness/harness-spill-policy"]
   cfg --> plugin_hydra_base_spill_policy
-  plugin_hydra_base_session_checkpoint_policy["session-checkpoint-policy<br/>@hydra1902/harness-session-checkpoint-policy"]
+  plugin_hydra_base_session_checkpoint_policy["session-checkpoint-policy<br/>@hydraharness/harness-session-checkpoint-policy"]
   cfg --> plugin_hydra_base_session_checkpoint_policy
-  plugin_hydra_base_tool_result_pruner["tool-result-pruner<br/>@hydra1902/harness-compaction-tool-result-pruner"]
+  plugin_hydra_base_tool_result_pruner["tool-result-pruner<br/>@hydraharness/harness-compaction-tool-result-pruner"]
   cfg --> plugin_hydra_base_tool_result_pruner
-  plugin_hydra_base_tool_todo["tool-todo<br/>@hydra1902/harness-tool-todo"]
+  plugin_hydra_base_tool_todo["tool-todo<br/>@hydraharness/harness-tool-todo"]
   cfg --> plugin_hydra_base_tool_todo
-  plugin_hydra_base_tool_goal["tool-goal<br/>@hydra1902/harness-tool-goal"]
+  plugin_hydra_base_tool_goal["tool-goal<br/>@hydraharness/harness-tool-goal"]
   cfg --> plugin_hydra_base_tool_goal
-  plugin_hydra_base_tool_ralph["tool-ralph<br/>@hydra1902/harness-tool-ralph"]
+  plugin_hydra_base_tool_ralph["tool-ralph<br/>@hydraharness/harness-tool-ralph"]
   cfg --> plugin_hydra_base_tool_ralph
-  plugin_hydra_base_tool_str_replace_editor["tool-str-replace-editor<br/>@hydra1902/harness-tool-str-replace-editor"]
+  plugin_hydra_base_tool_str_replace_editor["tool-str-replace-editor<br/>@hydraharness/harness-tool-str-replace-editor"]
   cfg --> plugin_hydra_base_tool_str_replace_editor
-  plugin_hydra_base_repeat_tool_reminder["repeat-tool-reminder<br/>@hydra1902/harness-repeat-tool-reminder"]
+  plugin_hydra_base_repeat_tool_reminder["repeat-tool-reminder<br/>@hydraharness/harness-repeat-tool-reminder"]
   cfg --> plugin_hydra_base_repeat_tool_reminder
-  plugin_hydra_base_research_policy["research-policy<br/>@hydra1902/harness-research-policy"]
+  plugin_hydra_base_research_policy["research-policy<br/>@hydraharness/harness-research-policy"]
   cfg --> plugin_hydra_base_research_policy
-  plugin_hydra_base_web["web<br/>@hydra1902/harness-web"]
+  plugin_hydra_base_web["web<br/>@hydraharness/harness-web"]
   cfg --> plugin_hydra_base_web
-  plugin_hydra_base_web_search_deepseek["web-search-deepseek<br/>@hydra1902/harness-web-search-deepseek"]
+  plugin_hydra_base_web_search_deepseek["web-search-deepseek<br/>@hydraharness/harness-web-search-deepseek"]
   cfg --> plugin_hydra_base_web_search_deepseek
-  plugin_hydra_base_web_search_http["web-search-http<br/>@hydra1902/harness-web-search-http"]
+  plugin_hydra_base_web_search_http["web-search-http<br/>@hydraharness/harness-web-search-http"]
   cfg --> plugin_hydra_base_web_search_http
-  plugin_hydra_base_web_fetch_http["web-fetch-http<br/>@hydra1902/harness-web-fetch-http"]
+  plugin_hydra_base_web_fetch_http["web-fetch-http<br/>@hydraharness/harness-web-fetch-http"]
   cfg --> plugin_hydra_base_web_fetch_http
-  plugin_hydra_base_tool_web["tool-web<br/>@hydra1902/harness-tool-web"]
+  plugin_hydra_base_tool_web["tool-web<br/>@hydraharness/harness-tool-web"]
   cfg --> plugin_hydra_base_tool_web
-  plugin_hydra_base_browser_electron["browser-electron<br/>@hydra1902/harness-browser-electron"]
+  plugin_hydra_base_browser_electron["browser-electron<br/>@hydraharness/harness-browser-electron"]
   cfg --> plugin_hydra_base_browser_electron
-  plugin_hydra_base_obsidian_knowledge["obsidian-knowledge<br/>@hydra1902/harness-obsidian-knowledge"]
+  plugin_hydra_base_obsidian_knowledge["obsidian-knowledge<br/>@hydraharness/harness-obsidian-knowledge"]
   cfg --> plugin_hydra_base_obsidian_knowledge
-  plugin_hydra_base_tools["tools<br/>@hydra1902/harness-tools"]
+  plugin_hydra_base_tools["tools<br/>@hydraharness/harness-tools"]
   cfg --> plugin_hydra_base_tools
-  plugin_hydra_base_system_prompt["system-prompt<br/>@hydra1902/harness-system-prompt"]
+  plugin_hydra_base_system_prompt["system-prompt<br/>@hydraharness/harness-system-prompt"]
   cfg --> plugin_hydra_base_system_prompt
-  plugin_hydra_base_agent_loop["agent-loop<br/>@hydra1902/harness-agent-loop"]
+  plugin_hydra_base_agent_loop["agent-loop<br/>@hydraharness/harness-agent-loop"]
   cfg --> plugin_hydra_base_agent_loop
-  plugin_hydra_base_fs_sandbox["fs-sandbox<br/>@hydra1902/harness-fs-sandbox"]
+  plugin_hydra_base_fs_sandbox["fs-sandbox<br/>@hydraharness/harness-fs-sandbox"]
   cfg --> plugin_hydra_base_fs_sandbox
-  plugin_hydra_base_llm_deepseek["llm-deepseek<br/>@hydra1902/harness-llm-deepseek"]
+  plugin_hydra_base_llm_deepseek["llm-deepseek<br/>@hydraharness/harness-llm-deepseek"]
   cfg --> plugin_hydra_base_llm_deepseek
-  plugin_hydra_base_jev["jev<br/>@hydra1902/harness-jev"]
+  plugin_hydra_base_jev["jev<br/>@hydraharness/harness-jev"]
   cfg --> plugin_hydra_base_jev
-  plugin_hydra_base_browser_decisions["browser-decisions<br/>@hydra1902/harness-browser-decisions"]
+  plugin_hydra_base_browser_decisions["browser-decisions<br/>@hydraharness/harness-browser-decisions"]
   cfg --> plugin_hydra_base_browser_decisions
 ```
 
 | Plugin id | Package / module |
 | --- | --- |
-| `timer` | `@hydra1902/cordis-plugin-timer` |
-| `hmr` | `@hydra1902/cordis-plugin-hmr` |
-| `llm` | `@hydra1902/harness-llm` |
-| `session` | `@hydra1902/harness-session` |
-| `typert` | `@hydra1902/harness-typert-registry` |
-| `typert-loader` | `@hydra1902/harness-typert-loader` |
-| `typert-gateway` | `@hydra1902/harness-api-gateway` |
-| `session-title` | `@hydra1902/harness-session-title` |
-| `session-title-llm` | `@hydra1902/harness-session-title-first-prompt-llm` |
-| `user-questions` | `@hydra1902/harness-user-questions` |
-| `agent` | `@hydra1902/harness-agent` |
-| `agent-default-model` | `@hydra1902/harness-agent-default-model` |
-| `jobs` | `@hydra1902/harness-jobs-local` |
-| `llm-retry` | `@hydra1902/harness-llm-retry` |
-| `llm-call-log` | `@hydra1902/harness-llm-call-log` |
-| `settings` | `@hydra1902/harness-settings-file` |
-| `credentials` | `@hydra1902/harness-credentials-local` |
-| `authorization` | `@hydra1902/harness-authorization` |
-| `llm-pi-ai` | `@hydra1902/harness-llm-pi-ai` |
-| `llm-account-auth` | `@hydra1902/harness-llm-account-auth` |
-| `session-persistence-jsonl` | `@hydra1902/harness-session-persistence-jsonl` |
-| `attachment-local` | `@hydra1902/harness-attachment-local` |
-| `session-query-sqlite` | `@hydra1902/harness-session-query-sqlite` |
-| `session-projection` | `@hydra1902/harness-session-projection` |
-| `session-telemetry-otel` | `@hydra1902/harness-session-telemetry-otel` |
-| `subprocess` | `@hydra1902/harness-subprocess-local` |
-| `lsp` | `@hydra1902/harness-lsp` |
-| `lsp-stdio` | `@hydra1902/harness-lsp-stdio` |
-| `sandbox` | `@hydra1902/harness-sandbox-local` |
-| `sandbox-policy` | `@hydra1902/harness-sandbox-policy` |
-| `bash-sandbox` | `@hydra1902/harness-bash-sandbox` |
-| `pwsh-sandbox` | `@hydra1902/harness-pwsh-sandbox` |
-| `approval` | `@hydra1902/harness-user-approval` |
-| `permission` | `@hydra1902/harness-permission-presets` |
-| `shell-env` | `@hydra1902/harness-shell-env` |
-| `tool-bash` | `@hydra1902/harness-tool-bash` |
-| `tool-pwsh` | `@hydra1902/harness-tool-pwsh` |
-| `tool-jobs` | `@hydra1902/harness-tool-jobs` |
-| `fs-observation-policy` | `@hydra1902/harness-fs-observation-policy` |
-| `tool-fs` | `@hydra1902/harness-tool-fs` |
-| `fs-review` | `@hydra1902/harness-fs-review` |
-| `tool-fs-search` | `@hydra1902/harness-tool-fs-search` |
-| `agent-instructions` | `@hydra1902/harness-agent-instructions` |
-| `personalization` | `@hydra1902/harness-personalization` |
-| `skill` | `@hydra1902/harness-skill` |
-| `skill-filesystem` | `@hydra1902/harness-skill-filesystem` |
-| `skill-badge` | `@hydra1902/harness-skill-badge` |
-| `tool-skill` | `@hydra1902/harness-tool-skill` |
-| `commands` | `@hydra1902/harness-commands` |
-| `plugin-runtime` | `@hydra1902/harness-plugin-runtime` |
-| `mcp-registry` | `@hydra1902/harness-mcp-registry` |
-| `hooks-registry` | `@hydra1902/harness-hooks-registry` |
-| `command-feedback` | `@hydra1902/harness-command-feedback` |
-| `goal` | `@hydra1902/harness-goal` |
-| `goal-round-driver` | `@hydra1902/harness-goal-round-driver` |
-| `command-goal` | `@hydra1902/harness-command-goal` |
-| `plan-mode` | `@hydra1902/harness-plan-mode` |
-| `token-meter` | `@hydra1902/harness-token-meter` |
-| `compaction-basic` | `@hydra1902/harness-compaction-basic` |
-| `command-compact` | `@hydra1902/harness-command-compact` |
-| `subagent` | `@hydra1902/harness-subagent` |
-| `subagent-spawn-in-process` | `@hydra1902/harness-subagent-spawn-in-process` |
-| `subagent-fork-in-process` | `@hydra1902/harness-subagent-fork-in-process` |
-| `tool-subagent-control` | `@hydra1902/harness-tool-subagent-control` |
-| `tool-subagent-list-agents` | `@hydra1902/harness-tool-subagent-control/list-agents` |
-| `tool-subagent` | `@hydra1902/harness-tool-subagent` |
-| `tool-subagent-fork` | `@hydra1902/harness-tool-subagent` |
-| `tool-subagent-report` | `@hydra1902/harness-tool-subagent-report` |
-| `workflow-worker-thread` | `@hydra1902/harness-workflow-worker-thread` |
-| `tool-workflow` | `@hydra1902/harness-tool-workflow` |
-| `timeout-policy` | `@hydra1902/harness-tool-call-timeout-policy` |
-| `spill-local` | `@hydra1902/harness-spill-local` |
-| `spill-policy` | `@hydra1902/harness-spill-policy` |
-| `session-checkpoint-policy` | `@hydra1902/harness-session-checkpoint-policy` |
-| `tool-result-pruner` | `@hydra1902/harness-compaction-tool-result-pruner` |
-| `tool-todo` | `@hydra1902/harness-tool-todo` |
-| `tool-goal` | `@hydra1902/harness-tool-goal` |
-| `tool-ralph` | `@hydra1902/harness-tool-ralph` |
-| `tool-str-replace-editor` | `@hydra1902/harness-tool-str-replace-editor` |
-| `repeat-tool-reminder` | `@hydra1902/harness-repeat-tool-reminder` |
-| `research-policy` | `@hydra1902/harness-research-policy` |
-| `web` | `@hydra1902/harness-web` |
-| `web-search-deepseek` | `@hydra1902/harness-web-search-deepseek` |
-| `web-search-http` | `@hydra1902/harness-web-search-http` |
-| `web-fetch-http` | `@hydra1902/harness-web-fetch-http` |
-| `tool-web` | `@hydra1902/harness-tool-web` |
-| `browser-electron` | `@hydra1902/harness-browser-electron` |
-| `obsidian-knowledge` | `@hydra1902/harness-obsidian-knowledge` |
-| `tools` | `@hydra1902/harness-tools` |
-| `system-prompt` | `@hydra1902/harness-system-prompt` |
-| `agent-loop` | `@hydra1902/harness-agent-loop` |
-| `fs-sandbox` | `@hydra1902/harness-fs-sandbox` |
-| `llm-deepseek` | `@hydra1902/harness-llm-deepseek` |
-| `jev` | `@hydra1902/harness-jev` |
-| `browser-decisions` | `@hydra1902/harness-browser-decisions` |
+| `timer` | `@hydraharness/cordis-plugin-timer` |
+| `hmr` | `@hydraharness/cordis-plugin-hmr` |
+| `llm` | `@hydraharness/harness-llm` |
+| `session` | `@hydraharness/harness-session` |
+| `typert` | `@hydraharness/harness-typert-registry` |
+| `typert-loader` | `@hydraharness/harness-typert-loader` |
+| `typert-gateway` | `@hydraharness/harness-api-gateway` |
+| `session-title` | `@hydraharness/harness-session-title` |
+| `session-title-llm` | `@hydraharness/harness-session-title-first-prompt-llm` |
+| `user-questions` | `@hydraharness/harness-user-questions` |
+| `agent` | `@hydraharness/harness-agent` |
+| `agent-default-model` | `@hydraharness/harness-agent-default-model` |
+| `jobs` | `@hydraharness/harness-jobs-local` |
+| `llm-retry` | `@hydraharness/harness-llm-retry` |
+| `llm-call-log` | `@hydraharness/harness-llm-call-log` |
+| `settings` | `@hydraharness/harness-settings-file` |
+| `credentials` | `@hydraharness/harness-credentials-local` |
+| `authorization` | `@hydraharness/harness-authorization` |
+| `llm-pi-ai` | `@hydraharness/harness-llm-pi-ai` |
+| `llm-account-auth` | `@hydraharness/harness-llm-account-auth` |
+| `session-persistence-jsonl` | `@hydraharness/harness-session-persistence-jsonl` |
+| `attachment-local` | `@hydraharness/harness-attachment-local` |
+| `session-query-sqlite` | `@hydraharness/harness-session-query-sqlite` |
+| `session-projection` | `@hydraharness/harness-session-projection` |
+| `session-telemetry-otel` | `@hydraharness/harness-session-telemetry-otel` |
+| `subprocess` | `@hydraharness/harness-subprocess-local` |
+| `lsp` | `@hydraharness/harness-lsp` |
+| `lsp-stdio` | `@hydraharness/harness-lsp-stdio` |
+| `sandbox` | `@hydraharness/harness-sandbox-local` |
+| `sandbox-policy` | `@hydraharness/harness-sandbox-policy` |
+| `bash-sandbox` | `@hydraharness/harness-bash-sandbox` |
+| `pwsh-sandbox` | `@hydraharness/harness-pwsh-sandbox` |
+| `approval` | `@hydraharness/harness-user-approval` |
+| `permission` | `@hydraharness/harness-permission-presets` |
+| `shell-env` | `@hydraharness/harness-shell-env` |
+| `tool-bash` | `@hydraharness/harness-tool-bash` |
+| `tool-pwsh` | `@hydraharness/harness-tool-pwsh` |
+| `tool-jobs` | `@hydraharness/harness-tool-jobs` |
+| `fs-observation-policy` | `@hydraharness/harness-fs-observation-policy` |
+| `tool-fs` | `@hydraharness/harness-tool-fs` |
+| `fs-review` | `@hydraharness/harness-fs-review` |
+| `tool-fs-search` | `@hydraharness/harness-tool-fs-search` |
+| `agent-instructions` | `@hydraharness/harness-agent-instructions` |
+| `personalization` | `@hydraharness/harness-personalization` |
+| `skill` | `@hydraharness/harness-skill` |
+| `skill-filesystem` | `@hydraharness/harness-skill-filesystem` |
+| `skill-badge` | `@hydraharness/harness-skill-badge` |
+| `tool-skill` | `@hydraharness/harness-tool-skill` |
+| `commands` | `@hydraharness/harness-commands` |
+| `plugin-runtime` | `@hydraharness/harness-plugin-runtime` |
+| `mcp-registry` | `@hydraharness/harness-mcp-registry` |
+| `hooks-registry` | `@hydraharness/harness-hooks-registry` |
+| `command-feedback` | `@hydraharness/harness-command-feedback` |
+| `goal` | `@hydraharness/harness-goal` |
+| `goal-round-driver` | `@hydraharness/harness-goal-round-driver` |
+| `command-goal` | `@hydraharness/harness-command-goal` |
+| `plan-mode` | `@hydraharness/harness-plan-mode` |
+| `token-meter` | `@hydraharness/harness-token-meter` |
+| `compaction-basic` | `@hydraharness/harness-compaction-basic` |
+| `command-compact` | `@hydraharness/harness-command-compact` |
+| `subagent` | `@hydraharness/harness-subagent` |
+| `subagent-spawn-in-process` | `@hydraharness/harness-subagent-spawn-in-process` |
+| `subagent-fork-in-process` | `@hydraharness/harness-subagent-fork-in-process` |
+| `tool-subagent-control` | `@hydraharness/harness-tool-subagent-control` |
+| `tool-subagent-list-agents` | `@hydraharness/harness-tool-subagent-control/list-agents` |
+| `tool-subagent` | `@hydraharness/harness-tool-subagent` |
+| `tool-subagent-fork` | `@hydraharness/harness-tool-subagent` |
+| `tool-subagent-report` | `@hydraharness/harness-tool-subagent-report` |
+| `workflow-worker-thread` | `@hydraharness/harness-workflow-worker-thread` |
+| `tool-workflow` | `@hydraharness/harness-tool-workflow` |
+| `timeout-policy` | `@hydraharness/harness-tool-call-timeout-policy` |
+| `spill-local` | `@hydraharness/harness-spill-local` |
+| `spill-policy` | `@hydraharness/harness-spill-policy` |
+| `session-checkpoint-policy` | `@hydraharness/harness-session-checkpoint-policy` |
+| `tool-result-pruner` | `@hydraharness/harness-compaction-tool-result-pruner` |
+| `tool-todo` | `@hydraharness/harness-tool-todo` |
+| `tool-goal` | `@hydraharness/harness-tool-goal` |
+| `tool-ralph` | `@hydraharness/harness-tool-ralph` |
+| `tool-str-replace-editor` | `@hydraharness/harness-tool-str-replace-editor` |
+| `repeat-tool-reminder` | `@hydraharness/harness-repeat-tool-reminder` |
+| `research-policy` | `@hydraharness/harness-research-policy` |
+| `web` | `@hydraharness/harness-web` |
+| `web-search-deepseek` | `@hydraharness/harness-web-search-deepseek` |
+| `web-search-http` | `@hydraharness/harness-web-search-http` |
+| `web-fetch-http` | `@hydraharness/harness-web-fetch-http` |
+| `tool-web` | `@hydraharness/harness-tool-web` |
+| `browser-electron` | `@hydraharness/harness-browser-electron` |
+| `obsidian-knowledge` | `@hydraharness/harness-obsidian-knowledge` |
+| `tools` | `@hydraharness/harness-tools` |
+| `system-prompt` | `@hydraharness/harness-system-prompt` |
+| `agent-loop` | `@hydraharness/harness-agent-loop` |
+| `fs-sandbox` | `@hydraharness/harness-fs-sandbox` |
+| `llm-deepseek` | `@hydraharness/harness-llm-deepseek` |
+| `jev` | `@hydraharness/harness-jev` |
+| `browser-decisions` | `@hydraharness/harness-browser-decisions` |
 
 Source config: [`packages/bundle/base/cordis.patch.yml`](../../packages/bundle/base/cordis.patch.yml).
 

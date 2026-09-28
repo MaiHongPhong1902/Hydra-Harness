@@ -4,8 +4,8 @@
  * no browser exists.
  */
 
-import type { BrowserOutcome, BrowserTabState, BrowserUiChanges } from '@hydra1902/harness-browser-electron'
-import type { GenericCallView } from '@hydra1902/harness-tools'
+import type { BrowserOutcome, BrowserTabState, BrowserUiChanges } from '@hydraharness/harness-browser-electron'
+import type { GenericCallView } from '@hydraharness/harness-tools'
 
 /** Default cap on the element list one full state or navigate call returns. */
 export const DEFAULT_MAX_STATE_CHARS = 16_000

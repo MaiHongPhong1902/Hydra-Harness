@@ -15,7 +15,7 @@ interface CssModulePlugin {
 }
 
 /** A representative dynamic bundle using the shared client baseline. */
-const REQUESTING_PACKAGE = '@hydra1902/harness-client-ui-conversation'
+const REQUESTING_PACKAGE = '@hydraharness/harness-client-ui-conversation'
 
 function clientConfigs(id = REQUESTING_PACKAGE) {
   return clientBundle(id, ['lib/types/index.js', 'lib/types/invariant.js'])(
@@ -25,7 +25,7 @@ function clientConfigs(id = REQUESTING_PACKAGE) {
 
 describe('client bundle build faces', () => {
   it('watches source in development and consumes emitted JavaScript in the Client build', () => {
-    const bundle = clientBundle('@hydra1902/harness-client-test', ['lib/types/index.js'])
+    const bundle = clientBundle('@hydraharness/harness-client-test', ['lib/types/index.js'])
     const development = bundle({ env: {} }).find(config => config.platform === 'browser')
     const artifact = bundle({ env: { HYDRA_BUILD_FACE: 'client' } })
       .find(config => config.platform === 'browser')
@@ -63,81 +63,81 @@ describe('client bundle purity gate', () => {
   const resolveId = purityResolveId()
 
   it('leaves default externals and non-scoped specifiers alone', () => {
-    expect(resolveId('@hydra1902/harness-client-ui-slots')).toBeNull()
-    expect(resolveId('@hydra1902/harness-client-ui-primitives')).toBeNull()
-    expect(resolveId('@hydra1902/harness-client-runtime/client')).toBeNull()
+    expect(resolveId('@hydraharness/harness-client-ui-slots')).toBeNull()
+    expect(resolveId('@hydraharness/harness-client-ui-primitives')).toBeNull()
+    expect(resolveId('@hydraharness/harness-client-runtime/client')).toBeNull()
     expect(resolveId('react')).toBeNull()
     expect(resolveId('zod')).toBeNull()
   })
 
   it('rejects the retired web-react platform package', () => {
-    expect(() => resolveId('@hydra1902/harness-client-web-react')).toThrow(/purity/)
-    expect(() => resolveId('@hydra1902/harness-client-web-react/store')).toThrow(/purity/)
+    expect(() => resolveId('@hydraharness/harness-client-web-react')).toThrow(/purity/)
+    expect(() => resolveId('@hydraharness/harness-client-web-react/store')).toThrow(/purity/)
   })
 
   it('lets inline-safe wire layers inline', () => {
-    expect(resolveId('@hydra1902/harness-host-apiproxy/api')).toBeNull()
-    expect(resolveId('@hydra1902/harness-session/surface')).toBeNull()
-    expect(resolveId('@hydra1902/harness-brand')).toBeNull()
-    expect(resolveId('@hydra1902/harness-fs-review/client')).toBeNull()
-    expect(() => resolveId('@hydra1902/harness-fs-review')).toThrow(/purity/)
-    expect(() => resolveId('@hydra1902/harness-fs-review/client/nested')).toThrow(/purity/)
+    expect(resolveId('@hydraharness/harness-host-apiproxy/api')).toBeNull()
+    expect(resolveId('@hydraharness/harness-session/surface')).toBeNull()
+    expect(resolveId('@hydraharness/harness-brand')).toBeNull()
+    expect(resolveId('@hydraharness/harness-fs-review/client')).toBeNull()
+    expect(() => resolveId('@hydraharness/harness-fs-review')).toThrow(/purity/)
+    expect(() => resolveId('@hydraharness/harness-fs-review/client/nested')).toThrow(/purity/)
   })
 
   it('lets exact generated Remote contributions inline without admitting their package implementation', () => {
-    expect(resolveId('@hydra1902/harness-goal/remote')).toBeNull()
-    expect(() => resolveId('@hydra1902/harness-goal')).toThrow(/purity/)
-    expect(() => resolveId('@hydra1902/harness-goal/client')).toThrow(/purity/)
-    expect(() => resolveId('@hydra1902/harness-goal/remote/nested')).toThrow(/purity/)
+    expect(resolveId('@hydraharness/harness-goal/remote')).toBeNull()
+    expect(() => resolveId('@hydraharness/harness-goal')).toThrow(/purity/)
+    expect(() => resolveId('@hydraharness/harness-goal/client')).toThrow(/purity/)
+    expect(() => resolveId('@hydraharness/harness-goal/remote/nested')).toThrow(/purity/)
   })
 
-  it('throws on any other @hydra1902 leak', () => {
-    expect(() => resolveId('@hydra1902/harness-agent')).toThrow(/purity/)
-    expect(() => resolveId('@hydra1902/harness-client-web')).toThrow(/purity/)
+  it('throws on any other @hydraharness leak', () => {
+    expect(() => resolveId('@hydraharness/harness-agent')).toThrow(/purity/)
+    expect(() => resolveId('@hydraharness/harness-client-web')).toThrow(/purity/)
   })
 
   it('throws on cross-plugin value imports — bare plugin names and /client subpaths alike', () => {
-    expect(() => resolveId('@hydra1902/harness-client-connection')).toThrow(/purity/)
-    expect(() => resolveId('@hydra1902/harness-client-runtime')).toThrow(/purity/)
-    expect(() => resolveId('@hydra1902/harness-client-ui-layout/client')).toThrow(/purity/)
+    expect(() => resolveId('@hydraharness/harness-client-connection')).toThrow(/purity/)
+    expect(() => resolveId('@hydraharness/harness-client-runtime')).toThrow(/purity/)
+    expect(() => resolveId('@hydraharness/harness-client-ui-layout/client')).toThrow(/purity/)
   })
 
   it('admits the parser-preloaded runtime for every dynamic bundle', () => {
-    expect(resolveId('@hydra1902/harness-client-runtime/client')).toBeNull()
-    const withoutRequest = purityResolveId('@hydra1902/harness-client-ui-goal')
-    expect(withoutRequest('@hydra1902/harness-client-runtime/client')).toBeNull()
+    expect(resolveId('@hydraharness/harness-client-runtime/client')).toBeNull()
+    const withoutRequest = purityResolveId('@hydraharness/harness-client-ui-goal')
+    expect(withoutRequest('@hydraharness/harness-client-runtime/client')).toBeNull()
   })
 
   it('externalizes the baseline independently of each package manifest', () => {
     const requesting = clientConfigs()[0]?.deps as { neverBundle: (specifier: string) => boolean }
-    const plain = clientConfigs('@hydra1902/harness-client-connection')[0]?.deps as {
+    const plain = clientConfigs('@hydraharness/harness-client-connection')[0]?.deps as {
       neverBundle: (specifier: string) => boolean
     }
 
     expect(requesting.neverBundle('react')).toBe(true)
     expect(requesting.neverBundle('zod')).toBe(false)
     expect(plain.neverBundle('react')).toBe(true)
-    expect(plain.neverBundle('@hydra1902/harness-client-runtime/client')).toBe(true)
+    expect(plain.neverBundle('@hydraharness/harness-client-runtime/client')).toBe(true)
   })
 })
 
 describe('client bundle module requests', () => {
   it('requests what the declaration lists', () => {
-    const requests = requestedExternals('@hydra1902/harness-client-fixture', {
-      external: ['react', 'react/jsx-runtime', '@hydra1902/harness-client-ui-slots'],
+    const requests = requestedExternals('@hydraharness/harness-client-fixture', {
+      external: ['react', 'react/jsx-runtime', '@hydraharness/harness-client-ui-slots'],
     })
 
     expect([...requests].sort()).toEqual([
-      '@hydra1902/harness-client-ui-slots', 'react', 'react/jsx-runtime',
+      '@hydraharness/harness-client-ui-slots', 'react', 'react/jsx-runtime',
     ])
   })
 
   it('requests nothing when the declaration is absent', () => {
-    expect(requestedExternals('@hydra1902/harness-client-fixture', {}).size).toBe(0)
+    expect(requestedExternals('@hydraharness/harness-client-fixture', {}).size).toBe(0)
   })
 
   it('rejects a malformed declaration instead of reading past it', () => {
-    expect(() => requestedExternals('@hydra1902/harness-client-fixture', { external: 'react' }))
+    expect(() => requestedExternals('@hydraharness/harness-client-fixture', { external: 'react' }))
       .toThrow(/hydra\.client\.external must be a string array/)
   })
 })
@@ -149,7 +149,7 @@ describe('client bundle debug artifacts', () => {
   })
 
   it('maps first-party sources to their repository package paths', () => {
-    const configs = clientConfigs('@hydra1902/harness-client-ui-goal')
+    const configs = clientConfigs('@hydraharness/harness-client-ui-goal')
     const outputOptions = configs[0]?.outputOptions
     if (typeof outputOptions !== 'object' || outputOptions === null) throw new Error('client output options missing')
     const transform = outputOptions.sourcemapPathTransform
@@ -157,12 +157,12 @@ describe('client bundle debug artifacts', () => {
 
     const source = transform('../src/client/GoalBar.tsx', clientSourceMapPath('client/ui-goal'))
     expect(source).toBe('../../../packages/client/ui-goal/src/client/GoalBar.tsx')
-    const resolved = new URL(source, 'https://hydra.test/plugins/@hydra1902/harness-client-ui-goal/client.js.map')
+    const resolved = new URL(source, 'https://hydra.test/plugins/@hydraharness/harness-client-ui-goal/client.js.map')
     expect(resolved.pathname).toBe('/packages/client/ui-goal/src/client/GoalBar.tsx')
   })
 
   it('maps dual-face host sources to the host package group', () => {
-    const configs = clientConfigs('@hydra1902/harness-host-directory-picker-native')
+    const configs = clientConfigs('@hydraharness/harness-host-directory-picker-native')
     const outputOptions = configs[0]?.outputOptions
     if (typeof outputOptions !== 'object' || outputOptions === null) throw new Error('client output options missing')
     const transform = outputOptions.sourcemapPathTransform
@@ -173,7 +173,7 @@ describe('client bundle debug artifacts', () => {
   })
 
   it('maps inlined workspace sources to packages and leaves dependencies outside it unchanged', () => {
-    const configs = clientConfigs('@hydra1902/harness-client-connection')
+    const configs = clientConfigs('@hydraharness/harness-client-connection')
     const outputOptions = configs[0]?.outputOptions
     if (typeof outputOptions !== 'object' || outputOptions === null) throw new Error('client output options missing')
     const transform = outputOptions.sourcemapPathTransform
@@ -182,7 +182,7 @@ describe('client bundle debug artifacts', () => {
     const sourceMapPath = clientSourceMapPath('client/connection')
     const workspaceSource = transform('../../../host/apiproxy/src/api/rpc.ts', sourceMapPath)
     expect(workspaceSource).toBe('../../../packages/host/apiproxy/src/api/rpc.ts')
-    const resolved = new URL(workspaceSource, 'https://hydra.test/plugins/@hydra1902/harness-client-connection/client.js.map')
+    const resolved = new URL(workspaceSource, 'https://hydra.test/plugins/@hydraharness/harness-client-connection/client.js.map')
     expect(resolved.pathname).toBe('/packages/host/apiproxy/src/api/rpc.ts')
 
     const dependencySource = '../../../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/index.js'

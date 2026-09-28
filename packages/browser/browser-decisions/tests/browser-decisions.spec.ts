@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import * as Jev from '@hydra1902/harness-jev'
-import type { ToolDefinition } from '@hydra1902/harness-tools'
+import { Context } from '@hydraharness/cordis'
+import * as Jev from '@hydraharness/harness-jev'
+import type { ToolDefinition } from '@hydraharness/harness-tools'
 import { apply } from '../src/index.ts'
 
 let context: Context | undefined
@@ -78,8 +78,8 @@ describe('browser decisions', () => {
 
   it('returns an abstention when the optional Jev service is absent', async () => {
     context = new Context()
-    let registered: import('@hydra1902/harness-tools').ToolDefinition | undefined
-    context.reflect.provide('tools', { register: (definition: import('@hydra1902/harness-tools').ToolDefinition) => {
+    let registered: import('@hydraharness/harness-tools').ToolDefinition | undefined
+    context.reflect.provide('tools', { register: (definition: import('@hydraharness/harness-tools').ToolDefinition) => {
       registered = definition
       return () => {}
     } })
@@ -93,8 +93,8 @@ describe('browser decisions', () => {
 
   it('keeps the tool path available when Jev is mounted without a credential', async () => {
     context = new Context()
-    let registered: import('@hydra1902/harness-tools').ToolDefinition | undefined
-    context.reflect.provide('tools', { register: (definition: import('@hydra1902/harness-tools').ToolDefinition) => {
+    let registered: import('@hydraharness/harness-tools').ToolDefinition | undefined
+    context.reflect.provide('tools', { register: (definition: import('@hydraharness/harness-tools').ToolDefinition) => {
       registered = definition
       return () => {}
     } })

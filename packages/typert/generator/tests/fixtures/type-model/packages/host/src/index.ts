@@ -1,4 +1,4 @@
-import { Service } from '@hydra1902/cordis'
+import { Service } from '@hydraharness/cordis'
 import type { ZodType } from 'zod'
 import type { AgentPhase, Box, Entity, Flags, Payload, Present, SyntaxZoo } from './models.ts'
 
@@ -95,7 +95,7 @@ export class DemoService extends Service {
   }
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     demo: DemoService
     aliased: AliasedService
@@ -130,7 +130,7 @@ declare module '@hydra1902/cordis' {
   type IgnoredDeclaration = string
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     demo: DemoService
   }

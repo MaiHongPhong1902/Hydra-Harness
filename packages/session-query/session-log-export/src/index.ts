@@ -1,7 +1,7 @@
 /** Web Session-log download command over the host endpoint owned by ApiProxy. */
 
-import type { Context } from '@hydra1902/cordis'
-import type { CommandResult } from '@hydra1902/harness-commands'
+import type { Context } from '@hydraharness/cordis'
+import type { CommandResult } from '@hydraharness/harness-commands'
 
 export const name = 'session-log-download'
 export const inject = ['commands']

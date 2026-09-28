@@ -1,4 +1,4 @@
-import { createToolResultMessage, createUserMessage } from '@hydra1902/harness-llm'
+import { createToolResultMessage, createUserMessage } from '@hydraharness/harness-llm'
 /**
  * Coordinator semantics against a bare fake backend — the RFC's named unit
  * tier for the seam: adoption (fresh, seeded, re-adoption via the handoff
@@ -7,9 +7,9 @@ import { createToolResultMessage, createUserMessage } from '@hydra1902/harness-l
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SessionStore, { SessionId, type Session, type SessionEvent } from '@hydra1902/harness-session'
-import type { Agent } from '@hydra1902/harness-agent'
+import { Context } from '@hydraharness/cordis'
+import SessionStore, { SessionId, type Session, type SessionEvent } from '@hydraharness/harness-session'
+import type { Agent } from '@hydraharness/harness-agent'
 import {
   SessionTelemetryCoordinator,
   type SessionTelemetrySink,
@@ -17,7 +17,7 @@ import {
   type SessionTelemetryRecord,
 } from '../src/index.ts'
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /**
      * Test-only merged event proving unknown types flow through unchanged.

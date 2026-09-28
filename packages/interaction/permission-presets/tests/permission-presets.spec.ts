@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SessionStore, { Session, SessionId } from '@hydra1902/harness-session'
-import type { SandboxMode } from '@hydra1902/harness-sandbox'
-import type { ApprovalPolicy } from '@hydra1902/harness-user-approval'
+import { Context } from '@hydraharness/cordis'
+import SessionStore, { Session, SessionId } from '@hydraharness/harness-session'
+import type { SandboxMode } from '@hydraharness/harness-sandbox'
+import type { ApprovalPolicy } from '@hydraharness/harness-user-approval'
 import PermissionPresetService, {
   CUSTOM_PRESET, effectivePermissionPreset, PERMISSION_SETTINGS_NAMESPACE,
-} from '@hydra1902/harness-permission-presets'
-import type { Config } from '@hydra1902/harness-permission-presets'
-import { SettingsProvider } from '@hydra1902/harness-settings'
-import type { SettingsNamespace } from '@hydra1902/harness-settings'
+} from '@hydraharness/harness-permission-presets'
+import type { Config } from '@hydraharness/harness-permission-presets'
+import { SettingsProvider } from '@hydraharness/harness-settings'
+import type { SettingsNamespace } from '@hydraharness/harness-settings'
 
 /** Writable memory provider for the permission/settings lifecycle specs. */
 class MemorySettings extends SettingsProvider {

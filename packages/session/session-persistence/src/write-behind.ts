@@ -1,9 +1,9 @@
 /**
  * Bounded per-session write batching for the shared persistence coordinator.
- * @module @hydra1902/harness-session-persistence/write-behind
+ * @module @hydraharness/harness-session-persistence/write-behind
  */
 
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type { SessionEvent } from '@hydraharness/harness-session'
 
 /** Dependencies and scheduling policy for one live session's write controller. */
 export interface SessionWriteBehindOptions {

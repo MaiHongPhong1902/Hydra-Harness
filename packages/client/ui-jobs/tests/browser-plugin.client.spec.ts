@@ -4,12 +4,12 @@
  * removal — HMR safety), the inert node entry, and the invariant companion's
  * ownership reservation.
  */
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it } from 'vitest'
-import InvariantRegistry from '@hydra1902/harness-invariants'
-import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
-import { stubSettingsScope } from '@hydra1902/harness-client-test-runtime'
-import { apply as applyLocale, inject as localeInject } from '@hydra1902/harness-client-locale/client'
+import InvariantRegistry from '@hydraharness/harness-invariants'
+import { SlotRegistry } from '@hydraharness/harness-client-runtime/client'
+import { stubSettingsScope } from '@hydraharness/harness-client-test-runtime'
+import { apply as applyLocale, inject as localeInject } from '@hydraharness/harness-client-locale/client'
 import { apply, inject } from '../src/client/index.ts'
 import { apply as applyNode } from '../src/index.ts'
 import * as JobInvariant from '../src/invariant.ts'

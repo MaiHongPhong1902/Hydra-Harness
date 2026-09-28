@@ -2,7 +2,7 @@
   - heading "session-stats" [level=2]
   - button "Close plugin details":
     - img
-  - paragraph: "@hydra/harness-session-stats"
+  - paragraph: "@hydraharness/harness-session-stats"
   - table:
     - rowgroup:
       - row "Description Whole-log conversation counts and wall times projection (sessionStats) for the Hydra harness":

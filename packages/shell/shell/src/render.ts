@@ -1,8 +1,8 @@
 /**
- * Shared rendering helpers for the shell tools (`@hydra1902/harness-tool-bash`,
- * `@hydra1902/harness-tool-pwsh`): the exit-status marker contract the tools' renderers
+ * Shared rendering helpers for the shell tools (`@hydraharness/harness-tool-bash`,
+ * `@hydraharness/harness-tool-pwsh`): the exit-status marker contract the tools' renderers
  * emit and the presentation layer parses back.
- * @module @hydra1902/harness-shell/render
+ * @module @hydraharness/harness-shell/render
  */
 
 /**

@@ -1,6 +1,6 @@
 /**
  * `SandboxedFileSystem`: the sandbox-enforcing implementation of the
- * `@hydra1902/harness-fs` Service Definition. It extends `LocalFileSystem` so all
+ * `@hydraharness/harness-fs` Service Definition. It extends `LocalFileSystem` so all
  * text-storage mechanics — resolve, stat, read/stream, list, the atomic
  * write and the read-match-write edit critical section — are the local
  * implementation's, verbatim; this package adds only the per-call POLICY fence
@@ -11,7 +11,7 @@
  * NOT a kernel boundary — the operations are the seam's own (open, rename),
  * and only the target path is untrusted, so canonicalize-then-contain is the
  * complete answer to this surface. Kernel-grade isolation of untrusted CODE
- * stays `ctx.shell`'s job (`@hydra1902/harness-bash-sandbox`). This mirrors the
+ * stays `ctx.shell`'s job (`@hydraharness/harness-bash-sandbox`). This mirrors the
  * `code-runtime` stance: containment, not a security boundary. The residual
  * TOCTOU (an ancestor symlink swapped between the containment re-check and the
  * syscall) is narrowed by re-canonicalizing immediately before delegating and
@@ -24,20 +24,20 @@
  * `danger-full-access` delegates unfenced. A denial throws the structured
  * `FS_SANDBOX_DENIED` — no text inference is needed (unlike bash's kernel
  * stderr), because an in-process fence knows exactly what it refused. The
- * escalation retry lives in the tool layer (`@hydra1902/harness-tool-fs`),
+ * escalation retry lives in the tool layer (`@hydraharness/harness-tool-fs`),
  * exactly as bash's does.
  *
- * @module @hydra1902/harness-fs-sandbox
+ * @module @hydraharness/harness-fs-sandbox
  */
 
-import { Context } from '@hydra1902/cordis'
-import { LocalFileSystem } from '@hydra1902/harness-fs-local'
-import type { Config as LocalConfig } from '@hydra1902/harness-fs-local'
-import { FsError } from '@hydra1902/harness-fs'
-import type { FsEditOutcome, FsEditRequest, FsTarget, FsVersion, FsWriteIntent, FsWriteOutcome } from '@hydra1902/harness-fs'
-import { writableRoots } from '@hydra1902/harness-sandbox'
-import type { SandboxExecutionPolicy, SandboxMode } from '@hydra1902/harness-sandbox'
-import type {} from '@hydra1902/harness-sandbox-policy'
+import { Context } from '@hydraharness/cordis'
+import { LocalFileSystem } from '@hydraharness/harness-fs-local'
+import type { Config as LocalConfig } from '@hydraharness/harness-fs-local'
+import { FsError } from '@hydraharness/harness-fs'
+import type { FsEditOutcome, FsEditRequest, FsTarget, FsVersion, FsWriteIntent, FsWriteOutcome } from '@hydraharness/harness-fs'
+import { writableRoots } from '@hydraharness/harness-sandbox'
+import type { SandboxExecutionPolicy, SandboxMode } from '@hydraharness/harness-sandbox'
+import type {} from '@hydraharness/harness-sandbox-policy'
 import { isPathUnder } from './containment.ts'
 
 /**
@@ -50,9 +50,9 @@ export type Config = LocalConfig
 
 /**
  * Sandbox-enforcing filesystem backend. Registers as `ctx.fs` (loading it
- * INSTEAD OF `@hydra1902/harness-fs-local`, together with a `ctx.sandboxPolicy`, is the whole
+ * INSTEAD OF `@hydraharness/harness-fs-local`, together with a `ctx.sandboxPolicy`, is the whole
  * swap — the model-facing tools are untouched). Its configured default mode is
- * the capability fact exposed by {@link sandboxMode}; `@hydra1902/harness-tool-fs` resolves
+ * the capability fact exposed by {@link sandboxMode}; `@hydraharness/harness-tool-fs` resolves
  * each session's mode and cwd into a policy for every mutation, while an
  * approved escalation may stamp a strictly wider mode for one call.
  */

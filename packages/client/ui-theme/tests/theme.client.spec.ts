@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { stubSettingsScope, type StubSettingsScope } from '@hydra1902/harness-client-test-runtime'
+import { Context } from '@hydraharness/cordis'
+import { stubSettingsScope, type StubSettingsScope } from '@hydraharness/harness-client-test-runtime'
 import type {
   ThemeSettings,
   ThemeSnapshot,
   ThemeTokenOverrides,
-} from '@hydra1902/harness-client-ui-theme/client'
-import { ThemeRuntime } from '@hydra1902/harness-client-ui-theme/client'
+} from '@hydraharness/harness-client-ui-theme/client'
+import { ThemeRuntime } from '@hydraharness/harness-client-ui-theme/client'
 
 const make = (host = stubSettingsScope<ThemeSettings>()): {
   ctx: Context

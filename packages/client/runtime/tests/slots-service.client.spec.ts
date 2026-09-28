@@ -5,14 +5,14 @@
  * contract (double install / not installed / non-root key), store instance
  * resolution and lifecycle on the ledger axis, and the entry-unload cascade.
  */
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
 import type { FC } from 'react'
-import type { SlotRendererHost } from '@hydra1902/harness-client-ui-slots'
+import type { SlotRendererHost } from '@hydraharness/harness-client-ui-slots'
 import { SlotRegistry } from '../src/client/slots.ts'
 
 // Test-only slot keys (merged so the typed entries/spec faces accept them).
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface SlotMap {
     't.host': { kind: 'single'; scope: 'root' }
     't.panel': { kind: 'single'; scope: 'session' }

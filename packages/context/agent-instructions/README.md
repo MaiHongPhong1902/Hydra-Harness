@@ -1,4 +1,4 @@
-# @hydra/harness-agent-instructions
+# @hydraharness/harness-agent-instructions
 
 Per-session workspace instruction loading for `AGENTS.md`-compatible files. The plugin injects the initial user-global and project instruction chain into durable history, reconciles loaded scopes before requests, and discovers nested files after successful filesystem tool calls.
 

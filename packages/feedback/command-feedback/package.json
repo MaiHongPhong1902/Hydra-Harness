@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-command-feedback",
+  "name": "@hydraharness/harness-command-feedback",
   "description": "Log-only session feedback producer and human-facing slash command",
   "hydra": {
     "plugin": {
@@ -37,23 +37,23 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-commands": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-telemetry": "workspace:^",
-    "@hydra1902/harness-anonymous-user-id": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-commands": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-telemetry": "workspace:^",
+    "@hydraharness/harness-anonymous-user-id": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis-plugin-include": "workspace:^",
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-commands": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-session-telemetry": "workspace:^",
-    "@hydra1902/harness-anonymous-user-id": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis-plugin-include": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-commands": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-session-telemetry": "workspace:^",
+    "@hydraharness/harness-anonymous-user-id": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

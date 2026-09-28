@@ -2,9 +2,9 @@
  * Bin-only app package: its generic and packaged entries discover an external
  * `cordis.yml` and own process exit. This module exports no composition plugin;
  * the config chooses whether to load the
- * {@link @hydra1902/harness-sdk-jsonrpc-server} serving plugin.
+ * {@link @hydraharness/harness-sdk-jsonrpc-server} serving plugin.
  *
- * @module @hydra1902/harness-sdk-jsonrpc-demo
+ * @module @hydraharness/harness-sdk-jsonrpc-demo
  */
 
 export {}

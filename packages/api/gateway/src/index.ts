@@ -1,11 +1,11 @@
 /**
  * Live Typert Remote dispatch over Cordis Services and registered providers.
  * Transport, request correlation, and response envelopes belong to Connection.
- * @module @hydra1902/harness-api-gateway
+ * @module @hydraharness/harness-api-gateway
  */
 
-import { Context, Service, symbols } from '@hydra1902/cordis'
-import type { ConnectionRpcHandler } from '@hydra1902/harness-client-connection'
+import { Context, Service, symbols } from '@hydraharness/cordis'
+import type { ConnectionRpcHandler } from '@hydraharness/harness-client-connection'
 import {
   remoteMethods,
   TypertLookupFailure,
@@ -13,7 +13,7 @@ import {
   type InvocationParameterDescriptor,
   type TypertCodec,
   type TypertGatewayBinding,
-} from '@hydra1902/harness-typert-protocol'
+} from '@hydraharness/harness-typert-protocol'
 import type {
   InvokeRemoteRequest,
   TypertGateway,

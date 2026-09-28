@@ -1,4 +1,4 @@
-# @hydra/harness-client-ui-brand-official
+# @hydraharness/harness-client-ui-brand-official
 
 This package supplies the Hydra harness wordmark and fills `sidebar.brand.mark`, `sidebar.brand.name`, and `conversation.hero.brand.mark` only when `HYDRA_CLIENT_BUILD_PROFILE` is `official`. Other builds load the plugin but register no occupants, leaving the shell fallbacks visible.
 

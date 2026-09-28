@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { TerminalSessionId } from '@hydra1902/harness-terminal'
-import { boundTerminalText, renderList, renderRead, renderSend, renderSendRead, renderSpawn } from '@hydra1902/harness-tool-terminal/src/render.ts'
+import { TerminalSessionId } from '@hydraharness/harness-terminal'
+import { boundTerminalText, renderList, renderRead, renderSend, renderSendRead, renderSpawn } from '@hydraharness/harness-tool-terminal/src/render.ts'
 
 describe('tool-terminal rendering', () => {
   it('renders spawn with and without names or MOTD', () => {

@@ -1,12 +1,12 @@
 /**
  * Model-facing result rendering for the bash tool.
  *
- * @module @hydra1902/harness-tool-bash/render
+ * @module @hydraharness/harness-tool-bash/render
  */
 
-import type { ShellProcessRead, ShellRunResult, ShellSandboxInfo, CollectedOutput } from '@hydra1902/harness-shell'
-import type { SandboxMode } from '@hydra1902/harness-sandbox'
-import { escalationHintMarker, sandboxDenialMarker } from '@hydra1902/harness-sandbox'
+import type { ShellProcessRead, ShellRunResult, ShellSandboxInfo, CollectedOutput } from '@hydraharness/harness-shell'
+import type { SandboxMode } from '@hydraharness/harness-sandbox'
+import { escalationHintMarker, sandboxDenialMarker } from '@hydraharness/harness-sandbox'
 
 /** Append the truncation notice (with the full-output spill path) to a stream's text. */
 function streamText(output: CollectedOutput): string {
@@ -96,8 +96,8 @@ export function renderProcessRead(
 
 /**
  * The exit-status parse is the shared marker-contract half of the shell-tool
- * rendering story, owned by `@hydra1902/harness-shell` so `@hydra1902/harness-tool-pwsh` reuses
+ * rendering story, owned by `@hydraharness/harness-shell` so `@hydraharness/harness-tool-pwsh` reuses
  * it (its renderer emits the same markers). Re-exported here to keep
  * `../src/render.ts` a single import root for bash-tool consumers.
  */
-export { parseExitStatus, type ParsedExitStatus } from '@hydra1902/harness-shell'
+export { parseExitStatus, type ParsedExitStatus } from '@hydraharness/harness-shell'

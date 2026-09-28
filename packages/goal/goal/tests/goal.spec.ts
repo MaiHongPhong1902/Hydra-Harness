@@ -1,16 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import AgentRegistry, { agentEvents, Inbox } from '@hydra1902/harness-agent'
-import type { Agent } from '@hydra1902/harness-agent'
-import { createUserMessage, HarnessError } from '@hydra1902/harness-llm'
-import SessionStore, { Session, SessionId, type UserMessage } from '@hydra1902/harness-session'
+import { Context } from '@hydraharness/cordis'
+import AgentRegistry, { agentEvents, Inbox } from '@hydraharness/harness-agent'
+import type { Agent } from '@hydraharness/harness-agent'
+import { createUserMessage, HarnessError } from '@hydraharness/harness-llm'
+import SessionStore, { Session, SessionId, type UserMessage } from '@hydraharness/harness-session'
 import GoalService, {
   GoalError,
   GoalId,
   decodeGoalChange,
   foldGoal,
-} from '@hydra1902/harness-goal'
-import type { GoalChangeMeta, GoalRef, GoalSnapshotChangeMeta } from '@hydra1902/harness-goal'
+} from '@hydraharness/harness-goal'
+import type { GoalChangeMeta, GoalRef, GoalSnapshotChangeMeta } from '@hydraharness/harness-goal'
 
 interface StubAgent {
   agent: Agent
@@ -53,7 +53,7 @@ function stubAgentForSession(session: Session): StubAgent {
 }
 
 /** Build a registry-compatible agent around a fresh session. */
-function stubAgent(rawId: string, seed?: readonly import('@hydra1902/harness-session').SessionEvent[]): StubAgent {
+function stubAgent(rawId: string, seed?: readonly import('@hydraharness/harness-session').SessionEvent[]): StubAgent {
   return stubAgentForSession(Session.create(SessionId(rawId), seed))
 }
 

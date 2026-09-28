@@ -1,4 +1,4 @@
-# `@hydra/harness-llm-retry`
+# `@hydraharness/harness-llm-retry`
 
 Function plugin that applies exact-provider retry policy through the agent loop's `agent/request-error` waterfall. Each conversation adapter call remains one provider attempt; retries rebuild the request within the same open step.
 
@@ -6,12 +6,12 @@ Each provider adapter owns an optional nested `retryPolicy`, captured when its r
 
 Both modes use bounded exponential backoff with symmetric jitter. A valid `providerRetryAfterMs` at or below `maxDelayMs` replaces local backoff without jitter. An over-cap provider delay makes normal mode delegate, while always mode uses its configured local backoff so it cannot terminate on that instruction.
 
-Before waiting, the plugin appends a non-surface `llm/retry` event with the shared `retryId`, provider, mode, canonical resolved-policy key, failure, and scheduled delay. Its payload is available from the browser-safe `@hydra/harness-llm-retry/types` subpath, so remote renderers can consume the durable status without loading the policy runtime. The key includes every behavior-affecting field and sorts normal-mode codes because eligibility uses set membership. Retry numbers continue only across events with the same provider and complete policy key, so a route replacement with different limits, code membership, or backoff starts its own history. Normal events include the finite maximum; always events omit it, and UIs render `∞`. When the wait completes, the plugin appends `llm/retry-started` with the same `retryId`, turn, step, and retry number immediately before returning `{ kind: 'retry' }`; cancellation during backoff writes no started event. The loop rebuilds the request within the same step over durable history. Cancellation and plugin disposal abort active backoff, drain active delegated recovery before applying the abort, and make a callback captured before disposal fail closed.
+Before waiting, the plugin appends a non-surface `llm/retry` event with the shared `retryId`, provider, mode, canonical resolved-policy key, failure, and scheduled delay. Its payload is available from the browser-safe `@hydraharness/harness-llm-retry/types` subpath, so remote renderers can consume the durable status without loading the policy runtime. The key includes every behavior-affecting field and sorts normal-mode codes because eligibility uses set membership. Retry numbers continue only across events with the same provider and complete policy key, so a route replacement with different limits, code membership, or backoff starts its own history. Normal events include the finite maximum; always events omit it, and UIs render `∞`. When the wait completes, the plugin appends `llm/retry-started` with the same `retryId`, turn, step, and retry number immediately before returning `{ kind: 'retry' }`; cancellation during backoff writes no started event. The loop rebuilds the request within the same step over durable history. Cancellation and plugin disposal abort active backoff, drain active delegated recovery before applying the abort, and make a callback captured before disposal fail closed.
 
 The separately published `./invariant` companion checks that every scheduled retry names the current open turn and current open step, matches the failed request's durable provider, carries non-empty provider and policy identities, has mode-specific bounds, the correct provider-policy retry number, and a bounded timer delay. It also requires each `llm/retry-started` event to name one prior scheduled attempt with the same `retryId`, turn, step, and retry number, and rejects repeated started events. Full jitter may schedule zero milliseconds at its lower boundary.
 
 ```yaml
-- name: '@hydra1902/harness-llm-deepseek'
+- name: '@hydraharness/harness-llm-deepseek'
   config:
     apiKeyEnv: DEEPSEEK_API_KEY
     retryPolicy:
@@ -21,10 +21,10 @@ The separately published `./invariant` companion checks that every scheduled ret
         maxDelayMs: 30000
         jitterRatio: 0.2
 
-- name: '@hydra1902/harness-llm-retry'
+- name: '@hydraharness/harness-llm-retry'
 ```
 
-The executor has no policy config. Multi-provider adapters such as `@hydra/harness-llm-pi-ai` place `retryPolicy` inside each provider profile, avoiding a second provider-name list.
+The executor has no policy config. Multi-provider adapters such as `@hydraharness/harness-llm-pi-ai` place `retryPolicy` inside each provider profile, avoiding a second provider-name list.
 
 The `llm/stream` listener scopes key selection to the initiating agent's open step, provider, and model. `streamWithApiKeys()` reports only the key position and count; secrets remain inside the adapter. Failed requests advance through configured keys using zero-delay `llm/retry` and `llm/retry-started` records with a separate `api-key-fallback:<count>` policy key. Fallback does not consume the normal retry budget. After all keys have failed, normal or always recovery applies to the last key. A new step starts at the first key. Nested direct calls clear the conversation's selection scope.
 

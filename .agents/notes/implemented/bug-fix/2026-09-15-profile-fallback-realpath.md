@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-`healProfilesModuleFallback` followed a package dependency from the lexical path used to reach a junction. Dependencies installed beside the physical package were absent from the search paths, and pnpm's relative links inside that package could fail through the junction on Windows. This omitted packages such as `@hydra/harness-client-file-upload` and caused the Desktop Host to fail with `ERR_MODULE_NOT_FOUND`.
+`healProfilesModuleFallback` followed a package dependency from the lexical path used to reach a junction. Dependencies installed beside the physical package were absent from the search paths, and pnpm's relative links inside that package could fail through the junction on Windows. This omitted packages such as `@hydraharness/harness-client-file-upload` and caused the Desktop Host to fail with `ERR_MODULE_NOT_FOUND`.
 
 ## Decision
 

@@ -4,13 +4,13 @@ Status: implemented
 
 ## Problem
 
-The hooks subsystem runs external hook commands the way Claude Code and Codex do: a hook is a shell command that receives its event payload as **JSON on stdin** and reads context from a handful of **environment variables** (`CLAUDE_PROJECT_DIR`, `CLAUDE_PLUGIN_ROOT`, `PLUGIN_ROOT`, …). The harness already has a perfectly good command runner behind the `ctx.shell` capability seam ([@hydra/harness-shell](../../../../packages/shell/shell) → [@hydra/harness-bash-local](../../../../packages/shell/bash-local)), with process-group kills, output truncation/spill, and a credential scrub. Reusing it for hook execution means a hook bridge does not re-implement subprocess plumbing — but the seam had no way to write stdin or set extra env. This change adds those two inputs.
+The hooks subsystem runs external hook commands the way Claude Code and Codex do: a hook is a shell command that receives its event payload as **JSON on stdin** and reads context from a handful of **environment variables** (`CLAUDE_PROJECT_DIR`, `CLAUDE_PLUGIN_ROOT`, `PLUGIN_ROOT`, …). The harness already has a perfectly good command runner behind the `ctx.shell` capability seam ([@hydraharness/harness-shell](../../../../packages/shell/shell) → [@hydraharness/harness-bash-local](../../../../packages/shell/bash-local)), with process-group kills, output truncation/spill, and a credential scrub. Reusing it for hook execution means a hook bridge does not re-implement subprocess plumbing — but the seam had no way to write stdin or set extra env. This change adds those two inputs.
 
-`stdin` and `env` do not create a new model capability because ordinary shell syntax already supplies both. Ambient credentials are protected by `@hydra/harness-bash-local`'s child-environment scrub, not by hiding these Service Definition fields; model tool arguments are static JSON and do not expand shell variables. The fields therefore serve trusted in-process callers, such as hook bridges, that need to pass structured input and `CLAUDE_*` variables without embedding them in model-visible shell text. See [defensive-patterns.md](../../../../docs/defensive-patterns.md) for the ambient-environment rule.
+`stdin` and `env` do not create a new model capability because ordinary shell syntax already supplies both. Ambient credentials are protected by `@hydraharness/harness-bash-local`'s child-environment scrub, not by hiding these Service Definition fields; model tool arguments are static JSON and do not expand shell variables. The fields therefore serve trusted in-process callers, such as hook bridges, that need to pass structured input and `CLAUDE_*` variables without embedding them in model-visible shell text. See [defensive-patterns.md](../../../../docs/defensive-patterns.md) for the ambient-environment rule.
 
 ## Decision
 
-Add `stdin?: string` and `env?: Record<string, string>` to **both** `ShellExecRequest` (the model-/plugin-facing request) and `ShellExecSpec` (the resolved spec `run`/`start` act on), and thread them through `@hydra/harness-bash-local`: `resolve()` carries them verbatim, `run()`/`start()` pass them to `runBash`, which writes the bytes to the child's stdin and merges the extra env.
+Add `stdin?: string` and `env?: Record<string, string>` to **both** `ShellExecRequest` (the model-/plugin-facing request) and `ShellExecSpec` (the resolved spec `run`/`start` act on), and thread them through `@hydraharness/harness-bash-local`: `resolve()` carries them verbatim, `run()`/`start()` pass them to `runBash`, which writes the bytes to the child's stdin and merges the extra env.
 
 Three deliberate choices:
 
@@ -20,7 +20,7 @@ Three deliberate choices:
 
 3. **`stdin`/`env` are required-absent-OK (plain optional) on the resolved spec, NOT required-but-nullable like `owner`.** `owner` is required-but-nullable because a *silently* missing owner yields an unowned, cross-session-readable task — a security footgun that a visible `undefined` guards against. `stdin`/`env` have no such hazard: a missing one means "no stdin / no extra env", which is the safe, ordinary case (every model-driven call). So they stay plain optionals, matching `signal`.
 
-`@hydra/harness-bash-local` creates a stdin pipe only when bytes are supplied; otherwise fd 0 remains `/dev/null`, preserving prior behavior. It writes the bytes and closes the pipe. `EPIPE` from a child that exits without reading is ignored because command exit and output determine the result.
+`@hydraharness/harness-bash-local` creates a stdin pipe only when bytes are supplied; otherwise fd 0 remains `/dev/null`, preserving prior behavior. It writes the bytes and closes the pipe. `EPIPE` from a child that exits without reading is ignored because command exit and output determine the result.
 
 ## Alternatives considered
 

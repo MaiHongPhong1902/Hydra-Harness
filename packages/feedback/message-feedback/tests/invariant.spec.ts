@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 import * as MessageFeedbackInvariant from '../src/invariant.ts'
 import { setupHarness } from './helpers.ts'
 
@@ -11,7 +11,7 @@ describe('message-feedback invariant companion', () => {
       const fiber = await harness.ctx.plugin(MessageFeedbackInvariant)
 
       expect(() => {
-        harness.ctx.invariants.register('@hydra1902/harness-message-feedback', () => {})
+        harness.ctx.invariants.register('@hydraharness/harness-message-feedback', () => {})
       }).toThrow(/already registered/u)
 
       await fiber.dispose()

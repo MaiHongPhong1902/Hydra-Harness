@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { stubSettingsScope, type StubSettingsScope } from '@hydra1902/harness-client-test-runtime'
-import type { LocaleSettings, LocaleSnapshot } from '@hydra1902/harness-client-locale/client'
-import { FALLBACK_LOCALE, LocaleRuntime } from '@hydra1902/harness-client-locale/client'
+import { Context } from '@hydraharness/cordis'
+import { stubSettingsScope, type StubSettingsScope } from '@hydraharness/harness-client-test-runtime'
+import type { LocaleSettings, LocaleSnapshot } from '@hydraharness/harness-client-locale/client'
+import { FALLBACK_LOCALE, LocaleRuntime } from '@hydraharness/harness-client-locale/client'
 const make = (host?: StubSettingsScope<LocaleSettings>): {
   ctx: Context
   svc: LocaleRuntime

@@ -6,7 +6,7 @@ import {
   createUserMessage,
   freezeMessage,
   MessageId,
-} from '@hydra1902/harness-llm'
+} from '@hydraharness/harness-llm'
 
 describe('message construction', () => {
   it('assigns identity immediately and returns a detached deep-frozen message', () => {

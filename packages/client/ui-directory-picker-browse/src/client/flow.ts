@@ -5,10 +5,10 @@
  */
 import { createElement } from 'react'
 import type { ReactElement } from 'react'
-import type { DirectoryListing } from '@hydra1902/harness-client-runtime/client'
-import type { Translate } from '@hydra1902/harness-client-locale/client'
+import type { DirectoryListing } from '@hydraharness/harness-client-runtime/client'
+import type { Translate } from '@hydraharness/harness-client-locale/client'
 // Type-only: the owner contract of the directory-flow holes.
-import type { DirectoryFlowOwnerProps } from '@hydra1902/harness-client-ui-workspace/client'
+import type { DirectoryFlowOwnerProps } from '@hydraharness/harness-client-ui-workspace/client'
 import { DirectoryBrowser } from './DirectoryBrowser.tsx'
 
 /** Injected face: the browse wire calls and copy the dialog drives (bound in apply's closure). */

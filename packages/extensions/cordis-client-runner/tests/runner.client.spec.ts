@@ -11,15 +11,15 @@
  */
 /* oxlint-disable typescript/no-unsafe-assignment -- Vitest asymmetric matchers are typed as any. */
 
-import { Context } from '@hydra1902/cordis'
-import type { Loader } from '@hydra1902/cordis-plugin-loader'
+import { Context } from '@hydraharness/cordis'
+import type { Loader } from '@hydraharness/cordis-plugin-loader'
 import { describe, expect, it, vi } from 'vitest'
 import type {
   CordisDynamicPackageId, CordisDynamicPluginId, CordisDynamicPluginRunId,
-} from '@hydra1902/harness-api-remotes/client'
-import type { SessionId } from '@hydra1902/harness-client-connection/client'
-import type { ClientModuleSystem } from '@hydra1902/harness-client-modules/client'
-import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+} from '@hydraharness/harness-api-remotes/client'
+import type { SessionId } from '@hydraharness/harness-client-connection/client'
+import type { ClientModuleSystem } from '@hydraharness/harness-client-modules/client'
+import { SlotRegistry } from '@hydraharness/harness-client-runtime/client'
 import { DYNAMIC_CLIENT_REDIRECTS } from '../src/client/evaluator.ts'
 import { DynamicCordisPackageRunner } from '../src/client/runtime.ts'
 import type { DynamicCordisClientHalf, DynamicCordisRenderFailure } from '../src/client/runtime.ts'

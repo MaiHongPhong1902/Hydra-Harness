@@ -1,7 +1,7 @@
 /** Validated configuration for the local PTY backend. */
 
-import z from '@hydra1902/schemastery'
-import { resolvePwshPath } from '@hydra1902/harness-pwsh-local'
+import z from '@hydraharness/schemastery'
+import { resolvePwshPath } from '@hydraharness/harness-pwsh-local'
 
 /** One supported interactive shell dialect. */
 export type ShellDialect = 'bash' | 'pwsh'

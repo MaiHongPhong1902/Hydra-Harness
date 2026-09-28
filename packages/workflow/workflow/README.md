@@ -1,10 +1,10 @@
-# @hydra/harness-workflow
+# @hydraharness/harness-workflow
 
 The workflow seam (`ctx.workflowEngine`) executes a model-written orchestration script that can fan out subagents. The seam defines the script, run, result, error, and event contracts; an engine decides how to isolate and execute the script.
 
-`@hydra/harness-workflow-worker-thread` is the current engine and `@hydra/harness-tool-workflow` is the model-facing consumer. A future process or sandbox engine can replace the implementation without changing the tool.
+`@hydraharness/harness-workflow-worker-thread` is the current engine and `@hydraharness/harness-tool-workflow` is the model-facing consumer. A future process or sandbox engine can replace the implementation without changing the tool.
 
-The package root is the Host face. The browser-safe `@hydra/harness-workflow/types` subpath contains run identities, metadata, results, and observe-only lifecycle payloads without importing `Agent`, Cordis services, or Host context declarations; Host-only `WorkflowStartRequest` and `WorkflowRun` live behind the package root.
+The package root is the Host face. The browser-safe `@hydraharness/harness-workflow/types` subpath contains run identities, metadata, results, and observe-only lifecycle payloads without importing `Agent`, Cordis services, or Host context declarations; Host-only `WorkflowStartRequest` and `WorkflowRun` live behind the package root.
 
 ## Service and run contract
 
@@ -42,7 +42,7 @@ A child that resolves normally with a non-completed stop reason is not an infras
 
 ## Model Experience
 
-Indirectly, through `@hydra/harness-tool-workflow` and a workflow engine, which create child-agent requests and return a retained parent tool result.
+Indirectly, through `@hydraharness/harness-tool-workflow` and a workflow engine, which create child-agent requests and return a retained parent tool result.
 
 #### KV Cache effect
 

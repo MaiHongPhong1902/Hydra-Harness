@@ -1,5 +1,5 @@
 import { once } from 'node:events'
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import {
   CommandExitError,
   FileNotFoundError,
@@ -7,14 +7,14 @@ import {
   type CommandHandle,
   type CommandResult,
   type Sandbox,
-} from '@hydra1902/harness-e2b'
-import type E2BRuntime from '@hydra1902/harness-e2b'
-import type { SubprocessSpawnSpec } from '@hydra1902/harness-subprocess'
-import E2BSubprocessRuntime from '@hydra1902/harness-subprocess-e2b'
+} from '@hydraharness/harness-e2b'
+import type E2BRuntime from '@hydraharness/harness-e2b'
+import type { SubprocessSpawnSpec } from '@hydraharness/harness-subprocess'
+import E2BSubprocessRuntime from '@hydraharness/harness-subprocess-e2b'
 import * as E2BSubprocessInvariant from '../src/invariant.ts'
 import { E2BBase64Decoder, E2B_OUTPUT_COMPLETE_FRAME, E2BOutputReader } from '../src/output.ts'
 import { E2BSubprocessHandle } from '../src/process.ts'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 import { describe, expect, it, vi } from 'vitest'
 
 function commandError(exitCode: number): CommandExitError {

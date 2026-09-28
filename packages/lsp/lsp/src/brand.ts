@@ -1,11 +1,11 @@
 /**
- * @hydra1902/harness-lsp's owned branded id: {@link LspProviderId}, the opaque identity a provider reserves on
- * `ctx.lsp`. The `Branded<B>` primitive lives in `@hydra1902/harness-brand`; keeping the type and its
+ * @hydraharness/harness-lsp's owned branded id: {@link LspProviderId}, the opaque identity a provider reserves on
+ * `ctx.lsp`. The `Branded<B>` primitive lives in `@hydraharness/harness-brand`; keeping the type and its
  * factory together here lets `index.ts` re-export both under one name.
- * @module @hydra1902/harness-lsp/brand
+ * @module @hydraharness/harness-lsp/brand
  */
 
-import type { Branded } from '@hydra1902/harness-brand'
+import type { Branded } from '@hydraharness/harness-brand'
 
 /** Opaque provider identity, reserved atomically with its extension mappings at registration. */
 export type LspProviderId = Branded<'LspProviderId'>

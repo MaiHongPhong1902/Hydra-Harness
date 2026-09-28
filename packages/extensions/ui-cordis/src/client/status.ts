@@ -1,6 +1,6 @@
 /** Shared status derivation over Host inventory and this page's Client live set. */
 
-import type { DynamicCordisLivePackage } from '@hydra1902/harness-cordis-client-runner/client'
+import type { DynamicCordisLivePackage } from '@hydraharness/harness-cordis-client-runner/client'
 import type {
   CordisDynamicPackageId, DynamicCordisInventoryRow,
 } from './events.ts'

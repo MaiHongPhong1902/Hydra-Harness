@@ -1,21 +1,21 @@
 /**
  * User-declared MCP servers: one settings-backed registry that mounts every
- * enabled record as an `@hydra1902/harness-mcp-client` fiber and unmounts it when the
+ * enabled record as an `@hydraharness/harness-mcp-client` fiber and unmounts it when the
  * record is disabled, redefined, or removed. The stored document
  * (`mcp-servers.servers` in the harness settings file) is the only source of
  * truth, so a server added from a configuration surface survives a restart and
  * a server added by hand-editing the document mounts without one.
- * @module @hydra1902/harness-mcp-registry
+ * @module @hydraharness/harness-mcp-registry
  */
 
-import { Service, type Context, type Fiber } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { settingsNamespace, type SettingsScope } from '@hydra1902/harness-settings'
+import { Service, type Context, type Fiber } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { settingsNamespace, type SettingsScope } from '@hydraharness/harness-settings'
 import {
   apply as applyMcpClient, inject as mcpClientInject, type Config as McpClientConfig,
-} from '@hydra1902/harness-mcp-client'
+} from '@hydraharness/harness-mcp-client'
 // Side-effect type import: declaration-merges `ctx.tools` onto Context.
-import type {} from '@hydra1902/harness-tools'
+import type {} from '@hydraharness/harness-tools'
 import type {
   McpServerDefinitionRequest, McpServerEnablementRequest, McpServerSnapshot,
   McpServerStatus, McpServerTransport, McpServerView,
@@ -23,7 +23,7 @@ import type {
 
 export type * from './types.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** User-declared MCP server records and their live mounts. */
     mcpServers: McpServerRegistry

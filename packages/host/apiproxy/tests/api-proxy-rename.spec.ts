@@ -8,17 +8,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import SessionStore from '@hydra1902/harness-session'
-import AgentRegistry from '@hydra1902/harness-agent'
-import type { Agent, AgentHandle, CreateAgentOptions } from '@hydra1902/harness-agent'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import SessionTitleService from '@hydra1902/harness-session-title'
-import UserQuestionService from '@hydra1902/harness-user-questions'
-import type { Session, SessionId } from '@hydra1902/harness-session'
-import type { RpcRequest } from '@hydra1902/harness-host-apiproxy/api/rpc'
-import { RpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
-import { createApiProxy } from '@hydra1902/harness-host-apiproxy'
+import { Context } from '@hydraharness/cordis'
+import SessionStore from '@hydraharness/harness-session'
+import AgentRegistry from '@hydraharness/harness-agent'
+import type { Agent, AgentHandle, CreateAgentOptions } from '@hydraharness/harness-agent'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import SessionTitleService from '@hydraharness/harness-session-title'
+import UserQuestionService from '@hydraharness/harness-user-questions'
+import type { Session, SessionId } from '@hydraharness/harness-session'
+import type { RpcRequest } from '@hydraharness/harness-host-apiproxy/api/rpc'
+import { RpcId } from '@hydraharness/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydraharness/harness-host-apiproxy'
 
 const sid = (id: string): SessionId => id as SessionId
 

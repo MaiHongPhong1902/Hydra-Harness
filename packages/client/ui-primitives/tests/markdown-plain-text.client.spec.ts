@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extractMarkdownPlainText } from '@hydra1902/harness-client-ui-primitives'
+import { extractMarkdownPlainText } from '@hydraharness/harness-client-ui-primitives'
 
 const MARKDOWN = [
   '# Release notes',

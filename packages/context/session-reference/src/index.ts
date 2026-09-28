@@ -2,17 +2,17 @@
  * Cross-session snapshot preparation. Hosts adapt mentions into structured
  * references; this service owns exact reads, projection, budgets, and durable context.
  *
- * @module @hydra1902/harness-session-reference
+ * @module @hydraharness/harness-session-reference
  */
 
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import type { Agent, PreStepDecision } from '@hydra1902/harness-agent'
-import { Remote, TypertRemoteService } from '@hydra1902/harness-typert-protocol'
-import { createUserMessage, freezeMessage } from '@hydra1902/harness-llm'
-import type { ContentBlock, UserMessage } from '@hydra1902/harness-llm'
-import type { SessionId } from '@hydra1902/harness-session'
-import type { SessionSurfaceSnapshot, SessionTitleObservationResult } from '@hydra1902/harness-session-query'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import type { Agent, PreStepDecision } from '@hydraharness/harness-agent'
+import { Remote, TypertRemoteService } from '@hydraharness/harness-typert-protocol'
+import { createUserMessage, freezeMessage } from '@hydraharness/harness-llm'
+import type { ContentBlock, UserMessage } from '@hydraharness/harness-llm'
+import type { SessionId } from '@hydraharness/harness-session'
+import type { SessionSurfaceSnapshot, SessionTitleObservationResult } from '@hydraharness/harness-session-query'
 import {
   DEFAULT_CANDIDATE_LIMIT,
   DEFAULT_MAX_REFERENCE_BYTES,
@@ -55,7 +55,7 @@ user explicitly repeats them.
 `
 const PROMPT_SUFFIX = '\n</referenced-sessions>'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     sessionReferenceResolver: SessionReferenceResolver
   }

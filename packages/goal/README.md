@@ -1,6 +1,6 @@
 # goal/ — persisted same-session goals
 
-Durable objective state for an agent session, owned independently of the model-facing tools and continuation policy that consume it. Goal state is part of the owning session log; consumers depend on `@hydra/harness-goal`, never on the concrete agent loop.
+Durable objective state for an agent session, owned independently of the model-facing tools and continuation policy that consume it. Goal state is part of the owning session log; consumers depend on `@hydraharness/harness-goal`, never on the concrete agent loop.
 
 | Package | Role | ctx key |
 |---|---|---|

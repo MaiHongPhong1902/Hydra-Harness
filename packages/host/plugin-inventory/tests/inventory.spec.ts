@@ -3,13 +3,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context, type Fiber, type Plugin } from '@hydra1902/cordis'
-import Loader, { EntryTree, type EntryOptions } from '@hydra1902/cordis-plugin-loader'
-import Include from '@hydra1902/cordis-plugin-include'
-import { resolveProfileDir } from '@hydra1902/harness-app-boot'
-import { settingsNamespace } from '@hydra1902/harness-settings'
-import FileSettingsProvider from '@hydra1902/harness-settings-file'
-import { remoteMethods } from '@hydra1902/harness-typert-protocol'
+import { Context, type Fiber, type Plugin } from '@hydraharness/cordis'
+import Loader, { EntryTree, type EntryOptions } from '@hydraharness/cordis-plugin-loader'
+import Include from '@hydraharness/cordis-plugin-include'
+import { resolveProfileDir } from '@hydraharness/harness-app-boot'
+import { settingsNamespace } from '@hydraharness/harness-settings'
+import FileSettingsProvider from '@hydraharness/harness-settings-file'
+import { remoteMethods } from '@hydraharness/harness-typert-protocol'
 import PluginInventoryGateway from '../src/index.ts'
 import type { PluginEntryId } from '../src/types.ts'
 
@@ -262,9 +262,9 @@ describe('PluginInventoryGateway', () => {
     // oxlint-disable-next-line typescript/unbound-method -- The spy calls this implementation with the original EntryTree receiver.
     const original = EntryTree.prototype.import
     vi.spyOn(EntryTree.prototype, 'import').mockImplementation(function (this: EntryTree, name, stack) {
-      return name === '@hydra1902/cordis-plugin-hmr' ? activePlugin : original.call(this, name, stack) as unknown
+      return name === '@hydraharness/cordis-plugin-hmr' ? activePlugin : original.call(this, name, stack) as unknown
     })
-    const h = await profile([{ id: 'hmr', name: '@hydra1902/cordis-plugin-hmr', config: watchOnly ? { root: [] } : {} }])
+    const h = await profile([{ id: 'hmr', name: '@hydraharness/cordis-plugin-hmr', config: watchOnly ? { root: [] } : {} }])
     await h.gatewayFiber.dispose()
     await h.ctx.plugin(PluginInventoryGateway).await()
     const inventory = h.ctx.get('pluginInventory') as PluginInventoryGateway
@@ -499,7 +499,7 @@ describe('PluginInventoryGateway', () => {
       listPluginEntries: vi.fn(async () => [{
         entryId: 'agent-preset:standard:tool-subagent',
         presetId: 'standard',
-        moduleName: '@hydra1902/harness-tool-subagent',
+        moduleName: '@hydraharness/harness-tool-subagent',
         enabled,
       }]),
       setPluginEnabled: vi.fn(async (_entryId: string, next: boolean) => { enabled = next }),
@@ -509,7 +509,7 @@ describe('PluginInventoryGateway', () => {
     const entry = (await inventory.list()).entries.find(candidate => candidate.presetId === 'standard')!
     expect(entry).toMatchObject({
       entryId: 'agent-preset:standard:tool-subagent',
-      moduleName: '@hydra1902/harness-tool-subagent',
+      moduleName: '@hydraharness/harness-tool-subagent',
       enabled: true,
       newSessionsOnly: true,
       restartRequired: false,

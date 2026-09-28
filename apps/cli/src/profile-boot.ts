@@ -8,15 +8,15 @@
  * App flags are not the launcher's business: the invocation's inner arguments
  * are provided to the tree through `ctx.cmdlineArgs`, where any injected app
  * plugin may read the same immutable snapshot.
- * @module @hydra1902/harness/profile-boot
+ * @module @hydraharness/harness/profile-boot
  */
 
 import { writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { FiberState, type Context } from '@hydra1902/cordis'
-import type { PatchOptions } from '@hydra1902/cordis-plugin-include'
-import type { EntryOptions } from '@hydra1902/cordis-plugin-loader'
+import { FiberState, type Context } from '@hydraharness/cordis'
+import type { PatchOptions } from '@hydraharness/cordis-plugin-include'
+import type { EntryOptions } from '@hydraharness/cordis-plugin-loader'
 import {
   boot,
   composeEntries,
@@ -28,14 +28,14 @@ import {
   PROFILE_PATCH_FILENAME,
   watchUserPatches,
   type Profile,
-} from '@hydra1902/harness-app-boot'
-import { resolveHydraHome } from '@hydra1902/harness-home-paths'
+} from '@hydraharness/harness-app-boot'
+import { resolveHydraHome } from '@hydraharness/harness-home-paths'
 
 /** Shipped agent-preset root: beside this app's own config, in both source and built layouts. */
 const SHIPPED_PRESET_ROOT = fileURLToPath(new URL('../config/agent-presets/', import.meta.url))
 
-import { HYDRA_LAUNCH_ENVIRONMENT_KEY, type LaunchEnvironmentSnapshot } from '@hydra1902/harness-launch-environment'
-import { provideCmdline } from '@hydra1902/harness-cmdline'
+import { HYDRA_LAUNCH_ENVIRONMENT_KEY, type LaunchEnvironmentSnapshot } from '@hydraharness/harness-launch-environment'
+import { provideCmdline } from '@hydraharness/harness-cmdline'
 import { createProcessShutdown, type ProcessShutdown } from './process-shutdown.ts'
 
 const NAME = 'hydra'
@@ -56,7 +56,7 @@ export const INSTALL_ANCHOR = fileURLToPath(new URL('../package.json', import.me
 /** The session-telemetry row id the HYDRA_TELEMETRY_DISABLED switch targets. */
 const TELEMETRY_ROW_ID = 'session-telemetry-otel'
 /** Module reused for config-only HMR instead of creating a duplicate row. */
-const HMR_MODULE = '@hydra1902/cordis-plugin-hmr'
+const HMR_MODULE = '@hydraharness/cordis-plugin-hmr'
 
 /** The empty root entry list every profile tree patches over. */
 const PROFILE_ROOT_CONFIG = `# hydra profile root — an empty entry list. The tree is composed as patches:
@@ -177,7 +177,7 @@ function composeProfile(
   }
   // The SHIPPED root is the part of the roster only this app can resolve: it
   // sits beside this app's own config, in both the source and built layouts.
-  // The writable root the roster appends is `@hydra1902/harness-agent-presets`' own, so a
+  // The writable root the roster appends is `@hydraharness/harness-agent-presets`' own, so a
   // launcher that never reaches this patch still finds a person's presets.
   if (rows.has('agent-presets')) {
     composedOverlays.push({
@@ -300,9 +300,9 @@ export async function runProfile(options: RunProfileOptions): Promise<{ ctx: Con
       // HMR row still needs one fallback, as may its bare composition's timer.
       if (ctx.get('hmr') === undefined) {
         if (ctx.get('timer') === undefined) {
-          await ctx.loader.create({ name: '@hydra1902/cordis-plugin-timer' })
+          await ctx.loader.create({ name: '@hydraharness/cordis-plugin-timer' })
         }
-        await ctx.loader.create({ name: '@hydra1902/cordis-plugin-hmr', config: { root: [] } })
+        await ctx.loader.create({ name: '@hydraharness/cordis-plugin-hmr', config: { root: [] } })
       }
       await watchUserPatches(ctx, {
         binName: NAME,

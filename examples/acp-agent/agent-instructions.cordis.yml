@@ -2,12 +2,12 @@
 # discovery inside the scenario's temporary cwd. The app config patch replaces
 # the whole base config, so the base fields are restated verbatim.
 - id: base
-  name: '@hydra1902/cordis-plugin-include'
+  name: '@hydraharness/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: acp-agent
-        name: '@hydra1902/harness-acp-demo'
+        name: '@hydraharness/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-pro

@@ -1,17 +1,17 @@
-import { createUserMessage } from '@hydra1902/harness-llm'
+import { createUserMessage } from '@hydraharness/harness-llm'
 /**
  * Keyless real-Loader-path smoke for the combined SQLite session-query service.
  *
- * @module @hydra1902/harness-session-query-sqlite/tests/load-path
+ * @module @hydraharness/harness-session-query-sqlite/tests/load-path
  */
 
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import { SESSION_FORMAT_VERSION, SessionId } from '@hydra1902/harness-session'
-import SessionStore from '@hydra1902/harness-session'
-import SqliteSessionPersistence from '@hydra1902/harness-session-persistence-sqlite'
-import SqliteSessionQueryEngine, * as queryModule from '@hydra1902/harness-session-query-sqlite'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import { SESSION_FORMAT_VERSION, SessionId } from '@hydraharness/harness-session'
+import SessionStore from '@hydraharness/harness-session'
+import SqliteSessionPersistence from '@hydraharness/harness-session-persistence-sqlite'
+import SqliteSessionQueryEngine, * as queryModule from '@hydraharness/harness-session-query-sqlite'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'

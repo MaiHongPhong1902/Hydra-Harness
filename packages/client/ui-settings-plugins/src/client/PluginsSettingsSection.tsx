@@ -3,8 +3,8 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type {
   HostObservable, InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime,
-} from '@hydra1902/harness-client-ui-slots'
-import { Input } from '@hydra1902/harness-client-ui-primitives'
+} from '@hydraharness/harness-client-ui-slots'
+import { Input } from '@hydraharness/harness-client-ui-primitives'
 import type { PluginsSettingsLocaleKey } from './locales.ts'
 import css from './PluginsSettingsSection.module.css'
 
@@ -127,7 +127,7 @@ export function PluginsSettingsSection({ t, renderSlot, useTabs }: PluginsSettin
   )
 }
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Plugins section, configurable-tab, and card copy. */
     'settings.plugins': PluginsSettingsLocaleKey

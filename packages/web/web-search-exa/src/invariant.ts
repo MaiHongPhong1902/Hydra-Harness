@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-web-search-exa`.
- * @module @hydra1902/harness-web-search-exa/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-web-search-exa`.
+ * @module @hydraharness/harness-web-search-exa/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-web-search-exa'
+const PACKAGE_NAME = '@hydraharness/harness-web-search-exa'
 
 /** Cordis companion plugin name. */
 export const name = 'web-search-exa-invariant'

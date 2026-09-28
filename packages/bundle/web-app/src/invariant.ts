@@ -1,12 +1,12 @@
 /**
- * Package-owned invariant companion for `@hydra1902/harness-web-app`.
- * @module @hydra1902/harness-web-app/invariant
+ * Package-owned invariant companion for `@hydraharness/harness-web-app`.
+ * @module @hydraharness/harness-web-app/invariant
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { InvariantInstaller } from '@hydraharness/harness-invariants'
 
-const PACKAGE_NAME = '@hydra1902/harness-web-app'
+const PACKAGE_NAME = '@hydraharness/harness-web-app'
 
 /** Cordis companion plugin name. */
 export const name = 'web-app-invariant'

@@ -1,11 +1,11 @@
 /**
  * Shared process lifecycle for the generic and closed-runtime JSON-RPC bins.
  *
- * @module @hydra1902/harness-sdk-jsonrpc-demo/runner
+ * @module @hydraharness/harness-sdk-jsonrpc-demo/runner
  */
 
 import { existsSync } from 'node:fs'
-import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@hydra1902/harness-app-boot'
+import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@hydraharness/harness-app-boot'
 
 /* v8 ignore start -- composition over tested app-boot/jsonrpc and executable acceptance paths */
 const NAME = 'hydra-jsonrpc-agent'

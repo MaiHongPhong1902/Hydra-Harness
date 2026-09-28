@@ -5,7 +5,7 @@
  * The hydra entry package carries its internal runtime closure, so this check
  * installs only that tarball. The other packed directories are still read to
  * validate their identities, but no internal package is supplied as a consumer
- * dependency. That is the bare npm install @hydra1902/harness path.
+ * dependency. That is the bare npm install @hydraharness/harness path.
  *
  * What this proves is that `files` selected a complete payload and that the
  * published dependency ranges resolve. A workspace link or a stale `lib/` in the

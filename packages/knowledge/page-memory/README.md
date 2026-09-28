@@ -1,4 +1,4 @@
-# @hydra/harness-page-memory
+# @hydraharness/harness-page-memory
 
 Stores verified task workflows for exact Browser pages in a private SQLite database. The plugin feeds bounded current guidance into the agent's logged message stream and never treats saved memory as authorization or current data.
 
@@ -8,7 +8,7 @@ Mount the plugin in a Hydra profile or patch with an explicit workspace and runt
 
 ```yaml
 - id: page-memory
-  name: '@hydra1902/harness-page-memory'
+  name: '@hydraharness/harness-page-memory'
   config:
     workspaceDir: 'C:/work/acme'
     role: operator

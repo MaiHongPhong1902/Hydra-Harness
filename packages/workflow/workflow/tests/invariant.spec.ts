@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { SessionId } from '@hydra1902/harness-session'
-import { WorkflowRunId } from '@hydra1902/harness-workflow'
+import { Context } from '@hydraharness/cordis'
+import { SessionId } from '@hydraharness/harness-session'
+import { WorkflowRunId } from '@hydraharness/harness-workflow'
 import type {
   WorkflowAgentEndInfo,
   WorkflowAgentInfo,
   WorkflowResultInfo,
   WorkflowRunInfo,
-} from '@hydra1902/harness-workflow'
-import * as WorkflowInvariant from '@hydra1902/harness-workflow/invariant'
-import InvariantRegistry from '@hydra1902/harness-invariants'
+} from '@hydraharness/harness-workflow'
+import * as WorkflowInvariant from '@hydraharness/harness-workflow/invariant'
+import InvariantRegistry from '@hydraharness/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

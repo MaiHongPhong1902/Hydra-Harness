@@ -4,13 +4,13 @@
  * else references RequestPayload<'session.*'> / ResponseValue<'session.*'>.
  */
 
-import type { MessageId } from '@hydra1902/harness-llm/brand'
-import type { AttachmentIdType, ImageAttachmentLimits, ImageAttachmentRef, ImageMediaType } from '@hydra1902/harness-attachment'
-import type { ContentBlock } from '@hydra1902/harness-llm/types'
-import type { SessionEvent, SessionId } from '@hydra1902/harness-session/types'
+import type { MessageId } from '@hydraharness/harness-llm/brand'
+import type { AttachmentIdType, ImageAttachmentLimits, ImageAttachmentRef, ImageMediaType } from '@hydraharness/harness-attachment'
+import type { ContentBlock } from '@hydraharness/harness-llm/types'
+import type { SessionEvent, SessionId } from '@hydraharness/harness-session/types'
 // The pure-type outlet: api/ is browser-importable, and the package root's
-// cordis Context merge (via @hydra1902/harness-agent) must not enter client aggregates.
-import type { SessionProjectionMap } from '@hydra1902/harness-session-projection/types'
+// cordis Context merge (via @hydraharness/harness-agent) must not enter client aggregates.
+import type { SessionProjectionMap } from '@hydraharness/harness-session-projection/types'
 import type { RpcId, RpcRequest, RpcResponse } from './rpc.ts'
 import type { ToolEventView } from './events.ts'
 import type { WorkspaceId } from './workspace.ts'
@@ -54,14 +54,14 @@ export interface PromptRevisionRequest {
   } | undefined
 }
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /** Log-only prompt revision identity; never enters model history. */
     'session/revision': ConversationRevision
   }
 }
 
-declare module '@hydra1902/harness-session-projection/types' {
+declare module '@hydraharness/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     sessionListMetadata: SessionListMetadata
     imageLimits: null
@@ -95,7 +95,7 @@ export interface SessionListMetadata {
   revision?: ConversationRevision | undefined
 }
 
-declare module '@hydra1902/harness-llm' {
+declare module '@hydraharness/harness-llm' {
   interface MessageSourceMap {
     /**
      * The prompt's rpcId is passed through MessageSource into the `user/message` event

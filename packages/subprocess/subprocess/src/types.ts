@@ -69,7 +69,7 @@ export interface SubprocessStdio {
 /**
  * A fully-specified spawn request. This seam applies no defaults: every
  * disposition, limit, and directory is explicit, so the caller's own config —
- * not a hidden subprocess-service default — decides them (the `@hydra1902/harness-shell`
+ * not a hidden subprocess-service default — decides them (the `@hydraharness/harness-shell`
  * request/spec split is the owning template).
  */
 export interface SubprocessSpawnSpec {
@@ -195,7 +195,7 @@ export interface SubprocessHandle {
 
 /**
  * Signals supported by the terminal-process primitive. Kept member-identical
- * to `TerminalSignal` in `@hydra1902/harness-terminal` without a cross-seam dependency;
+ * to `TerminalSignal` in `@hydraharness/harness-terminal` without a cross-seam dependency;
  * change both together.
  */
 export type SubprocessTerminalSignal = 'SIGINT' | 'SIGTERM' | 'SIGKILL' | 'SIGTSTP' | 'SIGHUP'

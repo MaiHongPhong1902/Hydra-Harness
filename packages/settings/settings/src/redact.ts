@@ -4,10 +4,10 @@
  * each schema-declared secret position and whether it currently holds a value,
  * so a configuration surface can render a write-only input without ever
  * receiving the secret itself.
- * @module @hydra1902/harness-settings/redact
+ * @module @hydraharness/harness-settings/redact
  */
 
-import type z from '@hydra1902/schemastery'
+import type z from '@hydraharness/schemastery'
 
 /**
  * Minimal structural view of a live schemastery node. Only the relations the

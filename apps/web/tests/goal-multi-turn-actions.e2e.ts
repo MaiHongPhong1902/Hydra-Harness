@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterEach, describe, expect, it, onTestFailed } from 'vitest'
-import { parseSessionLog } from '@hydra1902/harness-llm-replay'
-import type { SessionEvent, SessionId } from '@hydra1902/harness-session'
-import type {} from '@hydra1902/harness-goal'
+import { parseSessionLog } from '@hydraharness/harness-llm-replay'
+import type { SessionEvent, SessionId } from '@hydraharness/harness-session'
+import type {} from '@hydraharness/harness-goal'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, recordFixture, watchConsole, webSnapshotMode, type WebScaffold,
@@ -27,20 +27,20 @@ const COMMAND = `/goal ${PROMPT}`
 
 const PACKAGE_FILES: Readonly<Record<string, string>> = {
   'packages/client/ui-conversation/README.md': '# UI conversation\n',
-  'packages/client/ui-conversation/package.json': '{"name":"@hydra1902/harness-client-ui-conversation"}\n',
+  'packages/client/ui-conversation/package.json': '{"name":"@hydraharness/harness-client-ui-conversation"}\n',
   'packages/client/ui-conversation/src/client.ts': 'export {}\n',
   'packages/client/ui-conversation/tests/chat-view.client.spec.tsx': 'export {}\n',
   'packages/context/session-reference/README.md': '# Session reference\n',
-  'packages/context/session-reference/package.json': '{"name":"@hydra1902/harness-session-reference"}\n',
+  'packages/context/session-reference/package.json': '{"name":"@hydraharness/harness-session-reference"}\n',
   'packages/context/session-reference/src/index.ts': 'export {}\n',
   'packages/context/session-reference/src/uri.ts': 'export {}\n',
   'packages/context/session-reference/tests/session-reference.spec.ts': 'export {}\n',
   'packages/llm/token-meter/README.md': '# Token meter\n',
-  'packages/llm/token-meter/package.json': '{"name":"@hydra1902/harness-token-meter"}\n',
+  'packages/llm/token-meter/package.json': '{"name":"@hydraharness/harness-token-meter"}\n',
   'packages/llm/token-meter/src/index.ts': 'export {}\n',
   'packages/llm/token-meter/tests/token-meter.spec.ts': 'export {}\n',
   'packages/skill/skill-filesystem/README.md': '# Local skill provider\n',
-  'packages/skill/skill-filesystem/package.json': '{"name":"@hydra1902/harness-skill-filesystem"}\n',
+  'packages/skill/skill-filesystem/package.json': '{"name":"@hydraharness/harness-skill-filesystem"}\n',
   'packages/skill/skill-filesystem/src/index.ts': 'export {}\n',
   'packages/skill/skill-filesystem/src/invariant.ts': 'export {}\n',
   'packages/skill/skill-filesystem/tests/skill-filesystem.spec.ts': 'export {}\n',

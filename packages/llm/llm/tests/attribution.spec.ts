@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
-import { APP_IDENTITY, attributionHeaders, userAgent } from '@hydra1902/harness-llm'
-import type { AppIdentity } from '@hydra1902/harness-llm'
+import { APP_IDENTITY, attributionHeaders, userAgent } from '@hydraharness/harness-llm'
+import type { AppIdentity } from '@hydraharness/harness-llm'
 
 const manifest = createRequire(import.meta.url)('../package.json') as { version: string }
 

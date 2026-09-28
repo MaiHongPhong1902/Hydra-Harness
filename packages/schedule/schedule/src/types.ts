@@ -1,10 +1,10 @@
 /**
  * Durable and model-facing Schedule value types.
- * @module @hydra1902/harness-schedule
+ * @module @hydraharness/harness-schedule
  */
 
-import type { Branded } from '@hydra1902/harness-brand'
-import type {} from '@hydra1902/harness-session/types'
+import type { Branded } from '@hydraharness/harness-brand'
+import type {} from '@hydraharness/harness-session/types'
 
 /** Stable reminder identity that is unique and never reused within one session. */
 export type ScheduleId = Branded<'ScheduleId'>
@@ -210,7 +210,7 @@ export type ScheduleDeleteResult =
 /** Canonical `schedule_delete` value. */
 export type ScheduleDeleteValue = ScheduleDeleteResult | ScheduleToolError
 
-declare module '@hydra1902/harness-session/types' {
+declare module '@hydraharness/harness-session/types' {
   interface SessionEventMap {
     /**
      * Versioned Schedule mutation. The owning package validates the complete

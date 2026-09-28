@@ -13,14 +13,14 @@
  * touches the disk once, and a file deleted mid-run keeps the process's id
  * until the next launch.
  *
- * @module @hydra1902/harness-anonymous-user-id
+ * @module @hydraharness/harness-anonymous-user-id
  */
 
 import { randomUUID } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import type { Branded } from '@hydra1902/harness-brand'
-import { resolveHydraHome } from '@hydra1902/harness-home-paths'
+import type { Branded } from '@hydraharness/harness-brand'
+import { resolveHydraHome } from '@hydraharness/harness-home-paths'
 
 /** A harness-home-scoped anonymous user id (random UUID v4). */
 export type AnonymousUserId = Branded<'AnonymousUserId'>

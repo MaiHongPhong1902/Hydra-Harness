@@ -4,18 +4,18 @@
  * through the seam, and every write re-reads the document under a
  * cross-process writer lock before patching it as a comment-preserving
  * leaf-level diff.
- * @module @hydra1902/harness-settings-file
+ * @module @hydraharness/harness-settings-file
  */
 
-import { Context, Service } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
+import { Context, Service } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
 import { watch as chokidarWatch } from 'chokidar'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, resolve } from 'node:path'
 import { Document, parseDocument } from 'yaml'
-import { withFileLock, writeFileAtomic } from '@hydra1902/harness-atomic-write'
-import { canonicalizeWatchPath, resolveHydraHome } from '@hydra1902/harness-home-paths'
-import { SettingsProvider, deepEqualJson, type SettingsNamespace } from '@hydra1902/harness-settings'
+import { withFileLock, writeFileAtomic } from '@hydraharness/harness-atomic-write'
+import { canonicalizeWatchPath, resolveHydraHome } from '@hydraharness/harness-home-paths'
+import { SettingsProvider, deepEqualJson, type SettingsNamespace } from '@hydraharness/harness-settings'
 
 /** Plugin config: file location and hot-reload behavior. */
 export interface Config {

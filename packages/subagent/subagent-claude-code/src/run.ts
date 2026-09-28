@@ -3,7 +3,7 @@
  * real CLI process under the shared subprocess owner, map only strict SDK
  * success to completion, and dispose to whole-tree quiescence.
  *
- * @module @hydra1902/harness-subagent-claude-code/run
+ * @module @hydraharness/harness-subagent-claude-code/run
  */
 
 import { randomUUID } from 'node:crypto'
@@ -15,8 +15,8 @@ import {
   type SDKResultMessage,
   type SpawnOptions,
 } from '@anthropic-ai/claude-agent-sdk'
-import type { ContentBlock } from '@hydra1902/harness-llm'
-import { SessionId } from '@hydra1902/harness-session'
+import type { ContentBlock } from '@hydraharness/harness-llm'
+import { SessionId } from '@hydraharness/harness-session'
 import {
   settleRunResult,
   subprocessRunHandle,
@@ -24,13 +24,13 @@ import {
   type SubagentRun,
   type SubagentStartRequest,
   type SubagentStopReason,
-} from '@hydra1902/harness-subagent'
+} from '@hydraharness/harness-subagent'
 import {
   scrubbedParentEnv,
   type SubprocessHandle,
   type SubprocessOutcome,
   type SubprocessSpawnSpec,
-} from '@hydra1902/harness-subprocess'
+} from '@hydraharness/harness-subprocess'
 import {
   claudeSpawnSpec,
   ManagedClaudeCodeProcess,

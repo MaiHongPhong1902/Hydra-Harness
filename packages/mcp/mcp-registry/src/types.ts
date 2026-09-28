@@ -1,6 +1,6 @@
 /** Public types for the user-declared MCP server registry. */
 
-import type {} from '@hydra1902/cordis'
+import type {} from '@hydraharness/cordis'
 
 /** Transport a stored record selects; the record carries both transports' fields. */
 export type McpServerTransport = 'stdio' | 'streamable-http'
@@ -78,7 +78,7 @@ export interface McpServerEnablementRequest {
   readonly enabled: boolean
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Events {
     /**
      * The mounted server set now matches the stored records. Emitted after each

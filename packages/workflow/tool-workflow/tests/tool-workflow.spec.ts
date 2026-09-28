@@ -1,20 +1,20 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import Loader from '@hydra1902/cordis-plugin-loader'
-import SystemPrompt from '@hydra1902/harness-system-prompt'
-import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH } from '@hydra1902/harness-tools'
-import type { ToolExecutionResult, ToolExecutionToken } from '@hydra1902/harness-tools'
-import type { Agent } from '@hydra1902/harness-agent'
-import { WorkflowRunId, WorkflowEngine } from '@hydra1902/harness-workflow'
+import { Context } from '@hydraharness/cordis'
+import Loader from '@hydraharness/cordis-plugin-loader'
+import SystemPrompt from '@hydraharness/harness-system-prompt'
+import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH } from '@hydraharness/harness-tools'
+import type { ToolExecutionResult, ToolExecutionToken } from '@hydraharness/harness-tools'
+import type { Agent } from '@hydraharness/harness-agent'
+import { WorkflowRunId, WorkflowEngine } from '@hydraharness/harness-workflow'
 import type {
   WorkflowAgentEndInfo, WorkflowAgentInfo, WorkflowResult, WorkflowRun,
   WorkflowRunId as WorkflowRunIdType, WorkflowStartRequest,
-} from '@hydra1902/harness-workflow'
-import { CallId } from '@hydra1902/harness-llm'
-import SubagentRuntime from '@hydra1902/harness-subagent'
-import WorkerThreadWorkflowEngine from '@hydra1902/harness-workflow-worker-thread'
+} from '@hydraharness/harness-workflow'
+import { CallId } from '@hydraharness/harness-llm'
+import SubagentRuntime from '@hydraharness/harness-subagent'
+import WorkerThreadWorkflowEngine from '@hydraharness/harness-workflow-worker-thread'
 import * as toolWorkflow from '../src/index.ts'
-import { Session, SessionId } from '@hydra1902/harness-session'
+import { Session, SessionId } from '@hydraharness/harness-session'
 
 const testToolSignal = new AbortController().signal
 

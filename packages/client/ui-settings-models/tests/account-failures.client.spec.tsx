@@ -2,7 +2,7 @@
 /** Authorization failures and responses arriving after their editor closes. */
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import type { AuthorizationAttemptView, IApiClient, RpcResponse } from '@hydra1902/harness-api-remotes/client'
+import type { AuthorizationAttemptView, IApiClient, RpcResponse } from '@hydraharness/harness-api-remotes/client'
 import { ProviderAccounts } from '../src/client/ProviderAccounts.tsx'
 import { en } from '../src/client/locales.ts'
 

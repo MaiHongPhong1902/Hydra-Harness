@@ -1,8 +1,8 @@
-import { Context } from '@hydra1902/cordis'
+import { Context } from '@hydraharness/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import type { SettingsNamespaceView } from '@hydra1902/harness-api-remotes/client'
-import { SettingsSchemaService } from '@hydra1902/harness-client-ui-settings/src/client/schema.ts'
-import { SettingsDescribeMirror } from '@hydra1902/harness-client-ui-settings/src/client/settings-mirror.ts'
+import type { SettingsNamespaceView } from '@hydraharness/harness-api-remotes/client'
+import { SettingsSchemaService } from '@hydraharness/harness-client-ui-settings/src/client/schema.ts'
+import { SettingsDescribeMirror } from '@hydraharness/harness-client-ui-settings/src/client/settings-mirror.ts'
 import {
   PermissionPresetSettingsController, permissionDefaultOf,
 } from '../src/client/settings-store.ts'

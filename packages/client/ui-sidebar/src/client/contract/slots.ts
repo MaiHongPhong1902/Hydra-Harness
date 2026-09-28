@@ -7,13 +7,13 @@
  * `sidebar.settings` registrant's (ui-settings), followed by optional footer
  * actions in `sidebar.footer.action`.
  */
-import type { PropsLocale, PropsRenderSlots, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import type { PropsLocale, PropsRenderSlots, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
 // Type-only: pulls ui-layout's SlotMap merge (the 'sidebar' entry) into every
 // program that sees this contract, so PropsRuntime<'sidebar'> resolves.
-import type {} from '@hydra1902/harness-client-ui-layout/client'
-import type { WorkspaceId } from '@hydra1902/harness-client-runtime/client'
+import type {} from '@hydraharness/harness-client-ui-layout/client'
+import type { WorkspaceId } from '@hydraharness/harness-client-runtime/client'
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface SlotMap {
     /**
      * Brand mark rendered in the expanded brand row and collapsed rail.

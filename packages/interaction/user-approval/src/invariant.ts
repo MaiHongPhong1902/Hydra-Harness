@@ -1,12 +1,12 @@
-/** Package-owned approval audit-stream invariants. @module @hydra1902/harness-user-approval/invariant */
+/** Package-owned approval audit-stream invariants. @module @hydraharness/harness-user-approval/invariant */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Session, SessionEvent } from '@hydra1902/harness-session'
-import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
+import type { Context } from '@hydraharness/cordis'
+import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 import type { ApprovalRequestId } from './index.ts'
 import { APPROVAL_POLICIES } from './index.ts'
 
-const PACKAGE_NAME = '@hydra1902/harness-user-approval'
+const PACKAGE_NAME = '@hydraharness/harness-user-approval'
 const APPROVAL_OUTCOMES = ['allowed-once', 'rejected', 'cancelled', 'unavailable'] as const
 
 /** Cordis companion plugin name. */

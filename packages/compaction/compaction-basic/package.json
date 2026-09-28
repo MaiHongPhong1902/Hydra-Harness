@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-compaction-basic",
+  "name": "@hydraharness/harness-compaction-basic",
   "description": "Token-meter-driven compaction policy and LLM summarization backend for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -37,39 +37,39 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-compaction": "workspace:^",
-    "@hydra1902/harness-commands": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-token-meter": "workspace:^",
-    "@hydra1902/harness-compaction-tool-result-pruner": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-compaction": "workspace:^",
+    "@hydraharness/harness-commands": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-token-meter": "workspace:^",
+    "@hydraharness/harness-compaction-tool-result-pruner": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "peerDependenciesMeta": {
-    "@hydra1902/harness-compaction-tool-result-pruner": {
+    "@hydraharness/harness-compaction-tool-result-pruner": {
       "optional": true
     }
   },
   "dependencies": {
-    "@hydra1902/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/cordis-plugin-include": "workspace:^",
-    "@hydra1902/cordis-plugin-loader": "workspace:^",
-    "@hydra1902/harness-agent": "workspace:^",
-    "@hydra1902/harness-agent-loop": "workspace:^",
-    "@hydra1902/harness-agent-loop-testkit": "workspace:^",
-    "@hydra1902/harness-compaction": "workspace:^",
-    "@hydra1902/harness-commands": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/harness-llm": "workspace:^",
-    "@hydra1902/harness-llm-retry": "workspace:^",
-    "@hydra1902/harness-session": "workspace:^",
-    "@hydra1902/harness-token-meter": "workspace:^",
-    "@hydra1902/harness-compaction-tool-result-pruner": "workspace:^",
-    "@hydra1902/harness-tools": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/cordis-plugin-include": "workspace:^",
+    "@hydraharness/cordis-plugin-loader": "workspace:^",
+    "@hydraharness/harness-agent": "workspace:^",
+    "@hydraharness/harness-agent-loop": "workspace:^",
+    "@hydraharness/harness-agent-loop-testkit": "workspace:^",
+    "@hydraharness/harness-compaction": "workspace:^",
+    "@hydraharness/harness-commands": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-llm-retry": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
+    "@hydraharness/harness-token-meter": "workspace:^",
+    "@hydraharness/harness-compaction-tool-result-pruner": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

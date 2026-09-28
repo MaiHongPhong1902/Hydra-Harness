@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-code-runtime-python",
+  "name": "@hydraharness/harness-code-runtime-python",
   "description": "CPython subprocess implementation of the Hydra harness code-execution seam",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -32,11 +32,11 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   }
 }

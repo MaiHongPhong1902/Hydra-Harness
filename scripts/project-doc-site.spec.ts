@@ -305,7 +305,7 @@ describe('docsPages routes', () => {
     const catalog = readFileSync(resolve(repositoryRoot, 'docs/tool-catalog.md'), 'utf8')
     expect(catalog.match(/<a id="hydraharness-tool-todo"><\/a>/g)).toHaveLength(1)
     expect(catalog).toContain(
-      '<a id="hydraharness-tool-todo"></a>\n\n## `@hydra1902/harness-tool-todo`',
+      '<a id="hydraharness-tool-todo"></a>\n\n## `@hydraharness/harness-tool-todo`',
     )
   })
 

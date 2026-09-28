@@ -6,12 +6,12 @@
  * cancelled error encoding, receipt checks — lives HERE, with the package
  * that consumes it.
  */
-import type { PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
+import type { PropsLocale, PropsRuntime } from '@hydraharness/harness-client-ui-slots'
 // Also pulls ui-conversation's SlotMap merge (the 'conversation.composer'
 // entry) into every program that sees this contract, so PropsRuntime resolves.
-import type {} from '@hydra1902/harness-client-ui-conversation/client'
-import type { PendingWait } from '@hydra1902/harness-client-runtime/client'
-import type { QuestionResponsePayload } from '@hydra1902/harness-api-remotes/client'
+import type {} from '@hydraharness/harness-client-ui-conversation/client'
+import type { PendingWait } from '@hydraharness/harness-client-runtime/client'
+import type { QuestionResponsePayload } from '@hydraharness/harness-api-remotes/client'
 
 /** The pending question carrier the owner dispatches into the composer slot. */
 export type QuestionWait = PendingWait<'question'>

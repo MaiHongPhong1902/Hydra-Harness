@@ -1,12 +1,12 @@
 # Bash Executor
 
-The bash execution seam is split across a Service Definition ([@hydra/harness-shell](../../packages/shell/shell), `ctx.shell`), Service Providers ([@hydra/harness-bash-local](../../packages/shell/bash-local) and [@hydra/harness-bash-sandbox](../../packages/shell/bash-sandbox)), and Consumer ([@hydra/harness-tool-bash](../../packages/shell/tool-bash), the `bash` schema). Generic background-job ids, ownership, and controls live in [jobs.md](jobs.md); this seam returns a task-free process handle. Raw process-group mechanics live behind the [subprocess seam](subprocess.md).
+The bash execution seam is split across a Service Definition ([@hydraharness/harness-shell](../../packages/shell/shell), `ctx.shell`), Service Providers ([@hydraharness/harness-bash-local](../../packages/shell/bash-local) and [@hydraharness/harness-bash-sandbox](../../packages/shell/bash-sandbox)), and Consumer ([@hydraharness/harness-tool-bash](../../packages/shell/tool-bash), the `bash` schema). Generic background-job ids, ownership, and controls live in [jobs.md](jobs.md); this seam returns a task-free process handle. Raw process-group mechanics live behind the [subprocess seam](subprocess.md).
 
 Source: [`packages/shell/shell/src/types.ts`](../../packages/shell/shell/src/types.ts)
 
 ## Managed shell environment namespace
 
-`HYDRA_*` variables are Harness-owned child-process facts. The model-facing bash tool collects them through `ctx.shellEnv` and passes them through `ShellExecRequest.hydraEnv`; the subprocess service removes inherited `HYDRA_*` names before merging the current snapshot. The `HydraEnvironmentKey`/`HydraEnvironment` vocabulary is owned by the [subprocess seam](subprocess.md) and re-exported by `@hydra/harness-shell`.
+`HYDRA_*` variables are Harness-owned child-process facts. The model-facing bash tool collects them through `ctx.shellEnv` and passes them through `ShellExecRequest.hydraEnv`; the subprocess service removes inherited `HYDRA_*` names before merging the current snapshot. The `HydraEnvironmentKey`/`HydraEnvironment` vocabulary is owned by the [subprocess seam](subprocess.md) and re-exported by `@hydraharness/harness-shell`.
 
 ## Request vs. spec: the `resolve()` split
 
@@ -96,7 +96,7 @@ interface ShellExecSpec {
 }
 ```
 
-`stdin` and `env` are trusted in-process plugin inputs and are not exposed by `@hydra/harness-tool-bash`. The local executor scrubs ambient credentials before merging explicit caller-supplied env. See [the bash-stdin-env Agent Note](../../.agents/notes/implemented/architecture/2026-06-30-bash-stdin-env-trusted-plugin-api.md).
+`stdin` and `env` are trusted in-process plugin inputs and are not exposed by `@hydraharness/harness-tool-bash`. The local executor scrubs ambient credentials before merging explicit caller-supplied env. See [the bash-stdin-env Agent Note](../../.agents/notes/implemented/architecture/2026-06-30-bash-stdin-env-trusted-plugin-api.md).
 
 `stdoutMaxBytes` is also trusted-plugin-only. It lets a foreground consumer request complete stdout up to a bounded parser budget without changing stderr, background jobs, or the model-facing bash tool's ordinary output cap.
 
@@ -134,11 +134,11 @@ interface ShellRunResult {
 }
 ```
 
-Each stream is a `CollectedOutput` — the (possibly truncated) text plus recovery info; when truncated, `text` is the **tail** and the complete stream spills to a private file. The fields are owned by the [subprocess seam](subprocess.md) and re-exported by `@hydra/harness-shell`.
+Each stream is a `CollectedOutput` — the (possibly truncated) text plus recovery info; when truncated, `text` is the **tail** and the complete stream spills to a private file. The fields are owned by the [subprocess seam](subprocess.md) and re-exported by `@hydraharness/harness-shell`.
 
 ## File sandbox: `ShellSandboxInfo`
 
-A sandbox-consuming executor exposes its configured mode fallback through `ShellExecutor.sandboxMode`. The tool layer asks [`@hydra/harness-sandbox-policy`](../../packages/sandbox/sandbox-policy/README.md) to resolve each calling session's durable `sandbox/mode` override and immutable cwd into `ShellExecRequest.sandboxPolicy`; a user-approved strictly wider call replaces only the mode. The mode/root/enforcement vocabulary is owned by the [`@hydra/harness-sandbox` seam](sandbox.md); modes govern file effects only.
+A sandbox-consuming executor exposes its configured mode fallback through `ShellExecutor.sandboxMode`. The tool layer asks [`@hydraharness/harness-sandbox-policy`](../../packages/sandbox/sandbox-policy/README.md) to resolve each calling session's durable `sandbox/mode` override and immutable cwd into `ShellExecRequest.sandboxPolicy`; a user-approved strictly wider call replaces only the mode. The mode/root/enforcement vocabulary is owned by the [`@hydraharness/harness-sandbox` seam](sandbox.md); modes govern file effects only.
 
 A sandboxed run reports its mode, conservative denial classification, and enforcement completeness. `runnerFailed` marks a sandbox runner failure before the command ran; foreground execution throws `SANDBOX_UNAVAILABLE`, while a settled background process has only its facts channel.
 
@@ -164,7 +164,7 @@ The `SANDBOX_UNAVAILABLE` error code (owned by the [sandbox seam](sandbox.md)) i
 
 ## Background processes: `ShellProcess`
 
-`start()` returns a handle with no id or owner. `@hydra/harness-tool-bash` adapts it into `ctx.jobs.start()` hooks; the generic runtime then owns job identity and lifecycle. `done` resolves when the process closes and never rejects, reads remain valid after settlement, and sandbox facts are stamped before `done` resolves.
+`start()` returns a handle with no id or owner. `@hydraharness/harness-tool-bash` adapts it into `ctx.jobs.start()` hooks; the generic runtime then owns job identity and lifecycle. `done` resolves when the process closes and never rejects, reads remain valid after settlement, and sandbox facts are stamped before `done` resolves.
 
 ```ts type-equiv
 /**
@@ -216,7 +216,7 @@ interface ShellProcessRead {
 
 ## The service
 
-`ShellExecutor` owns `resolve`, foreground `run`, background-process `start`, and the `sandboxMode` capability fact. `@hydra/harness-bash-local` owns command defaulting, timeout/abort classification, the terminal environment, and the background read merge; process groups, bounded collectors, spill files, credential scrubbing, and disposal quiescence are the [subprocess service](subprocess.md)'s. `@hydra/harness-tool-bash` owns model-facing rendering and adapts background handles into the [generic job runtime](jobs.md). `@hydra/harness-shell` owns the shell tools' shared exit-status contract: the exported `parseExitStatus`/`ParsedExitStatus` inverts the `[exit code: N]` / `[killed by signal: X]` markers `@hydra/harness-tool-bash`'s `renderResult` and `@hydra/harness-tool-pwsh`'s `renderPwshResult` append, and both tools' `presentResult` use it to split the rendered text into the terminal card's output body and its exit-status pill.
+`ShellExecutor` owns `resolve`, foreground `run`, background-process `start`, and the `sandboxMode` capability fact. `@hydraharness/harness-bash-local` owns command defaulting, timeout/abort classification, the terminal environment, and the background read merge; process groups, bounded collectors, spill files, credential scrubbing, and disposal quiescence are the [subprocess service](subprocess.md)'s. `@hydraharness/harness-tool-bash` owns model-facing rendering and adapts background handles into the [generic job runtime](jobs.md). `@hydraharness/harness-shell` owns the shell tools' shared exit-status contract: the exported `parseExitStatus`/`ParsedExitStatus` inverts the `[exit code: N]` / `[killed by signal: X]` markers `@hydraharness/harness-tool-bash`'s `renderResult` and `@hydraharness/harness-tool-pwsh`'s `renderPwshResult` append, and both tools' `presentResult` use it to split the rendered text into the terminal card's output body and its exit-status pill.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 

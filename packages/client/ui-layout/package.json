@@ -1,5 +1,5 @@
 {
-  "name": "@hydra1902/harness-client-ui-layout",
+  "name": "@hydraharness/harness-client-ui-layout",
   "description": "Shell plugin: three-column AppFrame with drag handles, ctx.layout viewing-state service (navigation + panels)",
   "version": "0.1.1-rc.3",
   "publishConfig": {
@@ -35,10 +35,10 @@
     },
     "client": {
       "inject": [
-        "@hydra1902/harness-client-runtime",
-        "@hydra1902/harness-client-ui-theme",
-        "@hydra1902/harness-client-ui-settings",
-        "@hydra1902/harness-client-locale"
+        "@hydraharness/harness-client-runtime",
+        "@hydraharness/harness-client-ui-theme",
+        "@hydraharness/harness-client-ui-settings",
+        "@hydraharness/harness-client-locale"
       ],
       "platform": "web"
     }
@@ -53,25 +53,25 @@
     "@xterm/xterm": "^6.0.0"
   },
   "peerDependencies": {
-    "@hydra1902/harness-client-runtime": "workspace:^",
-    "@hydra1902/harness-client-locale": "workspace:^",
-    "@hydra1902/harness-client-ui-settings": "workspace:^",
-    "@hydra1902/harness-client-ui-theme": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
-    "@hydra1902/cordis": "workspace:^"
+    "@hydraharness/harness-client-runtime": "workspace:^",
+    "@hydraharness/harness-client-locale": "workspace:^",
+    "@hydraharness/harness-client-ui-settings": "workspace:^",
+    "@hydraharness/harness-client-ui-theme": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra1902/harness-client-locale": "workspace:^",
-    "@hydra1902/harness-client-runtime": "workspace:^",
-    "@hydra1902/harness-client-test-runtime": "workspace:^",
-    "@hydra1902/harness-client-ui-slots": "workspace:^",
-    "@hydra1902/harness-client-ui-settings": "workspace:^",
-    "@hydra1902/harness-client-ui-theme": "workspace:^",
-    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydraharness/harness-client-locale": "workspace:^",
+    "@hydraharness/harness-client-runtime": "workspace:^",
+    "@hydraharness/harness-client-test-runtime": "workspace:^",
+    "@hydraharness/harness-client-ui-slots": "workspace:^",
+    "@hydraharness/harness-client-ui-settings": "workspace:^",
+    "@hydraharness/harness-client-ui-theme": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
     "@types/react": "~18.3.1",
-    "@hydra1902/cordis": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
     "react": "^18.2.0",
-    "@hydra1902/harness-client-ui-primitives": "workspace:^"
+    "@hydraharness/harness-client-ui-primitives": "workspace:^"
   },
   "files": [
     "lib/index.js",

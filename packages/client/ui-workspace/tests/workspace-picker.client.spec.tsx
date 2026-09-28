@@ -3,11 +3,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type {
   SessionListState, WorkspaceId, WorkspaceListState, WorkspaceView,
-} from '@hydra1902/harness-client-runtime/client'
-import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
-import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
+} from '@hydraharness/harness-client-runtime/client'
+import { makeTranslate } from '@hydraharness/harness-client-test-runtime'
+import { en as commonEn } from '@hydraharness/harness-client-locale/src/locales/en.ts'
 import type { DirectoryFlowOwnerProps, WorkspacePickerProps } from '../src/client/contract/slots.ts'
-import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
 import { WorkspacePicker } from '../src/client/WorkspacePicker.tsx'
 import { en } from '../src/client/locales.ts'
 

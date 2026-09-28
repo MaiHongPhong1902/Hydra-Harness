@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseHookOutput } from '@hydra1902/harness-hook-protocol'
+import { parseHookOutput } from '@hydraharness/harness-hook-protocol'
 
 describe('parseHookOutput — exit code semantics', () => {
   it('exit 0 with no stdout is a neutral success', () => {

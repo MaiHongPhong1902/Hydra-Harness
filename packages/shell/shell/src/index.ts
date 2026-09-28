@@ -1,13 +1,13 @@
 /**
  * Service Definition for the `ctx.shell` capability seam, covering foreground commands and background process
  * handles. Job ids, ownership, polling, and notices belong to
- * `@hydra1902/harness-jobs`, keeping executors independent of sessions.
- * @module @hydra1902/harness-shell
+ * `@hydraharness/harness-jobs`, keeping executors independent of sessions.
+ * @module @hydraharness/harness-shell
  */
 
-import { Context, Service } from '@hydra1902/cordis'
-import { settingsNamespace } from '@hydra1902/harness-settings'
-import type { SandboxMode } from '@hydra1902/harness-sandbox'
+import { Context, Service } from '@hydraharness/cordis'
+import { settingsNamespace } from '@hydraharness/harness-settings'
+import type { SandboxMode } from '@hydraharness/harness-sandbox'
 import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from './types.ts'
 
 /**
@@ -37,7 +37,7 @@ export type {
 export { parseExitStatus } from './render.ts'
 export type { ParsedExitStatus } from './render.ts'
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     shell: ShellExecutor
   }

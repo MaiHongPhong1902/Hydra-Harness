@@ -1,10 +1,10 @@
-# @hydra/harness-skill
+# @hydraharness/harness-skill
 
 Agent skill provider registry and shared document parsing.
 
-This package owns the `ctx.skills` interface. It does not know whether skills come from local files, embedded plugin data, HTTP, or another backend; providers register those sources with `ctx.skills.registerProvider(...)`. The shipped local implementation is [`@hydra/harness-skill-filesystem`](../skill-filesystem).
+This package owns the `ctx.skills` interface. It does not know whether skills come from local files, embedded plugin data, HTTP, or another backend; providers register those sources with `ctx.skills.registerProvider(...)`. The shipped local implementation is [`@hydraharness/harness-skill-filesystem`](../skill-filesystem).
 
-The registry is host+per-scope layered over [`@hydra/harness-scope`](../../core/scope), the shape the tools registry established: a registration files into the layer of its calling context's scope — host rows and repository plugins land in the global layer, a plugin mounted by an agent preset's standing composition lands in that preset's layer — and a read merges the global layer with the viewing scope's chain, the nearest layer winning a duplicate name outright while rank decides duplicates only within one layer.
+The registry is host+per-scope layered over [`@hydraharness/harness-scope`](../../core/scope), the shape the tools registry established: a registration files into the layer of its calling context's scope — host rows and repository plugins land in the global layer, a plugin mounted by an agent preset's standing composition lands in that preset's layer — and a read merges the global layer with the viewing scope's chain, the nearest layer winning a duplicate name outright while rank decides duplicates only within one layer.
 
 ## Service: `SkillRegistry` (ctx key: `skills`)
 
@@ -19,7 +19,7 @@ The registry is host+per-scope layered over [`@hydra/harness-scope`](../../core/
 
 ### Events
 
-- `skills/change` is an unfiltered invalidation notification emitted after a provider or runtime contribution is registered or disposed and after an active provider's registration control invalidates. It carries no catalog or diff: each consumer refetches `snapshot()` with its own lookup options. Its client-safe Cordis declaration is available from `@hydra/harness-skill/types`. Listener throws and rejected promises are logged and cannot veto the registry mutation or starve later listeners.
+- `skills/change` is an unfiltered invalidation notification emitted after a provider or runtime contribution is registered or disposed and after an active provider's registration control invalidates. It carries no catalog or diff: each consumer refetches `snapshot()` with its own lookup options. Its client-safe Cordis declaration is available from `@hydraharness/harness-skill/types`. Listener throws and rejected promises are logged and cannot veto the registry mutation or starve later listeners.
 
 ### Config
 
@@ -40,7 +40,7 @@ The registry is host+per-scope layered over [`@hydra/harness-scope`](../../core/
 
 ### Shared model-facing rendering
 
-`renderSkillContent(skill)` renders one loaded skill as the canonical `<skill_content>` block (escaped `name` attribute, resource hints, verbatim body). It is the single truth for every loading path: `@hydra/harness-tool-skill` returns it as the `skill` tool result and uses it for automatic and user-explicit injections, so the model sees one shape regardless of who initiated the load. `escapeText` is exported beside it for consumers embedding prose in the same markup frame. The package also declares the `skill-invocation` `MessageSource` kind ({ name, trigger?: 'automatic' | 'user', form: 'instructions' }) that host injection stamps on its messages — current producers always set `trigger`, while older durable records without it remain readable.
+`renderSkillContent(skill)` renders one loaded skill as the canonical `<skill_content>` block (escaped `name` attribute, resource hints, verbatim body). It is the single truth for every loading path: `@hydraharness/harness-tool-skill` returns it as the `skill` tool result and uses it for automatic and user-explicit injections, so the model sees one shape regardless of who initiated the load. `escapeText` is exported beside it for consumers embedding prose in the same markup frame. The package also declares the `skill-invocation` `MessageSource` kind ({ name, trigger?: 'automatic' | 'user', form: 'instructions' }) that host injection stamps on its messages — current producers always set `trigger`, while older durable records without it remain readable.
 
 `isModelInvocable(skill)` and `isUserInvocable(skill)` read the matching positive field directly. `ctx.skills.get()` remains the trusted, policy-neutral loading primitive, so every user- or model-facing consumer must enforce the predicate that matches its surface before exposing or loading a skill.
 
@@ -60,11 +60,11 @@ Definitions remain progressively loaded. `get()` asks the winning provider for t
 
 ## Consumer boundary
 
-The registry does not render model guidance or register model-facing tools. [`@hydra/harness-tool-skill`](../tool-skill) consumes `ctx.skills` to provide bounded automatic routing, `skill_search`, exact `skill` loading, and direct user invocation, so providers remain independent of model-facing behavior.
+The registry does not render model guidance or register model-facing tools. [`@hydraharness/harness-tool-skill`](../tool-skill) consumes `ctx.skills` to provide bounded automatic routing, `skill_search`, exact `skill` loading, and direct user invocation, so providers remain independent of model-facing behavior.
 
 ## Model Experience
 
-Indirectly, through `@hydra/harness-tool-skill`, which renders an automatically selected strong match or a bounded on-demand metadata shortlist and selected instructions.
+Indirectly, through `@hydraharness/harness-tool-skill`, which renders an automatically selected strong match or a bounded on-demand metadata shortlist and selected instructions.
 
 #### KV Cache effect
 

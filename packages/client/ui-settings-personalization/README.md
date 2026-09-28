@@ -1,8 +1,8 @@
-# @hydra/harness-client-ui-settings-personalization
+# @hydraharness/harness-client-ui-settings-personalization
 
 Settings → Personalization section (nav order `1`): System prompts groups custom instructions and personality into separate native disclosure panels, collapsed on section entry. Each editor stages changes until its Save button is pressed. Registers `settings.section` (`id: 'personalization'`) using [`ui-settings`](../ui-settings/README.md)'s existing slot, `ctx.settingsScope`, and locale contracts.
 
-- **Custom instructions** load and save through the personalization RPC pair (`settings.readInstructions`/`writeInstructions`, [`@hydra/harness-host-apiproxy`](../../host/apiproxy/README.md)), which stores the document at `$HYDRA_HOME/AGENTS.md`. The editor's `expectedRevision` fences writes against the document's SHA-256 content hash; a stale write surfaces as a distinct `conflict` status with a reload affordance, never a silent overwrite.
+- **Custom instructions** load and save through the personalization RPC pair (`settings.readInstructions`/`writeInstructions`, [`@hydraharness/harness-host-apiproxy`](../../host/apiproxy/README.md)), which stores the document at `$HYDRA_HOME/AGENTS.md`. The editor's `expectedRevision` fences writes against the document's SHA-256 content hash; a stale write surfaces as a distinct `conflict` status with a reload affordance, never a silent overwrite.
 - **Memory** manages saved local memories and global memory defaults through the Host's memory RPCs and settings namespace.
 - **Personality** stages a tone selection, then writes the `personalization` settings namespace through `ctx.settingsScope.bind()` on Save. A rejected write retains the selection with a retry message. Saved tone preferences apply to new chats; existing chats keep their logged personality.
 
@@ -12,7 +12,7 @@ Saved custom instructions enter chat requests through the [agent-instructions lo
 
 ## Model Experience
 
-Indirectly, through the custom-instructions document and personality value this section edits — `@hydra/harness-agent-instructions` and `@hydra/harness-personalization` own their model-visible rendering.
+Indirectly, through the custom-instructions document and personality value this section edits — `@hydraharness/harness-agent-instructions` and `@hydraharness/harness-personalization` own their model-visible rendering.
 
 #### KV Cache effect
 

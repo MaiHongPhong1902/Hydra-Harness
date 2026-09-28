@@ -3,7 +3,7 @@ import { createContext, useContext, type ReactNode } from 'react'
 import type {
   HostObservable, MaybeSnapshotSelectorHook, SessionMaybeProvideInfo, SessionProvideInfo,
   SlotRendererHost, SnapshotSelectorHook,
-} from '@hydra1902/harness-client-ui-slots'
+} from '@hydraharness/harness-client-ui-slots'
 import { bindSnapshotSelector } from './bind.ts'
 
 /**

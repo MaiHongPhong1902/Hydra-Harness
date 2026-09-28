@@ -1,25 +1,25 @@
 /**
- * @hydra1902/harness-headless — one-shot direct Agent driver. The bundle patch
- * rides over @hydra1902/harness-base without Host, HTTP, or browser plugins; this runner
+ * @hydraharness/harness-headless — one-shot direct Agent driver. The bundle patch
+ * rides over @hydraharness/harness-base without Host, HTTP, or browser plugins; this runner
  * creates one Agent through the core registry, drives the task to quiescence,
  * flushes its Session, prints the final assistant text, and exits.
  *
- * @module @hydra1902/harness-headless
+ * @module @hydraharness/harness-headless
  */
 
 import { randomUUID } from 'node:crypto'
-import type { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
-import { installModelSelection } from '@hydra1902/harness-agent'
-import type { ModelSelectionRef } from '@hydra1902/harness-agent'
-import type {} from '@hydra1902/harness-agent-default-model'
-import { createUserMessage } from '@hydra1902/harness-llm'
-import { SessionId } from '@hydra1902/harness-session'
-import type { SessionEvent } from '@hydra1902/harness-session'
+import type { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
+import { installModelSelection } from '@hydraharness/harness-agent'
+import type { ModelSelectionRef } from '@hydraharness/harness-agent'
+import type {} from '@hydraharness/harness-agent-default-model'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import { SessionId } from '@hydraharness/harness-session'
+import type { SessionEvent } from '@hydraharness/harness-session'
 // Empty type imports carry the loader Context merge for the settlement await
 // and the cmdline Context merge for the appExit host value.
-import type {} from '@hydra1902/cordis-plugin-loader'
-import type {} from '@hydra1902/harness-cmdline'
+import type {} from '@hydraharness/cordis-plugin-loader'
+import type {} from '@hydraharness/harness-cmdline'
 
 /** Stable Cordis plugin name. */
 export const name = 'headless-runner'
@@ -107,7 +107,7 @@ async function run(ctx: Context, task: string, io: HeadlessIo): Promise<void> {
   // This bundle composes no preset roster, so the model-facing rows sit in the
   // host plane and the agent reads them from the global layer. A deployment
   // that DOES configure one has to join it here first
-  // (@hydra1902/harness-agent-presets README, "Composing a child agent").
+  // (@hydraharness/harness-agent-presets README, "Composing a child agent").
   const { agent } = await agents.create({
     sessionId: SessionId(`session-${randomUUID()}`),
     meta: { cwd: process.cwd() },

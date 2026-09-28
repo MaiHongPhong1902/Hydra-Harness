@@ -1,18 +1,18 @@
 /** Conversation slot declarations and their composed component props. */
 import type { ReactNode, RefObject } from 'react'
-import type { ImageAttachmentRef } from '@hydra1902/harness-attachment'
+import type { ImageAttachmentRef } from '@hydraharness/harness-attachment'
 import type {
   InjectFace, MaybeSnapshotSelectorHook, PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore,
   SlotHookFactory, SnapshotSelectorHook,
-} from '@hydra1902/harness-client-ui-slots'
+} from '@hydraharness/harness-client-ui-slots'
 import type {
   CommandNode, CompactionSummaryNode, ConversationSnapshot, ConversationTurnDataMap,
   ObservableSnapshot, PendingInteraction, PendingWait, SessionId, ToolCallBlock,
   TurnLocation, WorkspaceId,
-} from '@hydra1902/harness-client-runtime/client'
-import type { MarkdownFileMentions } from '@hydra1902/harness-client-ui-primitives'
-import type { MessageId } from '@hydra1902/harness-client-connection/client'
-import type {} from '@hydra1902/harness-client-ui-layout/client'
+} from '@hydraharness/harness-client-runtime/client'
+import type { MarkdownFileMentions } from '@hydraharness/harness-client-ui-primitives'
+import type { MessageId } from '@hydraharness/harness-client-connection/client'
+import type {} from '@hydraharness/harness-client-ui-layout/client'
 import type { ComposerBlock } from '../input/blocks.ts'
 import type {
   ComposerKeyboard, DraftAttachmentId, EditSelection, InputActions, InputNotice, InputState,
@@ -73,7 +73,7 @@ export interface MessageImagesOwnerProps {
 /** Slot-backed renderer used by chat nodes without importing an attachment implementation. */
 export type RenderMessageImages = (owner: Omit<MessageImagesOwnerProps, 'loadImage'>) => ReactNode
 
-declare module '@hydra1902/harness-client-ui-slots' {
+declare module '@hydraharness/harness-client-ui-slots' {
   interface SlotMap {
     /**
      * The entire body of one session: taking this seat means rendering that
@@ -382,7 +382,7 @@ export interface ChatFileMentions {
   forClosing(owner: TurnTailOwnerProps): MarkdownFileMentions | undefined
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** Prose file-mention provider (ui-deliverables); reach via ctx.get — optional. */
     chatFileMentions: ChatFileMentions

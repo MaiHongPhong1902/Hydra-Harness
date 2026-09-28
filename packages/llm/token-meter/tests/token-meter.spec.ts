@@ -1,12 +1,12 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import LlmRuntime, { createUserMessage, CallId, createMessage } from '@hydra1902/harness-llm'
-import type { ContentBlock, Message, TokenUsage } from '@hydra1902/harness-llm'
-import SessionStore, { Session, SessionId, canonicalHeader } from '@hydra1902/harness-session'
-import type { EpochHeader, SessionEvent } from '@hydra1902/harness-session'
-import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
-import TokenMeter from '@hydra1902/harness-token-meter'
-import type { TokenMeasurement, TokenMeterConfig } from '@hydra1902/harness-token-meter'
+import { Context } from '@hydraharness/cordis'
+import LlmRuntime, { createUserMessage, CallId, createMessage } from '@hydraharness/harness-llm'
+import type { ContentBlock, Message, TokenUsage } from '@hydraharness/harness-llm'
+import SessionStore, { Session, SessionId, canonicalHeader } from '@hydraharness/harness-session'
+import type { EpochHeader, SessionEvent } from '@hydraharness/harness-session'
+import SessionProjectionRegistry from '@hydraharness/harness-session-projection'
+import TokenMeter from '@hydraharness/harness-token-meter'
+import type { TokenMeasurement, TokenMeterConfig } from '@hydraharness/harness-token-meter'
 
 function header(model: string, extras: Omit<EpochHeader, 'config'> = {}): EpochHeader {
   return canonicalHeader({ config: { provider: 'mock', model }, ...extras })

@@ -1,15 +1,15 @@
 /**
  * Durable projection state for dynamic runtime context.
- * @module @hydra1902/harness-agent-loop/runtime-context
+ * @module @hydraharness/harness-agent-loop/runtime-context
  */
 
-import { createUserMessage } from '@hydra1902/harness-llm'
-import type { ContextSnapshotSection } from '@hydra1902/harness-llm'
-import type { Session, UserMessage } from '@hydra1902/harness-session'
-import { isReplacementSurfaceEvent } from '@hydra1902/harness-session'
-import type { Context } from '@hydra1902/cordis'
+import { createUserMessage } from '@hydraharness/harness-llm'
+import type { ContextSnapshotSection } from '@hydraharness/harness-llm'
+import type { Session, UserMessage } from '@hydraharness/harness-session'
+import { isReplacementSurfaceEvent } from '@hydraharness/harness-session'
+import type { Context } from '@hydraharness/cordis'
 
-const SOURCE = '@hydra1902/harness-system-prompt'
+const SOURCE = '@hydraharness/harness-system-prompt'
 const CLEARED = 'Current runtime context: none. Earlier runtime-context snapshots no longer apply.'
 
 function isOwned(message: UserMessage): boolean {

@@ -1,11 +1,11 @@
 /** Browser registry for read-only Cordis capability providers. */
 
-import type { Context } from '@hydra1902/cordis'
+import type { Context } from '@hydraharness/cordis'
 import type {
   CordisInspectProviderManifest, CordisInspectQueryRequest, CordisInspectQueryResolution,
   CordisInspectRequestId, JsonValue,
-} from '@hydra1902/harness-api-remotes/client'
-import type { SessionId } from '@hydra1902/harness-client-connection/client'
+} from '@hydraharness/harness-api-remotes/client'
+import type { SessionId } from '@hydraharness/harness-client-connection/client'
 
 /** Context supplied to a Client inspect provider query. */
 export interface ClientCordisInspectQueryContext {
@@ -133,7 +133,7 @@ export class ClientCordisInspectRegistry {
   }
 }
 
-declare module '@hydra1902/cordis' {
+declare module '@hydraharness/cordis' {
   interface Context {
     /** Browser registry for pre-definition Cordis capability discovery. */
     cordisInspect: ClientCordisInspectRegistry

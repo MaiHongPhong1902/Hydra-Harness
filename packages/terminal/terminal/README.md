@@ -1,4 +1,4 @@
-# @hydra/harness-terminal
+# @hydraharness/harness-terminal
 
 Owner-scoped persistent PTY seam. `TerminalSessionService` registers as `ctx.terminals`, mints opaque session ids, routes creation through named backends, fences every operation to the exact live `Agent`, and awaits backend quiescence when that agent or the service disposes.
 
@@ -23,7 +23,7 @@ The seam contains no `node-pty`, sandbox, tool-schema, prompt, task, or terminal
 
 #### What the model sees
 
-Nothing directly. This package registers no prompt or tool; `@hydra/harness-tool-terminal` owns visible schemas and result text.
+Nothing directly. This package registers no prompt or tool; `@hydraharness/harness-tool-terminal` owns visible schemas and result text.
 
 #### Token effect
 

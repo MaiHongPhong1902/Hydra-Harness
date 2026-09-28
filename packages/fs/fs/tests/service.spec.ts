@@ -6,8 +6,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra1902/cordis'
-import { FileSystem, FsError, FsTargetKey, FsVersion } from '@hydra1902/harness-fs'
+import { Context } from '@hydraharness/cordis'
+import { FileSystem, FsError, FsTargetKey, FsVersion } from '@hydraharness/harness-fs'
 import type {
   FsDirEntry,
   FsEditOutcome,
@@ -17,7 +17,7 @@ import type {
   FsTarget,
   FsWriteIntent,
   FsWriteOutcome,
-} from '@hydra1902/harness-fs'
+} from '@hydraharness/harness-fs'
 
 /** A minimal in-memory fake implementing the provider primitives. */
 class FakeFileSystem extends FileSystem {

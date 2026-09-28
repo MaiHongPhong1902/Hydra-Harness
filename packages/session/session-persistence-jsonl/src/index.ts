@@ -3,11 +3,11 @@
  * events in one append-only file per session, and delegates orchestration to
  * {@link PersistenceCoordinator}. Its side-effect-free locator returns the
  * absolute per-session log target before materialization.
- * @module @hydra1902/harness-session-persistence-jsonl
+ * @module @hydraharness/harness-session-persistence-jsonl
  */
 
-import { Context } from '@hydra1902/cordis'
-import z from '@hydra1902/schemastery'
+import { Context } from '@hydraharness/cordis'
+import z from '@hydraharness/schemastery'
 import { readdirSync } from 'node:fs'
 import { open, mkdir, readFile, readdir, realpath, link, rm, stat, truncate } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
@@ -20,8 +20,8 @@ import {
   type PersistenceBackend, type SessionLocation, type SessionPersistenceSnapshot,
   type SessionInspection, type SessionPersistenceRevision as PersistenceRevision, type SessionRawArtifact,
   type StoredPrefix,
-} from '@hydra1902/harness-session-persistence'
-import type { SessionEvent, SessionId, SessionHeader, SessionPreparation } from '@hydra1902/harness-session'
+} from '@hydraharness/harness-session-persistence'
+import type { SessionEvent, SessionId, SessionHeader, SessionPreparation } from '@hydraharness/harness-session'
 import {
   encodeSegment, eventLines, logPath, logSuffix, parseHeaderMeta, projectDir, scanLog, sessionDir,
   SessionLogScanner, toHeaderLine,

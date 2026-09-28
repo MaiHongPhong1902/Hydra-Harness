@@ -1,15 +1,15 @@
 /**
  * Semantic durability checkpoints for model requests, top-level tool dispatch,
  * and completed agent steps.
- * @module @hydra1902/harness-session-checkpoint-policy
+ * @module @hydraharness/harness-session-checkpoint-policy
  */
 
-import type { Context } from '@hydra1902/cordis'
-import type { Session } from '@hydra1902/harness-session'
-import type { StreamChunk } from '@hydra1902/harness-llm'
-import { TOOL_ABORTED_BEFORE_DISPATCH, type ToolExecutionResult } from '@hydra1902/harness-tools'
-import type { PreStepDecision } from '@hydra1902/harness-agent'
-import type {} from '@hydra1902/harness-session-persistence'
+import type { Context } from '@hydraharness/cordis'
+import type { Session } from '@hydraharness/harness-session'
+import type { StreamChunk } from '@hydraharness/harness-llm'
+import { TOOL_ABORTED_BEFORE_DISPATCH, type ToolExecutionResult } from '@hydraharness/harness-tools'
+import type { PreStepDecision } from '@hydraharness/harness-agent'
+import type {} from '@hydraharness/harness-session-persistence'
 
 /** Cordis plugin name used by Loader diagnostics. */
 export const name = 'session-checkpoint-policy'

@@ -3,7 +3,7 @@ description: "Background browser uploads for raw Blob and ReadableStream bodies,
 kind: "package-reference"
 ---
 
-# @hydra/harness-client-file-upload
+# @hydraharness/harness-client-file-upload
 
 English | [中文](README.zh.md)
 
@@ -29,7 +29,7 @@ Mount the Client plugin before a consumer that injects `fileUpload`, then call `
 
 ```yaml
 - id: file-upload
-  name: '@hydra1902/harness-client-file-upload'
+  name: '@hydraharness/harness-client-file-upload'
 ```
 
 The package has no Cordis configuration fields. A `Blob` uses XMLHttpRequest inside a dedicated Worker so the service can report browser upload progress, including the total when the browser provides it. A `ReadableStream` transfers to that Worker and feeds Fetch incrementally; progress reports consumed bytes without a total. An `AbortSignal` terminates the dedicated Worker or reaches a page-owned carrier.

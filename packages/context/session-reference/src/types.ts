@@ -2,12 +2,12 @@
  * Public session-reference request, candidate, and preparation records.
  * Imports stay on type-only subpaths so generated Remote clients can consume
  * this module without Host runtime code.
- * @module @hydra1902/harness-session-reference/types
+ * @module @hydraharness/harness-session-reference/types
  */
 
-import type { UserMessage } from '@hydra1902/harness-llm/message'
-import type { ContentBlock } from '@hydra1902/harness-llm/types'
-import type { SessionId } from '@hydra1902/harness-session/types'
+import type { UserMessage } from '@hydraharness/harness-llm/message'
+import type { ContentBlock } from '@hydraharness/harness-llm/types'
+import type { SessionId } from '@hydraharness/harness-session/types'
 
 /** Durable source session, cited event seqs, and snapshot facts for prepared cross-session context. */
 export interface SessionReferenceSource {
@@ -29,7 +29,7 @@ export interface SessionReferenceSource {
   }[]
 }
 
-declare module '@hydra1902/harness-llm' {
+declare module '@hydraharness/harness-llm' {
   interface MessageSourceMap {
     'session-reference': SessionReferenceSource
   }

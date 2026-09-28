@@ -5,7 +5,7 @@
  * register() receives the factory and the browser derives its PropsStore
  * share from the return type.
  */
-import { defineStore, type EngineStoreHandle } from '@hydra1902/harness-client-runtime/client'
+import { defineStore, type EngineStoreHandle } from '@hydraharness/harness-client-runtime/client'
 
 /** Browser-local order account for the hierarchy-free flat Session list. */
 export const FLAT_SESSION_ORDER_KEY = '__flat_session_order__'
