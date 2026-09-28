@@ -311,7 +311,7 @@ describe('docsPages routes', () => {
 
   it('publishes the whole subsystem reference, not a sample of it', () => {
     const subsystems = docsPages.filter(page => page.route.startsWith('reference/subsystems/'))
-    expect(subsystems).toHaveLength(43)
+    expect(subsystems).toHaveLength(48)
     expect(subsystems.every(page => page.source.startsWith('docs/subsystems/'))).toBe(true)
   })
 

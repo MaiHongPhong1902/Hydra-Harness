@@ -197,10 +197,12 @@ const subsystemGroups = [
   ['Sessions and persistence', [
     ['session.md', 'Sessions'],
     ['session-query.md', 'Session query'],
+    ['feedback.md', 'Message feedback'],
     ['session-reference.md', 'Session references'],
     ['session-title.md', 'Session titles'],
     ['session-projection.md', 'Session projections'],
     ['persistence.md', 'Session persistence'],
+    ['attachment.md', 'Durable attachments'],
     ['spill.md', 'Spill storage'],
     ['session-telemetry.md', 'SessionTelemetryBackend'],
   ]],
@@ -220,9 +222,11 @@ const subsystemGroups = [
     ['lsp.md', 'LSP navigation'],
     ['code-runtime.md', 'Code runtime'],
     ['web.md', 'Web access'],
+    ['browser.md', 'Embedded browser'],
     ['skills.md', 'Skills'],
     ['workflow.md', 'Workflows'],
     ['subagent.md', 'Subagents'],
+    ['agent-team.md', 'Agent teams'],
   ]],
   ['Policy and interaction', [
     ['approval.md', 'Approvals'],
@@ -237,6 +241,7 @@ const subsystemGroups = [
   ['Platform and access', [
     ['web-server.md', 'HTTP server'],
     ['typert.md', 'Typert'],
+    ['extensions.md', 'Extensions'],
     ['client-modules.md', 'Client modules'],
     ['storage.md', 'Storage'],
     ['workspace.md', 'Workspaces'],
@@ -272,6 +277,9 @@ const reference: DocsPage[] = [
     ['docs/capability-seams.md', 'reference/capability-seams.md', 'Capability services', 2],
     ['docs/agent-lifecycle.md', 'reference/agent-lifecycle.md', 'Agent lifecycle', 3],
     ['docs/tool-execution-pipeline.md', 'reference/tool-execution-pipeline.md', 'Tool execution', 4],
+    ['docs/api-gateway.md', 'reference/api-gateway.md', 'API gateway', 5],
+    ['docs/glossary.md', 'reference/glossary.md', 'Glossary', 6],
+    ['docs/web-styling.md', 'reference/web-styling.md', 'Web UI styling', 7],
   ] as const).map(([source, route, label, order]): DocsPage => ({
     source,
     route,
@@ -284,6 +292,9 @@ const reference: DocsPage[] = [
     ['docs/config-catalog.md', 'reference/config-catalog.md', 'Plugin configuration'],
     ['docs/tool-catalog.md', 'reference/tool-catalog.md', 'Tool schemas'],
     ['docs/persistence-catalog.md', 'reference/persistence-catalog.md', 'Persistence events', 'deep'],
+    ['docs/module-graph.md', 'reference/module-graph.md', 'Module dependency graph'],
+    ['docs/event-producer-consumer.md', 'reference/event-producer-consumer.md', 'Event producer/consumer matrix', 'deep'],
+    ['docs/graph-atlas.md', 'reference/graph-atlas.md', 'Documentation graph index'],
   ] as const).map(([source, route, label, outline], order): DocsPage => ({
     source,
     route,
