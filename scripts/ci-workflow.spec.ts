@@ -527,20 +527,32 @@ describe('Issue lifecycle workflow', () => {
 })
 
 describe('npm release workflows', () => {
-  it('keeps publication dispatch-only and pack in the PR workflow', () => {
+  it('keeps publication tag/dispatch-only and pack in the PR workflow', () => {
     // pack stays in the PR/master release workflows so a PR proves the set packs.
-    for (const file of ['release.yml', 'release-vendor.yml']) {
+    // hydra's release.yml also tags a version bump on main once pack succeeds,
+    // which triggers release-publish.yml; the vendor sequence has no tag job.
+    const expectedJobs: Record<string, string[]> = {
+      'release.yml': ['pack', 'tag'],
+      'release-vendor.yml': ['pack'],
+    }
+    for (const [file, jobs] of Object.entries(expectedJobs)) {
       const workflow = loadWorkflow(`.github/workflows/${file}`)
       if (!isRecord(workflow.jobs)) throw new TypeError(`${file} must define jobs`)
-      expect(Object.keys(workflow.jobs).sort()).toEqual(['pack'])
+      expect(Object.keys(workflow.jobs).sort()).toEqual(jobs)
     }
 
-    // publication is workflow_dispatch-only (never a PR check) and keeps the
-    // npm-publish environment plus the shared dist-tag group.
-    for (const file of ['release-publish.yml', 'release-vendor-publish.yml']) {
+    // publication is never a PR check and keeps the npm-publish environment plus
+    // the shared dist-tag group. hydra's release-publish.yml also triggers from
+    // the hydra-v* tag release.yml's tag job pushes; the vendor sequence stays
+    // workflow_dispatch-only.
+    const expectedOn: Record<string, string[]> = {
+      'release-publish.yml': ['workflow_dispatch', 'push'],
+      'release-vendor-publish.yml': ['workflow_dispatch'],
+    }
+    for (const [file, on] of Object.entries(expectedOn)) {
       const workflow = loadWorkflow(`.github/workflows/${file}`)
       if (!isRecord(workflow.on) || !isRecord(workflow.jobs)) throw new TypeError(`${file} must define on and jobs`)
-      expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch'])
+      expect(Object.keys(workflow.on)).toEqual(on)
       const publish = workflow.jobs.publish
       if (!isRecord(publish)) throw new TypeError(`${file} must define a publish job`)
       expect(publish.environment).toBe('npm-publish')

@@ -210,7 +210,7 @@ describe('hydra web keyless CLI smoke', () => {
           "role": "user",
         }
       `)
-      expect(improvementContract?.content).toContain('do not scan or open arbitrary workspace files')
+      expect(improvementContract?.content).toContain('Do not scan unrelated fixtures or invent a broad category menu.')
       expect(captured.tools?.map(tool => tool.function?.name)
         .filter(name => name === 'web_search' || name === 'web_fetch'))
         .toMatchInlineSnapshot(`

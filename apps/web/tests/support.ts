@@ -72,11 +72,13 @@ export async function connectFreshWorkspace(page: Page, root: string, name = 'wo
   await pathInput.fill(join(root, name))
   await pathInput.press('Enter')
   await dialog.getByRole('button', { name: 'Open', exact: true }).click()
-  // The pick connected the workspace: the blank session's live composer card
-  // replaces the locked placeholder. A fresh Web profile may omit its textarea
-  // until the user chooses a model.
-  await page.locator('[data-composer-card]')
-    .waitFor({ timeout: 15_000 })
+  // [data-composer-card] is mounted unconditionally (it doubles as the
+  // pre-pick trigger clicked above), so waiting on it proves nothing about the
+  // pick landing. The trigger textarea's "Choose workspace" name is dropped
+  // the moment chipTitle resolves from the pick, before any model-selection
+  // state exists, so it is the one signal every caller can rely on.
+  await page.getByRole('textbox', { name: 'Choose workspace' })
+    .waitFor({ state: 'detached', timeout: 15_000 })
 }
 
 /** Failure evidence goes to the gitignored .artifacts/ (repo convention). */
