@@ -3,8 +3,10 @@
 # separate sequences with their own workflows and version lines.
 #
 # Pack runs without credentials on every pull request and main push, so a
-# pull request proves the whole publish set still packs. Publication is a manual
-# workflow_dispatch of release-publish.yml from a hydra-v* tag.
+# pull request proves the whole publish set still packs. A main push that lands a
+# version bump also tags hydra-v<version> once pack succeeds; that tag is what
+# triggers release-publish.yml. A main push whose version is already tagged
+# creates nothing, because npm refuses to republish a version.
 name: Release (hydra)
 
 on:
@@ -96,3 +98,30 @@ jobs:
           path: dist/npm/*
           if-no-files-found: error
           retention-days: 7
+
+  tag:
+    name: Tag a version bump
+    needs: pack
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      # Full history so the existing-tag check below sees every prior release.
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Tag hydra-v<version> if this push introduced it
+        run: |
+          version=$(node -p "require('./apps/cli/package.json').version")
+          tag="hydra-v$version"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "release tag: $tag already exists, this push did not bump the version"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag -a "$tag" -m "release: $tag"
+          git push origin "refs/tags/$tag"
+          echo "release tag: pushed $tag, release-publish.yml will run from it"
