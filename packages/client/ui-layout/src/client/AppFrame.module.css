@@ -199,13 +199,6 @@
   width: 100%;
 }
 
-/* The desktop title bar owns the sidebar toggle; keep the sidebar's wide/rail
-   affordance for web clients without presenting the same control twice. */
-.desktopApp[data-desktop-shell] :global(button[aria-label='Collapse sidebar']),
-.desktopApp[data-desktop-shell] :global(button[aria-label='Open sidebar']) {
-  display: none;
-}
-
 /* Keep both hit strips fully on the renderer side of the seams: native
    WebContentsViews paint above renderer content and would consume overlap. */
 .desktopResizeHandle {

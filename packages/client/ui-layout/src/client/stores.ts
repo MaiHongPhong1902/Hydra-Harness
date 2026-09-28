@@ -1,6 +1,7 @@
 /**
- * The root entry's transient layout store: panel geometry as plain widths in
- * px (0 = closed). Module level exports the factory only — a module-level
+ * The root entry's layout store: panel geometry as plain widths in px
+ * (0 = closed), persisted to localStorage so it survives a reload. Module
+ * level exports the factory only — a module-level
  * handle would pin the store's identity in the module
  * cache (a de-facto singleton surviving plugin reloads). register() receives
  * the factory (exclusive use: the framework instantiates per entry), AppFrame
@@ -9,8 +10,7 @@
  */
 import { defineStore, type EngineStoreHandle } from '@hydraharness/harness-client-runtime/client'
 import {
-  clampWidth, DETAILS_DEFAULT, DETAILS_MAX, DETAILS_MIN,
-  SIDEBAR_DEFAULT, SIDEBAR_MAX, SIDEBAR_MIN,
+  DETAILS_COLLAPSE_BELOW, DETAILS_DEFAULT, SIDEBAR_COLLAPSE_BELOW, SIDEBAR_DEFAULT,
 } from './columns.ts'
 
 /**
@@ -38,9 +38,9 @@ type LayoutActions = {
 /**
  * Create the layout panel store handle. The preference IS the width, so
  * closing a panel forgets its drag width — reopening restores the contract
- * default. Actions are the complete write set: drag writes clamp
- * into the panel's contract range and never cross the open/closed line;
- * open/close transitions write 0 / the default explicitly. Below the
+ * default. Drag writes have no ceiling; crossing the collapse threshold
+ * closes the panel instead of leaving an unusably thin one. Panel geometry
+ * persists (localStorage) so a reopened app keeps the last size. Below the
  * auto-collapse breakpoint (AppFrame feeds setNarrow) the sidebar toggle
  * flips the narrowExpanded override instead of the preference.
  * @returns the store handle (spec + type + identity + factory in one).
@@ -48,9 +48,10 @@ type LayoutActions = {
 export function createLayoutStore(): EngineStoreHandle<LayoutState, LayoutActions>  {
   const handle = defineStore({
     init: (): LayoutState => ({ sidebar: SIDEBAR_DEFAULT, details: 0, narrow: false, narrowExpanded: false }),
+    persist: 'hydra.layout.panels',
     actions: {
-      setSidebar: (d, px: number) => { d.sidebar = clampWidth(px, SIDEBAR_MIN, SIDEBAR_MAX) },
-      setDetails: (d, px: number) => { d.details = clampWidth(px, DETAILS_MIN, DETAILS_MAX) },
+      setSidebar: (d, px: number) => { d.sidebar = px < SIDEBAR_COLLAPSE_BELOW ? 0 : Math.round(px) },
+      setDetails: (d, px: number) => { d.details = px < DETAILS_COLLAPSE_BELOW ? 0 : Math.round(px) },
       // Narrow toggles flip only the override: the width preference survives
       // untouched, so re-widening restores the pre-squeeze layout.
       toggleSidebar: (d) => {

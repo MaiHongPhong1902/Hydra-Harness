@@ -1,9 +1,9 @@
 /**
  * Three-column shell frame, registered into the built-in 'root' slot (the web
  * shell renders only 'root'). Owns the grid tracks (sidebar | center |
- * details), the drag handles (pointer capture + rAF throttle), the concession
- * chain (columns.ts), and the child-slot render decisions: the sidebar slot
- * renders HERE with live parameters from the concession solve, and the
+ * details), the drag handles (pointer capture + rAF throttle), the column
+ * solver (columns.ts), and the child-slot render decisions: the sidebar slot
+ * renders HERE with live parameters from the column solve, and the
  * session-aware occupants render in fixed column positions; strict entries
  * gate themselves on current-session availability while session-maybe
  * entries retain identity. Pure component: everything arrives
@@ -15,8 +15,8 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { SessionId, WorkspaceId } from '@hydraharness/harness-client-runtime/client'
 import type { PropsRenderSlots, PropsRuntime, PropsStore } from '@hydraharness/harness-client-ui-slots'
 import {
-  computeColumns, DETAILS_MAX, DETAILS_MIN,
-  SIDEBAR_AUTO_COLLAPSE, SIDEBAR_DEFAULT, SIDEBAR_MAX, SIDEBAR_MIN,
+  computeColumns, DETAILS_COLLAPSE_BELOW,
+  SIDEBAR_AUTO_COLLAPSE, SIDEBAR_COLLAPSE_BELOW, SIDEBAR_DEFAULT,
 } from './columns.ts'
 import type { createLayoutStore } from './stores.ts'
 import { DesktopBrowserPanel, DesktopPanelControls } from './DesktopBrowserPanel.tsx'
@@ -24,7 +24,8 @@ import { DesktopTitleBar } from './DesktopTitleBar.tsx'
 import type { DesktopTitleBarAction } from './DesktopTitleBar.tsx'
 import css from './AppFrame.module.css'
 
-const DESKTOP_BROWSER_MIN = 420
+/** Dragging (or stepping) the right panel narrower than this closes it instead. */
+const DESKTOP_BROWSER_COLLAPSE_BELOW = 240
 const DESKTOP_TERMINAL_MIN = 240
 
 function clamp(value: number, min: number, max: number) {
@@ -163,21 +164,20 @@ export function AppFrame({
     height: window.innerHeight,
     width: window.innerWidth,
   }))
-  const browserMax = Math.max(DESKTOP_BROWSER_MIN, Math.floor(desktopViewport.width * 2 / 3))
   const terminalMax = Math.max(DESKTOP_TERMINAL_MIN, Math.floor(desktopViewport.height / 2))
   const [browserOpen, setBrowserOpen] = useState(false)
   const [terminalOpen, setTerminalOpen] = useState(false)
   const [terminalWorkspaces, setTerminalWorkspaces] = useState<Array<WorkspaceId | undefined>>([])
   const [browserExpanded, setBrowserExpanded] = useState(false)
-  const [browserWidth, setBrowserWidth] = useState(() =>
-    clamp(Math.round(window.innerWidth * 0.42), DESKTOP_BROWSER_MIN, browserMax))
+  const [browserWidth, setBrowserWidth] = useState(() => Math.round(window.innerWidth * 0.42))
   const [terminalHeight, setTerminalHeight] = useState(() =>
     clamp(Math.round(window.innerHeight * 0.36), DESKTOP_TERMINAL_MIN, terminalMax))
 
   // A window resize is a rendering constraint, not a user preference. Keep
   // the preferred dimensions so a panel returns to its previous size when the
-  // window grows again.
-  const renderedBrowserWidth = Math.min(browserWidth, browserMax)
+  // window grows again. The right panel has no drag ceiling, only the
+  // physical cap of the window itself.
+  const renderedBrowserWidth = Math.min(browserWidth, desktopViewport.width)
   const renderedTerminalHeight = Math.min(terminalHeight, terminalMax)
 
   useEffect(() => {
@@ -240,7 +240,7 @@ export function AppFrame({
   colsRef.current = cols
 
   // The drag base is the rendered width captured at drag start (grabbing a
-  // concession-clamped panel must not jump back to the stored preference);
+  // viewport-clamped panel must not jump back to the stored preference);
   // it stays frozen for the whole gesture so dx deltas do not compound.
   const sidebarBase = useRef(0)
   const detailsBase = useRef(0)
@@ -261,8 +261,10 @@ export function AppFrame({
   const onBrowserStart = useCallback(() => { browserBase.current = renderedBrowserWidth }, [renderedBrowserWidth])
   const onTerminalStart = useCallback(() => { terminalBase.current = renderedTerminalHeight }, [renderedTerminalHeight])
   const onBrowserDrag = useCallback((dx: number) => {
-    setBrowserWidth(clamp(browserBase.current - dx, DESKTOP_BROWSER_MIN, browserMax))
-  }, [browserMax])
+    const next = browserBase.current - dx
+    if (next < DESKTOP_BROWSER_COLLAPSE_BELOW) { setBrowserOpen(false); return }
+    setBrowserWidth(next)
+  }, [])
   const onTerminalDrag = useCallback((dy: number) => {
     setTerminalHeight(clamp(terminalBase.current - dy, DESKTOP_TERMINAL_MIN, terminalMax))
   }, [terminalMax])
@@ -277,7 +279,7 @@ export function AppFrame({
       data-dragging={dragging || undefined}
     >
       <div className={css.sidebarCol}>
-        {/* Render-site slot call with live concession output: a closed
+        {/* Render-site slot call with live column-solve output: a closed
             sidebar keeps the mounted slot at the compact-rail width, and the
             component sees its rendered state as owner params decided here
             (collapsed follows the resolved rail, so a derived auto-collapse
@@ -301,15 +303,17 @@ export function AppFrame({
       </div>
       {/* The collapsed rail is fixed-width: no resize handle while closed. */}
       {/* Keyboard steps start from the rendered width like a drag does, so a
-          concession-clamped column does not jump: ArrowRight grows the sidebar
-          and ArrowLeft grows details, whose drag delta is inverted. */}
+          viewport-clamped column does not jump: ArrowRight grows the sidebar
+          and ArrowLeft grows details, whose drag delta is inverted. Neither
+          panel has a drag ceiling; min/max here are accessibility hints only
+          (the collapse threshold, and the room the current viewport allows). */}
       {!sidebarCollapsed && (
         <DragHandle
           side="sidebar"
           left={cols.sidebar}
           label="Resize sidebar"
-          min={SIDEBAR_MIN}
-          max={SIDEBAR_MAX}
+          min={SIDEBAR_COLLAPSE_BELOW}
+          max={viewport}
           value={cols.sidebar}
           onStart={onSidebarStart}
           onDrag={onSidebarDrag}
@@ -322,8 +326,8 @@ export function AppFrame({
           side="details"
           left={viewport - cols.details}
           label="Resize details panel"
-          min={DETAILS_MIN}
-          max={DETAILS_MAX}
+          min={DETAILS_COLLAPSE_BELOW}
+          max={viewport}
           value={cols.details}
           onStart={onDetailsStart}
           onDrag={onDetailsDrag}
@@ -370,7 +374,7 @@ export function AppFrame({
       data-terminal-open={terminalOpen || undefined}
       data-browser-expanded={browserExpanded || undefined}
     >
-      <DesktopTitleBar onAction={onTitleBarAction} sidebarOpen={!sidebarCollapsed}>
+      <DesktopTitleBar onAction={onTitleBarAction}>
         <DesktopPanelControls
           browserOpen={browserOpen}
           terminalOpen={terminalOpen}
@@ -408,13 +412,15 @@ export function AppFrame({
         <DragHandle
           side="browser"
           label="Resize right panel"
-          min={DESKTOP_BROWSER_MIN}
-          max={browserMax}
+          min={DESKTOP_BROWSER_COLLAPSE_BELOW}
+          max={desktopViewport.width}
           value={renderedBrowserWidth}
           onStart={onBrowserStart}
           onDrag={onBrowserDrag}
           onStep={(delta) => {
-            setBrowserWidth(clamp(renderedBrowserWidth + delta, DESKTOP_BROWSER_MIN, browserMax))
+            const next = renderedBrowserWidth + delta
+            if (next < DESKTOP_BROWSER_COLLAPSE_BELOW) { setBrowserOpen(false); return }
+            setBrowserWidth(next)
           }}
         />
       )}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { IconChevronLeftOutline14, IconChevronRightOutline14, IconPanelLeftOutline16 } from '@hydraharness/harness-client-ui-primitives'
+import { IconChevronLeftOutline14, IconChevronRightOutline14 } from '@hydraharness/harness-client-ui-primitives'
 import { Menu, Tooltip } from '@hydraharness/harness-client-ui-primitives'
 import type { MenuEntry } from '@hydraharness/harness-client-ui-primitives'
 import css from './DesktopTitleBar.module.css'
@@ -17,7 +17,6 @@ export interface DesktopTitleBarProps {
   onAction: (action: DesktopTitleBarAction) => void
   canGoBack?: boolean
   canGoForward?: boolean
-  sidebarOpen: boolean
   children?: ReactNode
 }
 
@@ -123,7 +122,7 @@ function TitleMenu(props: {
 }
 
 /** Desktop-only product bar; native window controls remain in Electron's overlay. */
-export function DesktopTitleBar({ onAction, canGoBack = false, canGoForward = false, sidebarOpen, children }: DesktopTitleBarProps) {
+export function DesktopTitleBar({ onAction, canGoBack = false, canGoForward = false, children }: DesktopTitleBarProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -164,11 +163,6 @@ export function DesktopTitleBar({ onAction, canGoBack = false, canGoForward = fa
         <Tooltip label="Forward" side="bottom">
           <button type="button" data-hydra-control="action" className={css.iconButton} aria-label="Forward" disabled={!canGoForward} onClick={() => { onAction('forward') }}>
             <IconChevronRightOutline14 />
-          </button>
-        </Tooltip>
-        <Tooltip label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'} side="bottom">
-          <button type="button" data-hydra-control="action" className={css.iconButton} aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'} aria-pressed={sidebarOpen} onClick={() => { onAction('toggle-sidebar') }}>
-            <IconPanelLeftOutline16 />
           </button>
         </Tooltip>
       </div>

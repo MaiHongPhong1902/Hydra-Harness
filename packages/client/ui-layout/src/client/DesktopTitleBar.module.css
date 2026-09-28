@@ -50,7 +50,6 @@
 .menuTrigger { padding: 0 10px; }
 
 .iconButton:hover:not(:disabled),
-.iconButton[aria-pressed='true'],
 .menuTrigger:hover,
 .menuTrigger[data-open='true'] {
   background: var(--dsw-alias-interactive-bg-hover);

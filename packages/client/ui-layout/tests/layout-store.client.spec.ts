@@ -1,15 +1,13 @@
 // @vitest-environment jsdom
 /**
- * createLayoutStore unit account: init shape, the action write set (clamp
- * inside actions), and the absence of browser persistence. Uses the
- * test-sanctioned path: factory self-call + .create() gives the
- * real engine instance (same create path as production).
+ * createLayoutStore unit account: init shape, the action write set (collapse
+ * threshold inside actions, otherwise the exact dragged width kept
+ * unclamped), and localStorage persistence across instances.
  */
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createLayoutStore } from '@hydraharness/harness-client-ui-layout/src/client/stores.ts'
 import {
-  DETAILS_DEFAULT, DETAILS_MAX, DETAILS_MIN,
-  SIDEBAR_DEFAULT, SIDEBAR_MAX, SIDEBAR_MIN,
+  DETAILS_COLLAPSE_BELOW, DETAILS_DEFAULT, SIDEBAR_COLLAPSE_BELOW, SIDEBAR_DEFAULT,
 } from '@hydraharness/harness-client-ui-layout/src/client/columns.ts'
 
 const PERSIST_KEY = 'hydra.layout.panels'
@@ -22,23 +20,20 @@ describe('createLayoutStore', () => {
     expect(store.getSnapshot()).toEqual({ sidebar: SIDEBAR_DEFAULT, details: 0, narrow: false, narrowExpanded: false })
   })
 
-  it('each create() is an independent instance (factory is not a singleton)', () => {
-    const a = createLayoutStore().create()
-    const b = createLayoutStore().create()
-    a.actions.setSidebar(400)
-    expect(b.store.getSnapshot().sidebar).toBe(SIDEBAR_DEFAULT)
+  it('setSidebar/setDetails keep the exact dragged width — no ceiling', () => {
+    const { store, actions } = createLayoutStore().create()
+    actions.setSidebar(900)
+    expect(store.getSnapshot().sidebar).toBe(900)
+    actions.setDetails(1200)
+    expect(store.getSnapshot().details).toBe(1200)
   })
 
-  it('setSidebar/setDetails clamp into the contract ranges', () => {
+  it('setSidebar/setDetails snap closed once the drag crosses the collapse threshold', () => {
     const { store, actions } = createLayoutStore().create()
-    actions.setSidebar(1)
-    expect(store.getSnapshot().sidebar).toBe(SIDEBAR_MIN)
-    actions.setSidebar(9999)
-    expect(store.getSnapshot().sidebar).toBe(SIDEBAR_MAX)
-    actions.setDetails(1)
-    expect(store.getSnapshot().details).toBe(DETAILS_MIN)
-    actions.setDetails(9999)
-    expect(store.getSnapshot().details).toBe(DETAILS_MAX)
+    actions.setSidebar(SIDEBAR_COLLAPSE_BELOW - 1)
+    expect(store.getSnapshot().sidebar).toBe(0)
+    actions.setDetails(DETAILS_COLLAPSE_BELOW - 1)
+    expect(store.getSnapshot().details).toBe(0)
   })
 
   it('toggleSidebar flips closed <-> contract default (drag width forgotten)', () => {
@@ -85,19 +80,18 @@ describe('createLayoutStore', () => {
     expect(store.getSnapshot().details).toBe(0)
   })
 
-  it('does not persist panel geometry', () => {
+  it('persists panel geometry and rehydrates a later instance from the same key', () => {
     const first = createLayoutStore().create()
     first.actions.setSidebar(400)
     first.actions.openDetails()
     first.actions.setDetails(500)
-    expect(localStorage.getItem(PERSIST_KEY)).toBeNull()
+    expect(JSON.parse(localStorage.getItem(PERSIST_KEY)!)).toEqual({
+      sidebar: 400, details: 500, narrow: false, narrowExpanded: false,
+    })
 
     const second = createLayoutStore().create()
     expect(second.store.getSnapshot()).toEqual({
-      sidebar: SIDEBAR_DEFAULT,
-      details: 0,
-      narrow: false,
-      narrowExpanded: false,
+      sidebar: 400, details: 500, narrow: false, narrowExpanded: false,
     })
   })
 })

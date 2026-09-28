@@ -137,6 +137,7 @@ function dragY(handle: Element, fromY: number, toY: number): void {
 }
 
 beforeEach(() => {
+  localStorage.clear()
   frameWidth = 1920
   window.innerHeight = 1080
   selectedSession.current = 's-test' as SessionId
@@ -325,15 +326,15 @@ describe('AppFrame', () => {
     const terminalHandle = view.getByRole('separator', { name: 'Resize Terminal panel' })
     drag(browserHandle, 800, 0)
     dragY(terminalHandle, 600, 0)
-    expect(browserHandle.getAttribute('aria-valuenow')).toBe('933')
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('1388')
     expect(terminalHandle.getAttribute('aria-valuenow')).toBe('450')
     drag(browserHandle, 0, 1000)
     dragY(terminalHandle, 0, 500)
-    expect(browserHandle.getAttribute('aria-valuenow')).toBe('420')
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('388')
     expect(terminalHandle.getAttribute('aria-valuenow')).toBe('240')
     fireEvent.keyDown(browserHandle, { key: 'ArrowLeft' })
     fireEvent.keyDown(terminalHandle, { key: 'ArrowUp', shiftKey: true })
-    expect(browserHandle.getAttribute('aria-valuenow')).toBe('428')
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('396')
     expect(terminalHandle.getAttribute('aria-valuenow')).toBe('272')
 
     fireEvent.click(view.getByRole('button', { name: 'Side chat' }))
@@ -359,7 +360,7 @@ describe('AppFrame', () => {
     fireEvent.click(view.getByLabelText('Expand right panel'))
     expect(shell.hasAttribute('data-browser-expanded')).toBe(false)
     expect(view.getByLabelText('Terminal', { selector: 'section' }).hasAttribute('hidden')).toBe(false)
-    expect(view.getByRole('separator', { name: 'Resize right panel' }).getAttribute('aria-valuenow')).toBe('428')
+    expect(view.getByRole('separator', { name: 'Resize right panel' }).getAttribute('aria-valuenow')).toBe('396')
     expect(view.getByRole('separator', { name: 'Resize Terminal panel' }).getAttribute('aria-valuenow')).toBe('272')
   })
 
@@ -373,11 +374,11 @@ describe('AppFrame', () => {
     fireEvent.click(view.getByLabelText('Toggle bottom terminal'))
     const terminalHandle = view.getByRole('separator', { name: 'Resize Terminal panel' })
 
-    expect(browserHandle.getAttribute('aria-valuemax')).toBe('1000')
+    expect(browserHandle.getAttribute('aria-valuemax')).toBe('1500')
     expect(terminalHandle.getAttribute('aria-valuemax')).toBe('500')
     drag(browserHandle, 1000, 0)
     dragY(terminalHandle, 700, 0)
-    expect(browserHandle.getAttribute('aria-valuenow')).toBe('1000')
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('1500')
     expect(terminalHandle.getAttribute('aria-valuenow')).toBe('500')
 
     act(() => {
@@ -385,9 +386,9 @@ describe('AppFrame', () => {
       window.innerHeight = 700
       window.dispatchEvent(new Event('resize'))
     })
-    expect(browserHandle.getAttribute('aria-valuemax')).toBe('666')
+    expect(browserHandle.getAttribute('aria-valuemax')).toBe('1000')
     expect(terminalHandle.getAttribute('aria-valuemax')).toBe('350')
-    expect(browserHandle.getAttribute('aria-valuenow')).toBe('666')
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('1000')
     expect(terminalHandle.getAttribute('aria-valuenow')).toBe('350')
 
     // The temporary viewport clamp must not overwrite the dimensions the user
@@ -397,7 +398,7 @@ describe('AppFrame', () => {
       window.innerHeight = 1000
       window.dispatchEvent(new Event('resize'))
     })
-    expect(browserHandle.getAttribute('aria-valuenow')).toBe('1000')
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('1500')
     expect(terminalHandle.getAttribute('aria-valuenow')).toBe('500')
   })
 
@@ -407,8 +408,8 @@ describe('AppFrame', () => {
     const sidebar = view.getByRole('separator', { name: 'Resize sidebar' })
     const details = view.getByRole('separator', { name: 'Resize details panel' })
     expect(sidebar.getAttribute('aria-orientation')).toBe('vertical')
-    expect(sidebar.getAttribute('aria-valuemin')).toBe('264')
-    expect(sidebar.getAttribute('aria-valuemax')).toBe('420')
+    expect(sidebar.getAttribute('aria-valuemin')).toBe('160')
+    expect(sidebar.getAttribute('aria-valuemax')).toBe('1920')
     expect(tracks(view.frame)).toEqual([280, 360])
     // ArrowRight grows the sidebar; ArrowLeft grows details, whose drag delta is inverted.
     fireEvent.keyDown(sidebar, { key: 'ArrowRight' })
@@ -416,13 +417,13 @@ describe('AppFrame', () => {
     expect(tracks(view.frame)).toEqual([288, 368])
     expect(sidebar.getAttribute('aria-valuenow')).toBe('288')
     expect(details.getAttribute('aria-valuenow')).toBe('368')
-    // Shift steps by 32 and the store clamps into the contract range.
+    // Shift steps by 32; no ceiling or floor kicks in yet, so it's exact arithmetic.
     fireEvent.keyDown(sidebar, { key: 'ArrowLeft', shiftKey: true })
     fireEvent.keyDown(details, { key: 'ArrowRight', shiftKey: true })
-    expect(tracks(view.frame)).toEqual([264, 336])
+    expect(tracks(view.frame)).toEqual([256, 336])
     // The cross-axis arrow is not a resize for a vertical separator.
     fireEvent.keyDown(sidebar, { key: 'ArrowUp' })
-    expect(tracks(view.frame)).toEqual([264, 336])
+    expect(tracks(view.frame)).toEqual([256, 336])
   })
 
   it('renders three tracks from store state', () => {
@@ -522,14 +523,17 @@ describe('AppFrame', () => {
     expect(tracks(frame)[1]).toBe(420)
   })
 
-  it('drag base is the rendered (concession-clamped) width, not the preference', () => {
-    frameWidth = 1250 // step-2 squeeze: details renders 330 while preference is 360
+  it('drag base is the rendered (viewport-clamped) width, not the preference', () => {
+    frameWidth = 1100 // above the auto-collapse breakpoint; sidebar 800 leaves only 300 for details
     const { frame, instance } = mountFrame()
-    act(() => { instance.actions.openDetails() })
-    expect(tracks(frame)).toEqual([280, 330])
+    act(() => {
+      instance.actions.setSidebar(800)
+      instance.actions.openDetails()
+    })
+    expect(tracks(frame)).toEqual([800, 300])
     const handles = frame.querySelectorAll('[class*="handle"]')
     drag(handles[1]!, 920, 930) // shrink by 10 from the rendered width
-    expect(instance.getSnapshot().details).toBe(320)
+    expect(instance.getSnapshot().details).toBe(290)
   })
 
   it('details column stays mounted at zero width', () => {
@@ -549,15 +553,18 @@ describe('AppFrame', () => {
     expect(lastSidebarCall.props).toEqual({ collapsed: true, width: SIDEBAR_COLLAPSED })
   })
 
-  it('viewport shrink triggers the concession chain via ResizeObserver', () => {
+  it('viewport shrink re-solves the details column via ResizeObserver; sidebar holds', () => {
     const { frame, instance } = mountFrame()
-    act(() => { instance.actions.openDetails() })
-    frameWidth = 1250
+    act(() => {
+      instance.actions.setSidebar(800)
+      instance.actions.openDetails()
+    })
+    frameWidth = 1100 // above the auto-collapse breakpoint; sidebar 800 leaves only 300 for details
     act(() => { fireResize?.(); vi.advanceTimersByTime(20) })
-    expect(tracks(frame)).toEqual([280, 330])
+    expect(tracks(frame)).toEqual([800, 300])
     frameWidth = 1920
     act(() => { fireResize?.(); vi.advanceTimersByTime(20) })
-    expect(tracks(frame)).toEqual([280, 360])
+    expect(tracks(frame)).toEqual([800, 360])
   })
 
   it('drag handles disappear for collapsed columns', () => {
@@ -681,6 +688,6 @@ describe('AppFrame — unmount with an in-flight resize frame', () => {
     act(() => { instance.actions.openDetails() })
     frameWidth = 1250
     act(() => { fireResize?.(); fireResize?.(); vi.advanceTimersByTime(20) })
-    expect(tracks(frame)).toEqual([280, 330])
+    expect(tracks(frame)).toEqual([280, 360])
   })
 })

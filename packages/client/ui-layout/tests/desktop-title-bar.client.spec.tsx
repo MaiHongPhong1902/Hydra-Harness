@@ -8,11 +8,11 @@ afterEach(cleanup)
 describe('DesktopTitleBar', () => {
   it('opens product menus and routes controls to stable actions', () => {
     const onAction = vi.fn()
-    render(<DesktopTitleBar onAction={onAction} sidebarOpen />)
+    render(<DesktopTitleBar onAction={onAction} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'File' }))
     fireEvent.click(screen.getByRole('menuitem', { name: /New Chat/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Hide sidebar' }))
+    fireEvent.keyDown(window, { key: 'b', ctrlKey: true })
     fireEvent.keyDown(window, { key: 'j', ctrlKey: true })
 
     expect(onAction).toHaveBeenNthCalledWith(1, 'new-chat')
@@ -23,7 +23,7 @@ describe('DesktopTitleBar', () => {
   it('renders trailing children before window controls overlay', () => {
     const onAction = vi.fn()
     render(
-      <DesktopTitleBar onAction={onAction} sidebarOpen>
+      <DesktopTitleBar onAction={onAction}>
         <button type="button">Custom Control</button>
       </DesktopTitleBar>,
     )
