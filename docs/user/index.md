@@ -78,6 +78,8 @@ Give an agent a workspace, a model, and the permissions it needs. Hydra keeps th
 
 ### From npm
 
+No tag has triggered [release-publish.yml](https://github.com/MaiHongPhong1902/Hydra-Harness/blob/main/.github/workflows/release-publish.yml) yet, so `@hydraharness/harness` is not on the npm registry and `npx` fails. Use [From source](#from-source) until the first release ships.
+
 ```sh
 npx @hydraharness/harness
 ```

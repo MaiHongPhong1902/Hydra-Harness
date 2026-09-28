@@ -43,6 +43,8 @@ pnpm run desktop
 
 ### Run from npm
 
+No tag has triggered [release-publish.yml](.github/workflows/release-publish.yml) yet, so `@hydraharness/harness` is not on the npm registry and `npx` fails. Use [Run from source](#run-from-source) until the first release ships.
+
 ```sh
 npx @hydraharness/harness
 ```
