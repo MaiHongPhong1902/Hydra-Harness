@@ -42,7 +42,7 @@
     "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "@agentclientprotocol/sdk": "0.25.1",
+    "@agentclientprotocol/sdk": "1.4.0",
     "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
