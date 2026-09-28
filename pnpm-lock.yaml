@@ -6313,7 +6313,7 @@ importers:
     dependencies:
       '@earendil-works/pi-ai':
         specifier: ^0.82.1
-        version: 0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.29.0(zod@4.5.1))(ws@8.21.0)(zod@4.5.1)
+        version: 0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))(ws@8.21.0)(zod@4.5.1)
       '@hydraharness/schemastery':
         specifier: link:../../../vendor/schemastery
         version: link:../../../vendor/schemastery
@@ -6405,7 +6405,7 @@ importers:
     dependencies:
       '@earendil-works/pi-ai':
         specifier: ^0.82.1
-        version: 0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.29.0(zod@4.6.4))(ws@8.21.3)(zod@4.6.4)
+        version: 0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.30.0(zod@4.6.4))(ws@8.21.3)(zod@4.6.4)
       '@hydraharness/schemastery':
         specifier: link:../../../vendor/schemastery
         version: link:../../../vendor/schemastery
@@ -6665,8 +6665,8 @@ importers:
         specifier: workspace:^
         version: link:../../core/tools
       '@modelcontextprotocol/server-everything':
-        specifier: ^2026.7.4
-        version: 2026.7.4
+        specifier: ^2026.8.18
+        version: 2026.8.18
       '@modelcontextprotocol/server-filesystem':
         specifier: ^2026.7.4
         version: 2026.7.10(zod@4.4.3)
@@ -11131,6 +11131,12 @@ packages:
     peerDependencies:
       hono: ^4
 
+  '@hono/node-server@2.1.1':
+    resolution: {integrity: sha512-ELuehkj5VCBdgEw9zs+ivkKwyzzUCSQuE96YmiPvn1ECBoZCczbFXJLeEGMTYjphP6gydh4pHMqEYPVMYUVgQg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      hono: ^4
+
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
     engines: {node: '>=18.18.0'}
@@ -11455,8 +11461,18 @@ packages:
       '@cfworker/json-schema':
         optional: true
 
-  '@modelcontextprotocol/server-everything@2026.7.4':
-    resolution: {integrity: sha512-ydMW/M6rk9tK23b+U38trsNLHhd5eF+ntiv2Vr+RPMDhbiKY/IKrZU25ukvSXVPUBvy7TxTPWpeV4KcYcXg72w==}
+  '@modelcontextprotocol/sdk@1.30.0':
+    resolution: {integrity: sha512-xKd8OIzlqNzcqcNumGAa6g+PW2kjD5vrpcKOnfldAUPP3j7lnqMPwlTXQm8gF+UwH72z0lqaRbjr9hqGz0eITA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@cfworker/json-schema': ^4.1.1
+      zod: ^3.25 || ^4.0
+    peerDependenciesMeta:
+      '@cfworker/json-schema':
+        optional: true
+
+  '@modelcontextprotocol/server-everything@2026.8.18':
+    resolution: {integrity: sha512-sBW2l6uMa9ii78QixTKjXgNSv/Ad6LB8cTGBApJMytHe+VCufLQyME55JbLl/0+fcLmcx93wsZ6ce+0aOF8YXA==}
     hasBin: true
 
   '@modelcontextprotocol/server-filesystem@2026.7.10':
@@ -13648,6 +13664,10 @@ packages:
     resolution: {integrity: sha512-kJezFj9YFAMLeORyi7aCLxLbD5/qWMQnoMVlVPyHIll7lgRJCc3JVln9Vgl9nwQi0YkMnhdGTMNn7CkRRAptMg==}
     engines: {node: '>=18.0.0'}
 
+  eventsource-parser@3.1.1:
+    resolution: {integrity: sha512-EKN1vKAMcZ8MlYMpaNuxN6R9yakzH6uajHcHVTqWJzvu5pWw9DyhbP35HH8MVBQ+dZjAfDxk+A8NiR9KWaXiyQ==}
+    engines: {node: '>=18.0.0'}
+
   eventsource@3.0.7:
     resolution: {integrity: sha512-CRT1WTyuQoD771GW56XEZFQ/ZoSfWid1alKGDYMmkt2yl8UXrVR4pspqWNEcqKvVIzg6PAltWjxcSSPrboA4iA==}
     engines: {node: '>=18.0.0'}
@@ -13662,6 +13682,12 @@ packages:
 
   express-rate-limit@8.5.2:
     resolution: {integrity: sha512-5Kb34ipNX694DH48vN9irak1Qx30nb0PLYHXfJgw4YEjiC3ZEmZJhwOp+VfiCYwFzvFTdB9QkArYS5kXa2cx2A==}
+    engines: {node: '>= 16'}
+    peerDependencies:
+      express: '>= 4.11'
+
+  express-rate-limit@8.7.0:
+    resolution: {integrity: sha512-hOwV7WOxXfjRpAM1DSJWZDXx3GhplwD8IfwuwvogD8i1Qnkgosw/H45s4ZnFAUHDAhPjlY9hLBvJhKmGMyY26g==}
     engines: {node: '>= 16'}
     peerDependencies:
       express: '>= 4.11'
@@ -13875,6 +13901,10 @@ packages:
     resolution: {integrity: sha512-1hNiRjawYrLq/4m3DQQjPGFg0VZkk4RjQJDff/excI6Dm9BiL75qxGrd7/c6YOxPdq6AscP3LiXhQ6fKFC1Waw==}
     engines: {node: '>=16.9.0'}
 
+  hono@4.13.5:
+    resolution: {integrity: sha512-O6+/eCYRkzzzy0rPWwKLiGBR1nFuUPZynnwjxN1MBA62NNqbT0wQEzQyK2gSO5yDIDB336sXQleAhOHrzlYyKw==}
+    engines: {node: '>=16.9.0'}
+
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
 
@@ -13948,6 +13978,10 @@ packages:
 
   ip-address@10.2.0:
     resolution: {integrity: sha512-/+S6j4E9AHvW9SWMSEY9Xfy66O5PWvVEJ08O0y5JGyEKQpojb0K0GKpz/v5HJ/G0vi3D2sjGK78119oXZeE0qA==}
+    engines: {node: '>= 12'}
+
+  ip-address@10.7.0:
+    resolution: {integrity: sha512-BGFsyJd5mpXp3rK6jIdADLNgpJUK1jnjzvYF8lK+VyDab9JAmqN0YOKDdP17HlgKb2+ehPgDc8EtnRLbGCAMhA==}
     engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
@@ -14034,6 +14068,9 @@ packages:
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
+
+  jose@6.2.10:
+    resolution: {integrity: sha512-iiW7J9qRFlGxvCOIBDBDxFePQSn7ZMAnrYGhrrOo6siO/MIqwfyilLR27pkfDgUk+raLuzADS8A3S/KLBisc0g==}
 
   jose@6.2.3:
     resolution: {integrity: sha512-YYVDInQKFJfR/xa3ojUTl8c2KoTwiL1R5Wg9YCydwH0x0B9grbzlg5HC7mMjCtUJjbQ/YnGEZIhI5tCgfTb4Hw==}
@@ -15836,6 +15873,9 @@ packages:
   zod@4.5.1:
     resolution: {integrity: sha512-P3GqeAEOEDqKvafVGLezbg+39YW/ze4xrD4qdS0adOY8eoI3zfjv1PQM4UwQzgT8mZKXEbqtVt8K+ZKGqkMFKg==}
 
+  zod@4.5.4:
+    resolution: {integrity: sha512-sC95tT5iHHH9gtpj6A81kh+NEaRAUFN+qlUPDUbRfOMvNf5QCBqsb3WgvnpVtK5Y+4UfA6KqufotuTvMGiTlsA==}
+
   zod@4.6.4:
     resolution: {integrity: sha512-AXSD6hvGdvRjajG/l1cC+d6IrhH+sjmPKtYeQdJIK8MFJl3LyClzS+o/YsVC+zQZPupAaeH5skwwm8YqYH7BqA==}
 
@@ -16492,11 +16532,11 @@ snapshots:
     transitivePeerDependencies:
       - '@algolia/client-search'
 
-  '@earendil-works/pi-ai@0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.29.0(zod@4.5.1))(ws@8.21.0)(zod@4.5.1)':
+  '@earendil-works/pi-ai@0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))(ws@8.21.0)(zod@4.5.1)':
     dependencies:
       '@anthropic-ai/sdk': 0.91.1(zod@4.5.1)
       '@aws-sdk/client-bedrock-runtime': 3.1048.0
-      '@google/genai': 1.52.0(@modelcontextprotocol/sdk@1.29.0(zod@4.5.1))
+      '@google/genai': 1.52.0(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))
       '@mistralai/mistralai': 2.2.6(@opentelemetry/api@1.9.0)
       '@opentelemetry/api': 1.9.0
       '@smithy/node-http-handler': 4.7.3
@@ -16513,11 +16553,11 @@ snapshots:
       - ws
       - zod
 
-  '@earendil-works/pi-ai@0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.29.0(zod@4.6.4))(ws@8.21.3)(zod@4.6.4)':
+  '@earendil-works/pi-ai@0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.30.0(zod@4.6.4))(ws@8.21.3)(zod@4.6.4)':
     dependencies:
       '@anthropic-ai/sdk': 0.91.1(zod@4.6.4)
       '@aws-sdk/client-bedrock-runtime': 3.1048.0
-      '@google/genai': 1.52.0(@modelcontextprotocol/sdk@1.29.0(zod@4.6.4))
+      '@google/genai': 1.52.0(@modelcontextprotocol/sdk@1.30.0(zod@4.6.4))
       '@mistralai/mistralai': 2.2.6(@opentelemetry/api@1.9.0)
       '@opentelemetry/api': 1.9.0
       '@smithy/node-http-handler': 4.7.3
@@ -16848,27 +16888,27 @@ snapshots:
 
   '@exodus/bytes@1.15.1': {}
 
-  '@google/genai@1.52.0(@modelcontextprotocol/sdk@1.29.0(zod@4.5.1))':
+  '@google/genai@1.52.0(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))':
     dependencies:
       google-auth-library: 10.7.0
       p-retry: 4.6.2
       protobufjs: 7.6.4
       ws: 8.21.0
     optionalDependencies:
-      '@modelcontextprotocol/sdk': 1.29.0(zod@4.5.1)
+      '@modelcontextprotocol/sdk': 1.30.0(zod@4.5.4)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
       - utf-8-validate
 
-  '@google/genai@1.52.0(@modelcontextprotocol/sdk@1.29.0(zod@4.6.4))':
+  '@google/genai@1.52.0(@modelcontextprotocol/sdk@1.30.0(zod@4.6.4))':
     dependencies:
       google-auth-library: 10.7.0
       p-retry: 4.6.2
       protobufjs: 7.6.4
       ws: 8.21.0
     optionalDependencies:
-      '@modelcontextprotocol/sdk': 1.29.0(zod@4.6.4)
+      '@modelcontextprotocol/sdk': 1.30.0(zod@4.6.4)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -16877,6 +16917,10 @@ snapshots:
   '@hono/node-server@1.19.14(hono@4.12.29)':
     dependencies:
       hono: 4.12.29
+
+  '@hono/node-server@2.1.1(hono@4.13.5)':
+    dependencies:
+      hono: 4.13.5
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -17112,8 +17156,8 @@ snapshots:
     dependencies:
       '@opentelemetry/semantic-conventions': 1.43.0
       ws: 8.21.0
-      zod: 4.5.1
-      zod-to-json-schema: 3.25.2(zod@4.5.1)
+      zod: 4.5.4
+      zod-to-json-schema: 3.25.2(zod@4.5.4)
     optionalDependencies:
       '@opentelemetry/api': 1.9.0
     transitivePeerDependencies:
@@ -17144,43 +17188,42 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@modelcontextprotocol/sdk@1.29.0(zod@4.5.1)':
+  '@modelcontextprotocol/sdk@1.30.0(zod@4.5.4)':
     dependencies:
-      '@hono/node-server': 1.19.14(hono@4.12.29)
+      '@hono/node-server': 2.1.1(hono@4.13.5)
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       content-type: 1.0.5
       cors: 2.8.6
       cross-spawn: 7.0.6
       eventsource: 3.0.7
-      eventsource-parser: 3.1.0
+      eventsource-parser: 3.1.1
       express: 5.2.1
-      express-rate-limit: 8.5.2(express@5.2.1)
-      hono: 4.12.29
-      jose: 6.2.3
+      express-rate-limit: 8.7.0(express@5.2.1)
+      hono: 4.13.5
+      jose: 6.2.10
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 4.5.1
-      zod-to-json-schema: 3.25.2(zod@4.5.1)
+      zod: 4.5.4
+      zod-to-json-schema: 3.25.2(zod@4.5.4)
     transitivePeerDependencies:
       - supports-color
-    optional: true
 
-  '@modelcontextprotocol/sdk@1.29.0(zod@4.6.4)':
+  '@modelcontextprotocol/sdk@1.30.0(zod@4.6.4)':
     dependencies:
-      '@hono/node-server': 1.19.14(hono@4.12.29)
+      '@hono/node-server': 2.1.1(hono@4.13.5)
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       content-type: 1.0.5
       cors: 2.8.6
       cross-spawn: 7.0.6
       eventsource: 3.0.7
-      eventsource-parser: 3.1.0
+      eventsource-parser: 3.1.1
       express: 5.2.1
-      express-rate-limit: 8.5.2(express@5.2.1)
-      hono: 4.12.29
-      jose: 6.2.3
+      express-rate-limit: 8.7.0(express@5.2.1)
+      hono: 4.13.5
+      jose: 6.2.10
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
@@ -17190,13 +17233,13 @@ snapshots:
       - supports-color
     optional: true
 
-  '@modelcontextprotocol/server-everything@2026.7.4':
+  '@modelcontextprotocol/server-everything@2026.8.18':
     dependencies:
-      '@modelcontextprotocol/sdk': 1.29.0(zod@4.4.3)
+      '@modelcontextprotocol/sdk': 1.30.0(zod@4.5.4)
       cors: 2.8.6
       express: 5.2.1
       jszip: 3.10.1
-      zod: 4.4.3
+      zod: 4.5.4
     transitivePeerDependencies:
       - '@cfworker/json-schema'
       - supports-color
@@ -19216,6 +19259,8 @@ snapshots:
 
   eventsource-parser@3.1.0: {}
 
+  eventsource-parser@3.1.1: {}
+
   eventsource@3.0.7:
     dependencies:
       eventsource-parser: 3.1.0
@@ -19242,6 +19287,14 @@ snapshots:
     dependencies:
       express: 5.2.1
       ip-address: 10.2.0
+
+  express-rate-limit@8.7.0(express@5.2.1):
+    dependencies:
+      debug: 4.4.3
+      express: 5.2.1
+      ip-address: 10.7.0
+    transitivePeerDependencies:
+      - supports-color
 
   express@5.2.1:
     dependencies:
@@ -19514,6 +19567,8 @@ snapshots:
 
   hono@4.12.29: {}
 
+  hono@4.13.5: {}
+
   hookable@5.5.3: {}
 
   hookable@6.1.1: {}
@@ -19580,6 +19635,8 @@ snapshots:
 
   ip-address@10.2.0: {}
 
+  ip-address@10.7.0: {}
+
   ipaddr.js@1.9.1: {}
 
   is-docker@3.0.0: {}
@@ -19642,6 +19699,8 @@ snapshots:
       '@isaacs/cliui': 9.0.0
 
   jiti@2.7.0: {}
+
+  jose@6.2.10: {}
 
   jose@6.2.3: {}
 
@@ -21730,9 +21789,9 @@ snapshots:
     dependencies:
       zod: 4.4.3
 
-  zod-to-json-schema@3.25.2(zod@4.5.1):
+  zod-to-json-schema@3.25.2(zod@4.5.4):
     dependencies:
-      zod: 4.5.1
+      zod: 4.5.4
 
   zod-to-json-schema@3.25.2(zod@4.6.4):
     dependencies:
@@ -21742,6 +21801,8 @@ snapshots:
   zod@4.4.3: {}
 
   zod@4.5.1: {}
+
+  zod@4.5.4: {}
 
   zod@4.6.4:
     optional: true

@@ -53,7 +53,7 @@
     "@hydraharness/harness-subprocess": "workspace:^",
     "@hydraharness/harness-timeout": "workspace:^",
     "@hydraharness/harness-tools": "workspace:^",
-    "@modelcontextprotocol/server-everything": "^2026.7.4",
+    "@modelcontextprotocol/server-everything": "^2026.8.18",
     "@modelcontextprotocol/server-filesystem": "^2026.7.4",
     "@hydraharness/cordis": "workspace:^"
   }
