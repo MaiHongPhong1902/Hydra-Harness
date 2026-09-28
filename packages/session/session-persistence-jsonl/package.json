@@ -43,7 +43,7 @@
     "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "koffi": "^3.1.0",
+    "koffi": "^3.1.6",
     "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {

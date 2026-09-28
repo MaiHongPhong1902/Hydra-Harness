@@ -39,7 +39,7 @@
   "dependencies": {
     "@hydraharness/harness-host-directory-picker": "workspace:^",
     "@hydraharness/harness-native-command": "workspace:^",
-    "koffi": "^3.1.0"
+    "koffi": "^3.1.6"
   },
   "peerDependencies": {
     "@hydraharness/harness-invariants": "workspace:^",
