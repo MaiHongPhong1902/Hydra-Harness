@@ -77,7 +77,7 @@
           - progressbar "5 hour usage limit"
         - region "Claude and GPT models":
           - heading "Claude and GPT models" [level=4]
-          - text: Weekly usage limit Resets 1/17/2027, {{clock}} 600 remaining
+          - text: Weekly usage limit Resets 1/16/2027, {{clock}} 600 remaining
           - strong: 60% left
           - progressbar "Weekly usage limit"
           - text: 5 hour usage limit Resets 1/17/2027, {{clock}} 880 remaining
