@@ -1338,6 +1338,9 @@ importers:
       '@hydraharness/harness-obsidian-knowledge':
         specifier: workspace:^
         version: link:../../knowledge/obsidian-knowledge
+      '@hydraharness/harness-page-memory':
+        specifier: workspace:^
+        version: link:../../knowledge/page-memory
       '@hydraharness/harness-permission-presets':
         specifier: workspace:^
         version: link:../../interaction/permission-presets

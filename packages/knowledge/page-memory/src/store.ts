@@ -1,7 +1,7 @@
 /** Bounded, scoped page workflows backed by one owned SQLite database. */
 
 import { lstat, mkdir, open as openFile } from 'node:fs/promises'
-import { DatabaseSync } from 'node:sqlite'
+import type { DatabaseSync } from 'node:sqlite'
 import { resolve, join } from 'node:path'
 import { z } from 'zod'
 import type { MemoryTraceOutcome, WorkflowTrace } from './types.ts'
@@ -190,7 +190,7 @@ export class PageMemoryStore {
   private readonly directory: string
   private readonly databasePath: string
   private readonly limits: PageMemoryStoreLimits
-  private readonly ready: Promise<DatabaseSync>
+  private openPromise: Promise<DatabaseSync> | undefined
   private closed = false
   private closing: Promise<void> | undefined
 
@@ -206,8 +206,15 @@ export class PageMemoryStore {
     this.directory = resolve(directory)
     this.databasePath = join(this.directory, DATABASE_NAME)
     this.limits = { ...limits }
-    this.ready = openDatabase(this.directory, this.databasePath)
-    this.ready.catch(() => {})
+  }
+
+  /**
+   * Opens on first access, not construction: mounting this store (page-memory's
+   * plugin apply()) must not pay Node's `node:sqlite` experimental warning or
+   * create a database file for a session that never calls a page-memory tool.
+   */
+  private get ready(): Promise<DatabaseSync> {
+    return this.openPromise ??= openDatabase(this.directory, this.databasePath)
   }
 
   /** Resolve after the database has been created and its owned schema checked.
@@ -349,10 +356,15 @@ export class PageMemoryStore {
     }
   }
 
-  /** Close the SQLite handle; repeated calls share one completion.
+  /** Close the SQLite handle; repeated calls share one completion. A store
+   * never opened (no page-memory call this session) closes without opening one.
    * @returns Completion after the handle is closed.
    */
   close(): Promise<void> {
+    if (this.openPromise === undefined) {
+      this.closed = true
+      return Promise.resolve()
+    }
     this.closing ??= this.ready.then((db) => {
       /* v8 ignore next -- The memoized closing promise runs this callback once. */
       if (!this.closed) {
@@ -429,6 +441,10 @@ export class PageMemoryStore {
 async function openDatabase(directory: string, databasePath: string): Promise<DatabaseSync> {
   await ensurePrivateDirectory(directory)
   await ensureDatabaseFile(databasePath)
+  // Deferred: importing `node:sqlite` prints Node's experimental-feature
+  // warning, which every hydra process would otherwise pay for at startup
+  // now that this plugin mounts by default (see cordis.patch.yml).
+  const { DatabaseSync } = await import('node:sqlite')
   const db = new DatabaseSync(databasePath)
   try {
     db.exec('PRAGMA foreign_keys = ON')

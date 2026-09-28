@@ -80,8 +80,10 @@ async function bootWeb(
     { id: 'web-runtime', disabled: true },
     { id: 'session-telemetry-otel', disabled: true },
     // Keep this composition assertion focused on the shipped preset catalog;
-    // browser and Obsidian tools are independent opt-in host integrations.
+    // browser, Obsidian, and page-memory tools are independent opt-in host
+    // integrations.
     { id: 'obsidian-knowledge', disabled: true },
+    { id: 'page-memory', disabled: true },
     { id: 'tool-web', config: { fetch: false, searchTimeoutMs: 60000 } },
     // A deployment-level skill on the host registry's GLOBAL layer — the same
     // registration shape a repository plugin's skill root uses. The layered

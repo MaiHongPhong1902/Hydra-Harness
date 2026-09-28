@@ -246,9 +246,10 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   const storageDir = config.storageDir ?? join(resolveHydraHome(), 'page-memory')
   if (!isAbsolute(storageDir)) throw new Error('page-memory: storageDir must be absolute')
   const directory = join(storageDir, createHash('sha256').update(JSON.stringify(namespace)).digest('hex'))
+  // Construction is cheap; opening (and the node:sqlite import it triggers)
+  // is deferred to the store's own first use by a tool call or recall hook.
   const store = new PageMemoryStore(directory, limits)
   ctx.effect(() => () => store.close())
-  await store.open()
   const turns = new WeakMap<Agent, TurnMemory>()
 
   function state(agent: Agent): TurnMemory {

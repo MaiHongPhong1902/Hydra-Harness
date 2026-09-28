@@ -544,6 +544,20 @@
     - id: obsidian-knowledge
       name: '@hydraharness/harness-obsidian-knowledge'
 
+    # Verified per-page task guidance in private SQLite, scoped to this
+    # workspace. Dormant by default: a role is an operator's own vocabulary
+    # for their deployment (order-operator, support-agent, ...), so there is
+    # no neutral default to mount unconditionally. Setting HYDRA_PAGE_MEMORY_ROLE
+    # opts in; Settings → Plugins overrides role/locale/storageDir afterward,
+    # taking effect after a restart.
+    - id: page-memory
+      name: '@hydraharness/harness-page-memory'
+      disabled: !!js process.env.HYDRA_PAGE_MEMORY_ROLE === undefined
+      config:
+        workspaceDir: !!js process.cwd()
+        role: !!js process.env.HYDRA_PAGE_MEMORY_ROLE ?? ''
+        locale: !!js process.env.HYDRA_PAGE_MEMORY_LOCALE ?? 'en-US'
+
     # ── rows every mode mounts, whose values each overlay may state ──────────────
 
     # The tool registry. Presentation mode is a deployment choice; omitting it here
