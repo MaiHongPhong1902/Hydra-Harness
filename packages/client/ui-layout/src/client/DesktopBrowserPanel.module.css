@@ -244,7 +244,7 @@
   cursor: wait;
 }
 
-@container desktop-panel (max-width: 570px) {
+@container desktop-panel (max-width: 720px) {
   .options .optionText {
     display: none;
   }
