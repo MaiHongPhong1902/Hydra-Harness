@@ -1057,7 +1057,7 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'browser_find',
-    description: 'Search the accessibility tree for text or regex. Returns matching snippets with observed refs and ancestor context, without a trailing page snapshot.',
+    description: 'Search the accessibility tree for text or regex. Returns each matched node with observed ref and its own contents, plus its enclosing iframe (labeled with origin) when nested inside one, without a trailing page snapshot.',
     parameters: {
       text: { type: 'string', description: 'Case-insensitive text to find; provide text or regex.' },
       regex: { type: 'string', description: 'Regular expression, optionally /pattern/i.' },

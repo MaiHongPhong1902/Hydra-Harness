@@ -63,6 +63,7 @@ const MAX_CDP_EVENT_RESULTS = 100
 const MAX_CDP_EVENT_ENTRIES = 1_000
 const MAX_CDP_EVENT_BYTES = 64 * 1_024
 const MAX_CDP_EVENT_RING_BYTES = 4 * 1_024 * 1_024
+const MAX_IFRAME_ANNOTATE_DEPTH = 8
 const CDP_METHOD = /^[A-Za-z][A-Za-z0-9]*\.[A-Za-z][A-Za-z0-9]*$/u
 const CROSS_TARGET_CDP_DOMAINS = new Set(['Browser', 'SystemInfo', 'Target', 'Tethering'])
 
@@ -683,11 +684,50 @@ function boundedDiagnostic(text) {
   return text.length <= MAX_CDP_EVENT_BYTES ? text : `${text.slice(0, MAX_CDP_EVENT_BYTES)}\n(Output truncated at the diagnostic retention limit.)`
 }
 
+const IFRAME_LINE = /^(\s*)- iframe\b.*\[ref=((?:f\d+)?e\d+)\](:)?\s*$/u
+
+/**
+ * Label every "- iframe [ref=...]" boundary with the origin its `src`
+ * attribute names, so several same-shaped embeds from different platforms
+ * (a payment widget, a video embed, a consent frame) stay distinguishable.
+ * Reads the DOM attribute directly rather than the resolved Frame's own
+ * `url()`, which lags for a target Hydra's CDP bridge has not fully attached
+ * to. Also splices a frame's own snapshot in when Playwright's own composed
+ * text left the boundary childless, a defensive fallback in case its
+ * recursive composition does not cover a given case.
+ */
+async function annotateIframes(page, lines, options, depthSoFar = 0) {
+  const out = []
+  for (const line of lines) {
+    const match = IFRAME_LINE.exec(line)
+    if (!match) { out.push(line); continue }
+    const [, indent, ref, hasChildren] = match
+    const bare = line.replace(/:\s*$/u, '')
+    const element = await nativeLocator(page, { target: ref }).elementHandle().catch(() => undefined)
+    const src = await element?.evaluate(node => node.getAttribute('src')).catch(() => undefined)
+    const origin = typeof src === 'string' ? httpOrigin(src) : undefined
+    const labeled = origin === undefined ? bare : `${bare} (${origin})`
+    const atDepthLimit = depthSoFar >= (options.depth ?? MAX_IFRAME_ANNOTATE_DEPTH)
+    const frame = hasChildren || atDepthLimit || element === undefined ? undefined : await element.contentFrame().catch(() => undefined)
+    await element?.dispose()
+    if (hasChildren || !frame) {
+      out.push(hasChildren ? `${labeled}:` : labeled)
+      continue
+    }
+    const child = await frame.locator('body,frameset').ariaSnapshot({ mode: 'ai', depth: options.depth, boxes: options.boxes }).catch(() => '')
+    if (!child.trim()) { out.push(labeled); continue }
+    out.push(`${labeled}:`)
+    const nested = await annotateIframes(page, child.split('\n'), options, depthSoFar + 1)
+    out.push(...nested.map(childLine => `${indent}  ${childLine}`))
+  }
+  return out
+}
+
 /** Preserve Hydra's password redaction in upstream distilled snapshots, including file output. */
 async function distilledSnapshot(page, options = {}) {
   const source = options.target === undefined ? page : nativeLocator(page, { target: options.target })
   const snapshot = await source.ariaSnapshot({ mode: 'ai', depth: options.depth, boxes: options.boxes })
-  const lines = snapshot.split('\n')
+  const lines = await annotateIframes(page, snapshot.split('\n'), options)
   for (let index = 0; index < lines.length; index++) {
     // Playwright keys have an optional JSON-quoted name, state brackets, and optional YAML quoting.
     const key = /^(\s*- '?[\w-]+(?: "(?:[^"\\]|\\.)*")?(?: \[[^\]]+\])*'?):.+$/u.exec(lines[index])
@@ -729,11 +769,23 @@ async function nativePageAction(tab, method, args, signal) {
       const matches = lines.flatMap((line, index) => (pattern ? pattern.test(line) : line.toLowerCase().includes(text.toLowerCase())) ? [index] : [])
       const selected = new Set()
       for (const index of matches) {
-        for (let i = Math.max(0, index - 1); i <= Math.min(lines.length - 1, index + 1); i++) selected.add(i)
-        let indent = lines[index].search(/\S/u)
-        for (let i = index - 1; i >= 0 && indent > 0; i--) {
+        selected.add(index)
+        const indent = lines[index].search(/\S/u)
+        // The matched node's own subtree, so a matched container shows what it holds.
+        for (let i = index + 1; i < lines.length; i++) {
+          const childIndent = lines[i].search(/\S/u)
+          if (childIndent >= 0 && childIndent <= indent) break
+          selected.add(i)
+        }
+        // Only the nearest enclosing iframe, so a match inside an embed still
+        // names its platform without the full ancestor breadcrumb.
+        let ancestorIndent = indent
+        for (let i = index - 1; i >= 0 && ancestorIndent > 0; i--) {
           const parentIndent = lines[i].search(/\S/u)
-          if (parentIndent >= 0 && parentIndent < indent) { selected.add(i); indent = parentIndent }
+          if (parentIndent >= 0 && parentIndent < ancestorIndent) {
+            ancestorIndent = parentIndent
+            if (/^\s*- iframe\b/u.test(lines[i])) { selected.add(i); break }
+          }
         }
       }
       const snippets = [...selected].sort((a, b) => a - b).map(i => lines[i]).join('\n')
@@ -2865,7 +2917,7 @@ async function handleCommand(method, args, signal) {
       const modifierNames = { Control: 'control', Ctrl: 'control', Alt: 'alt', Shift: 'shift', Meta: 'meta', ControlOrMeta: process.platform === 'darwin' ? 'meta' : 'control' }
       if (!keyCode || parts.some(part => !Object.hasOwn(modifierNames, part))) throw new Error('invalid keyboard chord')
       const modifiers = parts.map(part => modifierNames[part])
-      contents.focus()
+      if (!contents.isFocused()) contents.focus()
       for (const type of modifiers.length === 0 ? ['keyDown', 'char', 'keyUp'] : ['keyDown', 'keyUp']) {
         contents.sendInputEvent({ type, keyCode, modifiers })
       }

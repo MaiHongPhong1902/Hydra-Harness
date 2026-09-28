@@ -149,6 +149,8 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
         response.setHeader('content-disposition', 'attachment; filename="browser-artifact.txt"')
         response.flushHeaders()
         setTimeout(() => { response.end('browser download fixture') }, 500)
+      } else if (request.url === '/iframe-widget') {
+        response.end('<!doctype html><title>Widget host</title><button id="inner-beta">Inner control Beta</button>')
       } else if (request.url === '/media-frame-host') {
         response.end(`<!doctype html><title>Media host</title><output id="media-events"></output><script>addEventListener('message', event => { document.querySelector('#media-events').textContent += event.data + ',' })</script><iframe allow="camera; microphone" src="${crossOrigin}/media-frame"></iframe>`)
       } else if (request.url === '/media-frame') {
@@ -490,6 +492,46 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(filtered.message).toContain('form.html')
     expect(await child.call('network_requests', { includeStatic: true, filter: 'impossible-url' })).toMatchObject({ message: 'No retained network requests.' })
     await expect(child.call('network_requests', { filter: '[' })).rejects.toThrow()
+  }, 60_000)
+
+  it('finds the exact matched node and labels iframe boundaries with their origin', async () => {
+    const before = await child.call('get_browser_state', {}) as BrowserState
+    expect(await child.call('open_new_tab', { url: fixture })).toMatchObject({ success: true })
+    const opened = await child.call('get_browser_state', { waitForReady: true }) as BrowserState
+    const tabId = opened.activeTabId
+    try {
+      // A fresh tab, so the content below (including both iframes) exists
+      // before the first native Playwright action connects: a frame attached
+      // only after that connection needs Target-domain auto-attach this
+      // bridge does not forward to Electron's debugger, a pre-existing
+      // limitation of connectPlaywrightPage shared by the documented iframe
+      // selector chaining, not something this change introduces or fixes.
+      await child.call('execute_javascript', { tabId, script: `
+        document.body.insertAdjacentHTML('beforeend', '<div role="group" aria-label="Outer group"><div role="group" aria-label="Middle group"><div role="group" aria-label="Findable group"><button id="precise-target">Precise target</button><span role="note">Precise target detail</span></div></div></div><iframe title="Widget Alpha" srcdoc="<button id=inner-alpha>Inner control Alpha</button>"></iframe><iframe title="Widget Beta" src="${crossOrigin}/iframe-widget"></iframe>');
+      ` })
+
+      const precise = await child.call('find_element', { tabId, text: 'Precise target' }) as ActionResult
+      expect(precise.success).toBe(true)
+      expect(precise.message).toContain('Precise target detail')
+      expect(precise.message).not.toContain('Outer group')
+      expect(precise.message).not.toContain('Middle group')
+      expect(precise.message).not.toContain('Findable group')
+
+      const sameOriginFrame = await child.call('find_element', { tabId, text: 'Inner control Alpha' }) as ActionResult
+      expect(sameOriginFrame.success).toBe(true)
+      expect(sameOriginFrame.message).toMatch(/\[ref=(?:f\d+)?e\d+\]/)
+
+      // The origin label reads the <iframe> tag's own `src` attribute, so it
+      // does not depend on Chromium actually attaching the cross-origin frame
+      // (a pre-existing, load-dependent limitation of connectPlaywrightPage's
+      // Target-domain handling shared by the documented iframe selector
+      // chaining, not something this change introduces or fixes).
+      const snapshot = await child.call('get_browser_state', { tabId, snapshot: {} }) as BrowserState
+      expect(snapshot.content).toContain(`(${crossOrigin})`)
+    } finally {
+      await child.call('switch_to_tab', { tabId: before.activeTabId })
+      await child.call('close_tab', { tabId })
+    }
   }, 60_000)
 
   it('keeps the preload channel ready across same-document navigation', async () => {

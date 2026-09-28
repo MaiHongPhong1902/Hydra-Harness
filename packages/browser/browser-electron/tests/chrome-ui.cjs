@@ -281,10 +281,22 @@ server.listen(0, '127.0.0.1', () => {
         return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) }
       })()`)
       await waitFor(() => inputPage.executeJavaScript("document.hasFocus() && document.activeElement.tagName === 'A'"))
+      // Chromium needs a beat after a focus change before it reliably delivers
+      // the synthetic key event to the page's default action.
+      await sleep(150)
+      let navigationBlocked
       const agentNavigationBlocked = new Promise(resolve => inputPage.once('will-navigate', event => resolve(event.defaultPrevented)))
-      await controller.command('press', { key: 'Enter' })
       phase = 'waiting for the agent keyboard navigation to be blocked'
-      assert.equal(await agentNavigationBlocked, true)
+      // Electron occasionally drops a synthetic keyDown sent right after a
+      // focus change; retry the press rather than trusting a single delivery.
+      for (let attempt = 0; attempt < 5 && navigationBlocked === undefined; attempt++) {
+        await controller.command('press', { key: 'Enter' })
+        navigationBlocked = await Promise.race([agentNavigationBlocked, sleep(1_000).then(() => undefined)])
+      }
+      assert.equal(navigationBlocked ?? await agentNavigationBlocked, true)
+      // Ditto after a cancelled navigation: clicking the same link again too
+      // soon can be swallowed as a duplicate of the just-blocked attempt.
+      await sleep(150)
       phase = 'waiting for the user mouse navigation to finish'
       inputPage.sendInputEvent({ type: 'mouseDown', button: 'left', clickCount: 1, ...point })
       inputPage.sendInputEvent({ type: 'mouseUp', button: 'left', clickCount: 1, ...point })

@@ -2701,7 +2701,7 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_find`
 
-Search the accessibility tree for text or regex. Returns matching snippets with observed refs and ancestor context, without a trailing page snapshot.
+Search the accessibility tree for text or regex. Returns each matched node with observed ref and its own contents, plus its enclosing iframe (labeled with origin) when nested inside one, without a trailing page snapshot.
 
 ```json
 {
