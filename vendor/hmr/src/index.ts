@@ -145,25 +145,57 @@ class Hmr extends Service {
       depth,
       ignored: undefined,
       ignoreInitial: false,
-      // Raw fs.watch can silently miss a change to this exact path when it
-      // follows closely after a prior reload's own file activity (observed
-      // in CI: a second patch-layer edit right after the first's reload
-      // never fired a 'change' event, hanging the reload indefinitely).
-      // This watch covers a handful of config files at most, so
-      // stat-polling's cost is negligible next to the reliability it buys.
-      usePolling: true,
-      interval: 100,
     })
     const registration = { watcher }
     this.configs.set(watchFilename, registration)
+
+    // Safety net for a rare chokidar quirk: its native fs.watch path can
+    // silently miss a change to this exact path when it follows closely
+    // after a prior reload's own file activity (observed in CI: a second
+    // patch-layer edit right after the first's reload never fired a
+    // 'change' event, hanging the reload indefinitely). Forcing usePolling
+    // on this watcher fixed that but traded it for a worse regression: full
+    // directory polling is real per-tick overhead, and under heavy parallel
+    // CI load (e.g. the coverage job) its fixed poll cadence occasionally
+    // lands *after* a test's own disposal or timeout deadline, breaking
+    // tests that assumed native fs.watch's near-instant delivery. A
+    // lightweight periodic re-stat of just this one path, layered on top of
+    // (not instead of) the native watcher, catches whatever the live
+    // watcher missed within one poll interval instead of hanging forever,
+    // at a fraction of the cost of polling the whole directory.
+    type Snapshot = { mtimeMs: number } | 'missing'
+    const captureSnapshot = async (): Promise<Snapshot> => {
+      try {
+        return { mtimeMs: (await stat(watchFilename)).mtimeMs }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return 'missing'
+        throw error
+      }
+    }
+    const sameSnapshot = (a: Snapshot | undefined, b: Snapshot) =>
+      a !== undefined && (a === 'missing' || b === 'missing' ? a === b : a.mtimeMs === b.mtimeMs)
+
+    // Primed before the live watcher opens so the safety poll's own first
+    // tick never mistakes the pre-existing state for a missed change.
+    let lastSnapshot: Snapshot | undefined = await captureSnapshot()
+
     const onChange = (path: string) => {
       const observed = resolve(path)
       if (observed !== filename && observed !== watchFilename) return
+      void captureSnapshot().then((snapshot) => { lastSnapshot = snapshot })
       this.refreshConfig(registration, filename, refresh)
     }
     watcher.on('add', onChange)
     watcher.on('change', onChange)
     watcher.on('unlink', onChange)
+
+    const disposeSafetyPoll = this.ctx.interval(() => {
+      void captureSnapshot().then((snapshot) => {
+        if (sameSnapshot(lastSnapshot, snapshot)) return
+        lastSnapshot = snapshot
+        this.refreshConfig(registration, filename, refresh)
+      })
+    }, 200)
 
     const ready = Promise.withResolvers<void>()
     let readyState: 'pending' | 'resolved' | 'rejected' = 'pending'
@@ -183,11 +215,13 @@ class Hmr extends Service {
     try {
       await ready.promise
       return this.ctx.effect(() => async () => {
+        disposeSafetyPoll()
         if (this.configs.get(watchFilename) === registration) this.configs.delete(watchFilename)
         await watcher.close()
         await this.configRefreshes.get(registration)?.running
       }, 'hmr.registerConfig()')
     } catch (error) {
+      disposeSafetyPoll()
       this.configs.delete(watchFilename)
       await watcher.close()
       throw error
