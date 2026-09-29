@@ -45,6 +45,6 @@
           - listitem:
             - text: bash
             - button "Split Terminal"
-            - button "Kill bash":
+            - button "Kill bash" [disabled]:
               - img
       - status: Desktop terminal is unavailable.

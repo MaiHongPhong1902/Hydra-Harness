@@ -184,6 +184,8 @@ flowchart LR
   cfg --> plugin_hydra_base_browser_electron
   plugin_hydra_base_obsidian_knowledge["obsidian-knowledge<br/>@hydraharness/harness-obsidian-knowledge"]
   cfg --> plugin_hydra_base_obsidian_knowledge
+  plugin_hydra_base_page_memory["page-memory<br/>@hydraharness/harness-page-memory"]
+  cfg --> plugin_hydra_base_page_memory
   plugin_hydra_base_tools["tools<br/>@hydraharness/harness-tools"]
   cfg --> plugin_hydra_base_tools
   plugin_hydra_base_system_prompt["system-prompt<br/>@hydraharness/harness-system-prompt"]
@@ -290,6 +292,7 @@ flowchart LR
 | `tool-web` | `@hydraharness/harness-tool-web` |
 | `browser-electron` | `@hydraharness/harness-browser-electron` |
 | `obsidian-knowledge` | `@hydraharness/harness-obsidian-knowledge` |
+| `page-memory` | `@hydraharness/harness-page-memory` |
 | `tools` | `@hydraharness/harness-tools` |
 | `system-prompt` | `@hydraharness/harness-system-prompt` |
 | `agent-loop` | `@hydraharness/harness-agent-loop` |

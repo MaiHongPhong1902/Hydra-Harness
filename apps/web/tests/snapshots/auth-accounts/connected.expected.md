@@ -77,7 +77,7 @@
               - text: 5 hour usage limit Resets 1/16/2027, {{clock}}
               - strong: 25% left
               - progressbar "5 hour usage limit"
-              - text: Weekly usage limit Resets 1/27/2027, {{clock}}
+              - text: Weekly usage limit Resets 1/26/2027, {{clock}}
               - strong: 88% left
               - progressbar "Weekly usage limit"
         - button "Add account"

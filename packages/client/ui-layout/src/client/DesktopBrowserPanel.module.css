@@ -244,9 +244,18 @@
   cursor: wait;
 }
 
-@container desktop-panel (max-width: 570px) {
+@container desktop-panel (max-width: 720px) {
   .options .optionText {
     display: none;
+  }
+
+  /* Text hides above, but .optionHeader > .options .option's flex: 1 (set for
+     the labeled row) still stretches each button to an equal share of the
+     row's full width even with no text to show — icon-only mode needs the
+     buttons to size to their icon instead, so they can actually shrink.
+     Matches that rule's selector so this override actually wins on specificity. */
+  .optionHeader > .options .option {
+    flex: none;
   }
 }
 
