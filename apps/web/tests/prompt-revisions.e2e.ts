@@ -467,7 +467,10 @@ describe('prompt revisions: immutable conversation paths', () => {
     expect(await settled).not.toBe(childId)
     await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
     expect(adapter.requests).toHaveLength(requestsBefore + 2)
-    expect(await page.locator('[data-chat-flow-kind="user"]').count()).toBe(1)
+    // The active-revision swap and the assistant text settle on separate
+    // render passes, so the user row can transiently read 0 right after the
+    // text appears — poll instead of a single-shot count.
+    await expect.poll(() => page.locator('[data-chat-flow-kind="user"]').count()).toBe(1)
   })
 
   it('EDIT-004–007/016–021: retains exact failed drafts, retries generation once, and keeps a stopped branch active', async () => {
