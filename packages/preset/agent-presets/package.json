@@ -55,7 +55,7 @@
     "@hydraharness/cordis": "workspace:^"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^5.4.1",
     "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
