@@ -1030,6 +1030,19 @@ function historyDestination(contents, offset) {
   return history.getEntryAtIndex(history.getActiveIndex() + offset)?.url
 }
 
+// navigate() resolves on dom-ready (see loadAllowedUrl) so Playwright can attach
+// before the page finishes loading; that means a did-finish-load for it can still
+// be queued when a later back()/forward() starts listening for its own. Waiting
+// for a bare 'did-finish-load' can then resolve on that leftover event while the
+// view is still on the old URL. Loop until the event we catch actually landed on
+// the page we asked for.
+async function waitForFinishedLoad(contents, targetUrl, signal) {
+  for (;;) {
+    await once(contents, 'did-finish-load', { signal })
+    if (contents.getURL() === targetUrl) return
+  }
+}
+
 function moveInHistory(contents, offset) {
   const targetUrl = historyDestination(contents, offset)
   if (targetUrl === undefined) return false
@@ -2857,46 +2870,47 @@ async function handleCommand(method, args, signal) {
     }
 
     case 'navigate':
-      // Resolves on did-finish-load, so a caller that awaits this is talking to
-      // the preload of the page it asked for, not the one it is leaving.
+      // Resolves on dom-ready (see loadAllowedUrl), not did-finish-load: a caller
+      // that awaits this can already attach Playwright/CDP to the page it asked
+      // for before every subresource has finished loading.
       await loadAllowedUrl(contents, args.url, args.navigationApproved === true, signal)
       return { success: true, message: `Navigated to ${contents.getURL()}` }
 
     case 'back': {
       const history = contents.navigationHistory
-      const loaded = once(contents, 'did-finish-load', { signal })
       if (history.canGoBack()) {
         const targetUrl = historyDestination(contents, -1)
         if (targetUrl === undefined || siteNavigationBlocked(targetUrl)) {
           throw new Error(`navigation to ${targetUrl ?? 'the earlier page'} was blocked by Browser settings`)
         }
+        const loaded = waitForFinishedLoad(contents, targetUrl, signal)
         history.goToIndex(history.getActiveIndex() - 1)
+        await loaded
       } else {
         const moved = await pageControl(tab, 'history_go', { delta: -1 })
         if (moved?.success !== true) {
           return { success: false, message: moved?.message ?? 'No earlier page in this view.' }
         }
       }
-      await loaded
       return { success: true, message: `Went back to ${contents.getURL()}` }
     }
 
     case 'forward': {
       const history = contents.navigationHistory
-      const loaded = once(contents, 'did-finish-load', { signal })
       if (history.canGoForward()) {
         const targetUrl = historyDestination(contents, 1)
         if (targetUrl === undefined || siteNavigationBlocked(targetUrl)) {
           throw new Error(`navigation to ${targetUrl ?? 'the later page'} was blocked by Browser settings`)
         }
+        const loaded = waitForFinishedLoad(contents, targetUrl, signal)
         history.goToIndex(history.getActiveIndex() + 1)
+        await loaded
       } else {
         const moved = await pageControl(tab, 'history_go', { delta: 1 })
         if (moved?.success !== true) {
           return { success: false, message: moved?.message ?? 'No later page in this view.' }
         }
       }
-      await loaded
       return { success: true, message: `Went forward to ${contents.getURL()}` }
     }
 
