@@ -76,7 +76,7 @@
     "@hydraharness/harness-browseragent-core": "workspace:^",
     "@hydraharness/harness-browseragent-page-controller": "workspace:^",
     "electron": "^44.0.0",
-    "vite": "^6.0.0"
+    "vite": "^8.2.2"
   },
   "dependencies": {
     "playwright-core": "1.61.1"
