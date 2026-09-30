@@ -85,6 +85,7 @@ const StoredWorkflowSchema = WorkflowInputSchema.extend({
   revision: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
   lastVerifiedAt: z.string().refine(isCanonicalTimestamp, 'invalid verification timestamp'),
   status: z.enum(['verified', 'stale']),
+  staleReason: nonblank(MAX_TEXT_CHARS, 'stale reason').optional(),
 }).strict()
 
 /** A workflow persisted by {@link PageMemoryStore}. */
@@ -298,21 +299,27 @@ export class PageMemoryStore {
    * @param inspected - Workflow whose anchors were inspected.
    * @param outcome - Host-observed verification result; unavailable does not invalidate instructions.
    * @param durationMs - Elapsed Browser verification time in milliseconds.
+   * @param staleReason - Reusable diagnostic for a stale workflow, without live page data.
    * @returns False when a concurrent replacement invalidates the observation; true after the atomic write.
    */
-  async recordVerification(key: string, inspected: StoredWorkflow, outcome: MemoryTraceOutcome, durationMs: number): Promise<boolean> {
+  async recordVerification(
+    key: string, inspected: StoredWorkflow, outcome: MemoryTraceOutcome, durationMs: number, staleReason?: string,
+  ): Promise<boolean> {
     assertPageKey(key)
     assertDuration(durationMs)
     const db = await this.database()
     this.begin(db, 'write')
     try {
-      const current = this.readWithinTransaction(db, key)?.find(workflow => workflow.task === inspected.task)
-      if (current === undefined || JSON.stringify(current) !== JSON.stringify(inspected)) {
+      const workflows = this.readWithinTransaction(db, key)
+      const current = workflows?.find(workflow => workflow.task === inspected.task)
+      if (workflows === undefined || current === undefined || JSON.stringify(current) !== JSON.stringify(inspected)) {
         db.exec('COMMIT')
         return false
       }
       if (outcome === 'stale') {
-        const stale: StoredWorkflow = { ...current, status: 'stale' }
+        const stale = StoredWorkflowSchema.parse({ ...current, status: 'stale', staleReason })
+        assertSafeWorkflow(stale)
+        this.assertRecordBytes(key, workflows.map(workflow => workflow.task === current.task ? stale : workflow))
         db.prepare('UPDATE workflows SET payload = ? WHERE page_key = ? AND task = ?')
           .run(JSON.stringify(stale), key, current.task)
       }
@@ -620,6 +627,7 @@ function assertSafeWorkflow(workflow: WorkflowInput | StoredWorkflow): void {
     ...workflow.pitfalls.map((pitfall, index) => [`pitfalls[${index}]`, pitfall] as [string, string]),
   ]
   if (workflow.accountHint !== undefined) strings.push(['accountHint', workflow.accountHint])
+  if ('staleReason' in workflow && workflow.staleReason !== undefined) strings.push(['staleReason', workflow.staleReason])
   for (const [field, value] of strings) assertSafeText(field, value)
 }
 

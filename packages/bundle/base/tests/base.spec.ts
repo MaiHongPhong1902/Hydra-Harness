@@ -78,4 +78,25 @@ describe('hydra-base bundle', () => {
     // The platform layer folded into these rows: no separate patch file ships.
     expect(existsSync(resolve(root, 'windows.cordis.patch.yml'))).toBe(false)
   })
+
+  it.each([
+    [undefined, undefined, true, 'en-US'],
+    ['order-operator', undefined, false, 'en-US'],
+    ['order-operator', 'vi-VN', false, 'vi-VN'],
+  ] as const)('gates page memory for role=%s and locale=%s', (role, locale, disabled, expectedLocale) => {
+    const root = fileURLToPath(new URL('..', import.meta.url))
+    const parsed = yaml.load(readFileSync(resolve(root, 'cordis.patch.yml'), 'utf8'), { schema: entryListSchema })
+    const rows = (parsed as { insert?: {
+      id?: string
+      disabled: { __jsExpr: string }
+      config: Record<string, { __jsExpr: string }>
+    }[] }[]).flatMap(patch => patch.insert ?? [])
+    const row = rows.find(candidate => candidate.id === 'page-memory')
+    if (row === undefined) throw new Error('base patch must declare page-memory')
+    const context = { process: { env: { HYDRA_PAGE_MEMORY_ROLE: role, HYDRA_PAGE_MEMORY_LOCALE: locale }, cwd: () => process.cwd() } }
+    expect(Boolean(evaluate(context, row.disabled.__jsExpr))).toBe(disabled)
+    expect(Object.fromEntries(Object.entries(row.config).map(([key, value]) => [key, evaluate(context, value.__jsExpr)]))).toEqual({
+      workspaceDir: process.cwd(), role: role ?? '', locale: expectedLocale,
+    })
+  })
 })

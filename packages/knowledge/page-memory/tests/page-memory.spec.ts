@@ -1,4 +1,4 @@
-import { mkdtemp, readdir, realpath, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -7,8 +7,8 @@ import AgentRegistry, { Inbox, agentEvents } from '@hydraharness/harness-agent'
 import type { Agent } from '@hydraharness/harness-agent'
 import type { BrowserAction, BrowserPageIdentity } from '@hydraharness/harness-browser-electron'
 import { BrowserError } from '@hydraharness/harness-browser-electron'
-import { CallId, createToolResultMessage, createUserMessage } from '@hydraharness/harness-llm'
-import { Session, SessionId } from '@hydraharness/harness-session'
+import { CallId, createToolResultMessage, createUserMessage, markAgentLoopRequest, type GenerateOptions } from '@hydraharness/harness-llm'
+import SessionStore, { Session, SessionId } from '@hydraharness/harness-session'
 import SystemPrompt from '@hydraharness/harness-system-prompt'
 import ToolRuntime from '@hydraharness/harness-tools'
 import SettingsProvider from '@hydraharness/harness-settings'
@@ -41,6 +41,7 @@ async function harness(config: Partial<PageMemory.Config> = {}, direct = false, 
   const root = new Context().plugin(() => {})
   const ctx = root.ctx
   cleanup.push(() => root.dispose())
+  await ctx.plugin(SessionStore)
   await ctx.plugin(AgentRegistry)
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
@@ -88,6 +89,9 @@ async function harness(config: Partial<PageMemory.Config> = {}, direct = false, 
   await fiber
   const id = SessionId('page-memory-test')
   const session = Session.create(id, undefined, { id, version: 0, createdAt: 0, cwd: workspace })
+  const detach = ctx.get('sessions')!.enter(session)
+  ctx.get('sessions')!.announce(session)
+  cleanup.push(async () => { detach() })
   session.append('turn/start', { turn: 1 })
   const agent: Agent = {
     id, options: {}, session, ctx: ctx.plugin(() => {}).ctx, status: 'idle',
@@ -96,23 +100,29 @@ async function harness(config: Partial<PageMemory.Config> = {}, direct = false, 
     steer: () => ({ outcome: Promise.resolve({ status: 'rejected' }) }),
     runMaintenance: task => task(new AbortController().signal), whenIdle: () => Promise.resolve(),
   }
-  ctx.get('agents')!.register(agent)
+  const unregister = ctx.get('agents')!.register(agent)
   let callIndex = 0
   const call = (name: string, args: Record<string, unknown> = {}) => ctx.get('tools')!.execute({
     signal: new AbortController().signal, callId: CallId(`call-${++callIndex}`), name, arguments: args, agent,
   })
-  async function admit() {
+  function request(messages = session.deriveMessages(), loop = true) {
+    const options: GenerateOptions = { provider: 'test', model: 'test', sessionId: id, messages }
+    if (loop) markAgentLoopRequest(options)
+    void ctx.waterfall('llm/stream', options as never, () => (async function* () {})() as never)
+  }
+  async function admit(dispatch = true) {
     const decision = await agentEvents(ctx, agent).waterfall('agent/pre-step', {
       messages: [], turn: 1, step: callIndex + 1, signal: new AbortController().signal,
     }, () => Promise.resolve({ kind: 'enter', messages: [] }))
     if (decision.kind === 'enter') {
       for (const message of decision.messages) session.append('user/message', message, { surfaceOp: 'append' })
+      if (dispatch) request()
       return decision.messages
     }
     return []
   }
   return {
-    ctx, fiber, agent, session, workspace, options, reads, regions, browser, call, admit,
+    ctx, fiber, agent, session, workspace, options, reads, regions, browser, call, admit, request, detach, unregister,
     requireExplicitReads: () => { explicitReadsOnly = true },
     beforeNextSnapshot: (callback: () => Promise<void>) => { beforeSnapshot = callback },
     page: () => page!, setPage: (next: BrowserPageIdentity | undefined) => { page = next },
@@ -253,6 +263,23 @@ describe('verified page-memory integration', () => {
       .rejects.toThrow('verificationTimeoutMs must be at most 2147483647')
   })
 
+  it('keeps background recall and storage dormant until a controlled page exists', async () => {
+    const h = await harness()
+    const page = h.page()
+    h.setPage(undefined)
+    const perform = vi.spyOn(h.browser, 'perform')
+    expect(await h.admit()).toEqual([])
+    expect(perform).not.toHaveBeenCalled()
+    await expect(readdir(join(h.workspace, 'memory'))).rejects.toMatchObject({ code: 'ENOENT' })
+
+    h.setPage(page)
+    expect(JSON.stringify(await h.admit())).toContain('select-task')
+    expect(await h.admit()).toEqual([])
+    h.setPage(undefined)
+    expect(JSON.stringify(await h.admit())).toContain('inactive')
+    expect(await h.admit()).toEqual([])
+  })
+
   it('returns inactive without a page and lists stored tasks in a fresh turn', async () => {
     const h = await harness()
     const page = h.page()
@@ -291,13 +318,14 @@ describe('verified page-memory integration', () => {
     expect(result.content).toEqual([{ type: 'text', text: 'Error: page-memory: URL is invalid' }])
   })
 
-  it.each(['url', 'settled', 'final-page', 'action'] as const)('rejects changed %s during workflow verification', async (kind) => {
+  it.each(['url', 'tab', 'settled', 'final-page', 'action'] as const)('rejects changed %s during workflow verification', async (kind) => {
     const h = await harness()
     await h.call('page_memory_get', { task: workflow.task })
     await h.admit()
     await h.call('browser_click', { target: '#save' })
     h.beforeNextSnapshot(async () => {
       if (kind === 'url') h.page().url = 'https://shop.test/changed'
+      if (kind === 'tab') h.page().tabId = 2
       if (kind === 'settled') h.page().settled = false
       if (kind === 'final-page') vi.spyOn(h.browser, 'currentPage').mockResolvedValue(undefined)
       if (kind === 'action') await h.call('page_memory_get', { task: 'different' })
@@ -325,8 +353,12 @@ describe('verified page-memory integration', () => {
     await h.call('page_memory_get', { task: workflow.task }); await h.admit()
     await h.call('browser_click', { target: '#save' }); await h.call('page_memory_upsert', workflow)
     h.regions.set('#title', '')
-    expect(context(await h.call('page_memory_get'))).toContain('stale')
-    expect(context(await h.call('page_memory_get'))).toContain('stale')
+    const stale = context(await h.call('page_memory_get'))
+    expect(stale).toContain('No visible content at #title')
+    expect(context(await h.call('page_memory_get'))).toBe(stale)
+    await h.fiber.dispose()
+    await h.ctx.plugin(PageMemory, h.options)
+    expect(context(await h.call('page_memory_get', { task: workflow.task }))).toBe(stale)
     vi.spyOn(h.browser, 'currentPage').mockRejectedValue(new Error('disconnected'))
     expect(JSON.stringify(await h.admit())).toContain('unavailable')
   })
@@ -347,7 +379,149 @@ describe('verified page-memory integration', () => {
     await h.call('page_memory_get', { task: workflow.task }); await h.admit()
     await h.call('browser_click', { target: '#save' }); await h.call('page_memory_upsert', workflow)
     h.regions.set('#title', '- heading "ArchivedOrders"')
+    const stale = context(await h.call('page_memory_get'))
+    expect(stale).toContain('"status":"stale"')
+    expect(stale).toContain('Expected text did not match at #title')
+    expect(context(await h.call('page_memory_get'))).toBe(stale)
+  })
+
+  it('reads each selector once per verification pass and checks every expectation', async () => {
+    const h = await harness()
+    const repeated = {
+      ...workflow,
+      anchors: [{ target: '#title', text: 'Orders' }, { target: '#title', text: 'heading' }, { target: '#search', text: 'Search' }],
+      locators: { title: '#title', search: '#search', status: '#status' },
+    }
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    context(await h.call('browser_click', { target: '#save' }))
+    h.reads.length = 0
+    context(await h.call('page_memory_upsert', repeated))
+    expect(h.reads).toEqual(['#title', '#search', '#status'])
+    h.reads.length = 0
+    expect(context(await h.call('page_memory_get'))).toContain('"status":"verified"')
+    expect(h.reads).toEqual(['#title', '#search', '#status'])
+    h.reads.length = 0
+    expect(context(await h.call('page_memory_get'))).toContain('"status":"verified"')
+    expect(h.reads).toEqual(['#title', '#search', '#status'])
+    h.regions.set('#title', '- button "Orders"')
+    h.reads.length = 0
     expect(context(await h.call('page_memory_get'))).toContain('"status":"stale"')
+    expect(h.reads).toEqual(['#title'])
+  })
+
+  it('omits host metadata from guidance and republishes only procedure changes', async () => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    context(await h.call('browser_click', { target: '#save' }))
+    context(await h.call('page_memory_upsert', workflow))
+    await h.admit()
+    const initial = context(await h.call('page_memory_get'))
+    expect(initial).not.toMatch(/revision|lastVerifiedAt/)
+    context(await h.call('browser_click', { target: '#save' }))
+    context(await h.call('page_memory_upsert', workflow))
+    expect(context(await h.call('page_memory_get'))).toBe(initial)
+    expect(await h.admit()).toEqual([])
+    context(await h.call('browser_click', { target: '#save' }))
+    context(await h.call('page_memory_upsert', { ...workflow, steps: ['Read the current form.', ...workflow.steps] }))
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+    expect(JSON.stringify(await h.admit())).toContain('Read the current form.')
+    context(await h.call('browser_click', { target: '#save' }))
+  })
+
+  it('requires guidance in a model request before allowing actions, and reinjects after compaction', async () => {
+    const h = await harness()
+    const result = await h.call('page_memory_get', { task: workflow.task })
+    context(result)
+    const callId = CallId('explicit-read')
+    const seq = h.session.events.length
+    h.session.append('tool/call', { turn: 1, step: 1, callId, name: 'page_memory_get', arguments: '{}' })
+    h.session.append('tool/result', { turn: 1, step: 1, message: createToolResultMessage({ callId, content: result.content, isError: false }) },
+      { surfaceOp: 'append', sourceEventSeqs: [seq] })
+    expect(await h.admit(false)).toEqual([])
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+    h.request([])
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+    h.request(h.session.deriveMessages(), false)
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+    void h.ctx.waterfall('llm/stream', { provider: 'test', model: 'test', messages: h.session.deriveMessages() } as never,
+      () => (async function* () {})() as never)
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+    h.request()
+    context(await h.call('browser_click', { target: '#save' }))
+    const nodes = [...h.session.surface.nodes]
+    h.session.append('user/message', createUserMessage({ content: [{ type: 'text', text: 'Compacted summary.' }], source: { kind: 'plugin', plugin: 'compaction' } }),
+      { surfaceOp: { op: 'replace', start: nodes[0]!, end: nodes.at(-1)! }, sourceEventSeqs: nodes })
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+    expect(JSON.stringify(await h.admit())).toContain('missing')
+    context(await h.call('browser_click', { target: '#save' }))
+  })
+
+  it('requires the requested message to survive a partial rewrite even when identical guidance remains', async () => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task })
+    const [first] = await h.admit()
+    const firstSeq = h.session.surface.nodes.at(-1)!
+    h.session.append('user/message', createUserMessage({ content: first!.content, source: { kind: 'plugin', plugin: PageMemory.name } }),
+      { surfaceOp: 'append' })
+    context(await h.call('browser_click', { target: '#save' }))
+    h.session.append('user/message', createUserMessage({ content: [{ type: 'text', text: 'Task summary.' }], source: { kind: 'plugin', plugin: 'compaction' } }),
+      { surfaceOp: { op: 'replace', start: firstSeq, end: firstSeq }, sourceEventSeqs: [firstSeq] })
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+    expect(await h.admit()).toEqual([])
+    context(await h.call('browser_click', { target: '#save' }))
+  })
+
+  it.each([false, true])('clears disposed Session state with an already unregistered agent=%s', async (unregistered) => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    context(await h.call('browser_click', { target: '#save' }))
+    if (unregistered) h.unregister()
+    h.detach()
+    const denied = await h.call('browser_click', { target: '#save' })
+    expect(denied.isError).toBe(true)
+    expect(JSON.stringify(denied.content)).toContain('Choose a stable task')
+    const session = Session.create(h.agent.id, undefined, h.session.header)
+    const detach = h.ctx.get('sessions')!.enter(session)
+    h.ctx.get('sessions')!.announce(session)
+    cleanup.push(async () => { detach() })
+    session.append('turn/start', { turn: 1 })
+    const agent = { ...h.agent, session }
+    context(await h.ctx.get('tools')!.execute({ name: 'page_memory_get', arguments: { task: workflow.task },
+      signal: new AbortController().signal, callId: CallId('new-session-read'), agent }))
+    const decision = await agentEvents(h.ctx, agent).waterfall('agent/pre-step', {
+      messages: [], turn: 1, step: 1, signal: new AbortController().signal,
+    }, () => Promise.resolve({ kind: 'enter', messages: [] }))
+    expect(JSON.stringify(decision)).toContain('missing')
+    detach()
+  })
+
+  it('restores saved guidance from disk without treating a resumed log as a model request', async () => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    context(await h.call('browser_click', { target: '#save' }))
+    context(await h.call('page_memory_upsert', workflow)); await h.admit()
+    const path = join(h.workspace, 'session.json')
+    await writeFile(path, JSON.stringify({ events: h.session.events, header: h.session.header }))
+    h.detach(); h.unregister()
+    const saved = JSON.parse(await readFile(path, 'utf8')) as { events: typeof h.session.events; header: typeof h.session.header }
+    const session = Session.fromRestore(saved.header.id, saved.events, saved.header)
+    const detach = h.ctx.get('sessions')!.enter(session)
+    h.ctx.get('sessions')!.announce(session)
+    const agent = { ...h.agent, session, inbox: new Inbox(session, { inserted() {}, discarded() {}, claimed() {} }) }
+    const unregister = h.ctx.get('agents')!.register(agent)
+    cleanup.push(async () => { unregister(); detach() })
+    const call = (name: string, args: Record<string, unknown>) => h.ctx.get('tools')!.execute({ name, arguments: args,
+      agent, callId: CallId(`resumed-${name}`), signal: new AbortController().signal })
+    expect(context(await call('page_memory_get', { task: workflow.task }))).toContain('"status":"verified"')
+    expect((await call('browser_click', { target: '#save' })).isError).toBe(true)
+    const decision = await agentEvents(h.ctx, agent).waterfall('agent/pre-step', {
+      messages: [], turn: 1, step: 1, signal: new AbortController().signal,
+    }, () => Promise.resolve({ kind: 'enter', messages: [] }))
+    expect(decision).toEqual({ kind: 'enter', messages: [] })
+    const options: GenerateOptions = { provider: 'test', model: 'test', sessionId: session.id, messages: session.deriveMessages() }
+    markAgentLoopRequest(options)
+    void h.ctx.waterfall('llm/stream', options as never, () => (async function* () {})() as never)
+    context(await call('browser_click', { target: '#save' }))
   })
 
   it('keeps combining marks attached to anchor words during live verification', async () => {
@@ -513,7 +687,7 @@ describe('verified page-memory integration', () => {
       turn: 1, step: 1, message: createToolResultMessage({ callId, content: result.content, isError: false }),
     }, { surfaceOp: 'append', sourceEventSeqs: [callSeq] })
     expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
-    expect(JSON.stringify(await h.admit())).toContain('missing')
+    expect(await h.admit()).toEqual([])
     context(await h.call('browser_click', { target: '#save' }))
     h.page().url = 'https://shop.test/other'
     expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)

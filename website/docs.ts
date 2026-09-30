@@ -63,6 +63,14 @@ const homeAndGuide: DocsPage[] = [
     order: 3,
   },
   {
+    source: 'docs/user/guide/page-memory.md',
+    route: 'guide/page-memory.md',
+    label: 'Reuse page workflows',
+    sidebar: 'guide',
+    section: 'Guide',
+    order: 4,
+  },
+  {
     source: 'docs/user/guide/python-sdk.md',
     route: 'guide/python-sdk.md',
     label: 'Python',

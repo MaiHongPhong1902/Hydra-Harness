@@ -1706,7 +1706,7 @@ export interface RouteRule {
 }
 ```
 
-Source: [`packages/knowledge/page-memory/src/index.ts:63`](../packages/knowledge/page-memory/src/index.ts)
+Source: [`packages/knowledge/page-memory/src/index.ts:66`](../packages/knowledge/page-memory/src/index.ts)
 
 <a id="hydraharness-permission-presets"></a>
 
