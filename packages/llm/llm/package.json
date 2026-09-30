@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@hydraharness/schemastery": "workspace:^",
-    "undici": "^7.28.0"
+    "undici": "^8.10.0"
   },
   "devDependencies": {
     "@hydraharness/harness-attachment": "workspace:^",
