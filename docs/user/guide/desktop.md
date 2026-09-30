@@ -40,4 +40,5 @@ Desktop-specific Electron data is stored below `$HYDRA_HOME/desktop-electron`. W
 
 - [Use the Web UI](./index.md)
 - [Configure models](./providers.md)
+- [Reuse page workflows](./page-memory.md)
 - [Use the Python SDK](./python-sdk.md)

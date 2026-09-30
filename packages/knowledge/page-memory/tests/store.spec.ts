@@ -427,4 +427,31 @@ describe('PageMemoryStore', () => {
     expect(traces.every(trace => trace.durationMs !== null && trace.durationMs >= 0)).toBe(true)
     await store.close()
   })
+
+  it('persists a bounded stale diagnostic and clears it on replacement', async () => {
+    const { directory, store, saved } = await seeded()
+    const reason = 'Expected text did not match at #orders.'
+    expect(await store.recordVerification(key(), saved, 'stale', 1, reason)).toBe(true)
+    const reopened = new PageMemoryStore(directory, limits)
+    stores.push(reopened)
+    expect(await reopened.read(key())).toEqual([expect.objectContaining({ status: 'stale', staleReason: reason })])
+    const replacement = await reopened.upsert(key(), workflow('save'))
+    expect(replacement.revision).toBe(saved.revision + 1)
+    expect(replacement.staleReason).toBeUndefined()
+  })
+
+  it.each(['', 'x'.repeat(4097), 'unsafe\u0000reason', 'Authorization: Bearer secret'])('rejects unsafe or unbounded stale diagnostics: %s', async (reason) => {
+    const { store, saved } = await seeded()
+    await expect(store.recordVerification(key(), saved, 'stale', 1, reason)).rejects.toThrow()
+    expect(await store.read(key())).toEqual([saved])
+  })
+
+  it('keeps the complete record byte limit when adding a stale diagnostic', async () => {
+    const { directory, saved } = await seeded()
+    const maxRecordBytes = Buffer.byteLength(JSON.stringify({ version: 3, key: key(), workflows: [saved] }))
+    const bounded = new PageMemoryStore(directory, { ...limits, maxRecordBytes })
+    stores.push(bounded)
+    await expect(bounded.recordVerification(key(), saved, 'stale', 1, 'Expected text did not match at #orders.')).rejects.toThrow('maxRecordBytes')
+    expect(await bounded.read(key())).toEqual([saved])
+  })
 })

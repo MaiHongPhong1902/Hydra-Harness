@@ -2,6 +2,8 @@
 
 Stores verified task workflows for exact Browser pages in a private SQLite database. The plugin feeds bounded current guidance into the agent's logged message stream and never treats saved memory as authorization or current data.
 
+The [user guide](../../../docs/user/guide/page-memory.md) covers enabling page memory, learning a workflow, reuse, and stale-page recovery.
+
 ## Configuration
 
 Mount the plugin in a Hydra profile or patch with an explicit workspace and runtime namespace:
@@ -47,7 +49,13 @@ Each verified save and live recall appends a bounded SQLite observation with its
 
 Optional `accountHint` adds account-type guidance, for example `"Use a staff account with order-management access."` It is saved and recalled with the workflow, does not partition storage, and supplies neither a login identity nor authorization.
 
-The plugin recalls the selected workflow automatically at `agent/pre-step`. It rechecks every saved anchor and CSS locator with targeted Browser state reads and requires the page URL, tab, settled state, unique locator resolution, and expected text to match. Recall messages expose only the URL origin and path; exact query and fragment text stays in the private page key. Anchor checks remove zero-width characters and soft hyphens, collapse whitespace, and reject matches adjacent to letters, numbers, combining marks, connector punctuation, or join controls; the same matching rule applies to source-page snapshots used by workflows with `sourceUrl`. A text mismatch on a settled page marks the workflow `stale`; timeouts and Browser failures return `unavailable` without changing stored status. Changed guidance blocks other Browser actions until the next logged page-memory context is visible; navigation, tab lifecycle, and observation tools remain available for recovery. Identical recall text is omitted while it remains on the active session context; compaction can trigger reinjection.
+The plugin recalls the selected workflow automatically at `agent/pre-step`. It rechecks every saved anchor and CSS locator with targeted Browser state reads and requires the page URL, tab, settled state, unique locator resolution, and expected text to match. Each selector is read once within one verification pass on one page and tab; all expectations for that selector use the same observation. Reads are repeated in subsequent passes, including the action guard. A final page identity check rejects navigation or loading during verification; the pass is not an atomic DOM snapshot. Saves verify the success check after the Browser action.
+
+Recall messages expose only the URL origin and path; exact query and fragment text stays in the private page key. Anchor checks remove zero-width characters and soft hyphens, collapse whitespace, and reject matches adjacent to letters, numbers, combining marks, connector punctuation, or join controls; the same matching rule applies to source-page snapshots used by workflows with `sourceUrl`. Empty content or a text mismatch on a settled page marks the workflow `stale` and retains a bounded diagnostic naming the selector. Timeouts and Browser failures return `unavailable` without changing stored status.
+
+Guidance contains the task, procedure, verification status, and any stale diagnostic. Revision and verification time stay in SQLite for host checks. Automatic recall omits guidance matching the latest successful `page_memory_get` result or automatic recall on the active context. Compaction can trigger reinjection. Changed guidance blocks other Browser actions until it is included in an agent-loop model request and remains in context; a tool result logged within the same batch is insufficient. Navigation, tab lifecycle, and observation tools remain available for recovery.
+
+A process-local projection follows committed session events to track the latest turn, retained guidance, and current-turn explicit reads. It bootstraps seeded logs and catches missed events up synchronously before reads; positional context replacements rebuild from the authoritative active context. The projection is owned by the Session object, is released on disposal, and retains only active guidance references and pending calls. It preserves the actual-request check without copying derived message history for each Browser guard. It changes neither SQLite records nor model-visible text; cold bootstrap and replacement rebuilds still scan history or context.
 
 When Browsing requires approval, background recall opens no approval dialog. It can reuse an explicitly approved `page_memory_get` result still visible in the current turn; otherwise it reports unavailable. Browser actions still verify current guidance through the existing Browser approval flow.
 
@@ -69,7 +77,7 @@ Page memory contains untrusted, reusable page instructions, never authorization 
 
 #### Token effect
 
-The prompt is fixed for every request while the plugin is loaded. Automatic page recall adds a separate bounded message only when its logged text changes.
+The prompt is fixed for every request while the plugin is loaded. Automatic page recall adds a separate bounded message when current guidance differs from the latest guidance on the active context or when compaction removes it.
 
 #### KV Cache effect
 
@@ -83,11 +91,11 @@ An authorized agent with a current Browser page receives a logged user message c
 
 #### Token effect
 
-Each emitted message is capped by `maxContextBytes` as a complete UTF-8 value. A repeated identical message is omitted; a changed page, task, status, or workflow can append a new message.
+Each emitted message is capped by `maxContextBytes` as a complete UTF-8 value. Automatic recall deduplicates against both recall messages and successful explicit reads on the active context. Saving an unchanged procedure does not republish guidance solely because its revision or verification time changed. A changed page, task, status, diagnostic, or procedure can append a new message.
 
 #### KV Cache effect
 
-Recall messages append after the stable prompt and tool definitions. A new message changes later request tokens while preserving the reusable prefix.
+Recall messages append after the stable prompt and tool definitions. A new message changes later request tokens while preserving the reusable prefix. Omitting duplicate guidance reduces appended content; provider cache hits, latency, and cost savings require workload measurements.
 
 ### Tool schemas
 

@@ -14,13 +14,16 @@ import type { Agent } from '@hydraharness/harness-agent'
 import type { BrowserPageIdentity } from '@hydraharness/harness-browser-electron'
 import { BrowserError } from '@hydraharness/harness-browser-electron'
 import { resolveHydraHome } from '@hydraharness/harness-home-paths'
-import { createUserMessage } from '@hydraharness/harness-llm'
+import { createUserMessage, isAgentLoopRequest } from '@hydraharness/harness-llm'
+import type { Session } from '@hydraharness/harness-session'
 import type {} from '@hydraharness/harness-system-prompt'
 import { defineTool } from '@hydraharness/harness-tools'
 import type { ToolExecution } from '@hydraharness/harness-tools'
 import { PageMemoryStore, pageKey, parseWorkflow } from './store.ts'
-import type { RouteRule, StoredWorkflow } from './store.ts'
+import type { RouteRule } from './store.ts'
 import type { MemoryTraceOutcome } from './types.ts'
+import { PageMemoryContext } from './context.ts'
+import type { Guidance } from './context.ts'
 
 /** Cordis plugin name. */
 export const name = 'page-memory'
@@ -142,6 +145,12 @@ interface TurnMemory {
   observations: Map<string, { url: string; tabId: number; target: string; content: string; sequence: number }>
 }
 
+interface SessionMemory {
+  context: PageMemoryContext
+  turns: WeakMap<Agent, TurnMemory>
+  requestedGuidance: WeakMap<Agent, Guidance>
+}
+
 class AnchorMismatchError extends Error {}
 
 function record(value: unknown): Record<string, unknown> | undefined {
@@ -165,34 +174,6 @@ function containsObservedText(content: string, expected: string): boolean {
   if (text.length === 0) return raw.length === 0
   const escaped = text.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')
   return new RegExp(`(?<![\\p{L}\\p{N}\\p{M}\\p{Pc}\\p{Join_Control}])${escaped}(?![\\p{L}\\p{N}\\p{M}\\p{Pc}\\p{Join_Control}])`, 'u').test(actual)
-}
-
-function latestRecall(agent: Agent): string | undefined {
-  for (const sequence of [...agent.session.surface.nodes].reverse()) {
-    const event = agent.session.events[sequence]
-    /* v8 ignore next -- Session appends and compacts surface pointers together with their owning events. */
-    if (event === undefined) throw new Error('Session surface references a missing event')
-    if (event.type !== 'user/message') continue
-    const message = event.data
-    if (message.source.kind === 'plugin' && message.source.plugin === name) {
-      return message.content.filter(block => block.type === 'text').map(block => block.text).join('\n')
-    }
-  }
-  return undefined
-}
-
-function latestExplicitRecall(agent: Agent, turn: number): string | undefined {
-  for (const sequence of [...agent.session.surface.nodes].reverse()) {
-    const event = agent.session.events[sequence]
-    if (event?.type !== 'tool/result' || event.data.turn !== turn) continue
-    const result = event.data.message.content[0]
-    if (result.isError || !event.sourceEventSeqs?.some((source) => {
-      const call = agent.session.events[source]
-      return call?.type === 'tool/call' && call.data.name === 'page_memory_get' && call.data.callId === result.toolCallId
-    })) continue
-    return result.content.filter(block => block.type === 'text').map(block => block.text).join('\n')
-  }
-  return undefined
 }
 
 /**
@@ -250,14 +231,31 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   // is deferred to the store's own first use by a tool call or recall hook.
   const store = new PageMemoryStore(directory, limits)
   ctx.effect(() => () => store.close())
-  const turns = new WeakMap<Agent, TurnMemory>()
+  const memories = new WeakMap<Session, SessionMemory>()
+
+  function memory(agent: Agent): SessionMemory {
+    let value = memories.get(agent.session)
+    if (value === undefined) {
+      value = { context: new PageMemoryContext(agent.session), turns: new WeakMap(), requestedGuidance: new WeakMap() }
+      memories.set(agent.session, value)
+    }
+    return value
+  }
+
+  function latestGuidance(agent: Agent, explicitTurn?: number): Guidance | undefined {
+    return memory(agent).context.latest(explicitTurn)
+  }
+
+  ctx.on('session/event', (session, event) => memories.get(session)?.context.accept(event))
+  ctx.on('session/disposed', (session) => { memories.delete(session) })
 
   function state(agent: Agent): TurnMemory {
-    const turn = [...agent.session.events].reverse().find(event => event.type === 'turn/start')?.data.turn ?? 0
-    const previous = turns.get(agent)
+    const current = memory(agent)
+    const turn = current.context.turn
+    const previous = current.turns.get(agent)
     if (previous?.turn === turn) return previous
     const next: TurnMemory = { turn, sequence: 0, task: undefined, action: undefined, observations: new Map() }
-    turns.set(agent, next)
+    current.turns.set(agent, next)
     return next
   }
 
@@ -280,13 +278,20 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     agent: Agent, page: BrowserPageIdentity, observations: { target: string; text: string }[], execution: Pick<ToolExecution, 'signal'> & Partial<Pick<ToolExecution, 'callId'>>,
   ): Promise<void> {
     const signal = AbortSignal.any([execution.signal, AbortSignal.timeout(limits.verificationTimeoutMs)])
+    const contents = new Map<string, string>()
     for (const observation of observations) {
       signal.throwIfAborted()
-      const { state: live } = await ctx.browsers.perform(agent, {
-        method: 'get_browser_state', tabId: page.tabId, snapshot: { target: observation.target, depth: 1 },
-      }, { ...execution, signal })
-      if (live.url !== page.url || live.tabId !== page.tabId || !live.settled) throw new Error('Page changed during verification')
-      if (!live.content.trim() || !containsObservedText(live.content, observation.text)) throw new AnchorMismatchError('Expected anchor changed; observe the relevant region again')
+      let content = contents.get(observation.target)
+      if (content === undefined) {
+        const { state: live } = await ctx.browsers.perform(agent, {
+          method: 'get_browser_state', tabId: page.tabId, snapshot: { target: observation.target, depth: 1 },
+        }, { ...execution, signal })
+        if (live.url !== page.url || live.tabId !== page.tabId || !live.settled) throw new Error('Page changed during verification')
+        content = live.content
+        contents.set(observation.target, content)
+      }
+      if (!content.trim()) throw new AnchorMismatchError(`No visible content at ${observation.target}. Inspect this region before reusing instructions.`)
+      if (!containsObservedText(content, observation.text)) throw new AnchorMismatchError(`Expected text did not match at ${observation.target}. Inspect this region before reusing instructions.`)
     }
     const current = await ctx.browsers.currentPage(agent, { ...execution, signal }, page.tabId)
     if (current?.url !== page.url || current.tabId !== page.tabId || !current.settled) throw new Error('Page changed during verification')
@@ -296,17 +301,18 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     const { signal } = execution
     if (!await authorized(agent)) return undefined
     const page = await ctx.browsers.currentPage(agent, execution, tabId)
-    if (page === undefined) return latestRecall(agent) === undefined ? undefined : render({ status: 'inactive' })
+    if (page === undefined) return latestGuidance(agent) === undefined ? undefined : render({ status: 'inactive' })
     const key = pageKey(page.url, namespace, routes)
     const workflows = await store.read(key)
     const task = state(agent).task
     if (task === undefined) return render({ status: 'select-task', url: page.url, tabId: page.tabId, tasks: workflows.map(workflow => workflow.task) })
     const workflow = workflows.find(candidate => candidate.task === task)
     if (workflow === undefined) return render({ status: 'missing', url: page.url, tabId: page.tabId, task })
-    if (workflow.status === 'stale') return render({ status: 'stale', url: page.url, tabId: page.tabId, task })
+    if (workflow.status === 'stale') return render({ status: 'stale', url: page.url, tabId: page.tabId, task, message: workflow.staleReason })
     if (!page.settled) return render({ status: 'loading', url: page.url, tabId: page.tabId, task })
     const started = performance.now()
     let outcome: MemoryTraceOutcome = 'verified'
+    let staleReason: string | undefined
     try {
       await observe(agent, page, [
         ...workflow.anchors,
@@ -315,17 +321,29 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     } catch (error) {
       signal.throwIfAborted()
       outcome = error instanceof AnchorMismatchError ? 'stale' : 'unavailable'
+      if (error instanceof AnchorMismatchError) staleReason = error.message
     }
     signal.throwIfAborted()
-    if (!await store.recordVerification(key, workflow, outcome, performance.now() - started)) {
+    if (!await store.recordVerification(key, workflow, outcome, performance.now() - started, staleReason)) {
       return render({ status: 'changed', url: page.url, tabId: page.tabId, task, message: 'Workflow changed during verification. Read current page memory.' })
     }
     if (outcome === 'unavailable') return render({ status: outcome, url: page.url, tabId: page.tabId, task, message: 'Verification could not complete. Use current Browser observations.' })
-    if (outcome === 'stale') return render({ status: outcome, url: page.url, tabId: page.tabId, task, message: 'Live anchors did not match. Inspect the relevant region before reusing instructions.' })
-    return render({ status: 'verified', url: page.url, tabId: page.tabId, workflow })
+    if (outcome === 'stale') return render({ status: outcome, url: page.url, tabId: page.tabId, task, message: staleReason })
+    const { revision: _revision, lastVerifiedAt: _lastVerifiedAt, status: _status, staleReason: _staleReason, ...procedure } = workflow
+    return render({ status: 'verified', url: page.url, tabId: page.tabId, workflow: procedure })
   }
 
   ctx.effect(() => ctx.systemPrompt.section({ name: 'memory:page', order: 117, text: PROMPT }))
+  ctx.on('llm/stream', (options, next) => {
+    const agent = options.sessionId === undefined ? undefined : ctx.get('agents')?.get(options.sessionId)
+    if (agent !== undefined && isAgentLoopRequest(options)) {
+      const guidance = latestGuidance(agent)
+      const requestedGuidance = memory(agent).requestedGuidance
+      if (guidance !== undefined && options.messages.includes(guidance.message)) requestedGuidance.set(agent, guidance)
+      else requestedGuidance.delete(agent)
+    }
+    return next()
+  }, { prepend: true })
   ctx.on('agent/pre-step', async ({ agent, signal }, next) => {
     const decision = await next()
     if (decision.kind === 'reject' || signal.aborted) return decision
@@ -335,11 +353,11 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
       // Explicitly approved reads remain usable when background reads require approval.
       // The action guard still verifies the live page through Browser policy.
       text = error instanceof BrowserError && error.code === 'BROWSER_POLICY_DENIED'
-        ? latestExplicitRecall(agent, state(agent).turn)
+        ? latestGuidance(agent, state(agent).turn)?.text
         : undefined
       text ??= render({ status: 'unavailable', message: 'Page memory is unavailable for this page. Use current Browser observations.' })
     }
-    if (text === undefined || text === latestRecall(agent)) return decision
+    if (text === undefined || text === latestGuidance(agent)?.text) return decision
     return {
       kind: 'enter' as const,
       messages: [...decision.messages, createUserMessage({
@@ -357,7 +375,10 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     const tabId = typeof args?.tab_id === 'number' ? args.tab_id : undefined
     if (state(exec.agent).task === undefined) return { kind: 'deny' as const, reason: 'Choose a stable task with page_memory_get before acting on a page.' }
     const text = await recall(exec.agent, exec, tabId)
-    if (text !== undefined && text !== latestRecall(exec.agent)) {
+    const current = memory(exec.agent)
+    const requested = current.requestedGuidance.get(exec.agent)
+    if (text !== undefined && (requested === undefined || text !== requested.text
+      || !current.context.contains(requested.message))) {
       return { kind: 'deny' as const, reason: 'Page guidance changed. Read page_memory_get and the next page-memory context before acting.' }
     }
     return decision
@@ -434,18 +455,15 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
       const key = pageKey(source, namespace, routes)
       const checks = [...workflow.anchors, ...Object.values(workflow.locators).map(target => ({ target, text: '' }))]
       const started = performance.now()
-      if (source === page.url) await observe(exec.agent, page, checks, exec)
+      if (source === page.url) await observe(exec.agent, page, [...checks, workflow.successCheck], exec)
       else {
         for (const check of checks) {
           const observation = turn.observations.get(JSON.stringify([page.tabId, source, check.target]))
           if (!observation?.content.trim() || !containsObservedText(observation.content, check.text) || observation.sequence >= turn.action.sequence) throw new Error('Source anchors and locators require targeted Browser snapshots before the successful action in this task and tab')
         }
+        await observe(exec.agent, page, [workflow.successCheck], exec)
       }
-      await observe(exec.agent, page, [workflow.successCheck], exec)
-      const candidate: StoredWorkflow = {
-        ...workflow, revision: Number.MAX_SAFE_INTEGER, lastVerifiedAt: new Date().toISOString(), status: 'verified',
-      }
-      if (Buffer.byteLength(`${PREFIX}${JSON.stringify({ status: 'verified', url: source, tabId: page.tabId, workflow: candidate })}`) > limits.maxContextBytes) {
+      if (Buffer.byteLength(`${PREFIX}${JSON.stringify({ status: 'verified', url: displayUrl(source), tabId: page.tabId, workflow })}`) > limits.maxContextBytes) {
         throw new Error('Workflow exceeds maxContextBytes; shorten it before saving')
       }
       exec.signal.throwIfAborted()
