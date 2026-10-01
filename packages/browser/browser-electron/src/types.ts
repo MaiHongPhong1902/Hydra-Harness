@@ -221,6 +221,8 @@ export type BrowserAction =
 export interface BrowserOutcome {
   /** Absent for a plain state read, which does nothing to the page. */
   action?: ActionResult
+  /** Trailing page read failed after the action reported its result; state contains only live metadata. */
+  observationError?: string
   state: BrowserState
 }
 

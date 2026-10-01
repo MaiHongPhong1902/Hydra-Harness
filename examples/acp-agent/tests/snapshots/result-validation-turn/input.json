@@ -1,0 +1,14 @@
+{
+  "steps": [
+    {
+      "op": "initialize"
+    },
+    {
+      "op": "newSession"
+    },
+    {
+      "op": "prompt",
+      "text": "Write result.json as JSON: reject an invalid escape and a completed status with an unresolved blocker under the supplied schema. Record blocked, failed, and cancelled todos. Write and read back a schema-checked blocked result with answer null. Reply BLOCKED."
+    }
+  ]
+}

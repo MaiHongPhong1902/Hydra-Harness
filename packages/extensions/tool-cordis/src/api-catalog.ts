@@ -564,7 +564,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: 'async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext & { captureState?: boolean } = {}, ): Promise<BrowserOutcome>',
         description: 'Do one thing to an owner\'s page and report the page afterwards.\n\nA captured snapshot refreshes numeric element indexes. With captureState false, the trailing read contains only page identity, tabs, loading, and dialogs; callers must observe the page before reusing numeric indexes. Explicit targets are ordered per tab; implicit and lifecycle actions are barriers.',
         parameters: [{ name: 'owner', description: 'agent whose window this is; its first call starts one.' }, { name: 'action', description: 'what to do, in page-agent\'s own vocabulary.' }, { name: 'execution', description: 'tool-call identity, cancellation, and optional captureState (default true).' }],
-        returns: 'the action\'s report, omitted for a plain state read, plus the state.',
+        returns: 'the action\'s report and state; a failed trailing read preserves the report with observationError and live metadata.',
       },
       {
         signature: 'async currentPage( owner: Agent, execution: BrowserExecutionContext = {}, tabId?: number, ): Promise<BrowserPageIdentity | undefined>',
@@ -3570,7 +3570,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'BrowserOutcome',
-    declaration: 'export interface BrowserOutcome {\n    action?: ActionResult;\n    state: BrowserState;\n}',
+    declaration: 'export interface BrowserOutcome {\n    action?: ActionResult;\n    observationError?: string;\n    state: BrowserState;\n}',
   },
   {
     name: 'BrowserPageIdentity',
@@ -5502,7 +5502,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TodoItem',
-    declaration: 'export interface TodoItem {\n    content: string;\n    status: \'pending\' | \'in_progress\' | \'completed\';\n}',
+    declaration: 'export interface TodoItem {\n    content: string;\n    status: \'pending\' | \'in_progress\' | \'completed\' | \'blocked\' | \'failed\' | \'cancelled\';\n}',
   },
   {
     name: 'TokenMeasurement',

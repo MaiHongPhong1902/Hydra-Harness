@@ -5,7 +5,7 @@ import type { Session, SessionEvent } from '@hydraharness/harness-session'
 import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 
 const PACKAGE_NAME = '@hydraharness/harness-tool-todo'
-const TODO_STATUSES = new Set(['pending', 'in_progress', 'completed'])
+const TODO_STATUSES = new Set(['pending', 'in_progress', 'completed', 'blocked', 'failed', 'cancelled'])
 
 /** Cordis companion plugin name. */
 export const name = 'tool-todo-invariant'

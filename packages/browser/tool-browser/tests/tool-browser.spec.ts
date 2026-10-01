@@ -266,6 +266,37 @@ function text(content: readonly ContentBlock[]): string {
 }
 
 describe('tool-browser registration', () => {
+  it('renders the action separately from an observation error and does not save unread page content', async () => {
+    const { ctx, call } = await harness()
+    const state = {
+      url: 'https://calculator.test', title: 'Calculator', header: '', content: '', footer: '',
+      tabs: [{ id: 1, url: 'https://calculator.test', title: 'Calculator', status: 'complete' as const, active: true }],
+      tabId: 1, activeTabId: 1, settled: false, capturedAt: '2026-10-01T08:46:00.134Z',
+    }
+    const perform = vi.spyOn(ctx.browsers, 'perform').mockResolvedValue({
+      action: { success: true, message: 'Clicked Calculate' }, state, observationError: 'page preload did not answer',
+    })
+    try {
+      const result = await call('browser_snapshot', { filename: 'unread.txt' })
+      expect(result.isError).toBe(false)
+      expect(result.value).toMatchObject({ observationError: 'page preload did not answer', settled: false })
+      expect(result.value).not.toHaveProperty('filename')
+      expect(text(result.content)).toContain('Clicked Calculate')
+      expect(text(result.content)).toContain('Page observation failed: page preload did not answer')
+      expect(text(result.content)).toContain('Metadata captured at: 2026-10-01T08:46:00.134Z')
+      expect(text(result.content)).not.toContain('Action failed')
+      const value = result.value as unknown as ToolBrowser.BrowserToolValue
+      const snapshot = { ...value }
+      delete snapshot.observationError
+      expect(formatBrowserOutput(snapshot)).toContain('Snapshot captured at: 2026-10-01T08:46:00.134Z')
+      expect(formatBrowserOutput({ ...value, response: 'none' })).toContain('Page observation failed')
+      expect(formatBrowserOutput({ ...value, action: { success: false, message: 'Not a select' } })).toContain('Action failed: Not a select')
+    } finally {
+      perform.mockRestore()
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('can auto-approve only CDP requests in the configured composition', async () => {
     const { ctx, agent } = await harness({ autoApproveCdp: true })
     await expect(ctx.waterfall('approval/request', { agent, toolName: 'browser_cdp_command' }, () => Promise.resolve('unavailable' as const)))
@@ -557,7 +588,7 @@ describe('browser tool calls', () => {
     const result = await call('browser_navigate', { url: 'https://shop.test/order' })
     expect(result.isError).toBeFalsy()
     expect(text(result.content)).toBe(
-      'did navigate\n\nOpen tabs:\n- [1] (active) Order — https://shop.test/order (complete)\nSnapshot tab: [1]\n\nCurrent Page: [Order](https://shop.test/order)\n'
+      'did navigate\n\nOpen tabs:\n- [1] (active) Order — https://shop.test/order (complete)\nSnapshot tab: [1]\nSnapshot captured at: 2026-08-24T00:00:00.000Z\n\nCurrent Page: [Order](https://shop.test/order)\n'
       + `${PAGE}\n[End of page]`,
     )
     expect(children).toHaveLength(1)

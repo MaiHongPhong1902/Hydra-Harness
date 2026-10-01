@@ -180,17 +180,15 @@ export type TurnEndReason = TurnEndReasonMap[keyof TurnEndReasonMap]
  * One entry in an agent's todo list — the unit of the `todo/write`
  * {@link SessionEventMap} event's whole-list snapshot.
  *
- * Deliberately minimal: a human-readable `content` line and a three-state
- * `status`. No id, priority, or `activeForm` — the list is replaced wholesale
- * on every write (last-write-wins), so entries need no stable identity. The
- * three statuses describe the complete portable lifecycle needed by model and
- * UI consumers.
+ * A human-readable `content` line and lifecycle `status`. The list is replaced
+ * wholesale on every write, so entries need no stable identity. Unfinished
+ * outcomes remain distinct from verified completion.
  */
 export interface TodoItem {
   /** What this task is — a short imperative line shown in the UI. */
   content: string
   /** Lifecycle state. `in_progress` marks a task being worked now; parallel work may mark several. */
-  status: 'pending' | 'in_progress' | 'completed'
+  status: 'pending' | 'in_progress' | 'completed' | 'blocked' | 'failed' | 'cancelled'
 }
 
 /**

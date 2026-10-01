@@ -33,6 +33,8 @@ export const UNCHANGED_NOTICE
 export interface BrowserToolValue {
   /** The action's own report, omitted by `browser_state`. */
   action?: { success: boolean; message: string; selectedText?: string }
+  /** Error reading page contents after the separately reported action. */
+  observationError?: string
   /** URL after the action. */
   url: string
   /** Document title after the action. */
@@ -268,6 +270,7 @@ export function toValue(
     title: state.title,
     header: compact ? compactHeader(state.header) : state.header,
     content,
+    ...outcome.observationError === undefined ? {} : { observationError: outcome.observationError.slice(0, maxStateChars) },
     footer: state.footer,
     tabs: state.tabs,
     tabId: state.tabId,
@@ -332,15 +335,17 @@ function boundUiChanges(changes: BrowserUiChanges | undefined, budget: number): 
  * @returns the action report, if any, above the page as text.
  */
 export function formatBrowserOutput(value: BrowserToolValue): string {
+  const observation = value.observationError === undefined ? ''
+    : `Page observation failed: ${value.observationError}\nThe action report is separate. Read browser_state or browser_snapshot before retrying or claiming completion.\n`
   if (value.response === 'result' || value.response === 'none') {
     const report = value.filename === undefined ? value.action?.message ?? 'Browser action completed.' : `Saved browser output: ${value.filename}`
     const notice = value.response === 'none' ? '\nSnapshot omitted. Verify with browser_find or browser_snapshot before deciding the outcome.' : ''
-    const readiness = value.settled ? '' : 'Page readiness timed out; this result is transient evidence.\n'
+    const readiness = observation || (value.settled ? '' : 'Page readiness timed out; this result is transient evidence.\n')
     const failure = value.action?.success === false ? 'Action failed: ' : ''
-    return `${readiness}${failure}${report}\nTab [${value.tabId}] ${value.url}${value.footer.includes('dialog:') ? `\n${value.footer}` : ''}${notice}`
+    return `${readiness}${failure}${report}\nTab [${value.tabId}] ${value.url}\nMetadata captured at: ${value.capturedAt}${value.footer.includes('dialog:') ? `\n${value.footer}` : ''}${notice}`
   }
   const tabs = formatTabs(value.tabs, value.compact)
-  const target = `Snapshot tab: [${value.tabId}]${value.tabId === value.activeTabId ? '' : ' (background)'}`
+  const target = `Snapshot tab: [${value.tabId}]${value.tabId === value.activeTabId ? '' : ' (background)'}\n${value.observationError === undefined ? 'Snapshot' : 'Metadata'} captured at: ${value.capturedAt}`
   const changes = value.uiChanges === undefined ? '' : [
     'UI changes since the previous snapshot:',
     `Shown:\n${value.uiChanges.shown.join('\n')}`,
@@ -359,10 +364,10 @@ export function formatBrowserOutput(value: BrowserToolValue): string {
     ...value.compact ? [COMPACT_NOTICE] : [],
   ]
   const bounded = notices.length === 0 ? page : `${page}\n\n${notices.join('\n')}`
-  const body = value.settled
+  const body = observation.length > 0 ? `${observation}\n${bounded}` : value.settled
     ? bounded
     : `Page readiness timed out; this snapshot is transient evidence, not a final UI verdict.\n\n${bounded}`
-  return value.action === undefined ? body : `${value.action.message}\n\n${body}`
+  return value.action === undefined ? body : `${value.action.success ? '' : 'Action failed: '}${value.action.message}\n\n${body}`
 }
 
 /**

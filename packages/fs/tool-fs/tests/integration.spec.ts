@@ -60,6 +60,24 @@ describe('default deployment (with hydra-fs-observation-policy)', () => {
   })
 
   describe('write → disk', () => {
+    it('leaves an existing JSON deliverable intact on invalid content and reads back a valid schema-checked result', async () => {
+      const path = join(dir, 'result.json')
+      await writeFile(path, '{"status":"blocked"}\n')
+      await call('read', { file_path: 'result.json' })
+      const invalid = await call('write', { file_path: 'result.json', content: '{"note":"\\q"}' })
+      expect(invalid.isError).toBe(true)
+      expect(await readFile(path, 'utf8')).toBe('{"status":"blocked"}\n')
+      const value = { status: 'blocked', answer: null, blocker: 'Cycling mode not observed', observations: ['Walking mode: 1.5 km'] }
+      const valid = await call('write', {
+        file_path: 'result.json', content: JSON.stringify(value),
+        json_schema: { type: 'object', required: ['status', 'answer'], properties: {
+          status: { type: 'string', enum: ['blocked', 'failed', 'cancelled'] }, answer: { type: 'null' },
+        } },
+      })
+      expect(valid.isError).toBe(false)
+      expect(JSON.parse(await readFile(path, 'utf8'))).toEqual(value)
+    })
+
     it('creates a file with exactly the requested bytes', async () => {
       const result = await call('write', { file_path: 'new.txt', content: 'line one\nline two\n' })
       expect(result.isError).toBe(false)

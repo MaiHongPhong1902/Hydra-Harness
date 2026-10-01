@@ -10,9 +10,9 @@ The harness gives the model bash and subagent tools but no way to record a struc
 
 Add a model-facing `todo_write(todos: [{ content, status }])` tool whose whole-list state lives on the event-sourced session log as a new `todo/write` `SessionEventMap` variant. Interactive hosts render from the durable event: the TUI folds it directly, the web client projects it into `ConversationSnapshot.todos` ([web todo display](2026-07-23-web-todo-display.md)), while the [automation-only ACP bridge](../simplification/2026-07-23-acp-automation-only-protocol.md) deliberately omits todo presentation.
 
-### Whole-list replace, three-state status
+### Whole-list replacement
 
-The model sends the entire list every call; the new list replaces the old (last-write-wins on replay). This is the shape claude-code V1, opencode, and codex `update_plan` all use, and the shape the model is most trained on — no per-item ids, no delta protocol. `status` is exactly `pending | in_progress | completed`, the same triple as codex `update_plan`; it also matched the ACP `PlanEntryStatus` 1:1 while the bridge projected todo lists as `plan` updates, a mapping retired with the [automation-only ACP contract](../simplification/2026-07-23-acp-automation-only-protocol.md).
+The model sends the entire list every call; the new list replaces the old (last-write-wins on replay), with no per-item ids or delta protocol. The [evidence decision](../bug-fix/2026-10-01-browser-evidence-and-result-validation.md) owns the status lifecycle, including blocked, failed, and cancelled outcomes. The ACP bridge follows its [automation-only contract](../simplification/2026-07-23-acp-automation-only-protocol.md).
 
 ### State on the session log, not a service
 

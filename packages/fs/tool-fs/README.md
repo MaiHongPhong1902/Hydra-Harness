@@ -31,7 +31,7 @@ All keys are optional; the defaults are the shipped read caps.
 |---|---|---|
 | `read` | `file_path`, `offset?`, `limit?` | Line-numbered UTF-8 content with a pagination footer. `offset` is 1-based; `limit` defaults to and caps at the configured `readLimit` (2000). |
 | `read_image` | `file_path` | Reads a PNG/JPEG/WebP/GIF file through the bounded byte seam, persists it through `ctx.attachments.saveImage`, and returns an image block beside a small metadata envelope. It succeeds only when the exact routed model declares image input. |
-| `write` | `file_path`, `content` | Create or fully replace a file. With the policy plugin: overwriting an existing file requires a prior `read` at the unchanged version; creating a new file does not. Without it: unconditional. |
+| `write` | `file_path`, `content`, `format?`, `json_schema?` | Create or fully replace a file. JSON paths default to JSON parsing and serialization; an optional supported JSON Schema validates before mutation. `format:text` preserves literal text, including deliberately malformed fixtures. With the policy plugin: overwriting requires a prior `read` at the unchanged version; creating a new file does not. Without it: unconditional. |
 | `edit` | `file_path`, non-empty `old_string`, `new_string`, `replace_all?` | Literal replacement; unique match required unless `replace_all` is true. With the policy plugin: requires a prior `read` (any window) and the file unchanged since. Without it: unconditional. |
 
 Field names are snake_case to match Claude Code and existing harness tool schemas.
@@ -76,7 +76,7 @@ Use the read tool — not shell commands like cat — to inspect text files. Res
 ##### Write guidance
 
 ```markdown
-Use the write tool to create files or completely replace file contents. Existing files are overwritten, so read an existing file first (the default fs-observation-policy requires it) and prefer edit for targeted changes.
+Create or replace files with write; read existing files first and use edit for targeted changes. For JSON, supply the task's json_schema; use format:text only for intentional literal text. Before delivery, read back and reconcile status, answer, observations, and blocker with the todo list and final answer.
 ```
 
 ##### Edit guidance

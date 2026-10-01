@@ -155,6 +155,8 @@ An action without `tabId` is a window-wide barrier and captures the selected tab
 interface BrowserOutcome {
   /** Absent for a plain state read, which does nothing to the page. */
   action?: ActionResult
+  /** Trailing page read failed after the action reported its result; state contains only live metadata. */
+  observationError?: string
   state: BrowserState
 }
 ```
@@ -239,7 +241,7 @@ One Electron window per agent, started lazily and closed with its owner.
  * @param owner - agent whose window this is; its first call starts one.
  * @param action - what to do, in page-agent's own vocabulary.
  * @param execution - tool-call identity, cancellation, and optional captureState (default true).
- * @returns the action's report, omitted for a plain state read, plus the state.
+ * @returns the action's report and state; a failed trailing read preserves the report with observationError and live metadata.
  */
 async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext & { captureState?: boolean } = {}, ): Promise<BrowserOutcome>
 

@@ -340,6 +340,7 @@ const SCENARIOS: Scenario[] = [
     posixOnly: true,
   },
   { name: 'todo-write', hasModelTurn: true, recorded: true },
+  { name: 'result-validation-turn', hasModelTurn: true, recorded: false },
   {
     name: 'skill-load',
     hasModelTurn: true,

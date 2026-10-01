@@ -20,6 +20,19 @@ const t: TodoDockProps['t'] = makeTranslate(en, commonEn)
 
 afterEach(cleanup)
 
+it('distinguishes blocked, failed, and cancelled work from pending and completed work', () => {
+  const todos: TodoItem[] = [
+    { content: 'Cycling mode not observed', status: 'blocked' },
+    { content: 'Wrong expression observed', status: 'failed' },
+    { content: 'Conversion run stopped', status: 'cancelled' },
+  ]
+  render(<TodoPanel todos={todos} t={t} />)
+  expect(screen.getByText(/1 blocked\s*·\s*1 failed\s*·\s*1 cancelled/)).toBeTruthy()
+  fireEvent.click(screen.getByRole('button'))
+  for (const status of ['Blocked', 'Failed', 'Cancelled']) expect(screen.getByText(status)).toBeTruthy()
+  expect(screen.queryByText(/completed|pending/)).toBeNull()
+})
+
 const LIST: TodoItem[] = [
   { content: 'Scaffold', status: 'completed' },
   { content: 'Write component', status: 'in_progress' },

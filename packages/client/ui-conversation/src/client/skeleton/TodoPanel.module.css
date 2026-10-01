@@ -144,3 +144,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.status {
+  flex: none;
+  color: var(--dsw-alias-label-secondary);
+}

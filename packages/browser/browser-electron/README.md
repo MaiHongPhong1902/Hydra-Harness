@@ -8,6 +8,8 @@ Hydra is a public fork of DeepSeek Harness (DSH). The Electron browser integrati
 
 ## Contract
 
+An acknowledged action and its following observation have independent outcomes. If a full trailing read fails, `perform` retains `action`, returns `observationError`, and reads native metadata without the preload. The fallback contains no page contents and is `settled:false`; it does not refresh numeric refs or prove an outcome. Explicit read failures, cancellation, action request failures, and unavailable metadata remain errors. An action request timeout leaves its effect unknown rather than proving failure.
+
 `select_text` selects complete contents for a named or indexed element, including multiline text and input/textarea values. Four viewport coordinates select a partial range; input and textarea drags use Chromium native mouse input. The action resolves after the final selection update and returns the actual selected text. Empty selections and unsupported or password inputs do not report success.
 
 - One `Agent` owns one window. `perform(owner, action)` starts it lazily; there is no explicit open call, because "open a browser" is not a decision the model should make separately from using one. An optional `homeUrl` loads before the child reports ready, so a fresh window opens on the configured site rather than `about:blank`.

@@ -66,7 +66,7 @@ describe('gen-tool-catalog collectToolCatalog', () => {
     // `todo-todo` writes `enum: [...STATUSES]` — a source AST would see the
     // spread, not the values. Booting yields the shipped enum literals.
     const status = (((todo?.parameters as unknown as JsonSchema).properties?.todos)?.items)?.properties?.status
-    expect(status?.enum).toEqual(['pending', 'in_progress', 'completed'])
+    expect(status?.enum).toEqual(['pending', 'in_progress', 'completed', 'blocked', 'failed', 'cancelled'])
   })
 
   it('attributes each harvested tool with its registering plugin source', async () => {

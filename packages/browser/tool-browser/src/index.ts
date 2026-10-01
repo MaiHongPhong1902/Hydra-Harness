@@ -92,6 +92,7 @@ const OUTPUT_SCHEMA = {
         selectedText: { type: 'string' },
       },
     },
+    observationError: { type: 'string' },
     url: { type: 'string', required: true },
     title: { type: 'string', required: true },
     header: { type: 'string', required: true },
@@ -489,7 +490,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       value.mode = 'full'
       value.truncated = false
     }
-    if (filename !== undefined && outcome.action?.success !== false) {
+    if (filename !== undefined && outcome.action?.success !== false && outcome.observationError === undefined) {
       const data = resultOnly ? outcome.action?.message ?? '' : outcome.state.content
       value.filename = await saveBrowserArtifact(outputDir, filename, data, exec.signal)
       value.response = 'result'

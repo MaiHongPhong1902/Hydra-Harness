@@ -23,7 +23,7 @@ export const name = 'tool-todo'
 export const inject = ['tools']
 
 /** The valid {@link TodoItem} statuses, as a runtime set for input narrowing. */
-const STATUSES = ['pending', 'in_progress', 'completed'] as const
+const STATUSES = ['pending', 'in_progress', 'completed', 'blocked', 'failed', 'cancelled'] as const
 
 /** Model-facing todo tool configuration. */
 export interface Config {
@@ -43,27 +43,19 @@ export const Config: z<Config> = z.object({
 })
 
 const DESCRIPTION_HEAD =
-  'Record and update a structured task list for the current work. Send the ENTIRE '
-  + 'list every call — it REPLACES the previous list (there are no partial updates, '
-  + 'no per-item edits). Use it to plan multi-step work and show progress: add one '
-  + 'todo per concrete step before you start. '
+  'Replace the current task list with the ENTIRE todos array on each call. '
+  + 'Plan concrete steps before multi-step work; skip trivial tasks. '
 
 const DESCRIPTION_PARALLEL =
-  'Mark every todo being actively worked '
-  + 'on `in_progress` — several at once when work genuinely runs in parallel (e.g. '
-  + 'concurrent subagents or background commands), one for sequential work; while '
-  + 'work remains, at least one task should be `in_progress`. '
+  'While work can proceed, mark active tasks `in_progress`; several only for concurrent work. '
 
 const DESCRIPTION_SINGLE =
-  'Keep AT MOST ONE todo `in_progress` at a '
-  + 'time; while work remains, exactly one active task should be `in_progress`. '
+  'While work can proceed, keep exactly one todo `in_progress`. '
 
 const DESCRIPTION_TAIL =
-  'Mark a todo '
-  + '`completed` the moment it is done (do not batch completions), and allow no '
-  + '`in_progress` item only once all work is complete. Skip the list for trivial '
-  + 'single-step tasks. Statuses: `pending` (not started), `in_progress` (being '
-  + 'worked on now), `completed` (finished).'
+  'Mark `completed` only after verifying the outcome. Use `blocked` for missing prerequisites, '
+  + '`failed` for unsuccessful attempts, `cancelled` for abandoned work; put the reason in content. '
+  + 'Keep statuses consistent with deliverables and the final answer.'
 
 /**
  * The model-facing description for one activation. The active-status clause is the only part that
@@ -114,7 +106,7 @@ function toTodoList(raw: { content: string; status: string }[], allowParallel: b
 const todosProjectionSchema: ZodType<TodoItem[] | null> = zod.union([
   zod.array(zod.object({
     content: zod.string(),
-    status: zod.union([zod.literal('pending'), zod.literal('in_progress'), zod.literal('completed')]),
+    status: zod.enum(STATUSES),
   })),
   zod.null(),
 ])
@@ -143,7 +135,7 @@ export function apply(ctx: Context, config: Config): void {
         return state
       },
       wire: { viewSchema: todosProjectionSchema, view: state => state },
-      stateVersion: 2,
+      stateVersion: 3,
     })
   })
   ctx.tools.register(defineTool({
@@ -163,7 +155,7 @@ export function apply(ctx: Context, config: Config): void {
               type: 'string',
               required: true,
               enum: [...STATUSES],
-              description: 'pending (not started) | in_progress (now) | completed (done).',
+              description: 'pending (not started) | in_progress (now) | completed (verified done) | blocked (missing prerequisite) | failed (unsuccessful) | cancelled (abandoned).',
             },
           },
         },
@@ -194,13 +186,18 @@ export function apply(ctx: Context, config: Config): void {
               pending: { type: 'integer', required: true },
               inProgress: { type: 'integer', required: true },
               completed: { type: 'integer', required: true },
+              blocked: { type: 'integer', required: true },
+              failed: { type: 'integer', required: true },
+              cancelled: { type: 'integer', required: true },
             },
           },
         },
       },
       render: (_args, value) => [{
         type: 'text',
-        text: `Updated todo list: ${value.counts.pending} pending, ${value.counts.inProgress} in progress, ${value.counts.completed} completed.`,
+        text: `Updated todo list: ${value.counts.pending} pending, ${value.counts.inProgress} in progress, ${value.counts.completed} completed`
+          + (value.counts.blocked + value.counts.failed + value.counts.cancelled > 0
+            ? `, ${value.counts.blocked} blocked, ${value.counts.failed} failed, ${value.counts.cancelled} cancelled.` : '.'),
       }],
     },
     execute(args, exec) {
@@ -218,6 +215,9 @@ export function apply(ctx: Context, config: Config): void {
           pending: count('pending'),
           inProgress: count('in_progress'),
           completed: count('completed'),
+          blocked: count('blocked'),
+          failed: count('failed'),
+          cancelled: count('cancelled'),
         },
       })
     },

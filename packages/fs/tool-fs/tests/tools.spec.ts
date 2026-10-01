@@ -181,7 +181,7 @@ describe('registration', () => {
     expect(prompt).toContain('Use the read tool')
     expect(prompt).toContain('For exact line counts, use the returned total')
     expect(prompt).toContain('do not skip interaction tools')
-    expect(prompt).toContain('Use the write tool')
+    expect(prompt).toContain('Create or replace files with write')
     expect(prompt).toContain('Use the edit tool')
   })
 
@@ -403,6 +403,38 @@ describe('formatReadOutput footer variants', () => {
 })
 
 describe('write tool', () => {
+  it('serializes JSON and rejects syntax, non-finite values, and unsupported schemas before mutation', async () => {
+    const { ctx, fs } = await setup()
+    for (const args of [
+      { content: '{"observation":"\\q"}' },
+      { content: '{"answer":1e999}' },
+      { content: '{"status":"completed"}', json_schema: { type: 'object', properties: { status: { type: 'string', const: 'blocked' } } } },
+      { content: '{}', json_schema: { type: 'object', patternProperties: {} } },
+      { content: '{}', format: 'text', json_schema: {} },
+    ]) {
+      const rejected = await call(ctx, 'write', { file_path: 'result.json', ...args })
+      expect(rejected.isError).toBe(true)
+      expect(fs.files.size).toBe(0)
+      expect(fs.writeIntents).toEqual([])
+    }
+    const result = await call(ctx, 'write', {
+      file_path: 'result.json', content: '{"status":"blocked","answer":null}',
+      json_schema: { type: 'object', required: ['status', 'answer'], properties: {
+        status: { type: 'string', const: 'blocked' }, answer: { type: 'null' },
+      }, additionalProperties: false },
+    })
+    expect(result.isError).toBe(false)
+    expect(fs.files.get('key:result.json')).toBe('{\n  "status": "blocked",\n  "answer": null\n}\n')
+  })
+
+  it('keeps deliberate malformed fixtures as text and validates explicit JSON at other extensions', async () => {
+    const { ctx, fs } = await setup()
+    expect((await call(ctx, 'write', { file_path: 'broken.json', content: '{', format: 'text' })).isError).toBe(false)
+    expect(fs.files.get('key:broken.json')).toBe('{')
+    expect((await call(ctx, 'write', { file_path: 'result.txt', content: '{', format: 'json' })).isError).toBe(true)
+    expect(fs.files.has('key:result.txt')).toBe(false)
+  })
+
   it('formats a create result and uses createIfAbsent (unobserved, with the gate)', async () => {
     const { ctx, fs } = await setup()
     const result = await call(ctx, 'write', { file_path: 'a.txt', content: 'hi' }, { session: { header: {} } })

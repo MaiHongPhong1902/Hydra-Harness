@@ -34,6 +34,21 @@ interface Bench {
   tailProjections(): Promise<{ asOfSeq: number; values: Record<string, unknown> } | undefined>
 }
 
+it('projects non-completion outcomes through the live history API', async () => {
+  const bench = await harness(true)
+  try {
+    const todos: TodoItem[] = [
+      { content: 'Cycling mode unverified', status: 'blocked' },
+      { content: 'Expression mismatch', status: 'failed' },
+      { content: 'Run stopped', status: 'cancelled' },
+    ]
+    bench.session.append('todo/write', { todos })
+    expect((await bench.tailProjections())?.values.todos).toEqual(todos)
+  } finally {
+    await bench.ctx.fiber.dispose()
+  }
+})
+
 async function harness(withTodoTool: boolean): Promise<Bench> {
   const ctx = new Context()
   await ctx.plugin(SessionStore)

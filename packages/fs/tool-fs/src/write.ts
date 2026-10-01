@@ -6,7 +6,7 @@
  */
 
 import type { Context } from '@hydraharness/cordis'
-import { defineTool } from '@hydraharness/harness-tools'
+import { assertSupportedJsonSchema, defineTool, validateJsonSchemaValue } from '@hydraharness/harness-tools'
 import type { DiffCallView, DiffResultView, ToolResult } from '@hydraharness/harness-tools'
 import type { FsWriteOutcome } from '@hydraharness/harness-fs'
 import type {} from '@hydraharness/harness-fs'
@@ -50,6 +50,8 @@ ${verb} file
 interface WriteToolArgs {
   file_path: string
   content: string
+  format?: 'text' | 'json'
+  json_schema?: Record<string, unknown>
   sandbox_permissions?: string
   justification?: string
 }
@@ -63,7 +65,7 @@ export function applyWriteTool(ctx: Context, sandbox: FsSandboxController): void
   ctx.systemPrompt.section({
     name: 'tool:write',
     order: 101,
-    text: 'Use the write tool to create files or completely replace file contents. Existing files are overwritten, so read an existing file first (the default fs-observation-policy requires it) and prefer edit for targeted changes.',
+    text: 'Create or replace files with write; read existing files first and use edit for targeted changes. For JSON, supply the task\'s json_schema; use format:text only for intentional literal text. Before delivery, read back and reconcile status, answer, observations, and blocker with the todo list and final answer.',
   })
 
   ctx.tools.register(defineTool({
@@ -72,6 +74,8 @@ export function applyWriteTool(ctx: Context, sandbox: FsSandboxController): void
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to write, resolved by the filesystem backend.' },
       content: { type: 'string', required: true, description: 'Full UTF-8 text content to write.' },
+      format: { type: 'string', enum: ['text', 'json'], description: 'Default: json for .json paths, otherwise text. JSON parses and serializes; text preserves literal bytes.' },
+      json_schema: { type: 'object', additionalProperties: true, description: 'Task JSON Schema (supported tool-schema subset); validates before writing and implies JSON format.' },
       ...sandbox.escalationModes.length > 0 ? sandbox.schemaFields() : {},
     },
     output: {
@@ -101,6 +105,22 @@ export function applyWriteTool(ctx: Context, sandbox: FsSandboxController): void
     },
     async execute(args: WriteToolArgs, exec) {
       const input = parseWriteArgs(args)
+      const json = args.format === 'json' || args.json_schema !== undefined
+        || (args.format !== 'text' && /\.json$/iu.test(input.filePath))
+      if (args.format === 'text' && args.json_schema !== undefined) throw new Error('json_schema requires JSON format')
+      if (json) {
+        let value: unknown
+        try {
+          value = JSON.parse(input.content) as unknown
+        } catch (error) {
+          throw new Error('Invalid JSON content: use a JSON serializer and correct escaping before retrying.', { cause: error })
+        }
+        const schema = args.json_schema ?? {}
+        assertSupportedJsonSchema(schema)
+        const violations = validateJsonSchemaValue(schema, value)
+        if (violations.length > 0) throw new Error(`JSON schema validation failed: ${violations.join('; ')}`)
+        input.content = `${JSON.stringify(value, undefined, 2)}\n`
+      }
       // Resolve the per-call sandbox policy (approved mode > session override
       // > backend default, plus the session cwd root) BEFORE anything executes;
       // an escalating call throws its distinct text on any non-grant.

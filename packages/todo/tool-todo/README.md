@@ -6,7 +6,7 @@ The model-facing `todo_write` tool: the agent's whole task list, replaced wholes
 
 Registers one tool, `todo_write(todos: [{ content, status }])`, on `ctx.tools`. The model sends the ENTIRE list every call — there are no partial updates or per-item edits. Each call appends a `todo/write` event (the full list snapshot) to the calling agent's session log via `agent.session.append('todo/write', { todos })`; the current list is the most recent such event (last-write-wins on replay).
 
-`status` is one of `pending`, `in_progress`, or `completed`.
+`status` is one of `pending`, `in_progress`, `completed`, `blocked`, `failed`, or `cancelled`. Completion requires a verified outcome. Blocked work lacks a prerequisite, failed work has an unsuccessful attempt, and cancelled work is abandoned; the content states the reason. Unfinished work must agree with result files and the final answer. The [evidence decision](../../../.agents/notes/implemented/bug-fix/2026-10-01-browser-evidence-and-result-validation.md) owns these distinctions.
 
 ## Single owner
 
@@ -24,11 +24,11 @@ Beyond the schema's type/required/enum checks, `execute` rejects an empty or dup
 
 ## Rendering
 
-The canonical result is `{ todos, counts: { pending, inProgress, completed } }`; its Native renderer returns the compact update acknowledgement. The tool also writes the full `todo/write` session event. UIs subscribe to the event stream and render that durable list themselves: the [web client](../../client/ui-conversation) shows a plan strip plus a dedicated tool row off the standing plan — latest `todo/write` with no later `turn/start` ([display](../../../.agents/notes/implemented/feature/2026-07-23-web-todo-display.md), [lifetime](../../../.agents/notes/implemented/feature/2026-07-28-todo-plan-clears-on-next-turn.md)).
+The canonical result is `{ todos, counts: { pending, inProgress, completed, blocked, failed, cancelled } }`; its Native renderer returns the compact update acknowledgement. The tool also writes the full `todo/write` session event. UIs subscribe to the event stream and render that durable list themselves: the [web client](../../client/ui-conversation) shows a plan strip plus a dedicated tool row off the standing plan — latest `todo/write` with no later `turn/start` ([display](../../../.agents/notes/implemented/feature/2026-07-23-web-todo-display.md), [lifetime](../../../.agents/notes/implemented/feature/2026-07-28-todo-plan-clears-on-next-turn.md)). Non-completion outcomes have distinct text labels and never contribute to the completed count.
 
 ## Session projection
 
-When the composition mounts `ctx.sessionProjections` ([`@hydraharness/harness-session-projection`](../../session/session-projection/README.md)), this package registers the `todos` projection unit under an injected child: `init` = `null` (no write yet), `apply` = take the whole list from each `todo/write` and clear to `null` on each `turn/start` (standing plan; `turn/end` keeps the finished checklist; every other event returns the same state reference), `view` = identity, `stateVersion` = 2. The key merges into `SessionProjectionMap` here (via the Service Definition package's `/types` outlet); the framework drives the unit and carriers serve the value on the history tail page and the `session/projection` push frame. Compositions without the registry are unaffected. Lifetime rationale: [todo plan clears on next turn](../../../.agents/notes/implemented/feature/2026-07-28-todo-plan-clears-on-next-turn.md).
+When [`ctx.sessionProjections`](../../session/session-projection/README.md) is mounted, an injected child registers `todos` with `stateVersion:3` and an identity view. The initial value is `null`; each `todo/write` replaces the list and each `turn/start` clears it. `turn/end` keeps the checklist, and other events retain the same reference. This package merges the key into `SessionProjectionMap` through the Service Definition's `/types` export. The framework serves it on the history tail page and `session/projection` push frame; compositions without the registry are unaffected. Lifetime rationale: [todo plan clears on next turn](../../../.agents/notes/implemented/feature/2026-07-28-todo-plan-clears-on-next-turn.md).
 
 ## Export shape
 
@@ -54,7 +54,7 @@ Prefix-stable while the definition and visibility are unchanged. Plugin lifecycl
 
 #### What the model sees
 
-Each assistant tool call retains the entire replacement list in its arguments. Success returns exactly `Updated todo list: <pending> pending, <inProgress> in progress, <completed> completed.` Stable failures are ``Error: invalid todo: `content` must be a non-empty string``, `Error: invalid todos: duplicate content "<content>"`, `Error: todo_write requires an owning agent session`, and — only where the deployment set `allowParallelInProgress: false` — `Error: invalid todos: at most one task may be in_progress (got <n>)`. The full `todo/write` session event is UI and replay state, not a second model message.
+Each assistant tool call retains the entire replacement list in its arguments. Success returns `Updated todo list: <pending> pending, <inProgress> in progress, <completed> completed.` When unfinished outcomes exist, it appends `, <blocked> blocked, <failed> failed, <cancelled> cancelled` before the period. Stable failures are ``Error: invalid todo: `content` must be a non-empty string``, `Error: invalid todos: duplicate content "<content>"`, `Error: todo_write requires an owning agent session`, and — only where the deployment set `allowParallelInProgress: false` — `Error: invalid todos: at most one task may be in_progress (got <n>)`. The full `todo/write` session event is UI and replay state, not a second model message.
 
 #### Token effect
 
@@ -67,5 +67,5 @@ Append-only; newly visible content follows the reusable request prefix and does 
 ## Known Limitations and Deferred Work
 
 - **Single-owner scope only** — the list belongs to the one calling agent session; subagent/shared/swarm scopes are a deliberate cut (see § Single owner), and a non-agent caller is rejected.
-- **The item shape is deliberately minimal** — `content` plus three-state `status`; whole-list replacement needs no stable id, priority, or active-form fields.
+- **Completion verification is model guidance** — the tool records statuses without proving arbitrary task outcomes. Whole-list replacement needs no stable id, priority, or active-form fields.
 - **Whole-list replacement is the only operation** — no partial updates, no read-back tool; the model must resend the entire list each call.

@@ -51,6 +51,22 @@ function text(result: { content: { type: string; text?: string }[] }): string {
 }
 
 describe('hydra-tool-todo', () => {
+  it('records blocked, failed, and cancelled work without counting it as completed', async () => {
+    const ctx = await setup(false)
+    const agent = agentWithSession('unfinished')
+    const todos: TodoItem[] = [
+      { content: 'Verify cycling mode: route unavailable', status: 'blocked' },
+      { content: 'Compute cos(60): wrong expression observed', status: 'failed' },
+      { content: 'Retry conversion: run cancelled', status: 'cancelled' },
+    ]
+    const result = await callTodo(ctx, { todos }, { agent })
+    expect(result.isError).toBe(false)
+    if (result.isError) throw new Error('expected todo_write success')
+    expect(result.value).toMatchObject({ counts: { pending: 0, inProgress: 0, completed: 0, blocked: 1, failed: 1, cancelled: 1 } })
+    expect(text(result)).toContain('0 completed, 1 blocked, 1 failed, 1 cancelled')
+    expect(agent.session.events.findLast(e => e.type === 'todo/write')?.data.todos).toEqual(todos)
+  })
+
   it('registers a `todo_write` tool whose schema is an array of {content,status}', async () => {
     const ctx = await setup(true)
     const schema = ctx.tools.schemas().find(s => s.name === 'todo_write')
@@ -61,7 +77,7 @@ describe('hydra-tool-todo', () => {
     expect(todos.type).toBe('array')
     const itemProps = todos.items?.properties ?? {}
     expect(Object.keys(itemProps).sort()).toEqual(['content', 'status'])
-    expect(itemProps.status?.enum).toEqual(['pending', 'in_progress', 'completed'])
+    expect(itemProps.status?.enum).toEqual(['pending', 'in_progress', 'completed', 'blocked', 'failed', 'cancelled'])
   })
 
   it('appends a todo/write event carrying the whole list to the calling session', async () => {
@@ -76,7 +92,7 @@ describe('hydra-tool-todo', () => {
     if (result.isError) throw new Error('expected todo_write success')
     expect(result.value).toEqual({
       todos,
-      counts: { pending: 1, inProgress: 1, completed: 0 },
+      counts: { pending: 1, inProgress: 1, completed: 0, blocked: 0, failed: 0, cancelled: 0 },
     })
     expect(text(result)).toContain('1 pending, 1 in progress, 0 completed')
 
@@ -135,7 +151,7 @@ describe('hydra-tool-todo', () => {
     if (result.isError) throw new Error('expected todo_write success')
     expect(result.value).toEqual({
       todos,
-      counts: { pending: 1, inProgress: 2, completed: 0 },
+      counts: { pending: 1, inProgress: 2, completed: 0, blocked: 0, failed: 0, cancelled: 0 },
     })
     expect(agent.session.events.findLast(e => e.type === 'todo/write')!.data.todos).toEqual(todos)
   })
@@ -175,12 +191,12 @@ describe('hydra-tool-todo', () => {
     it('instructs the model to keep at most one active, while true instructs parallel', async () => {
       const single = await setup(false)
       const singleDesc = single.tools.schemas().find(s => s.name === 'todo_write')!.description
-      expect(singleDesc).toContain('Keep AT MOST ONE todo `in_progress`')
-      expect(singleDesc).not.toContain('several at once')
+      expect(singleDesc).toContain('keep exactly one todo `in_progress`')
+      expect(singleDesc).not.toContain('several only for concurrent work')
 
       const parallelDesc = (await setup(true)).tools.schemas().find(s => s.name === 'todo_write')!.description
-      expect(parallelDesc).toContain('several at once when work genuinely runs in parallel')
-      expect(parallelDesc).not.toContain('AT MOST ONE')
+      expect(parallelDesc).toContain('several only for concurrent work')
+      expect(parallelDesc).not.toContain('exactly one todo')
     })
   })
 

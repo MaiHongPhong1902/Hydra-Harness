@@ -507,7 +507,7 @@ export class BrowserSessionService extends Service {
    * @param owner - agent whose window this is; its first call starts one.
    * @param action - what to do, in page-agent's own vocabulary.
    * @param execution - tool-call identity, cancellation, and optional captureState (default true).
-   * @returns the action's report, omitted for a plain state read, plus the state.
+   * @returns the action's report and state; a failed trailing read preserves the report with observationError and live metadata.
    */
   async perform(
     owner: Agent,
@@ -573,12 +573,28 @@ export class BrowserSessionService extends Service {
         || prepared.method === 'close_tab'
         || prepared.method === 'select_text'
       const tabId = stateTabId(prepared)
-      const state = await child.call('get_browser_state', {
-        ...execution.captureState === false ? { metadataOnly: true } : {},
-        ...prepared.method === 'get_browser_state' && prepared.snapshot !== undefined ? { snapshot: prepared.snapshot } : {},
-        waitForReady,
-        ...tabId === undefined ? {} : { tabId },
-      }, execution.signal) as BrowserState
+      let state: BrowserState
+      try {
+        state = await child.call('get_browser_state', {
+          ...execution.captureState === false ? { metadataOnly: true } : {},
+          ...prepared.method === 'get_browser_state' && prepared.snapshot !== undefined ? { snapshot: prepared.snapshot } : {},
+          waitForReady,
+          ...tabId === undefined ? {} : { tabId },
+        }, execution.signal) as BrowserState
+      } catch (error) {
+        execution.signal?.throwIfAborted()
+        if (result === undefined || execution.captureState === false) throw error
+        // Native metadata does not require the preload and cannot verify page content.
+        state = await child.call('get_browser_state', {
+          metadataOnly: true,
+          ...tabId === undefined ? {} : { tabId },
+        }, execution.signal) as BrowserState
+        return {
+          action: result,
+          state: { ...state, header: '', content: '', settled: false },
+          observationError: String(error),
+        }
+      }
       return result === undefined ? { state } : { action: result, state }
     })
   }

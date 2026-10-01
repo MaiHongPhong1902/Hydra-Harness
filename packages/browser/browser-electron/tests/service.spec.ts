@@ -219,6 +219,83 @@ async function harness(options: HarnessOptions = {}) {
 }
 
 describe('BrowserSessionService', () => {
+  it.each([{ success: true, tabId: 2 }, { success: false, tabId: 2 }, { success: true, tabId: undefined }])('preserves the action result when its trailing page observation fails %j', async ({ success, tabId }) => {
+    const { ctx, dispose } = await harness()
+    const child = new ScriptedChild('observation', async (method, args) => {
+      if (method === 'get_browser_state' && args.metadataOnly !== true) throw new Error('page preload did not answer get_browser_state')
+    })
+    const action = { success, message: success ? 'Clicked Calculate' : 'Target is not a select' }
+    child.responses.set('click_element', action)
+    ctx.browsers.spawnChild = () => child
+    try {
+      const result = await ctx.browsers.perform(stubAgent(ctx, 'observed-action'), { method: 'click_element', target: '#calculate', ...tabId === undefined ? {} : { tabId } })
+      expect(result.action).toEqual(action)
+      expect(result.observationError).toBe('Error: page preload did not answer get_browser_state')
+      expect(result.state).toMatchObject({ url: 'https://observation.test', tabId: tabId ?? 1, content: '', header: '', settled: false })
+      expect(child.requests.at(-1)).toEqual({ method: 'get_browser_state', args: { metadataOnly: true, ...tabId === undefined ? {} : { tabId } } })
+      expect(child.seen.filter(method => method === 'click_element')).toHaveLength(1)
+    } finally {
+      await dispose()
+    }
+  })
+
+  it('reports unavailable metadata without inventing a recovery snapshot or repeating the action', async () => {
+    const { ctx, dispose } = await harness()
+    const child = new ScriptedChild('missing-metadata', async (method, args) => {
+      if (method === 'get_browser_state') throw new Error(args.metadataOnly === true ? 'metadata unavailable' : 'preload unavailable')
+    })
+    ctx.browsers.spawnChild = () => child
+    try {
+      await expect(ctx.browsers.perform(stubAgent(ctx, 'missing-metadata'), { method: 'click_element', target: '#calculate' })).rejects.toThrow('metadata unavailable')
+      expect(child.seen).toEqual(['click_element', 'get_browser_state', 'get_browser_state'])
+    } finally {
+      await dispose()
+    }
+  })
+
+  it('keeps explicit observation failures as errors rather than inventing a page result', async () => {
+    const { ctx, dispose } = await harness()
+    const child = new ScriptedChild('unreadable', async (method) => {
+      if (method === 'get_browser_state') throw new Error('page unavailable')
+    })
+    ctx.browsers.spawnChild = () => child
+    try {
+      await expect(ctx.browsers.perform(stubAgent(ctx, 'unreadable'), { method: 'get_browser_state' })).rejects.toThrow('page unavailable')
+      expect(child.seen).toEqual(['get_browser_state'])
+    } finally {
+      await dispose()
+    }
+  })
+
+  it('cancels an aborted observation without issuing a recovery read', async () => {
+    const { ctx, dispose } = await harness()
+    const controller = new AbortController()
+    const child = new ScriptedChild('aborted', async (method) => {
+      if (method === 'get_browser_state') controller.abort(new Error('cancelled by user'))
+    })
+    ctx.browsers.spawnChild = () => child
+    try {
+      await expect(ctx.browsers.perform(stubAgent(ctx, 'abort-observation'), { method: 'click_element', target: '#calculate' }, { signal: controller.signal })).rejects.toThrow('cancelled by user')
+      expect(child.seen).toEqual(['click_element', 'get_browser_state', 'cancel_browser_call'])
+    } finally {
+      await dispose()
+    }
+  })
+
+  it('does not infer an action result after an action request fails', async () => {
+    const { ctx, dispose } = await harness()
+    const child = new ScriptedChild('unknown-action', async (method) => {
+      if (method === 'click_element') throw new Error('action acknowledgement timed out')
+    })
+    ctx.browsers.spawnChild = () => child
+    try {
+      await expect(ctx.browsers.perform(stubAgent(ctx, 'unknown-action'), { method: 'click_element', target: '#calculate' })).rejects.toThrow('action acknowledgement timed out')
+      expect(child.seen).toEqual(['click_element'])
+    } finally {
+      await dispose()
+    }
+  })
+
   it.each(['relative', 'file:///private'])('rejects an invalid initial page %s', (homeUrl) => {
     expect(() => new BrowserSessionService(new Context(), { homeUrl })).toThrow('absolute http(s) URL')
   })

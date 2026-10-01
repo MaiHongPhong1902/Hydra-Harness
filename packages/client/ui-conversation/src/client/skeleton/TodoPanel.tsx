@@ -73,6 +73,9 @@ function StatusGlyph({ status }: { status: TodoItem['status'] }) {
     case 'completed': return <CompletedGlyph />
     case 'in_progress': return <ProgressGlyph />
     case 'pending': return <PendingGlyph />
+    case 'blocked':
+    case 'failed':
+    case 'cancelled': return <PendingGlyph />
     /* v8 ignore next -- closed TodoItem status union */
     default: return assertNever(status)
   }
@@ -82,13 +85,19 @@ function StatusGlyph({ status }: { status: TodoItem['status'] }) {
 function progressLabel(todos: readonly TodoItem[], t: TodoPanelProps['t']): string {
   const done = todos.filter(item => item.status === 'completed').length
   const active = todos.filter(item => item.status === 'in_progress').length
-  const pending = todos.length - done - active
+  const pending = todos.filter(item => item.status === 'pending').length
+  const blocked = todos.filter(item => item.status === 'blocked').length
+  const failed = todos.filter(item => item.status === 'failed').length
+  const cancelled = todos.filter(item => item.status === 'cancelled').length
   // En spaces (U+2002): HTML collapses runs of ASCII spaces, so widening the
   // separator breathing room needs a literal wide space.
   return [
     ...done > 0 ? [t('todo.progress.done', { done })] : [],
     ...active > 0 ? [t('todo.progress.active', { active })] : [],
     ...pending > 0 ? [t('todo.progress.pending', { pending })] : [],
+    ...blocked > 0 ? [t('todo.progress.blocked', { blocked })] : [],
+    ...failed > 0 ? [t('todo.progress.failed', { failed })] : [],
+    ...cancelled > 0 ? [t('todo.progress.cancelled', { cancelled })] : [],
   ].join('\u2002·\u2002')
 }
 
@@ -118,6 +127,8 @@ export function TodoPanel({ todos, t }: TodoPanelProps) {
               <li key={item.content} className={css.item} data-status={item.status}>
                 <span className={css.glyph} aria-hidden><StatusGlyph status={item.status} /></span>
                 <span className={css.content}>{item.content}</span>
+                {(item.status === 'blocked' || item.status === 'failed' || item.status === 'cancelled')
+                  && <span className={css.status}>{t(`todo.status.${item.status}`)}</span>}
               </li>
             ))}
           </ul>

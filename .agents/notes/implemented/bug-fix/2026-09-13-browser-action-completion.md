@@ -24,6 +24,8 @@ Native text selection temporarily disables renderer throttling. Browser chrome p
 
 ## Consequences
 
+The [evidence decision](2026-10-01-browser-evidence-and-result-validation.md) owns independent action and trailing-observation reports; this note retains cancellation acknowledgement, ref validity, and observation scheduling.
+
 Cancellation may wait for already-dispatched preload work. Unresponsive processes can lose their open tabs when the shutdown deadline expires. Metadata consumers must request a full observation before using numeric refs or judging page content.
 
 The native Electron tests cover cancelled clicks and reconnection, title-first hydration, metadata without ref mutation, navigation, text selection, tab focus, and Enter/Space activation. Child and tool tests cover cancellation acknowledgement and capture omission; runnable ACP browser scenarios pin model output. Desktop smoke covers native tab shortcuts in the assembled app.

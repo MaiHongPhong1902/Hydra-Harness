@@ -130,24 +130,22 @@ interface SessionEventMap {
 
 ### `TodoItem` — one todo-list entry
 
-The unit of the `todo/write` event's whole-list snapshot. Deliberately minimal — a `content` line and a three-state `status` (no id, priority, or `activeForm`): the list is replaced wholesale on every write, so entries need no stable identity. See the [todo_write Agent Note](../../.agents/notes/implemented/feature/2026-06-29-todo-write-tool.md).
+The unit of the `todo/write` event's whole-list snapshot. A `content` line and lifecycle status distinguish verified completion from blocked, failed, or cancelled work. Whole-list replacement needs no stable entry identity. See the [todo_write Agent Note](../../.agents/notes/implemented/feature/2026-06-29-todo-write-tool.md) and [evidence decision](../../.agents/notes/implemented/bug-fix/2026-10-01-browser-evidence-and-result-validation.md).
 
 ```ts type-equiv
 /**
  * One entry in an agent's todo list — the unit of the `todo/write`
  * {@link SessionEventMap} event's whole-list snapshot.
  *
- * Deliberately minimal: a human-readable `content` line and a three-state
- * `status`. No id, priority, or `activeForm` — the list is replaced wholesale
- * on every write (last-write-wins), so entries need no stable identity. The
- * three statuses describe the complete portable lifecycle needed by model and
- * UI consumers.
+ * A human-readable `content` line and lifecycle `status`. The list is replaced
+ * wholesale on every write, so entries need no stable identity. Unfinished
+ * outcomes remain distinct from verified completion.
  */
 interface TodoItem {
   /** What this task is — a short imperative line shown in the UI. */
   content: string
   /** Lifecycle state. `in_progress` marks a task being worked now; parallel work may mark several. */
-  status: 'pending' | 'in_progress' | 'completed'
+  status: 'pending' | 'in_progress' | 'completed' | 'blocked' | 'failed' | 'cancelled'
 }
 ```
 
