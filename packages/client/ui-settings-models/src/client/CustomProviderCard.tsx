@@ -79,6 +79,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
   // Captured at mount, like the editor's: the write must be judged against the
   // section this card was drafted over, not whatever it grew into meanwhile.
   const [openedAt] = useState(() => props.revision)
+  const [template, setTemplate] = useState('custom')
   const [route, setRoute] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [baseURL, setBaseURL] = useState('')
@@ -200,6 +201,29 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
       <div className={styles['editorHeader']}>
         <span className={styles['editorTitle']}>{t('customTitle')}</span>
       </div>
+      {protocols.includes('google-generative-ai') ? <>
+        <div className={styles['field']}>
+          <span className={styles['fieldLabel']}>{t('customTemplate')}</span>
+          <select data-hydra-control="field" className={styles['input']}
+            aria-label={t('customTemplate')} value={template}
+            disabled={profileDisabled || fallbackKeys.rows.length > 0}
+            onChange={(event) => {
+              const selected = event.target.value
+              setTemplate(selected)
+              if (selected === 'gemini-api') {
+                setRoute('gemini')
+                setDisplayName(t('geminiApiTemplate'))
+                setBaseURL('https://generativelanguage.googleapis.com/v1beta')
+                setProtocol('google-generative-ai')
+              }
+            }}
+          >
+            <option value="custom">{t('customBlankTemplate')}</option>
+            <option value="gemini-api">{t('geminiApiTemplate')}</option>
+          </select>
+        </div>
+        {template === 'gemini-api' ? <p className={styles['advancedHint']}>{t('geminiApiTemplateHint')}</p> : null}
+      </> : null}
       <div className={styles['field']}>
         <span className={styles['fieldLabel']}>{t('customRoute')}</span>
         <input data-hydra-control="field"

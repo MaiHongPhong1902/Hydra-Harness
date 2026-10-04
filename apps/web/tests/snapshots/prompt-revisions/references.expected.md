@@ -1,0 +1,79 @@
+- text: Active revised question {{clock}}
+- button "Copy":
+  - img
+- navigation "Prompt versions":
+  - button "Previous version":
+    - img
+  - button "See versions":
+    - text: 2/2
+    - img
+  - button "Next version" [disabled]:
+    - img
+- button "Edit":
+  - img
+- button "Retry prompt":
+  - img
+- button "Context injection @hydraharness/harness-system-prompt":
+  - img
+  - img
+  - text: Context injection @hydraharness/harness-system-prompt
+- paragraph: Hello from the active revision.
+- button "Copy":
+  - img
+- button "Good response":
+  - img
+- button "Bad response":
+  - img
+- button "Branch into a new conversation":
+  - img
+- text: {{clock}} Ran for {{duration}} TTFT {{duration}}
+- button "Context injection @hydraharness/harness-session":
+  - img
+  - img
+  - text: Context injection @hydraharness/harness-session
+- text: Compare the referenced answer {{clock}}
+- button "Copy":
+  - img
+- button "Edit":
+  - img
+- button "Retry prompt":
+  - img
+- paragraph: Hello from the active revision.
+- button "Copy":
+  - img
+- button "Good response":
+  - img
+- button "Bad response":
+  - img
+- button "Branch into a new conversation":
+  - img
+- text: {{clock}} Ran for {{duration}} TTFT {{duration}} Read the first stored version {{clock}}
+- button "Copy":
+  - img
+- button "Edit":
+  - img
+- button "Retry prompt":
+  - img
+- button "Tool call Read prompt version original":
+  - img
+  - img
+  - text: Tool call Read prompt version original
+- paragraph: Hello from the active revision.
+- button "Copy":
+  - img
+- button "Good response":
+  - img
+- button "Bad response":
+  - img
+- button "Branch into a new conversation":
+  - img
+- text: {{clock}} Ran for {{duration}} TTFT {{duration}}
+- textbox "Message the agent"
+- button "Commands":
+  - img
+- 'button "Access mode, current: Edit"': Edit
+- button "Select model, current Edit test":
+  - text: Edit test
+  - img
+- button "Send message" [disabled]
+- text: 5 turns · 6 steps LLM {{duration}} · Tool call {{duration}} TTFT avg {{duration}}

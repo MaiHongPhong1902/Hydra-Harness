@@ -24,6 +24,8 @@ export interface AuthorizationNotice {
   url?: string
   /** A short code the human must enter on that page. */
   code?: string
+  /** Non-secret code the human can inspect, copy, and run; surfaces must never execute it. */
+  snippet?: string
 }
 
 /** One choice offered by a `select` prompt. */

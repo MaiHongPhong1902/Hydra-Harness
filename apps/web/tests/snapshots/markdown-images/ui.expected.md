@@ -13,6 +13,8 @@
   - img
 - button "Edit":
   - img
+- button "Retry prompt":
+  - img
 - heading "Markdown images" [level=2]
 - paragraph:
   - img "Remote test image"

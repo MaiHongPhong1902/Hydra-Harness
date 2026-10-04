@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Button, ConnectionBanner, Input, Menu, Modal, Pill, Switch } from '@hydraharness/harness-client-ui-primitives'
 import { POINTER_GRACE_MS } from '../src/pointer-grace.ts'
@@ -255,7 +255,7 @@ describe('Menu', () => {
     expect(rowClick).not.toHaveBeenCalled()
   })
 
-  it('opens a submenu on hover and selects a nested item', () => {
+  it('opens a submenu on hover and selects a nested item', async () => {
     const onSelect = vi.fn()
     render(
       <Menu
@@ -288,7 +288,23 @@ describe('Menu', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Create ok' }))
     expect(onSelect).toHaveBeenCalledWith('ok')
     fireEvent.mouseLeave(wrap)
-    expect(screen.queryByRole('menuitem', { name: 'Create ok' })).toBeNull()
+    await waitFor(() => { expect(screen.queryByRole('menuitem', { name: 'Create ok' })).toBeNull() })
+  })
+
+  it('enters the nested card with ArrowRight and returns with ArrowLeft', async () => {
+    render(<Menu open anchor={<span>trigger</span>} items={[
+      { id: 'parent', label: 'Parent', submenu: [
+        { id: 'unavailable', label: 'Unavailable', disabled: true },
+        { id: 'child', label: 'Child' },
+      ] },
+    ]} onSelect={() => {}} onClose={() => {}} />)
+    const parent = screen.getByRole('menuitem', { name: 'Parent' })
+    act(() => { parent.focus() })
+    fireEvent.keyDown(parent, { key: 'ArrowRight' })
+    await waitFor(() => { expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Child' })) })
+    fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Child' }), { key: 'ArrowLeft' })
+    expect(document.activeElement).toBe(parent)
+    expect(screen.queryByRole('menuitem', { name: 'Child' })).toBeNull()
   })
 
   it('portal mode prefers getAnchorRect over measuring its own wrapper', () => {
@@ -374,7 +390,7 @@ describe('Menu', () => {
     expect(onSelect).toHaveBeenCalledWith('new')
   })
 
-  it('caps the list height for internal scrolling unless a submenu row is present', () => {
+  it('caps the list height for internal scrolling with or without submenu rows', () => {
     const { rerender } = render(
       <Menu open anchor={<span>trigger</span>} items={items} onSelect={() => {}} onClose={() => {}} />)
     expect(screen.getByRole('menu').className).toMatch(/scrollable/)
@@ -386,7 +402,7 @@ describe('Menu', () => {
         onSelect={() => {}}
         onClose={() => {}}
       />)
-    expect(screen.getByRole('menu').className).not.toMatch(/scrollable/)
+    expect(screen.getByRole('menu').className).toMatch(/scrollable/)
   })
 })
 

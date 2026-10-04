@@ -1,0 +1,36 @@
+- menu:
+  - menuitem "Rename":
+    - img
+    - text: Rename
+  - menuitem "Pin"
+  - menuitem "Mark as unread"
+  - menuitem "Project":
+    - img
+    - text: Project
+    - img
+  - menuitem "Section":
+    - img
+    - text: Section
+    - img
+  - separator
+  - menuitem "Fork":
+    - img
+    - text: Fork
+    - img
+  - separator
+  - menuitem "Share" [disabled]:
+    - img
+    - text: Share
+  - menuitem "Copy":
+    - img
+    - text: Copy
+    - img
+  - separator
+  - menuitem "Open in new window"
+  - separator
+  - menuitem "Archive session":
+    - img
+    - text: Archive session
+  - menuitem "Permanently delete":
+    - img
+    - text: Permanently delete

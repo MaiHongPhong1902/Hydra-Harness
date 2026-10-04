@@ -134,7 +134,7 @@ async function responseBytes(response: Response): Promise<Uint8Array> {
   return new Uint8Array(await response.arrayBuffer())
 }
 
-const reviewDefaults = { reviewMaxBytes: 4194304, reviewMaxFiles: 500, reviewTimeoutMs: 15000 }
+const reviewDefaults = { reviewMaxBytes: 4194304, reviewMaxFiles: 500, reviewTimeoutMs: 15000, versionReferenceMaxBytes: 65536 }
 
 describe('session export compression config', () => {
   it('defaults to level 6 and rejects values outside the integer 0-9 range', () => {
@@ -614,6 +614,30 @@ describe('session.export download endpoint', () => {
       new AbortController().signal,
     )
     await expect(response.arrayBuffer()).rejects.toEqual(new Error('descendant read failed'))
+  })
+
+  it('exports tool presentation images once even when they are absent from model content', async () => {
+    const image = storedImage('generated-1')
+    const line = JSON.stringify({ type: 'tool/result', data: { message: { content: [{ type: 'text', text: 'Generated.' }] }, meta: { kind: 'tool-images', images: [image.ref, image.ref] } } })
+    const root = artifact('session-root', undefined, line + '\n')
+    const api = await buildApi({ 'session-root': root })
+    const response = await api.downloads.sessionLog({ sessionId: sid('session-root'), includeDescendants: false }, new AbortController().signal)
+    const files = unzipSync(await responseBytes(response))
+    expect(Object.keys(files).sort()).toEqual(['media/generated-1.png', 'session.jsonl'])
+    expect(files['media/generated-1.png']).toEqual(image.data)
+    expect(strFromU8(files['session.jsonl']!)).toBe(root.content)
+  })
+
+  it('exports a presentation video as exact stored file bytes', async () => {
+    const digest = 'a'.repeat(64)
+    const ref = { attachmentId: `sha256:${digest}`, name: 'tree.webm', mediaType: 'video/webm', bytes: 3 }
+    const line = JSON.stringify({ type: 'tool/result', data: { meta: { kind: 'tool-videos', videos: [ref, ref] } } })
+    const root = artifact('session-root', undefined, line + '\n')
+    const api = await buildApi({ 'session-root': root }, [], { readFileStream: async function* () { yield Uint8Array.of(1, 2, 3) } })
+    const response = await toFetchHandler(api).fetch(new Request('http://host/api/session.export?sessionId=session-root'))
+    const files = unzipSync(await responseBytes(response))
+    expect(Object.keys(files).sort()).toEqual([`files/aa/${digest}/tree.webm`, 'session.jsonl'])
+    expect(files[`files/aa/${digest}/tree.webm`]).toEqual(Uint8Array.of(1, 2, 3))
   })
 
   it('includes media objects referenced by the root log under media/<id>.<ext>', async () => {

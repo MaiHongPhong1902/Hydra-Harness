@@ -20,6 +20,7 @@
  */
 
 import { Zip, ZipDeflate } from 'fflate'
+import { toolImageReferences, toolVideoReferences } from '@hydraharness/harness-attachment'
 import type { Context } from '@hydraharness/cordis'
 import type {
   AttachmentStore, FileAttachmentRef, ImageAttachmentRef,
@@ -168,10 +169,15 @@ function collectEventAttachmentRefs(
   const data = (event as { data?: unknown }).data
   if (typeof data !== 'object' || data === null) return
   const carrier = data as {
+    meta?: unknown
     content?: unknown
     message?: { content?: unknown }
     inserted?: Array<{ content?: unknown }>
     chunk?: { type?: unknown; block?: unknown }
+  }
+  if ((event as { type?: unknown }).type === 'tool/result') {
+    for (const image of toolImageReferences(carrier.meta)) images.set(image.attachmentId, image)
+    for (const video of toolVideoReferences(carrier.meta)) files.set(`${String(video.attachmentId)}\u0000${video.name}`, video)
   }
   collectAttachmentRefs(carrier.content, images, files)
   if (carrier.message !== undefined) collectAttachmentRefs(carrier.message.content, images, files)

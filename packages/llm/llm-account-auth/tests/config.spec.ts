@@ -25,8 +25,26 @@ describe('account provider settings', () => {
     expect(resolved.models?.[1]?.name).toBe('Two')
   })
 
-  it('rejects unknown routes', () => {
-    expect(() => resolveProfiles({ unknown: {} })).toThrow('unknown provider')
+  it.each(['unknown', 'gemini-web'])('rejects unsupported route %s', (provider) => {
+    expect(() => resolveProfiles({ [provider]: {} })).toThrow('unknown provider')
+  })
+  it('accepts Kiro selector classification while retaining unsupported output-cap rejection', () => {
+    expect(resolveProfiles({ kiro: { models: [{ id: 'alias', endpoints: ['images/generations', 'videos'] }] } })
+      .get('kiro')?.models?.[0]?.endpoints).toEqual(['images/generations', 'videos'])
+    expect(() => resolveProfiles({ kiro: { models: [{ id: 'alias', maxTokens: 100 }] } }))
+      .toThrow('Kiro models do not support maxTokens')
+  })
+
+  it('infers image output families and retains explicit alias endpoints independently of vision input', () => {
+    const endpoints = ['images/generations']
+    const models = resolveProfiles({ antigravity: { models: [
+      { id: 'gemini-3.1-flash-image' }, { id: 'gemini-3.1-pro' }, { id: 'alias', endpoints },
+    ] } }).get('antigravity')!.models!
+    expect(models[0]?.endpoints).toEqual(['images/generations'])
+    expect(models[1]?.endpoints).toBeUndefined()
+    expect(models[2]?.endpoints).toEqual(endpoints)
+    expect(models[2]?.endpoints).not.toBe(endpoints)
+    expect(() => resolveProfiles({ antigravity: { models: [{ id: 'alias', endpoints: ['https://wrong.test'] }] } })).toThrow('invalid endpoints')
   })
 
   it.each<[keyof AccountProviderProfile, unknown[], string]>([

@@ -42,3 +42,13 @@
   color: var(--dsw-alias-label-primary);
   cursor: pointer;
 }
+
+.download {
+  position: fixed;
+  bottom: 20px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--dsw-specific-input-major);
+  color: var(--dsw-alias-label-primary);
+  z-index: 1;
+}

@@ -696,7 +696,7 @@ describe('session.history presenter scope', () => {
       list: () => Promise.resolve([meta]),
       inspect: () => Promise.resolve({
         meta,
-        events: [{ type: 'agent-preset/selected', seq: 1, time: 0, data: { agentPreset: 'minimal' } }],
+        events: [{ type: 'agent-preset/selected', seq: 0, time: 0, data: { agentPreset: 'minimal' } }],
       }),
     })
 

@@ -1537,6 +1537,11 @@
   margin: 0 6px 8px 0;
 }
 
+.copyablePayload { min-width: 0; user-select: text; }
+.payloadActions { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+.payloadCopy { padding: 4px; border: 0; background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer; }
+.payloadCopy:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 3px; }
+
 .payload {
   box-sizing: border-box;
   min-height: 100%;

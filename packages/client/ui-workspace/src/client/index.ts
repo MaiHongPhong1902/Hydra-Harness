@@ -22,6 +22,7 @@ import { WorkspacePicker } from './WorkspacePicker.tsx'
 import { ArchivedSessionsSection } from './ArchivedSessionsSection.tsx'
 import type { ArchivedSessionsSectionInjected } from './ArchivedSessionsSection.tsx'
 import { en, type WorkspaceKey } from './locales.ts'
+import { sessionMarkdown } from './session-markdown.ts'
 
 export type {
   DirectoryFlowOwnerProps, DirectoryFlowSlotName, DirectoryPickingHooks, DirectoryPickingInjected,
@@ -97,6 +98,9 @@ export function apply(ctx: ClientContext): void {
           // Fork or child-rename failure keeps the current selection.
         })
     },
+    sessionMarkdown: sessionId => sessionMarkdown(
+      connection.api, sessionId, ctx.sessions.list.getSnapshot().byId[sessionId]?.displayTitle ?? sessionId,
+    ),
     renameWorkspace: async (workspaceId, title) => { await ctx.workspaces.rename(workspaceId, title) },
     deleteWorkspace: async (workspaceId) => { await ctx.workspaces.delete(workspaceId) },
     insertWorkspaceBefore: async (workspaceId, beforeWorkspaceId) => {

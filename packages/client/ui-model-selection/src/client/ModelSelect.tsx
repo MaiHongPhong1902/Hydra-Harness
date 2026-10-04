@@ -1,7 +1,7 @@
 /**
  * ModelSelect: the composer's named model seat (`conversation.input.model`).
  * Two-level selection per figma 496:26454's MenuDropdown: the root menu is
- * the Model / Effort row pair (label + current value + a right chevron),
+ * the Model / Effort rows plus shared Image model / Video model choices,
  * each drilling into its own list — the provider-grouped model list over
  * the shared directory, and the effort levels. The trigger (313:14108's
  * ToggleButton) shows both: model name + effort in the caption tone.
@@ -24,9 +24,10 @@ import {
 import type { PropsLocale } from '@hydraharness/harness-client-ui-slots'
 import type { ModelSelectInjected } from './slots.ts'
 import css from './ModelSelect.module.css'
+import { GenerationMenu } from './GenerationMenu.tsx'
 
-/** Which pane the dropdown shows: the two-row root or one drilled-in list. */
-type Pane = 'root' | 'model' | 'effort'
+/** Root menu or one drilled-in model, effort, or generation list. */
+type Pane = 'root' | 'model' | 'effort' | 'imageModel' | 'videoModel'
 
 /** One dynamic effort row; undefined means preserve the provider default. */
 interface EffortChoice {
@@ -43,7 +44,7 @@ interface EffortChoice {
  * @returns the trigger and, while open, the two-level menu.
  */
 export function ModelSelect(
-  { locked, available, directory, load, select, t }:
+  { locked, available, directory, load, select, generation, t }:
   ModelSelectInjected & { locked: boolean } & PropsLocale<'model'>,
 ) {
   const state = useSyncExternalStore(
@@ -263,8 +264,13 @@ export function ModelSelect(
                   <IconChevronRightOutline14 className={css.cellChevron} />
                 </button>
               )}
+              {generation !== undefined && <GenerationMenu {...generation} pane="root" onPane={setPane}
+                onClose={() => { close(true) }} itemRef={itemRef} t={t} />}
             </>
           )}
+
+          {(pane === 'imageModel' || pane === 'videoModel') && generation !== undefined && <GenerationMenu {...generation}
+            pane={pane} onPane={setPane} onClose={() => { close(true) }} itemRef={itemRef} t={t} />}
 
           {pane === 'model' && (
             <>

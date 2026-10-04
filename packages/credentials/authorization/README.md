@@ -10,6 +10,8 @@ Authorization Service Definition (`ctx.authorization`). Some credentials cannot 
 
 ## Surface
 
+Notices contain non-secret instructions, links, short device codes, or inspectable code snippets. A surface may offer copying a snippet but must never execute it. Secret prompt answers belong only to the running flow, not public attempt state.
+
 ```ts
 import type { Context } from '@hydraharness/cordis'
 import { AuthorizationDeclinedError, type AuthorizationSession } from '@hydraharness/harness-authorization'
@@ -56,6 +58,8 @@ A human's "no" is an outcome, not a breakage. An interaction that declines rejec
 ## Multiple accounts
 
 A flow can supply `accounts.list()` and `accounts.remove(id)` for its own credential format. `listAccounts(key)` returns only opaque account ids and labels; `removeAccount(key, id)` delegates removal to that provider and refuses while its login is running. An unregistered key fails with `NO_FLOW`. A flow without account operations lists no accounts and rejects removal with `NO_ACCOUNTS`. Store failures propagate to callers instead of looking like an empty account list.
+
+`forget(key)` deletes the entire local credential record, including every saved account, without contacting the issuer or changing browser sign-ins. An absent record is a no-op, and an orphan record needs no registered flow. Login, account removal, and forgetting reserve the same key until their operation settles; storage failures release the reservation and remain available to the caller for retry.
 
 Account identifiers use `AuthorizationAccountId`. Providers and wire parsers validate their external values before constructing the brand with `authorizationAccountId(value)`. The authorization service never inspects grant payloads or returns access and refresh tokens.
 

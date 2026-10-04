@@ -76,6 +76,11 @@ async function harness(config: LlmPiAi.Config): Promise<Context> {
 }
 
 describe('hand-declared providers', () => {
+  it.each([[''], ['https://other.test/videos'], ['videos?key=value']].map(endpoints => ({ endpoints })))('refuses invalid configured model endpoints %j', ({ endpoints }) => {
+    expect(() => resolveProfiles(gateway('https://gateway.test/v1', {
+      models: [{ id: 'gpt-image-2', endpoints }],
+    }).providers)).toThrow(/endpoints must be relative API paths/)
+  })
   it('serves a route pi-ai has never heard of from its own declaration', async () => {
     const server = await mockServer([{ events: textEvents }])
     const ctx = await harness(gateway(`${server.url}/v1`))
@@ -175,7 +180,7 @@ describe('hand-declared providers', () => {
       resolved.get(route)?.piProvider.getModels() ?? []
 
     expect(modelsOf('acme-gateway')).toMatchObject([
-      { id: 'bare', contextWindow: 131_072, maxTokens: 16_384 },
+      { id: 'bare', contextWindow: 131_072, maxTokens: 131_072 },
       { id: 'sized', contextWindow: 8192, maxTokens: 512 },
     ])
     // The fallback is a guess, so a deployment whose gateway serves smaller
@@ -468,6 +473,22 @@ describe('catalog routes with per-model configuration', () => {
     // The catalog route keeps its catalog protocol, so the new model reaches
     // the same endpoint shape the shipped models use.
     expect(server.paths).toEqual(['/v1/chat/completions'])
+  })
+
+  it('adopts dedicated media on a route with multiple OpenAI conversation protocols', async () => {
+    const providers = { xai: { models: [
+      { id: 'fresh-raster-alias', endpoints: ['images/generations'] },
+      { id: 'fresh-motion-alias', endpoints: ['videos'] },
+    ] } }
+    const profile = resolveProfiles(providers).get('xai')!
+    expect(profile.piProvider.getModels().map(model => [model.id, model.api])).toEqual([
+      ['fresh-raster-alias', 'openai-completions'], ['fresh-motion-alias', 'openai-completions'],
+    ])
+    const ctx = await harness({ providers })
+    expect((await ctx.llm.listModels('xai')).map(model => model.endpoints)).toEqual([['images/generations'], ['videos']])
+    expect((await assemble(ctx, { provider: 'xai', model: 'fresh-raster-alias', messages: [] })).finish)
+      .toMatchObject({ kind: 'error', failure: { code: 'UNSUPPORTED_MODEL_ENDPOINT' } })
+    await ctx.fiber.dispose()
   })
 
   it('fails an unconfigured model id before any provider request', async () => {

@@ -49,7 +49,8 @@
   },
   "dependencies": {
     "@earendil-works/pi-ai": "^0.82.1",
-    "@hydraharness/schemastery": "workspace:^"
+    "@hydraharness/schemastery": "workspace:^",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@hydraharness/harness-attachment": "workspace:^",

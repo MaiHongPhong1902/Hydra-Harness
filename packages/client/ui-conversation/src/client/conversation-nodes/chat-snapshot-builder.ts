@@ -280,6 +280,7 @@ function legacyContribution(raw: ChatConversationViewNode): LegacyContribution {
         running: null,
       }
     }
+    case 'media-generation':
     case 'tool-call': {
       const root = node.data.root
       return isRunningTool(root)

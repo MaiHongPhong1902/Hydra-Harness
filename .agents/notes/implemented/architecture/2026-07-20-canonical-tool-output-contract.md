@@ -10,6 +10,8 @@ The durable session contract made that presentation authoritative for replay, bu
 
 ## Decision
 
+The [OpenAI image generation decision](../feature/2026-10-02-openai-image-generation.md) uses persisted presentation metadata for UI images while preserving text-only Native content and the nested-dispatch exclusion described here.
+
 Every tool declares a mandatory canonical output and returns only the value described by it:
 
 ```ts ignore-check

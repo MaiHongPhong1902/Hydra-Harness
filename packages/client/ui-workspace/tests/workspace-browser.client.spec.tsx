@@ -73,6 +73,7 @@ function mount(overrides: Partial<WorkspaceBrowserProps> = {}) {
     searchResultLimit: 20,
     renameSession: vi.fn(async () => {}),
     forkSession: vi.fn(),
+    sessionMarkdown: vi.fn(async () => '# Session'),
     renameWorkspace: vi.fn(async () => {}),
     deleteWorkspace: vi.fn(async () => {}),
     deleteSession: vi.fn(async () => {}),
@@ -97,6 +98,45 @@ function rerender(b: ReturnType<typeof mount>, overrides: Partial<WorkspaceBrows
 }
 
 describe('WorkspaceBrowser', () => {
+  it('opens a context menu without selecting the row and persists pin/unread actions', () => {
+    const b = mount({ useSessions: hook(sessionState([summary('session', 1)])) })
+    fireEvent.click(screen.getByText('Ungrouped'))
+    const row = screen.getByRole('treeitem', { name: /session/ })
+    fireEvent.contextMenu(row, { clientX: 120, clientY: 180 })
+    expect(b.props.open).not.toHaveBeenCalled()
+    expect(screen.getByRole('menuitem', { name: 'Share' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('menuitem', { name: 'Share' }).textContent).toContain('Coming soon')
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Pin' }))
+    expect(screen.getByRole('group', { name: 'Pinned' })).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: 'Session actions for session' })).toHaveLength(1)
+    const pinned = screen.getByRole('treeitem', { name: /session/ })
+    fireEvent.contextMenu(pinned)
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Mark as unread' }))
+    expect(screen.getByLabelText('Unread')).toBeTruthy()
+    expect(createWorkspaceViewStore().create().getSnapshot().pinnedSessionIds).toEqual(['session'])
+    fireEvent.click(screen.getByRole('treeitem', { name: /session/ }))
+    expect(screen.queryByLabelText('Unread')).toBeNull()
+    expect(b.props.open).toHaveBeenCalledWith(sid('session'))
+  })
+
+  it('creates a section and changes display project while keeping the working directory', () => {
+    const b = mount({ useSessions: hook(sessionState([summary('session', 1, { cwd: '/original' })])),
+      useWorkspaces: hook(workspaceState([workspace('target', [])])) })
+    fireEvent.click(screen.getByText('Ungrouped'))
+    fireEvent.contextMenu(screen.getByRole('treeitem', { name: /session/ }))
+    fireEvent.mouseEnter(screen.getByRole('menuitem', { name: 'Project' }).parentElement as HTMLElement)
+    fireEvent.click(screen.getByRole('menuitem', { name: 'target' }))
+    expect(b.store.getSnapshot().projectBySession).toEqual({ session: 'target' })
+    expect(b.props.insertSessionBefore).not.toHaveBeenCalled()
+    fireEvent.contextMenu(screen.getByRole('treeitem', { name: /session/ }))
+    fireEvent.mouseEnter(screen.getByRole('menuitem', { name: 'Section' }).parentElement as HTMLElement)
+    fireEvent.click(screen.getByRole('menuitem', { name: 'New section…' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Section name' }), { target: { value: 'Review' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+    expect(screen.getByRole('group', { name: 'Review' })).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: 'Session actions for session' })).toHaveLength(1)
+  })
+
   it('workspace hover card shows a POSIX home descendant as ~', () => {
     vi.useFakeTimers()
     try {

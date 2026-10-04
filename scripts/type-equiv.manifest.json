@@ -68,6 +68,21 @@
     },
     {
       "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "GenerationEndpoint",
+      "source": "packages/llm/llm/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "MediaGenerationOptions",
+      "source": "packages/llm/llm/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "MediaGenerationResponse",
+      "source": "packages/llm/llm/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
       "symbol": "LlmModelContext",
       "source": "packages/llm/llm/src/types.ts"
     },
@@ -903,6 +918,11 @@
     {
       "doc": "docs/subsystems/attachment.md",
       "symbol": "ImageMediaType",
+      "source": "packages/attachment/attachment/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/attachment.md",
+      "symbol": "ToolImagePresentationMeta",
       "source": "packages/attachment/attachment/src/types.ts"
     },
     {

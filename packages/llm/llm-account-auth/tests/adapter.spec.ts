@@ -4,8 +4,9 @@ import { credentialKey } from '@hydraharness/harness-credentials'
 import { LlmError } from '@hydraharness/harness-llm'
 import type { AccountPool } from '../src/accounts.ts'
 import { AntigravityAccountAdapter } from '../src/adapter.ts'
+import { AntigravityAdapter } from '../src/antigravity.ts'
 import { ANTIGRAVITY_TOKEN_ENDPOINT } from '../src/antigravity-oauth.ts'
-import type { GenerateOptions, StreamChunk } from '@hydraharness/harness-llm'
+import type { GenerateOptions, MediaGenerationOptions, StreamChunk } from '@hydraharness/harness-llm'
 
 interface TestAccount {
   readonly id: string
@@ -109,6 +110,124 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+function imageRequest(extra: Partial<MediaGenerationOptions> = {}): MediaGenerationOptions & { provider: string; model: string } {
+  return { provider: 'antigravity', model: 'gemini-3.1-flash-image', endpoint: 'images/generations',
+    body: { prompt: 'A tree', n: 1, size: '1024x1536' }, maxResponseBytes: 32768, signal: new AbortController().signal, ...extra }
+}
+
+function imageStream(): Response {
+  return new Response(`data: ${JSON.stringify({ response: { candidates: [{ finishReason: 'STOP', content: { parts: [] } }] } })}\n\n`, { headers: { 'Content-Type': 'text/event-stream' } })
+}
+
+describe('Antigravity image transport', () => {
+  it('retains output metadata across discovery and sends the native image envelope with the selected account', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(imageStream())
+    const pool = accountPool({ accounts: [{ id: 'first', credential: credentials('first-access') }] })
+    const adapter = new AntigravityAccountAdapter({ pool, profile: () => ({
+      endpoint: 'http://localhost:1234', models: [{ id: 'gemini-3.1-flash-image' }, { id: 'vision-chat' }],
+    }) })
+    expect(await adapter.listModels('antigravity')).toEqual([
+      { provider: 'antigravity', id: 'gemini-3.1-flash-image', name: 'gemini-3.1-flash-image', endpoints: ['images/generations'] },
+      { provider: 'antigravity', id: 'vision-chat', name: 'vision-chat' },
+    ])
+    fetchSpy.mockResolvedValueOnce(Response.json({ models: {
+      'gemini-3.1-flash-image': {}, 'remote-only': {},
+    } }))
+    const discovered = await adapter.discoverModels()
+    expect(discovered[0]?.endpoints).toEqual(['images/generations'])
+    expect(discovered.map(model => model.id)).toContain('remote-only')
+    expect((await adapter.listModels('antigravity')).map(model => model.id)).not.toContain('remote-only')
+    expect((await adapter.resolveModel('antigravity', 'gemini-3.1-flash-image')).endpoints).toEqual(['images/generations'])
+    const result = await adapter.requestGeneration(imageRequest())
+    expect(result.ok).toBe(true)
+    const [url, init] = fetchSpy.mock.calls[1]!
+    expect(url).toBe('http://localhost:1234/v1internal:streamGenerateContent?alt=sse')
+    expect(init).toMatchObject({ redirect: 'error', method: 'POST', headers: { Authorization: 'Bearer first-access' } })
+    expect(JSON.parse(init!.body as string)).toEqual({
+      project: 'project-fixture', model: 'gemini-3.1-flash-image', requestType: 'image_gen', userAgent: 'antigravity',
+      requestId: expect.stringMatching(/^image_gen\/\d+\/[a-f0-9-]+\/12$/) as string,
+      request: { contents: [{ role: 'user', parts: [{ text: 'A tree' }] }],
+        generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: '2:3' } } },
+    })
+  })
+  it.each([401, 404, 429])('tries a later account only after HTTP %i rejects generation', async (status) => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response('private rejection', { status }))
+      .mockResolvedValueOnce(imageStream())
+    const pool = accountPool({ accounts: [
+      { id: 'first', credential: credentials('first-access') }, { id: 'second', credential: credentials('second-access') },
+    ] })
+    const adapter = new AntigravityAccountAdapter({ pool, profile: () => ({ endpoint: 'https://fixture.test' }) })
+    expect((await adapter.requestGeneration(imageRequest())).ok).toBe(true)
+    expect(fetchSpy.mock.calls.map(call => (call[1]!.headers as Record<string, string>)['Authorization']))
+      .toEqual(['Bearer first-access', 'Bearer second-access'])
+  })
+  it.each([403, 408, 500, 503])('stops account selection on HTTP %i without another generation', async (status) => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('', { status }))
+    const pool = accountPool({ accounts: [
+      { id: 'first', credential: credentials('first-access') }, { id: 'second', credential: credentials('second-access') },
+    ] })
+    const adapter = new AntigravityAccountAdapter({ pool, profile: () => ({ endpoint: 'https://fixture.test' }) })
+    expect((await adapter.requestGeneration(imageRequest())).status).toBe(status)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+  it('does not rotate accounts after a lost response, cancellation, or unsupported request', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('lost response'))
+    const pool = accountPool({ accounts: [
+      { id: 'first', credential: credentials('first-access') }, { id: 'second', credential: credentials('second-access') },
+    ] })
+    const adapter = new AntigravityAccountAdapter({ pool, profile: () => ({ endpoint: 'https://fixture.test' }) })
+    await expect(adapter.requestGeneration(imageRequest())).rejects.toThrow('lost response')
+    const controller = new AbortController()
+    controller.abort()
+    await expect(adapter.requestGeneration(imageRequest({ signal: controller.signal }))).rejects.toThrow()
+    await expect(adapter.requestGeneration(imageRequest({ endpoint: 'videos' }))).rejects.toMatchObject({ code: 'UNSUPPORTED_GENERATION' })
+    await expect(adapter.requestGeneration(imageRequest({ body: { prompt: 'A tree', n: 2 } }))).rejects.toMatchObject({ code: 'UNSUPPORTED_GENERATION' })
+    await expect(adapter.requestGeneration(imageRequest({ body: { prompt: ' ' } }))).rejects.toMatchObject({ code: 'INVALID_GENERATION' })
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    const absent = new AntigravityAccountAdapter({ pool: accountPool({ accounts: [] }), profile: () => ({}) })
+    await expect(absent.requestGeneration(imageRequest())).rejects.toMatchObject({ code: 'MISSING_CREDENTIAL' })
+  })
+  it('tries native hosts after endpoint 404 only and retains the response stream for bounded tool parsing', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response('', { status: 404 }))
+      .mockResolvedValueOnce(imageStream())
+    const adapter = new AntigravityAdapter({ resolveCredentials: async () => ({ access: 'fixture', refresh: 'fixture', expires: Date.now() + 60_000, projectId: 'project' }) })
+    const response = await adapter.requestGeneration(imageRequest({ body: { prompt: 'A tree' } }))
+    expect(fetchSpy.mock.calls.map(call => requestUrl(call[0]))).toEqual([
+      'https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse', 'https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse',
+    ])
+    expect(await response.json()).toEqual({ candidates: [{ finishReason: 'STOP', content: { parts: [] } }] })
+  })
+  it('combines streamed image parts and the terminal finish reason without rotating accepted requests', async () => {
+    const frames = [
+      { response: { candidates: [{ content: { parts: [{ thought: true, text: 'private reasoning' }] } }] } },
+      { response: { candidates: [{ content: { parts: [{ inlineData: { mimeType: 'image/png', data: 'fixture-pixels' } }] } }] } },
+      { response: { candidates: [{ finishReason: 'STOP' }] } },
+    ]
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(frames.map(frame => `data: ${JSON.stringify(frame)}\n\n`).join('')))
+    const adapter = new AntigravityAccountAdapter({ pool: accountPool({ accounts: [
+      { id: 'first', credential: credentials('first-access') }, { id: 'second', credential: credentials('second-access') },
+    ] }), profile: () => ({ endpoint: 'https://fixture.test' }) })
+    const result = await adapter.requestGeneration(imageRequest())
+    expect(await result.json()).toEqual({ candidates: [{ finishReason: 'STOP', content: { parts: [
+      { thought: true, text: 'private reasoning' }, { inlineData: { mimeType: 'image/png', data: 'fixture-pixels' } },
+    ] } }] })
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+  it.each(['oversized', 'malformed', 'provider-error', 'multiple-candidates', 'invalid-parts'] as const)('stops after an accepted %s image stream fails', async (kind) => {
+    const payload = kind === 'provider-error' ? { error: { message: 'private provider error' } }
+      : kind === 'multiple-candidates' ? { response: { candidates: [{}, {}] } }
+        : { response: { candidates: [{ content: { parts: 'wrong' } }] } }
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(kind === 'oversized' ? imageStream()
+      : new Response(`data: ${kind === 'malformed' ? '{broken' : JSON.stringify(payload)}\n\n`))
+    const adapter = new AntigravityAccountAdapter({ pool: accountPool({ accounts: [
+      { id: 'first', credential: credentials('first-access') }, { id: 'second', credential: credentials('second-access') },
+    ] }), profile: () => ({ endpoint: 'https://fixture.test' }) })
+    await expect(adapter.requestGeneration(imageRequest({ maxResponseBytes: kind === 'oversized' ? 1 : 32768 }))).rejects.toThrow()
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('account-backed Antigravity adapter', () => {
   it('resolves configured and missing model metadata without account discovery', async () => {
     const pool = accountPool({ accounts: [] })
@@ -121,9 +240,7 @@ describe('account-backed Antigravity adapter', () => {
       { provider: 'antigravity', id: 'plain', name: 'plain' },
       { provider: 'antigravity', id: 'rich', name: 'Rich' },
     ])
-    expect(await adapter.discoverModels()).toEqual([
-      { id: 'plain', name: 'plain' }, { id: 'rich', name: 'Rich', contextWindow: 1000, maxTokens: 200 },
-    ])
+    expect(await adapter.discoverModels()).toEqual([])
     expect(await adapter.resolveModel('antigravity', 'rich')).toMatchObject({
       name: 'Rich', context: { contextWindow: 1000 }, defaultMaxTokens: 200,
     })

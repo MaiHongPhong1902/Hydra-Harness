@@ -178,7 +178,10 @@ it.each(['logout', 'directory', 'late', 'late-error'])('handles sign-out failure
       else pending.resolve(stage === 'directory' ? failure : ok({ entries: [] }))
     })
   }
-  if (!stage.startsWith('late')) expect((await screen.findByRole('alert')).textContent).toBe('unavailable')
+  if (!stage.startsWith('late')) {
+    expect((await screen.findByRole('alert')).textContent)
+      .toBe(stage === 'logout' ? 'Could not remove 1 accounts. Alice: unavailable' : 'unavailable')
+  }
 })
 
 it.each(['text', 'select', 'empty-select'] as const)('answers a %s prompt and shows cancellation', async (kind) => {

@@ -7,7 +7,7 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { SessionEvent } from '@hydraharness/harness-session/types'
+import { SessionVersionId, type SessionEvent } from '@hydraharness/harness-session/types'
 import type {} from '@hydraharness/harness-commands/types'
 import type { SessionId } from '@hydraharness/harness-api-remotes/client'
 import { Session } from '../src/client/sessions/session.ts'
@@ -176,6 +176,22 @@ function histResponse(events: SessionEvent[], hasMore = false) {
 }
 
 describe('open', () => {
+  it('refetches when a newer version arrives during the history read', async () => {
+    const { api, session } = makeSession()
+    const gate = deferred<Awaited<ReturnType<FakeApiClient['onHistory']>>>()
+    api.onHistory = () => gate.promise
+    const opening = session.open()
+    const version: SessionEvent = { seq: 6, time: 0, type: 'session/version', data: {
+      versionId: SessionVersionId('edited'), parentVersionId: SessionVersionId('original'), beforeSeq: 0,
+    } }
+    session.handleMuxEnvelope('v' as never, { type: 'session/event', sessionId: SID, event: version })
+    api.onHistory = () => histResponse([version, ...plainTurn(7, 0, 'new prompt', 'new answer')])
+    gate.resolve(ok({ events: entries(plainTurn(0, 0, 'old prompt', 'old answer')) as never[], hasMore: false }))
+    await opening
+    expect(api.callsOf('session.history')).toHaveLength(2)
+    expect(chatSeqs(session.getSnapshot())).toEqual([7, 8, 9, 10, 11, 12])
+  })
+
   it('keeps a bare Session blank until an authoritative lifecycle signal arrives', () => {
     const { session } = makeSession()
     expect(session.getSnapshot()).toMatchObject({ blank: true, composerPhase: 'blank' })

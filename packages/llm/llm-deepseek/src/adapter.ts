@@ -8,7 +8,7 @@
  * @module hydra-llm-deepseek/adapter
  */
 
-import { streamWithApiKeys, attributionHeaders, contentHasImage, CONTEXT_WINDOW_EXCEEDED_CODE, isContextWindowExceededError, isQuotaExceededError, LlmAdapter, LlmError, ProviderRequestId, QUOTA_EXCEEDED_CODE, ReasoningEffortId } from '@hydraharness/harness-llm'
+import { streamWithApiKeys, attributionHeaders, contentHasImage, CONTEXT_WINDOW_EXCEEDED_CODE, isContextWindowExceededError, isQuotaExceededError, LlmAdapter, LlmError, ProviderRequestId, QUOTA_EXCEEDED_CODE, ReasoningEffortId, supportsConversation } from '@hydraharness/harness-llm'
 import { fetchWithHttpProxy } from '@hydraharness/harness-llm/proxy'
 import type {
   GenerateOptions,
@@ -45,6 +45,8 @@ export interface DeepSeekCatalogModel {
   maxTokens?: number
   /** Accepted request modalities; omission is text-only. */
   inputModalities?: ModelModality[]
+  /** Relative endpoint paths for selector classification; omission or an empty list permits conversation. */
+  endpoints?: string[]
 }
 
 /**
@@ -194,6 +196,7 @@ function modelInfo(provider: string, model: DeepSeekCatalogModel): LlmModelInfo 
     name: model.name ?? model.id,
     ...model.description === undefined ? {} : { description: model.description },
     inputModalities: model.inputModalities ?? ['text'],
+    ...model.endpoints === undefined || model.endpoints.length === 0 ? {} : { endpoints: [...model.endpoints] },
   }
 }
 
@@ -303,6 +306,10 @@ export class DeepSeekAdapter extends LlmAdapter {
     // The key resolves *from this snapshot*, so an endpoint and the secret
     // sent to it can never come from different configuration generations.
     const connection = this.config.options()
+    const endpoints = connection.models.find(model => model.id === options.model)?.endpoints
+    if (!supportsConversation(endpoints?.length === 0 ? undefined : endpoints)) {
+      throw new LlmError(`DeepSeek model "${options.model}" does not support conversation.`, 'UNSUPPORTED_MODEL_ENDPOINT')
+    }
     const refs = [connection.apiKeyEnv, ...connection.apiKeyFallbackEnvs]
     yield* streamWithApiKeys(options, refs.length, index => this.streamAttempt(options, {
       ...connection, apiKeyEnv: refs[index] as CredentialRef,

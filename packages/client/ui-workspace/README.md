@@ -20,6 +20,10 @@ Both target slots are declared by other plugins, so `apply` uses `slots.inject()
 
 The shared sidebar projection hides rows whose durable Session summary has `origin: 'subagent'`; users enter those conversations through the selected parent's subagent header catalog. Each visible ordinary row inherits the blue activity indicator while any descendant reached through uninterrupted subagent-origin lineage is running, and its hover and assistive text report the exact running-descendant count without describing an idle parent as running. Ordinary forks remain visible and terminate this aggregation because lineage alone does not set their origin. Pending user interaction outranks the session's own running state, and either remains the primary row status while descendant activity stays available as a separate hover and assistive status. With neither present, descendant activity outranks the green unviewed-completion reminder; the reminder returns once no descendant is running. The runtime keeps hidden rows available for conversation, title, and addressed transport state.
 
+Session rows share a context menu opened by right-click, Shift+F10 or the overflow button. Pin, explicit unread markers, custom Section assignments and display Project assignments persist in the browser's viewing store. Pinned rows precede sections; a row appears once in grouped and flat views. Opening a row clears its explicit unread marker. Project moves organize the sidebar and retain the session's execution directory and Host Workspace account; a deleted display project falls back to that account. Copy working directory always reports the original session directory. Organization is local to one browser profile.
+
+Copy deeplink opens the session after the list baseline loads. Copy as Markdown reads all history pages without selecting or resuming the session and includes committed user/assistant text; reasoning, tools, injected context and replacements are excluded. A failed page or clipboard write reports an error. Open in new window uses a browser popup or the Desktop window bridge. Share is disabled with Coming soon text; Git worktree forking is disabled because the Host provides no creation capability. Focused session rows accept the shortcuts displayed in their menu.
+
 ## Model Experience
 
 None, as the picker is browser chrome; nothing here reaches a model request.
@@ -29,6 +33,9 @@ None, as the picker is browser chrome; nothing here reaches a model request.
 None; this package neither assembles nor sends a provider request.
 
 ## Known Limitations and Deferred Work
+
+- **Organization is browser-local** — pins, unread markers, sections and display-project moves do not synchronize across devices or change the execution directory. Empty custom sections have no row until assigned a visible session.
+- **Share and worktree fork are unavailable** — Share displays Coming soon; creating a Git worktree requires a Host capability.
 
 - **No fuzzy content search or event deep links** — the content backend uses literal token/phrase matching, and selecting a result opens the Session rather than the matching event.
 - **Permanent deletion has no undo** — Session deletion removes the selected conversation's retained logs and derived sidecar data; there is no recycle bin or restoration path.

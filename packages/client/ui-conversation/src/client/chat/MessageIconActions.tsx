@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode, type Ref } from 'react'
 import {
-  IconBranchOutline16, IconCheckOutline16, IconCopyOutline16, IconEditOutline16, Tooltip, writeClipboard,
+  IconBranchOutline16, IconCheckOutline16, IconCopyOutline16, IconEditOutline16, IconRefreshOutline16, Tooltip, writeClipboard,
 } from '@hydraharness/harness-client-ui-primitives'
 import type { ChatViewSlotProps } from '../contract/slots.ts'
 import { formatLatencySeconds, formatMessageClock, formatRunDuration, formatTokensPerSecond } from './message-chrome.ts'
@@ -27,6 +27,10 @@ export interface MessageIconActionsProps {
   onBranch?: (() => void) | undefined
   /** Open the inline editor; omitted on messages without edit support. */
   onEdit?: (() => void) | undefined
+  /** Resend the original prompt as a new version without opening the editor. */
+  onRetryPrompt?: (() => void) | undefined
+  /** Prompt submission is awaiting acknowledgement; edit and retry stay unavailable. */
+  promptSending?: boolean | undefined
   /** Focus return target when an inline editor closes. */
   editButtonRef?: Ref<HTMLButtonElement>
   /** The message is not a completed transcript tail, so branch stays visible but unavailable. */
@@ -43,13 +47,13 @@ export interface MessageIconActionsProps {
 }
 
 /**
- * Copy, edit, branch, and clock actions shared by user and assistant chrome.
- * @param props - Text, event timing, clock side, optional edit/branch callbacks, and styling.
+ * Copy, prompt edit/retry, branch, and clock actions shared by user and assistant chrome.
+ * @param props - Text, timing, clock side, optional action callbacks, submission availability, and styling.
  * @returns The actions row element.
  */
 export function MessageIconActions({
   text, time, runMs, ttftMs, tokensPerSecond, clock, onBranch, branchUnavailable = false, className,
-  extraActions, onEdit, editButtonRef, t,
+  extraActions, onEdit, onRetryPrompt, promptSending = false, editButtonRef, t,
 }: MessageIconActionsProps) {
   const day = useCalendarDay()
   const reasonId = useId()
@@ -122,8 +126,17 @@ export function MessageIconActions({
       {extraActions}
       {onEdit !== undefined && (
         <Tooltip label={t('edit')} side="bottom">
-          <button ref={editButtonRef} type="button" className={css.action} aria-label={t('edit')} onClick={onEdit}>
+          <button ref={editButtonRef} type="button" className={css.action} aria-label={t('edit')}
+            disabled={promptSending} onClick={onEdit}>
             <IconEditOutline16 />
+          </button>
+        </Tooltip>
+      )}
+      {onRetryPrompt !== undefined && (
+        <Tooltip label={t('message.retryPrompt')} side="bottom">
+          <button type="button" className={css.action} aria-label={t('message.retryPrompt')}
+            disabled={promptSending} onClick={onRetryPrompt}>
+            <IconRefreshOutline16 />
           </button>
         </Tooltip>
       )}

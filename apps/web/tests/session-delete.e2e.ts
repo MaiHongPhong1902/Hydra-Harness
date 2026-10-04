@@ -74,7 +74,7 @@ describe('web e2e: permanent Session deletion', () => {
     const trigger = row.locator('button[aria-label^="Session actions for "]')
     await expect.poll(() => trigger.isVisible(), { timeout: 10_000 }).toBe(true)
     await trigger.click()
-    await page.getByRole('menuitem', { name: 'Delete session', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Permanently delete', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Delete session', exact: true })
     await dialog.waitFor({ timeout: 10_000 })
     return dialog

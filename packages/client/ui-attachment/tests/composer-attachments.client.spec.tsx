@@ -26,6 +26,7 @@ const t = ((key: string, params?: Readonly<Record<string, unknown>>): string => 
     'image.original': 'Original image',
     'image.preview': 'Original image preview',
     'image.closePreview': 'Close original image preview',
+    'image.download': 'Download image',
     'browserAnnotation.pending': 'Pending browser annotations',
     'browserAnnotation.comment': 'Add a comment…',
     'image.openOriginal': 'View original',

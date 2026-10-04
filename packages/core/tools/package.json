@@ -60,6 +60,7 @@
     "@hydraharness/schemastery": "workspace:^"
   },
   "devDependencies": {
+    "@hydraharness/harness-attachment": "workspace:^",
     "@hydraharness/harness-agent": "workspace:^",
     "@hydraharness/harness-code-runtime": "workspace:^",
     "@hydraharness/harness-invariants": "workspace:^",

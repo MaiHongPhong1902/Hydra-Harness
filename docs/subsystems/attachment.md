@@ -48,7 +48,21 @@ interface ImageAttachmentLimits {
 
 The reference records intrinsic dimensions and encoded length so clients can lay out history without decoding first, while every authoritative read still re-checks digest, media signature, dimensions, and metadata against the object.
 
+## Tool presentation images
+
+`tool/result.meta` may carry image references for display without adding image blocks to the model-facing message. `toolImageReferences(meta)` validates recognized metadata, throws on invalid references, and ignores other metadata. The session-authorized read and ZIP export scan these references alongside message content. The [media generation plugin](../../packages/media/tool-media/README.md) is a producer.
+
+```ts type-equiv
+/** Tool-result presentation images, excluded from derived model messages. */
+interface ToolImagePresentationMeta {
+  kind: 'tool-images'
+  images: ImageAttachmentRef[]
+}
+```
+
 ## Commit and verified-read payloads
+
+Tool video output uses `{ kind: 'tool-videos', videos: VideoAttachmentRef[] }` in the same presentation-only location. Each reference extends `FileAttachmentRef` with `mediaType: 'video/mp4' | 'video/webm'`. Producers validate the provider's video format and persist its final bytes before emitting the result. `toolVideoReferences` rejects malformed references and unsafe file names; session authorization and ZIP export consume validated references. The UI plays stored videos with native controls. See the [standalone media output decision](../../.agents/notes/implemented/feature/2026-10-03-standalone-media-generation-output.md).
 
 ```ts type-equiv
 /** Base64-encoded image upload accompanying one wire request. */

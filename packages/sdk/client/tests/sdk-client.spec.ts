@@ -54,6 +54,17 @@ async function tempDir(prefix: string): Promise<string> {
 }
 
 describe('HydraHarness', () => {
+  it('preserves same-session version records without changing response extraction', async () => {
+    const result = await harnessWith({ FAKE_VERSION_CONTROLS: '1', FAKE_TEXT: 'answer' }).run('hello', { sessionId: 'main' })
+    expect(result.sessionId).toBe('main')
+    expect(result.events.filter(event => event.type.startsWith('session/version')).map(event => ({ type: event.type, data: event.data })))
+      .toEqual([
+        { type: 'session/version', data: { versionId: 'edited', parentVersionId: 'original', beforeSeq: 0 } },
+        { type: 'session/version-selected', data: { versionId: 'original' } },
+      ])
+    expect(result.finalResponse).toBe('answer')
+  })
+
   it('preserves model call diagnostics without including them in the final response', async () => {
     const result = await harnessWith({ FAKE_MODEL_CALL_LOG: '1', FAKE_TEXT: 'answer' }).run('hello')
     const events = result.events.filter(event => event.type.startsWith('llm/call-'))

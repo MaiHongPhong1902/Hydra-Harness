@@ -1,0 +1,32 @@
+- tabpanel "Plugins":
+  - text: Type
+  - combobox "Type":
+    - option "All types" [selected]
+    - option "Core"
+    - option "Extension"
+    - option "Preset"
+  - text: Status
+  - combobox "Status":
+    - option "All status" [selected]
+    - option "Enabled"
+    - option "Disabled"
+    - option "Restart required"
+  - text: Sort by
+  - combobox "Sort by":
+    - option "Name" [selected]
+    - option "Runtime status"
+  - region "Installed plugins":
+    - heading "Installed plugins" [level=3]
+    - text: 1 Plugin Type Runtime Enabled
+    - list:
+      - listitem:
+        - button "tool-media @hydraharness/harness-tool-media Extension Running":
+          - strong: tool-media
+          - code: "@hydraharness/harness-tool-media"
+          - text: Extension Running
+        - text: Enabled
+        - switch "Disable plugin tool-media" [checked]
+  - region "Imported OpenAI/Codex plugins":
+    - heading "Imported OpenAI/Codex plugins" [level=3]
+    - text: "0"
+    - paragraph: No OpenAI/Codex plugins have been imported.

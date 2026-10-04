@@ -56,7 +56,7 @@ function formatDuration(elapsedMs: number): string {
 
 /** Find the latest model-visible event, excluding this plugin's pending append. */
 function precedingMessageTime(agent: Agent): number | undefined {
-  for (const event of [...agent.session.events].reverse()) {
+  for (const event of [...agent.session.activeEvents].reverse()) {
     switch (event.type) {
       case 'user/message':
       case 'assistant/message':
@@ -72,7 +72,7 @@ function precedingMessageTime(agent: Agent): number | undefined {
 
 /** Find the preceding time-context event within the open turn. */
 function precedingStepContextTime(agent: Agent, turn: number): number | undefined {
-  for (const event of [...agent.session.events].reverse()) {
+  for (const event of [...agent.session.activeEvents].reverse()) {
     if (event.type === 'turn/start' && event.data.turn === turn) return undefined
     if (event.type === 'user/message'
       && event.data.source.kind === 'plugin'
@@ -85,7 +85,7 @@ function precedingStepContextTime(agent: Agent, turn: number): number | undefine
 
 /** Find this plugin's latest durable injection, including a shadowed surface event. */
 function latestInjectionTime(agent: Agent): number | undefined {
-  for (const event of [...agent.session.events].reverse()) {
+  for (const event of [...agent.session.activeEvents].reverse()) {
     if (event.type === 'user/message'
       && event.data.source.kind === 'plugin'
       && event.data.source.plugin === name) {
@@ -97,12 +97,12 @@ function latestInjectionTime(agent: Agent): number | undefined {
 
 /** Collect already-entered and proposed user messages belonging to one open turn. */
 function requestMessages(agent: Agent, turn: number, proposed: readonly UserMessage[]): UserMessage[] {
-  const start = agent.session.events.findLastIndex(
+  const start = agent.session.activeEvents.findLastIndex(
     event => event.type === 'turn/start' && event.data.turn === turn,
   )
   const entered = start < 0
     ? []
-    : agent.session.events.slice(start + 1)
+    : agent.session.activeEvents.slice(start + 1)
       .flatMap(event => event.type === 'user/message' ? [event.data] : [])
   return [...entered, ...proposed]
 }

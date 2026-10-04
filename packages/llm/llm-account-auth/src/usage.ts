@@ -283,15 +283,19 @@ async function antigravityUsage(
  * @param profile - current provider endpoint configuration.
  * @param timeoutMs - deadline including OAuth refresh and response bodies.
  * @param signal - caller cancellation.
- * @returns normalized provider data without credentials or raw responses.
+ * @returns normalized provider data, or undefined when this provider's usage API is unsupported.
  */
 export async function readAccountUsage(
   pool: AccountPool, id: AuthorizationAccountId, provider: AccountProvider,
   profile: AccountProviderProfile, timeoutMs: number, signal?: AbortSignal,
-): Promise<AuthorizationUsage> {
+): Promise<AuthorizationUsage | undefined> {
   const deadline = AbortSignal.timeout(timeoutMs)
   const combined = signal === undefined ? deadline : AbortSignal.any([signal, deadline])
   return pool.withAccount(id, async () => {
+    if (provider !== 'chatgpt' && provider !== 'antigravity') {
+      if (!(await pool.accounts.list()).some(account => account.id === id)) throw new LlmError('Account is no longer connected', 'ACCOUNT_GONE')
+      return undefined
+    }
     let selected: OAuthCredential | undefined
     await pool.credentials.modify(provider, async (current) => {
       combined.throwIfAborted()
@@ -303,6 +307,9 @@ export async function readAccountUsage(
         const oauth = openaiCodexProvider().auth.oauth
         if (oauth === undefined) throw new LlmError('ChatGPT OAuth is unavailable', 'INVALID_CREDENTIAL')
         selected = await oauth.refresh(current, combined)
+      } else if (current.quotaProjectId !== undefined) {
+        const { refreshGoogle } = await import('./google-oauth.ts')
+        selected = await refreshGoogle(current, combined)
       } else {
         if (typeof current.projectId !== 'string') throw new LlmError('Antigravity project is missing', 'INVALID_CREDENTIAL')
         selected = { ...current, ...await refreshAntigravity({ refresh: current.refresh, projectId: current.projectId }, {}, combined) }

@@ -116,6 +116,8 @@ export type {
   ReadFileLine,
   ToolCallView,
   GenericCallView,
+  MediaCallView,
+  MediaResultView,
   TerminalCallView,
   DiffCallView,
   ToolResultView,

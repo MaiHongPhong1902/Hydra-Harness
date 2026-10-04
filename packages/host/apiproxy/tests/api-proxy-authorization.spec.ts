@@ -43,7 +43,7 @@ function entry(key: CredentialKey = KEY): AuthorizationEntry {
   }
 }
 
-type MockAuthorization = Pick<AuthorizationService, 'list' | 'describe' | 'begin' | 'cancel' | 'listAccounts' | 'removeAccount' | 'getUsage'>
+type MockAuthorization = Pick<AuthorizationService, 'list' | 'describe' | 'begin' | 'cancel' | 'listAccounts' | 'removeAccount' | 'forget' | 'getUsage'>
 
 function install(ctx: Context, overrides: Partial<MockAuthorization> = {}): MockAuthorization {
   const service: MockAuthorization = {
@@ -53,6 +53,7 @@ function install(ctx: Context, overrides: Partial<MockAuthorization> = {}): Mock
     cancel: () => {},
     listAccounts: async (): Promise<readonly AuthorizationAccount[]> => [],
     removeAccount: async (): Promise<void> => {},
+    forget: async (): Promise<void> => {},
     getUsage: async (): Promise<AuthorizationUsage | undefined> => undefined,
     ...overrides,
   }
@@ -220,7 +221,7 @@ describe('authorization RPC bridge', () => {
     const ctx = new Context()
     install(ctx, {
       begin: async ({ interaction }) => {
-        interaction.notify({ message: 'Continue signing in', url: 'javascript:alert(1)', code: 'ABC123' })
+        interaction.notify({ message: 'Continue signing in', url: 'javascript:alert(1)', code: 'ABC123', snippet: 'x'.repeat(9000) })
         return { status: 'authorized' }
       },
     })
@@ -229,7 +230,7 @@ describe('authorization RPC bridge', () => {
     const finished = await waitForState(api, started.attemptId, result =>
       result.ok && result.value.attempt.status === 'authorized')
     if (!finished.result.ok) throw new Error('expected completed state')
-    expect(finished.result.value.attempt.notice).toEqual({ message: 'Continue signing in', code: 'ABC123' })
+    expect(finished.result.value.attempt.notice).toEqual({ message: 'Continue signing in', code: 'ABC123', snippet: 'x'.repeat(8192) })
   })
 
   it('bounds retained terminal attempt state', async () => {
@@ -291,5 +292,27 @@ describe('authorization RPC bridge', () => {
 
     expectOk(await api.authorization.logout(request({ key: String(KEY), accountId: 'account-1' })))
     expect(removed).toEqual({ key: KEY, accountId: 'account-1' })
+  })
+
+  it('forgets a complete local account record without per-account removal and hides storage errors', async () => {
+    const ctx = new Context()
+    const forgotten: CredentialKey[] = []
+    let removed = false
+    install(ctx, {
+      forget: async (key) => {
+        if (forgotten.length > 0) throw new Error('token=private-store-value')
+        forgotten.push(key)
+      },
+      removeAccount: async () => { removed = true },
+    })
+    const api = apiFor(ctx)
+    expectOk(await api.authorization.logout(request({ key: String(KEY) })))
+    expect(forgotten).toEqual([KEY])
+    expect(removed).toBe(false)
+    const failed = await api.authorization.logout(request({ key: String(KEY) }))
+    expect(expectError(failed).message).toBe('sign-out failed')
+    expect(JSON.stringify(failed)).not.toContain('private-store-value')
+    expect(expectError(await api.authorization.logout(request({ key: 'invalid' }))).message)
+      .toBe('authorization flow is unavailable')
   })
 })

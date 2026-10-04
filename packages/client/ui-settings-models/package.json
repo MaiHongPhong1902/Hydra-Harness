@@ -54,10 +54,12 @@
     "@hydraharness/harness-client-connection": "workspace:^",
     "@hydraharness/harness-client-runtime": "workspace:^",
     "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
     "@hydraharness/harness-client-locale": "workspace:^",
     "@hydraharness/harness-client-ui-settings": "workspace:^"
   },
   "devDependencies": {
+    "@hydraharness/harness-llm": "workspace:^",
     "@hydraharness/harness-api-remotes": "workspace:^",
     "@hydraharness/harness-client-connection": "workspace:^",
     "@hydraharness/harness-client-locale": "workspace:^",

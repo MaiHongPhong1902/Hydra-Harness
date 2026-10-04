@@ -18,12 +18,13 @@ import type {} from '@hydraharness/harness-fs-review'
 import { installModelSelection } from '@hydraharness/harness-agent'
 import type { Agent, AgentHandle, ModelSelection, ModelSelectionRef, AgentOptions, AgentStatus } from '@hydraharness/harness-agent'
 import type {} from '@hydraharness/harness-agent-presets/types'
-import { AttachmentError, admitEncodedImages } from '@hydraharness/harness-attachment'
-import type { ImageAttachmentRef } from '@hydraharness/harness-attachment'
+import { AttachmentError, admitEncodedImages, toolImageReferences, toolVideoReferences, toolMediaLabels } from '@hydraharness/harness-attachment'
+import type { ImageAttachmentRef, VideoAttachmentRef } from '@hydraharness/harness-attachment'
 import { contentHasImage, createUserMessage, freezeMessage, ReasoningEffortId } from '@hydraharness/harness-llm'
 import { errorChain } from '@hydraharness/harness-llm'
+import { supportsConversation } from '@hydraharness/harness-llm'
 import type { ContentBlock, MessageSource } from '@hydraharness/harness-llm'
-import { isAppendSurfaceEvent, isJsonValue } from '@hydraharness/harness-session'
+import { isAppendSurfaceEvent, isJsonValue, sessionVersions, ORIGINAL_SESSION_VERSION, sessionVersionReference } from '@hydraharness/harness-session'
 import type { JsonValue, Session, SessionEvent, SessionEventMap, SessionHeader, SessionId, UserMessage } from '@hydraharness/harness-session'
 import type { SessionPersistence } from '@hydraharness/harness-session-persistence'
 // Type-only: resolves the optional permission-default owner notified after
@@ -49,7 +50,8 @@ import type {
   ApiProxy, ConfigurableProviderView, CredentialView, GoalRef, HistoryEntry, HostFrame,
   InstructionsDocumentView, MemoryEntryView, ModelCatalogFailure, ModelProviderGroup,
   ModelReasoning, MuxFrame, PromptContentPart, QuestionResponsePayload, SessionListMetadata, SessionProjectionsBlock, SessionSearchItem,
-  ConversationRevision, QueuedInboxItem, SessionSummary, SettingsNamespaceView, SubagentAddress, JobView, ToolEventView,
+  ConversationRevision, SessionVersionState, QueuedInboxItem, SessionSummary,
+  SettingsNamespaceView, SubagentAddress, JobView, ToolEventView,
   WorkspaceId, WorkspaceView,
   AuthorizationAttemptView, AuthorizationPromptView,
 } from './api/index.ts'
@@ -175,6 +177,10 @@ function imageBlockIn(content: unknown, match: (ref: ImageAttachmentRef) => bool
 
 /** Search every durable event carrier that can own model-visible content. */
 function imageInEvent(event: SessionEvent, match: (ref: ImageAttachmentRef) => boolean): ImageAttachmentRef | undefined {
+  if (event.type === 'tool/result') {
+    const image = toolImageReferences(event.data.meta).find(match)
+    if (image !== undefined) return image
+  }
   const data = event.data as {
     content?: unknown
     message?: { content?: unknown }
@@ -205,8 +211,12 @@ function messagesHaveImage(messages: readonly { content: readonly ContentBlock[]
 }
 
 /** Resolve the first reference matching one opaque id. */
-function referencedImage(events: readonly SessionEvent[], attachmentId: string): ImageAttachmentRef | undefined {
+function referencedImage(events: readonly SessionEvent[], attachmentId: string): ImageAttachmentRef | VideoAttachmentRef | undefined {
   for (const event of events) {
+    if (event.type === 'tool/result') {
+      const video = toolVideoReferences(event.data.meta).find(ref => String(ref.attachmentId) === attachmentId)
+      if (video !== undefined) return video
+    }
     const found = imageInEvent(event, ref => String(ref.attachmentId) === attachmentId)
     if (found !== undefined) return found
   }
@@ -289,7 +299,7 @@ function ok<T>(request: RpcRequest<unknown>, value: T): RpcResponse<T> {
  * without failing the sound groups; groups that advertise nothing are dropped.
  * The official DeepSeek dismissal hides its catalog without unloading its route.
  */
-async function buildModelCatalog(ctx: Context): Promise<{
+async function buildModelCatalog(ctx: Context, conversationOnly = false): Promise<{
   groups: ModelProviderGroup[]
   failures: ModelCatalogFailure[]
 }> {
@@ -300,7 +310,8 @@ async function buildModelCatalog(ctx: Context): Promise<{
   const catalog = await Promise.all(providers.map(async (provider) => {
     try {
       const models = await ctx.llm.listModels(provider.id)
-      const entries = await Promise.all(models.map(async (model) => {
+      const selectable = models.filter(model => !conversationOnly || supportsConversation(model.endpoints))
+      const entries = await Promise.all(selectable.map(async (model) => {
         const resolved = await ctx.llm.resolveModelInfo(provider.id, model.id)
         const reasoning: ModelReasoning | undefined = resolved.reasoning === undefined
           ? undefined
@@ -319,6 +330,7 @@ async function buildModelCatalog(ctx: Context): Promise<{
         return {
           id: model.id,
           name: model.name,
+          ...model.endpoints === undefined ? {} : { endpoints: [...model.endpoints] },
           ...model.description === undefined ? {} : { description: model.description },
           ...reasoning === undefined ? {} : { reasoning },
         }
@@ -480,7 +492,21 @@ function sessionBlank(session: Session): boolean {
 
 /** Advance the Session-list hint projection by one committed event. */
 function applySessionListMetadata(state: SessionListMetadata, event: SessionEvent): SessionListMetadata {
-  if (event.type === 'session/revision') return { ...state, revision: conversationRevisionSchema.parse(event.data) }
+  if (event.type === 'session/version') {
+    const versions = state.versionState?.versions ?? [{ id: ORIGINAL_SESSION_VERSION }]
+    return { ...state, versionState: { current: event.data.versionId, versions: [...versions, { id: event.data.versionId }] } }
+  }
+  if (event.type === 'session/version-selected' && state.versionState !== undefined) {
+    const revision = state.versionState.versions.find(version => version.id === event.data.versionId)?.revision
+    return { ...state, revision, versionState: { ...state.versionState, current: event.data.versionId } }
+  }
+  if (event.type === 'session/revision') {
+    const revision = conversationRevisionSchema.parse(event.data)
+    return { ...state, revision, ...state.versionState === undefined ? {} : {
+      versionState: { ...state.versionState, versions: state.versionState.versions
+        .map(version => version.id === revision.versionId ? { ...version, revision } : version) },
+    } }
+  }
   const blank = state.blank && event.type !== 'turn/start'
   const lastPromptAt = event.type === 'user/message' && event.data.source.kind === 'user'
     ? event.time
@@ -506,6 +532,7 @@ function sessionListUpdatedAt(header: SessionHeader, metadata: SessionListMetada
 function sessionListFields(header: SessionHeader, events: readonly SessionEvent[] = []): {
   parentSessionId?: SessionId
   revision?: ConversationRevision
+  versionState?: SessionVersionState
   origin?: 'subagent'
   cwd?: string
   agentPreset?: string
@@ -514,8 +541,9 @@ function sessionListFields(header: SessionHeader, events: readonly SessionEvent[
   // while blank ran its turns under the newer composition, and a picker
   // showing the creation-time value would contradict what the model saw.
   const agentPreset = resolveSessionPreset({ header, events })
-  const revision = sessionListMetadata(events).revision
+  const { revision, versionState } = sessionListMetadata(events)
   return {
+    ...versionState === undefined ? {} : { versionState },
     ...revision?.sessionId === header.id ? { revision } : {},
     ...header.parentSession === undefined ? {} : { parentSessionId: header.parentSession },
     ...header.origin === undefined ? {} : { origin: header.origin },
@@ -587,7 +615,9 @@ async function summarizeCold(
     ? undefined
     : await probeColdSessionMetadata(ctx, persistence, meta, blankProbeMaxBytes, signal)
   const revision = (probed ?? metadata)?.revision
+  const versionState = (probed ?? metadata)?.versionState
   return {
+    ...versionState === undefined ? {} : { versionState },
     sessionId: meta.id,
     updatedAt: sessionListUpdatedAt(meta, probed ?? metadata),
     running: false,
@@ -635,6 +665,8 @@ export interface ApiProxyDefaults {
   sessionExportCompressionLevel?: SessionLogCompressionLevel
   /** Maximum artifact size eligible for one cold blankness read. */
   coldBlankProbeMaxBytes?: number
+  /** UTF-8 bytes per user-selected version reference. Defaults to 65536. */
+  versionReferenceMaxBytes?: number
   /** Maximum serialized bytes returned by one live Git review. */
   reviewMaxBytes?: number
   /** Maximum files returned by one live Git review. */
@@ -728,7 +760,7 @@ interface AuthorizationAttempt {
 }
 
 /** Keep provider notices safe and bounded before they cross into the browser. */
-function authorizationNoticeView(notice: { message: string; url?: string; code?: string }): NonNullable<AuthorizationAttemptView['notice']> {
+function authorizationNoticeView(notice: { message: string; url?: string; code?: string; snippet?: string }): NonNullable<AuthorizationAttemptView['notice']> {
   let url: string | undefined
   if (notice.url !== undefined) {
     try {
@@ -742,6 +774,7 @@ function authorizationNoticeView(notice: { message: string; url?: string; code?:
     message: notice.message.slice(0, 4096) || 'Continue signing in.',
     ...url === undefined ? {} : { url },
     ...notice.code === undefined ? {} : { code: notice.code.slice(0, 1024) },
+    ...notice.snippet === undefined ? {} : { snippet: notice.snippet.slice(0, 8192) },
   }
 }
 
@@ -816,6 +849,18 @@ function viewFor(
       const { message, meta } = event.data
       const [result] = message.content
       const callId = message.source.callId
+      if (!result.isError) {
+        const images = toolImageReferences(meta)
+        const videos = toolVideoReferences(meta)
+        if (images.length > 0 || videos.length > 0) return {
+          for: 'result', view: {
+            card: 'media', kind: videos.length > 0 ? 'video' : 'image',
+            content: [...images.map(attachment => ({ type: 'image' as const, attachment })),
+              ...videos.map(attachment => ({ type: 'video' as const, attachment }))],
+            ...toolMediaLabels(meta),
+          },
+        }
+      }
       const call = argsFor(callId) as { name: string; args: unknown } | undefined
       if (call === undefined) return undefined
       const view = ctx.tools.get(call.name, scope)?.presentResult?.(call.args, {
@@ -1202,7 +1247,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   const muxQueues = new Set<FrameQueue<RpcRequest<MuxFrame>>>()
   const imageAdmissionChains = new WeakMap<Agent, Promise<void>>()
 
-  /** Serialize image admission with model selection for one agent. */
+  /** Serialize prompt, version, image, and model admission for one agent. */
   function serializeImageAdmission<T>(agent: Agent, operation: () => Promise<T>): Promise<T> {
     const result = (imageAdmissionChains.get(agent) ?? Promise.resolve()).then(operation)
     imageAdmissionChains.set(agent, result.then(() => undefined, () => undefined))
@@ -1951,7 +1996,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     const current = selection.current
     if (!routeServed(current.provider)) return false
     if (selection.explicit || ctx.get('llm') === undefined) return true
-    const catalog = groups ?? (await buildModelCatalog(ctx)).groups
+    const catalog = groups ?? (await buildModelCatalog(ctx, true)).groups
     return catalog.some(group => group.id === current.provider
       && group.models.some(model => model.id === current.model))
   }
@@ -2121,11 +2166,12 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       return
     }
     const interaction = {
-      notify: (notice: { message: string; url?: string; code?: string }): void => {
+      notify: (notice: { message: string; url?: string; code?: string; snippet?: string }): void => {
         if (authorizationDisposed || attempt.status !== 'running') return
         const next = authorizationNoticeView(notice)
         attempt.notice = {
           message: next.message,
+          ...next.snippet === undefined ? {} : { snippet: next.snippet },
           ...next.url === undefined
             ? attempt.notice?.url === undefined ? {} : { url: attempt.notice.url }
             : { url: next.url },
@@ -2349,22 +2395,12 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   }
 
   const revisePrompt = createPromptReviser(ctx, {
-    retain: (handle) => { ownedSessions.set(handle.agent.id, handle) },
+    serialize: serializeImageAdmission,
     read: readSessionState,
     async resume(id) {
       const found = await agentFor(id)
       if ('error' in found) throw new Error(found.error.message)
       return found.agent
-    },
-    async find(id) {
-      try { return await readSessionState(id) } catch (error) {
-        if (error instanceof SessionNotFound) return undefined
-        throw error
-      }
-    },
-    async compose(source) {
-      const composition = await composeAgent(resolveSessionPreset(source))
-      return { ...composition, agentOptions: agentOptions() }
     },
     async validateModel(source, images) {
       const resolved = await agentFor(source.id)
@@ -2689,8 +2725,14 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           // at N with a baseline folded to N+1.
           const scope = await presenterScopeFor(sessionId, sourceSession(source))
           const cut = historyCutOf(source, beforeSeq === undefined)
-          const page = historyPage(ctx, cut.events, beforeSeq, maxMessages, scope)
+          const versions = sessionVersions(cut.events)
+          const versioned = versions.ids.length > 1
+          const active = new Set(versions.events().map(event => event.seq))
+          const visible = versioned ? cut.events.filter(event => active.has(event.seq)
+            || event.type === 'session/version' || event.type === 'session/version-selected') : cut.events
+          const page = historyPage(ctx, visible, beforeSeq, maxMessages, scope)
           return ok(request, {
+            ...versioned ? { versionId: versions.current } : {},
             events: page.events,
             hasMore: page.hasMore,
             ...cut.projections === undefined ? {} : { projections: cut.projections },
@@ -2712,7 +2754,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         const found = await agentFor(sessionId)
         if ('error' in found) return err(request, found.error)
         const current = selectionFor(found.agent).current
-        const { groups, failures } = await buildModelCatalog(ctx)
+        const { groups, failures } = await buildModelCatalog(ctx, true)
         const routable = await selectionRoutable(found.agent, groups)
         return ok(request, { current: { ...current }, routable, groups, failures })
       },
@@ -2940,6 +2982,34 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         }
       },
 
+      async selectVersion(request) {
+        const { sessionId, versionId, mode } = request.payload
+        const found = await agentFor(sessionId)
+        if ('error' in found) return err(request, found.error)
+        return serializeImageAdmission(found.agent, async () => {
+          if (found.agent.session.header.origin === 'subagent' || found.agent.status !== 'idle') return err(request, {
+            code: 'agent-busy', message: 'Wait for this session to finish before selecting a version.', details: { reason: 'version selection requires an idle session' },
+          })
+          try {
+            const session = found.agent.session
+            const events = session.versions.events(versionId)
+            if (mode === 'reference') {
+              const reference = sessionVersionReference(events, versionId, defaults.versionReferenceMaxBytes ?? 65536)
+              found.agent.inject(createUserMessage({ content: [{ type: 'text', text: reference.text }],
+                source: { kind: 'plugin', plugin: '@hydraharness/harness-session', form: 'recall' },
+              }))
+            } else if (session.versions.current !== versionId) {
+              found.agent.cancel({ kind: 'user' })
+              session.append('session/version-selected', { versionId })
+            }
+            await ctx.sessions.flush(session)
+            return ok(request, { versionId })
+          } catch (error) {
+            return err(request, { code: 'fork-unavailable', message: error instanceof Error ? error.message : String(error), details: { sessionId } })
+          }
+        })
+      },
+
       async prompt(request) {
         const { sessionId, mode, content, clientTimeZone } = request.payload
         const canonicalTimeZone = clientTimeZone === undefined
@@ -2995,7 +3065,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           }
           return ok(request, { accepted: true as const })
         }
-        return hasImage ? serializeImageAdmission(agent, admit) : admit()
+        return serializeImageAdmission(agent, admit)
       },
 
       async attachment(request) {
@@ -3021,15 +3091,22 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         if (ref === undefined) {
           return err(request, {
             code: 'attachment-error',
-            message: 'Image is not referenced by this session.',
+            message: 'Media is not referenced by this session.',
             details: { reason: 'ATTACHMENT_NOT_REFERENCED' },
           })
         }
         try {
-          const stored = await ctx.attachments.readImage(ref)
+          let data: Uint8Array
+          if ('width' in ref) data = (await ctx.attachments.readImage(ref)).data
+          else {
+            // ponytail: RPC buffers video bytes; use a streamed attachment route for large provider videos.
+            const chunks: Buffer[] = []
+            for await (const chunk of ctx.attachments.readFileStream(ref)) chunks.push(Buffer.from(chunk))
+            data = Buffer.concat(chunks)
+          }
           return ok(request, {
-            attachment: stored.ref,
-            data: Buffer.from(stored.data).toString('base64'),
+            attachment: ref,
+            data: Buffer.from(data).toString('base64'),
           })
         } catch (error: unknown) {
           if (error instanceof AttachmentError) {
@@ -3041,7 +3118,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           }
           return err(request, {
             code: 'internal',
-            message: 'Unable to read image attachment.',
+            message: 'Unable to read media attachment.',
             details: {},
           })
         }
@@ -3977,7 +4054,8 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           return authorizationFailure(request, 'cancel authorization before signing out')
         }
         try {
-          await authorization.removeAccount(key, authorizationAccountId(request.payload.accountId))
+          if (request.payload.accountId === undefined) await authorization.forget(key)
+          else await authorization.removeAccount(key, authorizationAccountId(request.payload.accountId))
         } catch {
           return authorizationFailure(request, 'sign-out failed')
         }
@@ -4114,7 +4192,9 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
             ...apiKey === undefined ? {} : { apiKey },
             ...signal === undefined ? {} : { signal },
           })
-          return ok(request, { models })
+          return ok(request, { models: models.map(model => ({
+            ...model, ...model.endpoints === undefined ? {} : { endpoints: [...model.endpoints] },
+          })) })
         } catch (error: unknown) {
           // Every failure here is the user's next move, not a transport fault:
           // a wrong endpoint, a rejected key, or a protocol with no listing all
@@ -4256,6 +4336,11 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
               // Including cwd lets the client group the new session without refreshing the list.
               ...sessionListFields(session.header, session.events),
             }))
+          }),
+          ctx.on('session/event', (session, event) => {
+            if (event.type !== 'session/version' && event.type !== 'session/version-selected' && event.type !== 'session/revision') return
+            const state = sessionListMetadata(session.events).versionState
+            if (state !== undefined) queue.push(frame({ type: 'host/session-versions', sessionId: session.id, state }))
           }),
           ctx.on('session/disposed', (session: Session) => {
             queue.push(frame({ type: 'host/session-removed', sessionId: session.id }))

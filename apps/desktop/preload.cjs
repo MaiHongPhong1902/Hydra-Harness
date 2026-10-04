@@ -3,6 +3,7 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('hydraDesktop', {
+  openSessionWindow: sessionId => ipcRenderer.invoke('hydra-desktop:open-session-window', { sessionId }),
   openExternal: url => ipcRenderer.invoke('hydra-desktop:open-external', { url }),
   chrome: {
     dispatch: action => ipcRenderer.invoke('hydra-desktop:chrome-action', action),

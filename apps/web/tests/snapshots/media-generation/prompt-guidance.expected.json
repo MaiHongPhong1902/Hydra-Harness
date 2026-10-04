@@ -1,0 +1,101 @@
+[
+  {
+    "name": "image_generate",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "description": "Refine the user request into an image prompt using your current conversation context before calling this tool. Use precise terminology for composition, framing, lighting, materials, and style where the request supports it. Preserve the subject, intent, exact quoted text and its language, counts, and all constraints or exclusions. Do not invent requirements or add conflicting details. If the user requests an exact prompt or no rewriting, pass that prompt verbatim. Send the final generation prompt only, without commentary."
+        },
+        "count": {
+          "type": "integer",
+          "description": "Number of images; defaults to 1.",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "1024x1024",
+            "1536x1024",
+            "1024x1536"
+          ]
+        },
+        "quality": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "png",
+            "jpeg",
+            "webp"
+          ]
+        },
+        "background": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "opaque",
+            "transparent"
+          ]
+        }
+      },
+      "required": [
+        "prompt"
+      ]
+    }
+  },
+  {
+    "name": "image_generate_google",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "description": "Refine the user request into an image prompt using your current conversation context before calling this tool. Use precise terminology for composition, framing, lighting, materials, and style where the request supports it. Preserve the subject, intent, exact quoted text and its language, counts, and all constraints or exclusions. Do not invent requirements or add conflicting details. If the user requests an exact prompt or no rewriting, pass that prompt verbatim. Send the final generation prompt only, without commentary."
+        }
+      },
+      "required": [
+        "prompt"
+      ]
+    }
+  },
+  {
+    "name": "video_generate",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "description": "Refine the user request into a video prompt using your current conversation context before calling this tool. Use precise terminology for shot framing, camera movement, subject motion, timing, lighting, and style where the request supports it. Preserve the subject, intent, exact quoted text and its language, counts, duration, aspect ratio, and all constraints or exclusions. Keep the prompt consistent with seconds and size when supplied. Do not invent requirements or add conflicting details. If the user requests an exact prompt or no rewriting, pass that prompt verbatim. Send the final generation prompt only, without commentary."
+        },
+        "seconds": {
+          "type": "integer",
+          "description": "Duration in seconds; the selected model must support it.",
+          "minimum": 1,
+          "maximum": 15
+        },
+        "size": {
+          "type": "string",
+          "description": "Landscape or portrait video; omitted uses the provider default.",
+          "enum": [
+            "1280x720",
+            "720x1280"
+          ]
+        }
+      },
+      "required": [
+        "prompt"
+      ]
+    }
+  }
+]

@@ -3,6 +3,7 @@ import type { ConnectionHandle } from '@hydraharness/harness-client-connection/c
 import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
 import type {} from '@hydraharness/harness-client-ui-conversation/client'
 import { ToolCallTree } from './tool/ToolCallTree.tsx'
+import { MediaGeneration } from './tool/MediaGeneration.tsx'
 import { ToolDetails } from './tool/ToolDetails.tsx'
 import { CONVERSATION_NS as NS } from './locale.ts'
 import { askQuestionToolview } from './tool/toolviews/ask-question-row.tsx'
@@ -24,6 +25,14 @@ export const inject = ['slots', 'connection']
 export function apply(ctx: ClientContext): void {
   const connection = ctx.get('connection') as ConnectionHandle
   const toolInject = () => ({ hooks: { hostDescription: connection.hostDescription } })
+  const loadModelName = async (provider: string | undefined, model: string): Promise<string | undefined> => {
+    const response = await connection.api.llm.models({})
+    if (!response.result.ok) return undefined
+    const matches = response.result.value.groups
+      .filter(group => provider === undefined || group.id === provider)
+      .flatMap(group => group.models.filter(entry => entry.id === model))
+    return matches.length === 1 ? matches[0]?.name : undefined
+  }
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register({
     name: 'conversation.chat.node',
     key: 'tool-call',
@@ -34,6 +43,11 @@ export function apply(ctx: ClientContext): void {
     },
     inject: toolInject,
   }, ToolCallTree))
+
+  ctx.slots.inject('conversation.chat.node', () => ctx.slots.register({
+    name: 'conversation.chat.node', key: 'media-generation', locale: NS,
+    inject: () => ({ loadModelName }),
+  }, MediaGeneration))
 
   ctx.slots.inject('conversation.details.tool', () => ctx.slots.register({
     name: 'conversation.details.tool',

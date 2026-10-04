@@ -5,6 +5,7 @@ import { Context } from '@hydraharness/cordis'
 import LlmRuntime, { userAgent } from '@hydraharness/harness-llm'
 import * as LlmPiAi from '@hydraharness/harness-llm-pi-ai'
 import { discoverModels } from '../src/discovery.ts'
+import * as Catalog from '../src/catalog.ts'
 
 const servers: Server[] = []
 /** Credential variables a test set, cleared so the next one starts unset. */
@@ -14,6 +15,8 @@ afterEach(async () => {
   // A no-op when the test never stubbed `fetch`; only 'probe key format'
   // below installs one.
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+  vi.unstubAllEnvs()
   for (const name of touchedEnv.splice(0)) Reflect.deleteProperty(process.env, name)
   await Promise.all(servers.splice(0).map(server => new Promise(resolve => server.close(resolve))))
 })
@@ -31,6 +34,7 @@ interface ListingServer {
 async function listingServer(behavior: {
   status?: number
   body?: string
+  pages?: Record<string, string>
   chunks?: string[]
   holdOpenMs?: number
 }): Promise<ListingServer> {
@@ -49,7 +53,7 @@ async function listingServer(behavior: {
       setTimeout(() => { response.end() }, behavior.holdOpenMs)
       return
     }
-    const body = behavior.body ?? '{}'
+    const body = behavior.pages?.[request.url ?? ''] ?? behavior.body ?? '{}'
     response.writeHead(behavior.status ?? 200, {
       'content-type': 'application/json',
       'content-length': String(Buffer.byteLength(body)),
@@ -72,6 +76,34 @@ async function harness(): Promise<Context> {
 }
 
 describe('catalog-route model discovery', () => {
+  it('gets every Gemini page without filtering by generation method', async () => {
+    const server = await listingServer({ pages: {
+      '/models': JSON.stringify({ models: [{ name: 'models/chat', displayName: 'Chat', supportedGenerationMethods: ['generateContent'] }, {}], nextPageToken: 'second page' }),
+      '/models?pageToken=second+page': JSON.stringify({ models: [
+        { name: 'models/gemini-3.1-flash-image', inputTokenLimit: 65536, outputTokenLimit: 8192, supportedGenerationMethods: ['generateContent'] },
+        { name: 'models/unknown-video', supportedGenerationMethods: ['predictLongRunning'] },
+        { name: 'models/unknown-image', supportedGenerationMethods: ['predict'] },
+      ] }),
+    } })
+    expect(await discoverModels({ baseURL: server.url, api: 'google-generative-ai', apiKey: 'fixture' })).toEqual([
+      { id: 'chat', name: 'Chat', endpoints: ['generateContent'] },
+      { id: 'gemini-3.1-flash-image', contextWindow: 65536, maxTokens: 8192, endpoints: ['images/generations'] },
+      { id: 'unknown-video', endpoints: ['videos'] },
+      { id: 'unknown-image', endpoints: ['images/generations'] },
+    ])
+    expect(server.paths).toEqual(['/models', '/models?pageToken=second+page'])
+    expect(server.headers.every(headers => headers['x-goog-api-key'] === 'fixture' && headers.authorization === undefined)).toBe(true)
+  })
+  it.each([{ models: {} }, { models: [], nextPageToken: 1 }, { models: [], nextPageToken: 'loop' }])('rejects malformed Gemini pages and repeated tokens: %j', async (body) => {
+    const server = await listingServer({ body: JSON.stringify(body) })
+    await expect(discoverModels({ baseURL: server.url, api: 'google-generative-ai' })).rejects.toMatchObject({ code: 'DISCOVERY_FAILED' })
+  })
+  it('rejects malformed generation methods even for a known image family', async () => {
+    const server = await listingServer({ body: JSON.stringify({ models: [
+      { name: 'models/gemini-future-image', supportedGenerationMethods: [7] },
+    ] }) })
+    await expect(discoverModels({ baseURL: server.url, api: 'google-generative-ai' })).rejects.toMatchObject({ code: 'DISCOVERY_FAILED' })
+  })
   it('fetches a supplied endpoint instead of returning the installed catalog', async () => {
     const server = await listingServer({ body: JSON.stringify({ data: [{ id: 'from-the-endpoint' }] }) })
     const ctx = await harness()
@@ -82,9 +114,61 @@ describe('catalog-route model discovery', () => {
     expect(server.paths).toEqual(['/models'])
   })
 
-  it('needs no endpoint for a route the catalog describes', async () => {
+  it.each(['openai', 'google'] as const)('fetches new %s image/video ids from its default endpoint and protocol', async (provider) => {
+    const ids = provider === 'openai' ? ['fresh-chat', 'gpt-image-new-release', 'sora-new-release']
+      : ['fresh-chat', 'gemini-future-image', 'future-video']
+    const server = await listingServer({ body: JSON.stringify(provider === 'google'
+      ? { models: ids.map(id => ({ name: `models/${id}`, supportedGenerationMethods: [id === 'future-video' ? 'predictLongRunning' : 'generateContent'] })) }
+      : { data: ids.map(id => ({ id })) }) })
+    const installed = Catalog.catalogProvider(provider)!
+    vi.spyOn(Catalog, 'catalogProvider').mockReturnValue({ ...installed, baseUrl: `${server.url}/v1` })
     const ctx = await harness()
-    await expect(ctx.llm.discoverModels('llm-pi-ai', { provider: 'deepseek' })).resolves.not.toHaveLength(0)
+    const rows = await ctx.llm.discoverModels('llm-pi-ai', { provider, apiKey: 'fixture' })
+    expect(rows.map(row => row.id)).toEqual(ids)
+    expect(server.paths).toEqual(['/v1/models'])
+    expect(server.headers[0]?.[provider === 'google' ? 'x-goog-api-key' : 'authorization']).toBe(provider === 'google' ? 'fixture' : 'Bearer fixture')
+  })
+
+  it('gets xAI media catalogs and classifies unknown ids by their source resource', async () => {
+    const server = await listingServer({ pages: {
+      '/v1/models': JSON.stringify({ data: [{ id: 'fresh-chat' }, { id: 'unrecognizable-raster', name: 'Raster' }] }),
+      '/v1/image-generation-models': JSON.stringify({ models: [{ id: 'unrecognizable-raster' }, { id: 'fresh-image' }] }),
+      '/v1/video-generation-models': JSON.stringify({ models: [{ id: 'fresh-video' }] }),
+    } })
+    const installed = Catalog.catalogProvider('xai')!
+    vi.spyOn(Catalog, 'catalogProvider').mockReturnValue({ ...installed, baseUrl: `${server.url}/v1` })
+    expect(await discoverModels({ provider: 'xai', apiKey: 'fixture' })).toEqual([
+      { id: 'fresh-chat' }, { id: 'unrecognizable-raster', name: 'Raster', endpoints: ['images/generations'] },
+      { id: 'fresh-image', endpoints: ['images/generations'] }, { id: 'fresh-video', endpoints: ['videos'] },
+    ])
+    expect(server.paths).toEqual(['/v1/models', '/v1/image-generation-models', '/v1/video-generation-models'])
+    expect(server.headers.every(headers => headers.authorization === 'Bearer fixture')).toBe(true)
+  })
+
+  it('reports default endpoint failure instead of substituting installed models', async () => {
+    const server = await listingServer({ status: 401 })
+    const installed = Catalog.catalogProvider('openai')!
+    vi.spyOn(Catalog, 'catalogProvider').mockReturnValue({ ...installed, baseUrl: server.url })
+    await expect(discoverModels({ provider: 'openai' })).rejects.toMatchObject({ code: 'DISCOVERY_FAILED' })
+  })
+
+  it('requires an explicit protocol when a provider mixes unrelated listing APIs', async () => {
+    const installed = Catalog.catalogProvider('openai')!
+    const google = Catalog.catalogProvider('google')!
+    vi.spyOn(Catalog, 'catalogProvider').mockReturnValue({ ...installed, getModels: () => [...installed.getModels(), ...google.getModels()] })
+    const fetcher = vi.fn()
+    vi.stubGlobal('fetch', fetcher)
+    await expect(discoverModels({ provider: 'openai' })).rejects.toMatchObject({ code: 'DISCOVERY_UNSUPPORTED' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  it('reports an unreadable xAI media resource without returning a partial catalog', async () => {
+    const server = await listingServer({ pages: {
+      '/models': JSON.stringify({ data: [{ id: 'chat' }] }), '/image-generation-models': '{}',
+    } })
+    const installed = Catalog.catalogProvider('xai')!
+    vi.spyOn(Catalog, 'catalogProvider').mockReturnValue({ ...installed, baseUrl: server.url })
+    await expect(discoverModels({ provider: 'xai' })).rejects.toMatchObject({ code: 'DISCOVERY_FAILED' })
   })
 
   it('says where a route the catalog does not describe must get its models', async () => {
@@ -101,6 +185,31 @@ describe('catalog-route model discovery', () => {
 })
 
 describe('draft-provider model discovery', () => {
+  it('keeps endpoint metadata and infers dedicated image/video families without generating', async () => {
+    const server = await listingServer({ body: JSON.stringify({ data: [
+      { id: 'gpt-image-2' }, { id: 'gpt-image-1.5' }, { id: 'sora-2' },
+      { id: 'alias', supported_endpoint_types: ['/v1/images/generations', 'image-generation'] },
+      { id: 'vision-chat', supported_endpoints: ['/v1/responses'], input_modalities: ['text', 'image'] },
+      { id: 'gpt-image-proxy-chat', endpoints: ['chat/completions'] },
+    ] }) })
+    const ctx = await harness()
+    const models = await ctx.llm.discoverModels('llm-pi-ai', { baseURL: server.url })
+    expect(models).toEqual([
+      { id: 'gpt-image-2', endpoints: ['images/generations', 'images/edits'] },
+      { id: 'gpt-image-1.5', endpoints: ['images/generations', 'images/edits'] },
+      { id: 'sora-2', endpoints: ['videos'] },
+      { id: 'alias', endpoints: ['images/generations'] },
+      { id: 'vision-chat', endpoints: ['responses'] },
+      { id: 'gpt-image-proxy-chat', endpoints: ['chat/completions'] },
+    ])
+    expect(server.paths).toEqual(['/models'])
+  })
+
+  it.each([null, [], [''], [42], 'images/generations', ['/v1/'], ['https://other.test/videos'], ['videos?key=value']])('refuses malformed endpoint metadata %j', async (endpoints) => {
+    const server = await listingServer({ body: JSON.stringify({ data: [{ id: 'm', endpoints }] }) })
+    await expect(discoverModels({ baseURL: server.url })).rejects.toThrow('invalid endpoint metadata')
+  })
+
   it('reads an OpenAI-compatible listing and keeps the capacities it discloses', async () => {
     const server = await listingServer({
       body: JSON.stringify({
@@ -173,16 +282,29 @@ describe('draft-provider model discovery', () => {
       .toEqual(['Bearer stored-key', 'Bearer typed', undefined])
   })
 
-  it('leaves a catalog route\'s credential unresolved, having never reached the network', async () => {
-    // The catalog answers before any endpoint is asked, so a route whose
-    // profile names a credential that is not set must still answer rather than
-    // failing over a key the interrogation never needed.
+  it('reports an absent saved credential before contacting the default endpoint', async () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     Reflect.deleteProperty(process.env, 'ABSENT_FOR_DISCOVERY')
     await ctx.plugin(LlmPiAi, { providers: { deepseek: { apiKeyEnv: 'ABSENT_FOR_DISCOVERY' } } })
 
-    await expect(ctx.llm.discoverModels('llm-pi-ai', { provider: 'deepseek' })).resolves.not.toHaveLength(0)
+    const fetcher = vi.fn()
+    vi.stubGlobal('fetch', fetcher)
+    await expect(ctx.llm.discoverModels('llm-pi-ai', { provider: 'deepseek' })).rejects.toMatchObject({ code: 'MISSING_CREDENTIAL' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  it('uses native provider authentication when no credential reference is configured', async () => {
+    const server = await listingServer({ body: JSON.stringify({ data: [{ id: 'fresh-raster-alias', endpoints: ['images/generations'] }] }) })
+    vi.stubEnv('OPENAI_API_KEY', 'fixture-native-key')
+    const ctx = new Context()
+    await ctx.plugin(LlmRuntime)
+    await ctx.plugin(LlmPiAi, { providers: { openai: { baseURL: server.url } } })
+    expect(await ctx.llm.discoverModels('llm-pi-ai', { provider: 'openai' })).toEqual([
+      { id: 'fresh-raster-alias', endpoints: ['images/generations'] },
+    ])
+    expect(server.headers[0]?.authorization).toBe('Bearer fixture-native-key')
+    await ctx.fiber.dispose()
   })
 
   it('drops unusable rows rather than failing the whole listing', async () => {
@@ -255,7 +377,7 @@ describe('draft-provider model discovery', () => {
       .rejects.toMatchObject({ code: 'DISCOVERY_FAILED' })
   })
 
-  it.each(['anthropic-messages', 'azure-openai-responses', 'openai-codex-responses', 'google-generative-ai'])(
+  it.each(['anthropic-messages', 'azure-openai-responses', 'openai-codex-responses'])(
     'says it cannot interrogate %s rather than guessing a shape',
     async (api) => {
       // Azure authenticates with an `api-key` header and an `api-version`
@@ -307,6 +429,7 @@ describe('draft-provider model discovery', () => {
 
   it('is offered for the namespace, and refuses one it does not serve', async () => {
     const ctx = await harness()
+    vi.stubGlobal('fetch', async () => Response.json({ data: [{ id: 'live-model' }] }))
 
     await expect(ctx.llm.discoverModels('llm-pi-ai', { provider: 'openai' })).resolves.not.toHaveLength(0)
     await expect(ctx.llm.discoverModels('llm-deepseek', { baseURL: 'https://api.deepseek.com' }))
@@ -319,6 +442,7 @@ describe('draft-provider model discovery', () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     const fiber = await ctx.plugin(LlmPiAi, {})
+    vi.stubGlobal('fetch', async () => Response.json({ data: [{ id: 'live-model' }] }))
     await expect(ctx.llm.discoverModels('llm-pi-ai', { provider: 'openai' })).resolves.not.toHaveLength(0)
 
     await fiber.dispose()
@@ -412,7 +536,7 @@ it('discovers models for fallback-only and native-auth profiles', async () => {
   } })
   try {
     for (const provider of ['fallback', 'native']) {
-      await expect(ctx.llm.discoverModels('llm-pi-ai', { provider, baseURL: server.url })).resolves.toEqual([{ id: 'found' }])
+      await expect(ctx.llm.discoverModels('llm-pi-ai', { provider })).resolves.toEqual([{ id: 'found' }])
     }
     expect(server.headers.map(headers => headers.authorization)).toEqual(['Bearer only-key', undefined])
   } finally {

@@ -2,6 +2,8 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ModelSelection } from '@hydraharness/harness-api-remotes/client'
+import type { SettingsNamespaceView } from '@hydraharness/harness-api-remotes/client'
+import type { SettingsMirrorSnapshot } from '@hydraharness/harness-client-ui-settings/client'
 import { createSnapshotStore } from '@hydraharness/harness-client-runtime/client'
 import type { ComponentProps } from 'react'
 import type { ModelDirectoryState } from '../src/client/directory.ts'
@@ -46,6 +48,65 @@ function state(overrides: Partial<ModelDirectoryState> = {}): ModelDirectoryStat
 }
 
 afterEach(cleanup)
+
+it('synchronizes global generation choices with the settings mirror and preserves provider identity', async () => {
+  const namespace = { ns: 'llm-pi-ai', revision: 7, value: { videoModel: { provider: 'first', model: 'video' } },
+    schema: {}, secrets: [] } as unknown as SettingsNamespaceView
+  const mirror = createSnapshotStore<SettingsMirrorSnapshot>({ status: 'ready', error: null,
+    view: { writable: true, hasDocument: true, namespaces: [namespace] } })
+  const settings = { ...mirror, ensure: async () => {}, acceptView: (view: SettingsNamespaceView) => {
+    mirror.set({ ...mirror.getSnapshot(), view: { writable: true, hasDocument: true, namespaces: [view] } })
+  } }
+  const groups = ['first', 'second'].map(id => ({ id, name: id, models: [
+    { id: 'same', name: 'Same', endpoints: ['images/generations'] },
+    { id: 'video', name: 'Video', endpoints: ['videos'] },
+    { id: 'text', name: 'Text', endpoints: ['chat/completions'] },
+  ] }))
+  const mutate = vi.fn(async () => ({ result: { ok: true, value: { ...namespace, revision: 8,
+    value: { ...namespace.value as object, imageModel: { provider: 'second', model: 'same' } } } } }))
+  const api = { llm: { models: async () => ({ result: { ok: true, value: { groups, failures: [] } } }) }, settings: { mutate } } as never
+  render(<ModelSelect locked={false} available directory={createSnapshotStore(state())} load={vi.fn()}
+    select={vi.fn()} t={t} generation={{ settings, api }} />)
+  fireEvent.click(screen.getByRole('button', { name: /Select model, current/ }))
+  fireEvent.click(await screen.findByRole('menuitem', { name: /Image model/ }))
+  const group = await screen.findByRole('group', { name: 'second (second)' })
+  expect(screen.getAllByRole('menuitemradio')).toHaveLength(3)
+  expect(screen.queryByRole('menuitemradio', { name: 'Text' })).toBeNull()
+  expect(screen.queryByRole('menuitemradio', { name: 'Video' })).toBeNull()
+  fireEvent.click(group.querySelector('button')!)
+  await waitFor(() => { expect(screen.queryByRole('menu')).toBeNull() })
+  expect(mutate).toHaveBeenCalledWith({ ns: 'llm-pi-ai', expectedRevision: 7,
+    ops: [{ op: 'set', path: ['imageModel'], value: { provider: 'second', model: 'same' } }] })
+  fireEvent.click(screen.getByRole('button', { name: /Select model, current/ }))
+  expect((await screen.findByRole('menuitem', { name: /Image model/ })).textContent).toBe('Image modelSame')
+  expect(screen.getByRole('menuitem', { name: /Video model/ }).textContent).toBe('Video modelVideo')
+  settings.acceptView({ ...namespace, revision: 9, value: { imageModel: { provider: 'first', model: 'text' } } })
+  await waitFor(() => { expect(screen.getByRole('menuitem', { name: /Image model/ }).textContent).toBe('Image modelText') })
+  expect(screen.getByRole('menuitem', { name: /Video model/ }).textContent).toContain('Automatic fallback')
+  fireEvent.click(screen.getByRole('menuitem', { name: /Video model/ }))
+  await screen.findAllByRole('menuitemradio', { name: 'Video' })
+  expect(screen.queryByRole('menuitemradio', { name: 'Same' })).toBeNull()
+  expect((await screen.findByRole('menuitemradio', { name: 'Automatic fallback' })).getAttribute('aria-checked')).toBe('true')
+  fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' })
+  expect(screen.getByRole('menuitem', { name: /Image model/ })).toBeTruthy()
+})
+
+it('keeps a rejected generation write open with its previous durable selection', async () => {
+  const mirror = createSnapshotStore<SettingsMirrorSnapshot>({ status: 'ready', error: null,
+    view: { writable: true, hasDocument: true, namespaces: [{ ns: 'llm-pi-ai', revision: 4, value: {}, schema: {}, secrets: [] } as unknown as SettingsNamespaceView] } })
+  const acceptView = vi.fn()
+  const models = vi.fn(async () => ({ result: { ok: true, value: { groups: [], failures: [] } } }))
+  render(<ModelSelect locked={false} available directory={createSnapshotStore(state())} load={vi.fn()} select={vi.fn()} t={t}
+    generation={{ settings: { ...mirror, ensure: async () => {}, acceptView },
+      api: { llm: { models }, settings: { mutate: async () => ({ result: { ok: false, error: { message: 'Revision changed' } } }) } } as never }} />)
+  fireEvent.click(screen.getByRole('button', { name: /Select model, current/ }))
+  fireEvent.click(await screen.findByRole('menuitem', { name: /Video model/ }))
+  fireEvent.click(await screen.findByRole('menuitemradio', { name: 'Automatic fallback' }))
+  expect((await screen.findByRole('alert')).textContent).toContain('Revision changed')
+  expect(acceptView).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+  await waitFor(() => { expect(screen.queryByRole('alert')).toBeNull() })
+})
 
 describe('ModelSelect reasoning effort', () => {
   it('renders adapter metadata and submits the effort as part of the session selection', async () => {

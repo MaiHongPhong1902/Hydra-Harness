@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Context } from '@hydraharness/cordis'
 import { createScope, scopeTarget } from '@hydraharness/harness-scope'
 import { createUserMessage, CallId, createMessage, createToolResultMessage, freezeMessage } from '@hydraharness/harness-llm'
-import SessionStore, { SessionId, TOOL_NOT_STARTED } from '@hydraharness/harness-session'
+import SessionStore, { SessionId, SessionVersionId, ORIGINAL_SESSION_VERSION, TOOL_NOT_STARTED } from '@hydraharness/harness-session'
 import * as SessionInvariant from '@hydraharness/harness-session/invariant'
 import InvariantRegistry, { InvariantError } from '@hydraharness/harness-invariants'
 
@@ -430,4 +430,23 @@ describe('session-log invariants', () => {
       turn: 2,
     })).not.toThrow()
   })
+})
+
+it('checks turn relations on each selected version while keeping raw sequences global', async () => {
+  const { ctx } = await setup()
+  try {
+    const session = ctx.sessions.create()
+    session.append('turn/start', { turn: 1 })
+    session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
+    const boundary = session.append('turn/start', { turn: 2 }).seq
+    session.append('turn/end', { turn: 2, reason: { kind: 'completed' } })
+    const versionId = SessionVersionId('edit')
+    session.append('session/version', { versionId, parentVersionId: ORIGINAL_SESSION_VERSION, beforeSeq: boundary })
+    expect(() => session.append('turn/start', { turn: 3 })).toThrow('expected turn 2')
+    session.append('turn/start', { turn: 2 })
+    session.append('turn/end', { turn: 2, reason: { kind: 'completed' } })
+    session.append('session/version-selected', { versionId: ORIGINAL_SESSION_VERSION })
+    session.append('turn/start', { turn: 3 })
+    session.append('turn/end', { turn: 3, reason: { kind: 'completed' } })
+  } finally { await ctx.fiber.dispose() }
 })

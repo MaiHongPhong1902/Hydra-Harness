@@ -32,19 +32,23 @@ export class RuntimeContextProjection {
    * @param session - session receiving projected messages.
    */
   constructor(ctx: Context, session: Session) {
-    const surface = new Set(session.surface.nodes)
-    for (let index = session.events.length - 1; index >= 0; index -= 1) {
-      const event = session.events[index]
-      if (event?.type !== 'user/message' || !isOwned(event.data)) continue
-      this.retained ??= null
-      if (surface.has(event.seq)) {
-        this.retained = { seq: event.seq, text: textOf(event.data) }
-        break
+    const restore = (): void => {
+      this.retained = undefined
+      const surface = new Set(session.surface.nodes)
+      for (const event of [...session.activeEvents].reverse()) {
+        if (event.type !== 'user/message' || !isOwned(event.data)) continue
+        this.retained ??= null
+        if (surface.has(event.seq)) {
+          this.retained = { seq: event.seq, text: textOf(event.data) }
+          break
+        }
       }
     }
+    restore()
 
     ctx.on('session/event', (subject, event) => {
       if (subject !== session) return
+      if (event.type === 'session/version' || event.type === 'session/version-selected') { restore(); return }
       if (event.type === 'user/message' && isOwned(event.data)) {
         this.retained = { seq: event.seq, text: textOf(event.data) }
       } else if (this.retained

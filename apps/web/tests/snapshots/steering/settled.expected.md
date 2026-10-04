@@ -15,6 +15,8 @@
   - img
 - button "Edit":
   - img
+- button "Retry prompt":
+  - img
 - button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
@@ -31,6 +33,8 @@
 - button "Copy":
   - img
 - button "Edit":
+  - img
+- button "Retry prompt":
   - img
 - button "Think The user selected \"Yes\" and wants me to include the word \"BANANA\" in my final reply. Let me acknowledge their answer.":
   - img

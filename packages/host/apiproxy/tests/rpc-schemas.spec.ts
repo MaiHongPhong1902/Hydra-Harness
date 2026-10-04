@@ -5,6 +5,7 @@ import {
   rpcReceiptSchema, rpcResultSchema, serverRequestSchema, serverResponseSchema,
 } from '../src/api/rpc.schema.ts'
 import { z } from 'zod'
+import { authorizationAnswerRequestSchema, authorizationStateValueSchema } from '../src/api/authorization.schema.ts'
 import {
   contentBlockSchema, conversationRevisionSchema, sessionCancelRequestSchema, sessionCancelValueSchema, sessionCreateRequestSchema,
   sessionCreateValueSchema, sessionEventSchema, sessionHistoryRequestSchema, sessionHistoryValueSchema,
@@ -13,7 +14,16 @@ import {
   sessionSearchRequestSchema, sessionSearchValueSchema, sessionSelectModelRequestSchema,
   sessionSelectModelValueSchema, sessionSummarySchema,
   sessionUpdateQueueRequestSchema, sessionUpdateQueueValueSchema,
+  sessionAttachmentValueSchema,
 } from '../src/api/sessions.schema.ts'
+
+it('validates video attachment responses and rejects forged file names or MIME types', () => {
+  const attachment = { attachmentId: 'opaque', bytes: 3, mediaType: 'video/webm', name: 'tree.webm' }
+  expect(sessionAttachmentValueSchema.safeParse({ attachment, data: 'AQID' }).success).toBe(true)
+  for (const patch of [{ name: '../tree.webm' }, { name: 'tree\\video.webm' }, { name: '' }, { mediaType: 'text/html' }, { bytes: 0 }]) {
+    expect(sessionAttachmentValueSchema.safeParse({ attachment: { ...attachment, ...patch }, data: 'AQID' }).success).toBe(false)
+  }
+})
 import {
   hostCreateDirectoryRequestSchema, hostCreateDirectoryValueSchema,
   hostDescribeRequestSchema, hostDescribeValueSchema,
@@ -38,6 +48,16 @@ import { approvalRequestIdSchema, approvalResponsePayloadSchema } from '../src/a
 import { askUserQuestionAnswerSchema, questionResponsePayloadSchema } from '../src/api/questions.schema.ts'
 import { goalEditRequestSchema } from '../src/api/goals.schema.ts'
 import { subagentPromptRequestSchema } from '../src/api/subagents.schema.ts'
+import { authorizationLogoutRequestSchema } from '../src/api/authorization.schema.ts'
+
+it('accepts whole-record credential removal while rejecting malformed explicit account identities', () => {
+  const key = 'llm-account-auth/chatgpt'
+  expect(authorizationLogoutRequestSchema.parse({ key })).toEqual({ key })
+  expect(authorizationLogoutRequestSchema.parse({ key, accountId: 'connected-account' })).toEqual({ key, accountId: 'connected-account' })
+  for (const payload of [{}, { key: 'invalid' }, { key, accountId: '' }, { key, accountId: null }]) {
+    expect(authorizationLogoutRequestSchema.safeParse(payload).success).toBe(false)
+  }
+})
 
 describe('RpcId', () => {
   it('brands a raw string at zero runtime cost', () => {
@@ -595,4 +615,12 @@ describe('agent-preset schemas', () => {
     // A closed reply must carry the path the surface shows instead.
     expect(() => agentPresetOpenDocumentValueSchema.parse({ opened: false })).toThrow()
   })
+})
+it('accepts bounded clipboard imports and non-secret snippets while rejecting oversized authorization data', () => {
+  const id = '00000000-0000-4000-8000-000000000001'
+  expect(authorizationAnswerRequestSchema.safeParse({ attemptId: id, promptId: id, value: 'x'.repeat(65536) }).success).toBe(true)
+  expect(authorizationAnswerRequestSchema.safeParse({ attemptId: id, promptId: id, value: 'x'.repeat(65537) }).success).toBe(false)
+  const attempt = { id, status: 'running', notice: { message: 'Copy code', snippet: 'x'.repeat(8192) } }
+  expect(authorizationStateValueSchema.safeParse({ attempt }).success).toBe(true)
+  expect(authorizationStateValueSchema.safeParse({ attempt: { ...attempt, notice: { ...attempt.notice, snippet: 'x'.repeat(8193) } } }).success).toBe(false)
 })

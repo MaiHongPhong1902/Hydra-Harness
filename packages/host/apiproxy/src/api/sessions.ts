@@ -5,9 +5,9 @@
  */
 
 import type { MessageId } from '@hydraharness/harness-llm/brand'
-import type { AttachmentIdType, ImageAttachmentLimits, ImageAttachmentRef, ImageMediaType } from '@hydraharness/harness-attachment'
+import type { AttachmentIdType, ImageAttachmentLimits, ImageAttachmentRef, ImageMediaType, VideoAttachmentRef } from '@hydraharness/harness-attachment'
 import type { ContentBlock } from '@hydraharness/harness-llm/types'
-import type { SessionEvent, SessionId } from '@hydraharness/harness-session/types'
+import type { SessionEvent, SessionId, SessionVersionId } from '@hydraharness/harness-session/types'
 // The pure-type outlet: api/ is browser-importable, and the package root's
 // cordis Context merge (via @hydraharness/harness-agent) must not enter client aggregates.
 import type { SessionProjectionMap } from '@hydraharness/harness-session-projection/types'
@@ -17,6 +17,12 @@ import type { WorkspaceId } from './workspace.ts'
 
 /** One immutable prompt revision within a conversation. */
 export interface ConversationRevision {
+  /** Transcript path stored in this session; absent on independently forked legacy logs. */
+  versionId?: SessionVersionId | undefined
+  /** Earlier transcript path used as the prefix. */
+  previousVersionId?: SessionVersionId | undefined
+  /** First excluded original log sequence. */
+  beforeSeq?: number | undefined
   /** Session containing this revision; inherited records belong to their original session. */
   sessionId: SessionId
   /** Original conversation shared by every revision. */
@@ -33,6 +39,12 @@ export interface ConversationRevision {
   attempt?: number | undefined
   /** Durable admission receipt; inherited receipts never authorize another session. */
   admission?: { fingerprint: string; messageId: MessageId; message: RevisionMessage } | undefined
+}
+
+/** Stored paths and the selected path within one session. */
+export interface SessionVersionState {
+  current: SessionVersionId
+  versions: Array<{ id: SessionVersionId; revision?: ConversationRevision | undefined }>
 }
 
 /** Exact user content retained for a retry that crashed before prompt entry. */
@@ -87,6 +99,8 @@ declare module '@hydraharness/harness-session-projection/types' {
 
 /** Persisted hints used to summarize a cold Session without reading a large log. */
 export interface SessionListMetadata {
+  /** Durable transcript-path catalog and selection. */
+  versionState?: SessionVersionState | undefined
   /** Whether the checkpoint prefix contains no turn/start event. */
   blank: boolean
   /** Latest source.kind=user message time in the checkpoint prefix. */
@@ -176,6 +190,8 @@ export interface ModelCatalogModel {
   name: string
   /** Optional provider-supplied description. */
   description?: string
+  /** Relative API endpoint paths; absence leaves conversation support unknown. */
+  endpoints?: string[]
   /** Exact-route reasoning metadata when the adapter exposes it. */
   reasoning?: ModelReasoning
 }
@@ -224,6 +240,8 @@ export type QueueAction =
 
 /** One Session list entry. */
 export interface SessionSummary {
+  /** Versions share this session's storage and Agent. */
+  versionState?: SessionVersionState | undefined
   sessionId: SessionId
   /**
    * The later of creation and the latest human-authored prompt. Attached
@@ -246,7 +264,7 @@ export interface SessionSummary {
   /** fork/spawn lineage (session.header.parentSession passthrough); absent for root sessions. */
   parentSessionId?: SessionId
   /** Prompt revision grouped with its original conversation in navigation. */
-  revision?: ConversationRevision
+  revision?: ConversationRevision | undefined
   /** Coarse durable origin used by navigation surfaces; never proves resumability. */
   origin?: 'subagent'
   /** Session working directory (header.cwd passthrough); absent when unrecorded. */
@@ -345,7 +363,11 @@ export interface SessionsApi {
    * never resumes or publishes an Agent.
    */
   history(request: RpcRequest<{ sessionId: SessionId; beforeSeq?: number; maxMessages?: number }>):
-  Promise<RpcResponse<{ events: HistoryEntry[]; hasMore: boolean; projections?: SessionProjectionsBlock }>>
+  Promise<RpcResponse<{ events: HistoryEntry[]; hasMore: boolean; projections?: SessionProjectionsBlock; versionId?: SessionVersionId }>>
+
+  /** Select a stored path without generating, or inject a selected path as logged reference context. */
+  selectVersion(request: RpcRequest<{ sessionId: SessionId; versionId: SessionVersionId; mode: 'view' | 'reference' }>):
+  Promise<RpcResponse<{ versionId: SessionVersionId }>>
 
   /**
    * Reads a fresh advisory model directory for an ordinary session. Provider
@@ -434,9 +456,9 @@ export interface SessionsApi {
   }>):
   Promise<RpcResponse<{ accepted: true; command?: { kind: 'success'; text?: string } }>>
 
-  /** Reads one durable image after proving that this session's log references its id. */
+  /** Reads durable image or video bytes after proving that this session's log references its id. */
   attachment(request: RpcRequest<{ sessionId: SessionId; attachmentId: AttachmentIdType }>):
-  Promise<RpcResponse<{ attachment: ImageAttachmentRef; data: string }>>
+  Promise<RpcResponse<{ attachment: ImageAttachmentRef | VideoAttachmentRef; data: string }>>
 
   /**
    * Edits, removes, or strictly steers one pending queued occurrence on an ordinary session.

@@ -19,8 +19,14 @@ import { snapshotJsonValue } from './json.ts'
 import { deriveEventMessage, SurfaceManager } from './surface.ts'
 import type { SessionSurface } from './surface.ts'
 import { foldRequestHeader } from './request-header.ts'
+import { SessionVersionIndex } from './versions.ts'
+import type { SessionVersions } from './versions.ts'
 
 export * from './types.ts'
+export { SessionVersionIndex, sessionVersions } from './versions.ts'
+export type { SessionVersions } from './versions.ts'
+export { sessionVersionReference } from './version-reference.ts'
+export type { SessionVersionReference } from './version-reference.ts'
 export { SessionPreparation } from './preparation.ts'
 export type { SessionPreparationOptions } from './preparation.ts'
 export type { AssistantMessage, ToolResultMessage, UserMessage } from '@hydraharness/harness-llm'
@@ -74,6 +80,15 @@ declare module '@hydraharness/cordis' {
      * @mode emit
      */
     'session/event'(this: Scoped<Session>, session: Session, event: SessionEvent): void
+    /**
+     * Synchronous pre-commit veto for transcript path changes. Listeners must return synchronously.
+     * Scope-filtered dispatch uses the session's captured owner scope.
+     * @param session - Session proposing a transcript path change.
+     * @param event - Validated creation or selection record before commit.
+     * @hydraScopeScan unsupported
+     * @mode emit
+     */
+    'session/version-changing'(this: Scoped<Session>, session: Session, event: SessionEvent<'session/version' | 'session/version-selected'>): void
     /**
      * Awaited parallel durability checkpoint: every listener runs and the
      * caller awaits all of them, with no waterfall veto. Scope-filtered dispatch
@@ -424,6 +439,13 @@ const attachments = new WeakMap<Session, SessionEntry>()
  */
 export class Session {
   private log: SessionEvent[] = []
+  private readonly versionIndex = new SessionVersionIndex()
+
+  /** Read-only access to stored transcript paths; version changes are session events. */
+  get versions(): SessionVersions { return this.versionIndex }
+
+  /** Selected transcript, retaining the sequences of its original log entries. */
+  get activeEvents(): readonly SessionEvent[] { return this.versions.events() }
   /** Single incremental owner of surface acceptance and projection state. */
   private readonly surfaceManager = new SurfaceManager(this.log)
 
@@ -533,7 +555,9 @@ export class Session {
         } catch (error: unknown) {
           throw new Error(`invalid seed event at index ${index}: ${error instanceof Error ? error.message : 'invalid surface metadata'}`)
         }
-        this.log.push(mode === 'restore' ? freezeRestoredObject(snapshot) : deepFreeze(snapshot))
+        const committed = mode === 'restore' ? freezeRestoredObject(snapshot) : deepFreeze(snapshot)
+        this.log.push(committed)
+        this.versionIndex.append(committed)
       }
     }
     this.firstLiveSeq = this.log.length
@@ -632,15 +656,21 @@ export class Session {
       ...(surfaceMetadataSnapshot as { surfaceOp?: unknown; sourceEventSeqs?: unknown }),
     } as unknown as SessionEvent<T>)
     this.surfaceManager.validateNext(event as SessionEvent)
+    this.versionIndex.validate(event as SessionEvent)
 
     if (entry !== undefined) entry.appending = true
     try {
       let callbacks: SessionCallback[] | undefined
       const callbackArgs: unknown[] = [this, event]
       if (entry !== undefined) {
+        if (event.type === 'session/version' || event.type === 'session/version-selected') {
+          const guards = collectSessionCallbacks(entry.emitCtx, [entry.carrier, 'session/version-changing', ...callbackArgs])
+          for (const guard of guards) guard(...callbackArgs)
+        }
         callbacks = collectSessionCallbacks(entry.emitCtx, [entry.carrier, 'session/event', ...callbackArgs])
       }
       this.log.push(event as SessionEvent)
+      this.versionIndex.append(event as SessionEvent)
       this.eventsSnapshot = undefined
       if (callbacks !== undefined && entry !== undefined) {
         invokeContainedSessionObservers(entry.emitCtx, 'session/event', entry.id, callbackArgs, callbacks)
@@ -658,6 +688,7 @@ export class Session {
   private headerFold: EpochHeader | undefined
   /** Log position (events consumed) the header fold has reached. */
   private headerFoldSeq = 0
+  private headerVersion = -1
 
   /**
    * The {@link EpochHeader} in force after the log's last header event — the
@@ -668,6 +699,11 @@ export class Session {
    * @returns the folded header, or undefined when no header event exists yet.
    */
   requestHeader(): EpochHeader | undefined {
+    if (this.headerVersion !== this.versions.generation) {
+      this.headerFold = deepFreeze(foldRequestHeader(this.activeEvents))
+      this.headerFoldSeq = this.log.length
+      this.headerVersion = this.versions.generation
+    }
     if (this.headerFoldSeq < this.log.length) {
       // Frozen on update: the fold is session state exposed by reference — a
       // consumer mutating it in place (instead of building a replacement)
@@ -682,6 +718,7 @@ export class Session {
   /** Cached fold of `request/context` events. */
   private contextFold: RequestContext | undefined
   private contextFoldSeq = 0
+  private contextVersion = -1
 
   /**
    * Return the latest resolved route metadata, or `undefined` before the first
@@ -689,6 +726,11 @@ export class Session {
    * @returns the latest immutable route metadata.
    */
   requestContext(): RequestContext | undefined {
+    if (this.contextVersion !== this.versions.generation) {
+      this.contextFold = this.activeEvents.findLast(event => event.type === 'request/context')?.data
+      this.contextFoldSeq = this.log.length
+      this.contextVersion = this.versions.generation
+    }
     if (this.contextFoldSeq < this.log.length) {
       for (const event of this.log.slice(this.contextFoldSeq)) {
         if (event.type === 'request/context') this.contextFold = deepFreeze({ ...event.data })

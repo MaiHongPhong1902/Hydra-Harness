@@ -1,0 +1,5 @@
+- region "Creating video":
+  - status: Creating video
+  - button "Copy prompt"
+  - button "View generation details"
+  - paragraph: "Static wide shot of a tree gently swaying in the wind. Landscape composition. Duration: 6 seconds. No people or on-screen text."

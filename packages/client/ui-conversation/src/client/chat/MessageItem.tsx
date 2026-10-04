@@ -9,9 +9,14 @@ import type {
   ModelRetryNode, SessionId, TurnErrorNode, UserMessageNode,
 } from '@hydraharness/harness-client-runtime/client'
 import { conversationVersions } from '@hydraharness/harness-client-runtime/client'
-import { Button, IconChevronDownOutline14, JsonBlock, MessageText, StateDot } from '@hydraharness/harness-client-ui-primitives'
+import type { SessionVersionId } from '@hydraharness/harness-session/types'
+import {
+  Button, IconChevronDownOutline14, IconChevronLeftOutline14, IconChevronRightOutline14,
+  JsonBlock, MessageText, StateDot,
+} from '@hydraharness/harness-client-ui-primitives'
 import type { ChatNodeOwnerProps, ChatNodeViewProps, ChatViewSlotProps } from '../contract/slots.ts'
 import { ReferenceIcon } from '../reference/ReferenceIcon.tsx'
+import { useVersionNavigation } from './useVersionNavigation.ts'
 import { CompactionItem } from './CompactionItem.tsx'
 import { ContextInjectionRow } from './ContextInjectionRow.tsx'
 import { MessageIconActions } from './MessageIconActions.tsx'
@@ -218,7 +223,7 @@ function projectUserText(text: string, sessionLabels: readonly string[]): ReactN
 
 /** Right-aligned bubble shared by user and steering rows. */
 function UserStyleBubble({
-  content, renderMessageImages, actions, editor, pending = false, referenceLabels = [], t,
+  content, renderMessageImages, actions, editor, feedback, pending = false, referenceLabels = [], t,
 }: {
   content: readonly unknown[]
   renderMessageImages: ChatNodeOwnerProps['renderMessageImages']
@@ -226,6 +231,8 @@ function UserStyleBubble({
   actions?: ((text: string) => ReactNode) | undefined
   /** Local inline editor replacing the displayed text while keeping images visible. */
   editor?: ReactNode
+  /** Submission feedback below the prompt actions. */
+  feedback?: ReactNode
   /** Whether this is the Host-authoritative pre-admission steering projection. */
   pending?: boolean
   /** Exact session mention labels associated by the adjacent recall node. */
@@ -250,6 +257,7 @@ function UserStyleBubble({
         )}
       </div>
       {actions?.(text)}
+      {feedback}
     </div>
   )
 }
@@ -283,39 +291,59 @@ export function PendingSteeringBubble({ content, renderMessageImages, t }: {
   )
 }
 
-function PromptVersionsAction({ sessionId, useSessions, turn, open, t }: {
+function PromptVersionsAction({ sessionId, useSessions, turn, open, reference, disabled, t }: {
   sessionId: SessionId
   useSessions: ChatNodeViewProps['useSessions']
   turn: number
-  open: (id: SessionId) => void
+  open: (id: SessionId | SessionVersionId) => void | Promise<void>
+  reference?: ((id: SessionId | SessionVersionId) => void | Promise<void>) | undefined
+  disabled: boolean
   t: ChatNodeViewProps['t']
 }) {
   const versions = useSessions(list => conversationVersions(list, sessionId), (a, b) =>
-    a.length === b.length && a.every((version, index) => version.id === b[index]?.id && version.revision === b[index].revision))
+    a.length === b.length && a.every((version, index) => version.id === b[index]?.id
+      && version.revision === b[index].revision && version.selected === b[index].selected))
+  const navigation = useVersionNavigation(open)
+  const canReference = useSessions(list => list.byId[sessionId]?.versionState !== undefined)
   if (versions.length < 2 || !versions.some(version => version.revision?.turn === turn)) return null
-  const versionIndex = versions.findIndex(version => version.id === sessionId)
+  const versionIndex = versions.findIndex(version => version.selected === true || version.id === sessionId)
+  const previous = versions[versionIndex - 1]
+  const next = versions[versionIndex + 1]
   return (
-    <PromptVersionMenu versions={versions} sessionId={sessionId} openVersion={open} t={t}
-      className={`${actionCss.action} ${css.versionTrigger}`}>
-      {versionIndex + 1}/{versions.length}<IconChevronDownOutline14 />
-    </PromptVersionMenu>
+    <nav className={css.versionPager} aria-label={t('message.versions')}>
+      <button type="button" className={actionCss.action} aria-label={t('message.previousVersion')}
+        title={t('message.previousVersion')} disabled={disabled || navigation.pending || previous === undefined}
+        onClick={() => { if (previous !== undefined) void navigation.navigate(previous.id) }}><IconChevronLeftOutline14 /></button>
+      <PromptVersionMenu versions={versions} sessionId={sessionId} openVersion={id => navigation.navigate(id)}
+        referenceVersion={canReference ? reference : undefined} t={t} disabled={disabled || navigation.pending}
+        className={`${actionCss.action} ${css.versionTrigger}`}>
+        {versionIndex + 1}/{versions.length}<IconChevronDownOutline14 />
+      </PromptVersionMenu>
+      <button type="button" className={actionCss.action} aria-label={t('message.nextVersion')}
+        title={t('message.nextVersion')} disabled={disabled || navigation.pending || next === undefined}
+        onClick={() => { if (next !== undefined) void navigation.navigate(next.id) }}><IconChevronRightOutline14 /></button>
+      {navigation.error !== null && <span role="alert" className={css.editError}>{navigation.error}</span>}
+    </nav>
   )
 }
 
 /** User and admitted-steering keyed Chat renderer. */
 export const UserMessageNodeView = memo(function UserMessageNodeView({
-  node, renderMessageImages, editMessage, openVersion, sessionId, useSessions, t,
+  node, renderMessageImages, editMessage, openVersion, referenceVersion, sessionId, useSessions, t,
 }: ChatNodeViewProps<'user' | 'steering'> & {
   /** Submit a prompt revision in this conversation; rejection keeps this editor open. */
   editMessage?: (node: UserMessageNode, text: string, options: PromptEditOptions) => Promise<void>
   /** Open another stored version without creating a conversation. */
-  openVersion?: (id: SessionId) => void
+  openVersion?: ((id: SessionId | SessionVersionId) => void | Promise<void>) | undefined
+  referenceVersion?: ((id: SessionId | SessionVersionId) => void | Promise<void>) | undefined
 }) {
   const data = node.data
   const [draft, setDraft] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const descriptionId = useId()
+  const editorId = useId()
+  const errorId = useId()
   const textarea = useRef<HTMLTextAreaElement>(null)
   const editTrigger = useRef<HTMLButtonElement>(null)
   const restoreFocus = useRef(false)
@@ -345,20 +373,24 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
     setDraft(null); setError(null)
     admissionKey.current = null
   }
-  const send = async (): Promise<void> => {
-    if (pending.current || draft === null || !canSend
+  const send = async (text: string, intent: 'edit' | 'retry'): Promise<void> => {
+    if (pending.current || (text.trim() === '' && parts.images.length === 0)
       || editMessage === undefined) return
     pending.current = true
     setSending(true)
     setError(null)
     try {
       admissionKey.current ??= crypto.randomUUID()
-      await editMessage({ ...node.data, kind: 'user' }, draft, {
+      await editMessage({ ...node.data, kind: 'user' }, text, {
         idempotencyKey: admissionKey.current,
       })
+      admissionKey.current = null
+      restoreFocus.current = intent === 'edit'
       setDraft(null)
     } catch (failure) {
-      setError(t('message.editFailed', { message: failure instanceof Error ? failure.message : String(failure) }))
+      setError(t(intent === 'edit' ? 'message.editFailed' : 'message.retryPromptFailed', {
+        message: failure instanceof Error ? failure.message : String(failure),
+      }))
     } finally {
       pending.current = false
       setSending(false)
@@ -373,14 +405,19 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
       {...data.referenceLabels === undefined ? {} : { referenceLabels: data.referenceLabels }}
       t={t}
       editor={draft === null ? undefined : (
-        <form aria-label={t('message.editPrompt')} aria-busy={sending}
-          onSubmit={(event) => { event.preventDefault(); void send() }}>
-          <div className={css.editHeading}>{t('message.editPrompt')}</div>
+        <form className={css.editForm} aria-label={t('message.editPrompt')} aria-busy={sending}
+          onSubmit={(event) => { event.preventDefault(); void send(draft, 'edit') }}>
+          <div className={css.editHeading}>
+            <label htmlFor={editorId}>{t('message.editPrompt')}</label>
+            <span className={css.editVersion}>{t('message.newVersion')}</span>
+          </div>
           <textarea data-hydra-control="editor"
+            id={editorId}
             ref={textarea}
             className={css.editText}
             aria-label={t('message.editPrompt')}
-            aria-describedby={descriptionId}
+            aria-describedby={error === null ? descriptionId : `${descriptionId} ${errorId}`}
+            aria-invalid={!canSend || undefined}
             value={draft}
             disabled={sending}
             rows={1}
@@ -391,19 +428,19 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
               if (event.key === 'Escape' && !sending) { event.preventDefault(); cancel() }
               if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault()
-                if (!event.repeat) void send()
+                if (!event.repeat) void send(draft, 'edit')
               }
             }}
           />
           <p id={descriptionId} className={css.editHint}>{t('message.editEffect')}</p>
-          {error !== null && <p className={css.editError} role="alert">{error}</p>}
+          {error !== null && <p id={errorId} className={css.editError} role="alert">{error}</p>}
           <div className={css.editActions}>
-            <span className={css.editKeys}>{t('message.editKeys')}</span>
             <Button type="button" variant="outline" size="sm" disabled={sending} onClick={cancel}>{t('cancel')}</Button>
             <Button type="submit" variant="primary" size="sm" disabled={sending || !canSend}>
               {t(sending ? 'message.editSending' : 'message.editSend')}
             </Button>
           </div>
+          <p className={css.editKeys}>{t('message.editKeys')}</p>
         </form>
       )}
       actions={draft !== null ? undefined : text => (
@@ -413,14 +450,21 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
           clock="start"
           className={css.actions}
           editButtonRef={editTrigger}
-          onEdit={editable ? () => { setDraft(text); setError(null) } : undefined}
+          promptSending={sending}
+          onEdit={editable ? () => { setDraft(text); setError(null); admissionKey.current = null } : undefined}
+          onRetryPrompt={editable && (text.trim() !== '' || parts.images.length > 0)
+            ? () => { void send(text, 'retry') } : undefined}
           extraActions={openVersion !== undefined && (node.location.kind === 'turn' || node.location.kind === 'step')
             ? <PromptVersionsAction sessionId={sessionId} useSessions={useSessions} turn={node.location.turn.turn}
-              open={openVersion} t={t} />
+              open={openVersion} reference={referenceVersion} disabled={sending} t={t} />
             : undefined}
           t={t}
         />
       )}
+      feedback={draft === null ? <>
+        {sending && <p className={css.promptFeedback} role="status">{t('message.editSending')}</p>}
+        {error !== null && <p className={`${css.editError} ${css.promptFeedback}`} role="alert">{error}</p>}
+      </> : undefined}
     />
   )
 })

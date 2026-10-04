@@ -550,6 +550,17 @@ describe('Antigravity model discovery', () => {
       'https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels',
     ])
   })
+  it('marks fetched Gemini image output without treating vision input as image generation', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>(async () => Response.json({ models: {
+      'gemini-3.1-flash-image': { displayName: 'Gemini image', supportsImages: true },
+      'gemini-3.1-pro': { supportsImages: true },
+    } }))
+    const models = await discoverAntigravityModels({ accessToken: credentials.access, fetch })
+    expect(models.find(model => model.id === 'gemini-3.1-flash-image')?.endpoints).toEqual(['images/generations'])
+    expect(models.find(model => model.id === 'gemini-3.1-pro')?.endpoints).toBeUndefined()
+    expect(models.every(model => model.supportsImages)).toBe(true)
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
 
   it('classifies catalog failures without exposing provider response text', async () => {
     const leaked = `credentials=${credentials.access}`

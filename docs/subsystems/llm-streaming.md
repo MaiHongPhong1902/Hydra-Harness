@@ -444,6 +444,8 @@ interface LlmModelInfo {
   description?: string
   /** Accepted request modalities; absent means unknown, while an explicit omission is negative capability. */
   inputModalities?: readonly ModelModality[]
+  /** Relative API endpoint paths; explicit non-chat endpoints exclude conversation dispatch. */
+  endpoints?: readonly string[]
 }
 ```
 
@@ -628,6 +630,49 @@ interface LlmDiscoveredModel {
   contextWindow?: number
   /** Maximum output tokens, when disclosed. */
   maxTokens?: number
+  /** Relative API endpoint paths; absence means the listing did not disclose them. */
+  endpoints?: string[]
+}
+```
+
+### Generation endpoint requests
+
+Generation transport prefers the global provider/model selection independently of the conversation selection, then tries remaining endpoint-compatible candidates. Settings → Models and the composer menu share these preferences through the settings mirror; the LLM preference reader can select a route owned by any adapter. The owning [adapter](../../packages/llm/llm-pi-ai/README.md#catalog-resolution) resolves credentials and the URL; the [image tool](../../packages/media/tool-media/README.md#configuration-and-admission) owns response admission and presentation. Video consumers can request polling and download on the accepted route; the media plugin stores the completed file for chat playback. Accepted jobs are never resubmitted.
+
+```ts type-equiv
+/** Endpoint families currently consumed by generation tools. */
+type GenerationEndpoint = 'images/generations' | 'videos'
+```
+
+```ts type-equiv
+/** One generation request over configured provider/model candidates. */
+interface MediaGenerationOptions {
+  /** Required API endpoint family. */
+  endpoint: GenerationEndpoint
+  /** Restrict fallback to this configured provider when specified. */
+  provider?: string
+  /** Model hint used after the provider's user-selected generation model. */
+  model?: string
+  /** Provider JSON fields; routing always supplies the selected model. */
+  body: Readonly<Record<string, unknown>>
+  /** Encoded response byte limit, also enforced before adapters assemble a streamed reply. */
+  maxResponseBytes: number
+  /** For videos, poll the accepted job at this interval and return the downloaded video; omission returns the job response. */
+  pollIntervalMs?: number
+  /** Cancellation for the complete candidate sequence. */
+  signal: AbortSignal
+}
+```
+
+```ts type-equiv
+/** Successful response with the exact route that generated it. */
+interface MediaGenerationResponse {
+  /** Provider that accepted generation. */
+  provider: string
+  /** Model that accepted generation. */
+  model: string
+  /** Response body owned by the caller; video bytes when polling is requested, otherwise the provider reply. */
+  response: Response
 }
 ```
 
@@ -703,6 +748,11 @@ interface PreparedLlmCall {
  * DeepSeek and library-backed pi-ai adapters meet this contract through different internals.
  */
 declare abstract class LlmAdapter {
+  /** Send one generation request through this adapter's credentials and endpoint.
+   * @param _options - Exact provider/model and endpoint; implementations must honor cancellation.
+   * @returns One HTTP response, without retrying accepted or ambiguous requests.
+   */
+  requestGeneration(_options: MediaGenerationOptions & { provider: string; model: string }): Promise<Response>;
   /**
    * Describe one provider route owned by this adapter.
    * @param provider - a route passed to `registerAdapter()` for this instance.
@@ -869,6 +919,20 @@ fileRequestText(ref: FileAttachmentRef): string
  * @returns exact model identity plus available context and reasoning metadata.
  */
 async resolveModelInfo( provider: string, model: string, signal?: AbortSignal, ): Promise<LlmResolvedModelInfo>
+
+/** Register the live, global image/video preference reader.
+ * @param resolve - Current explicit provider/model choice for the endpoint, independent of adapter ownership.
+ * @returns The disposer withdrawing this reader. A second owner is rejected.
+ */
+registerGenerationPreferences(resolve: (endpoint: MediaGenerationOptions['endpoint']) => Pick<LlmCallConfig, 'provider' | 'model'> | undefined): () => void
+
+/** Generate with endpoint-compatible models, preferring the global provider/model selection.
+ * Missing credentials and HTTP 401/404/429 advance to the next candidate. Cancellation,
+ * transport failures, timeouts, safety refusals, and server failures stop the sequence.
+ * @param options - Endpoint, optional route restriction/model hint, JSON fields, and cancellation.
+ * @returns The accepted response and exact provider/model, or undefined when no candidate exists.
+ */
+async generateMedia(options: MediaGenerationOptions): Promise<MediaGenerationResponse | undefined>
 
 /**
  * Validate a conversation call config against its exact model capability and

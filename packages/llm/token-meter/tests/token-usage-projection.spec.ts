@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Context } from '@hydraharness/cordis'
 import { createMessage, createUserMessage } from '@hydraharness/harness-llm'
 import type { TokenUsage } from '@hydraharness/harness-llm'
-import SessionStore from '@hydraharness/harness-session'
+import SessionStore, { SessionVersionId, ORIGINAL_SESSION_VERSION } from '@hydraharness/harness-session'
 import type { Session } from '@hydraharness/harness-session'
 import SessionProjectionRegistry from '@hydraharness/harness-session-projection'
 import TokenMeter from '@hydraharness/harness-token-meter'
@@ -464,7 +464,7 @@ describe('contextPressure session projection', () => {
     const checkpoint = JSON.parse(JSON.stringify(
       ctx.sessionProjections.checkpoint(session),
     )) as ReturnType<typeof ctx.sessionProjections.checkpoint>
-    expect(checkpoint.contextPressure?.ver).toBe(4)
+    expect(checkpoint.contextPressure?.ver).toBe(5)
 
     await meterFiber.dispose()
     expect(ctx.sessionProjections.snapshot(session).values).not.toHaveProperty('contextPressure')
@@ -549,4 +549,28 @@ describe('contextPressure session projection', () => {
     })
     expect(pressure(ctx, session).projectedTokens).toBe(0)
   })
+})
+
+it('keeps usage spent across versions while context pressure follows only the selected path', async () => {
+  const { ctx, session } = await harness()
+  try {
+    session.append('request/header', { header: { config: { provider: 'mock', model: 'mock' } }, reason: 'initial' })
+    const boundary = session.append('step/start', { turn: 1, step: 1 }).seq
+    usageChunk(session, { inputTokens: 10, outputTokens: 1 }, 1, 1)
+    expect(pressure(ctx, session).pressureTokens).toBe(10)
+    const versionId = SessionVersionId('usage-edit')
+    session.append('session/version', { versionId, parentVersionId: ORIGINAL_SESSION_VERSION, beforeSeq: boundary })
+    expect(pressure(ctx, session).pressureTokens).toBeUndefined()
+    startStep(session, 1, 1)
+    usageChunk(session, { inputTokens: 20, outputTokens: 2 }, 1, 1)
+    expect(projected(ctx, session)).toMatchObject({ uncachedInputTokens: 30, outputTokens: 3 })
+    expect(projectedByModel(ctx, session)[0]).toMatchObject({ uncachedInputTokens: 30, outputTokens: 3 })
+    expect(pressure(ctx, session).pressureTokens).toBe(20)
+    session.append('session/version-selected', { versionId: ORIGINAL_SESSION_VERSION })
+    expect(pressure(ctx, session).pressureTokens).toBe(10)
+    expect(projected(ctx, session)).toMatchObject({ uncachedInputTokens: 30, outputTokens: 3 })
+    const restored = ctx.sessionProjections.restore({}, session.events, 0).snapshot
+    expect(restored.values.contextPressure?.pressureTokens).toBe(10)
+    expect(restored.values.tokenUsage?.uncachedInputTokens).toBe(30)
+  } finally { await ctx.fiber.dispose() }
 })

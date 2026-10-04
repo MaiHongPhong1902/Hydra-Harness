@@ -45,10 +45,15 @@ import {
   LlmAdapter,
   LlmError,
   ReasoningEffortId,
+  supportsConversation,
+  isGenerationRejection,
+  imageAspectRatio,
 } from '@hydraharness/harness-llm'
-import { withHttpProxy } from '@hydraharness/harness-llm/proxy'
+import { withHttpProxy, fetchWithHttpProxy } from '@hydraharness/harness-llm/proxy'
+import { completeVideoGeneration } from './video-generation.ts'
 import type {
   GenerateOptions,
+  MediaGenerationOptions,
   LlmModelInfo,
   LlmProviderInfo,
   LlmResolvedModelInfo,
@@ -155,6 +160,39 @@ function describableReasoningLevel(
   return getSupportedThinkingLevels(model).some(level => level === effort)
     ? effort as ModelThinkingLevel
     : undefined
+}
+
+/**
+ * Remove SDK-derived output caps from protocols that accept their omission.
+ * Required-cap protocols keep pi-ai's model capacity and context fitting.
+ * @param payload - the request assembled by the selected pi-ai protocol.
+ * @param model - the model whose API determines the request fields.
+ * @returns undefined to keep the modified request.
+ */
+function omitDefaultOutputCap(payload: unknown, model: Model<Api>): undefined {
+  switch (model.api) {
+    case 'openai-completions':
+    case 'azure-openai-completions':
+    case 'openai-responses':
+    case 'azure-openai-responses':
+    case 'openai-codex-responses': {
+      const request = payload as { max_tokens?: number; max_completion_tokens?: number; max_output_tokens?: number }
+      delete request.max_tokens
+      delete request.max_completion_tokens
+      delete request.max_output_tokens
+      break
+    }
+    case 'google-generative-ai':
+    case 'google-vertex': {
+      const request = payload as { config: { maxOutputTokens?: number } }
+      delete request.config.maxOutputTokens
+      break
+    }
+    default:
+      // Other APIs retain their protocol's output-cap requirements.
+      break
+  }
+  return undefined
 }
 
 /** Validate an explicit Harness/profile effort without invoking pi-ai's clamp. */
@@ -285,13 +323,17 @@ export class PiAiAdapter extends LlmAdapter {
   override listModels(provider: string): Promise<readonly LlmModelInfo[]> {
     return Promise.resolve().then(() => {
       const snapshot = this.current()
-      this.profileOf(snapshot, provider)
-      return snapshot.models.getModels(provider).map(model => ({
-        provider,
-        id: model.id,
-        name: model.name,
-        inputModalities: [...model.input],
-      }))
+      const profile = this.profileOf(snapshot, provider)
+      return snapshot.models.getModels(provider).map((model) => {
+        const endpoints = profile.modelEndpoints.get(model.id)
+        return {
+          provider,
+          id: model.id,
+          name: model.name,
+          inputModalities: [...model.input],
+          ...endpoints === undefined ? {} : { endpoints: [...endpoints] },
+        }
+      })
     })
   }
 
@@ -308,16 +350,142 @@ export class PiAiAdapter extends LlmAdapter {
       // Only a cap the deployment configured is a request default; the
       // catalog's `maxTokens` sizes the model and stops there.
       const configuredMaxTokens = profile.configuredMaxTokens.get(model)
+      const endpoints = profile.modelEndpoints.get(model)
       return {
         provider,
         id: model,
         name: resolvedModel.name,
         inputModalities: [...resolvedModel.input],
+        ...endpoints === undefined ? {} : { endpoints: [...endpoints] },
         context: { contextWindow: resolvedModel.contextWindow },
         ...configuredMaxTokens === undefined ? {} : { defaultMaxTokens: configuredMaxTokens },
         ...reasoningInfo(resolvedModel, defaultLevel),
       }
     })
+  }
+
+  override async requestGeneration(options: MediaGenerationOptions & { provider: string; model: string }): Promise<Response> {
+    const snapshot = this.current()
+    const profile = this.profileOf(snapshot, options.provider)
+    const model = this.modelOf(snapshot, options.provider, options.model)
+    if (!profile.modelEndpoints.get(model.id)?.includes(options.endpoint)) {
+      throw new LlmError(`Model ${options.provider}/${model.id} does not serve ${options.endpoint}.`, 'UNSUPPORTED_GENERATION')
+    }
+    const google = model.api === 'google-generative-ai'
+    const xaiImage = options.endpoint === 'images/generations' && /(?:^|\/)(grok-imagine-image|grok-2-image)(?:[.-]|$)/i.test(model.id)
+    const xaiVideo = options.endpoint === 'videos' && /(?:^|\/)grok-imagine-video(?:[.-]|$)/i.test(model.id)
+    const chatImages = options.endpoint === 'images/generations' && !google && (
+      /(?:^|\/)gemini-[a-z0-9.-]*image(?:-|$)/i.test(model.id)
+      || profile.modelEndpoints.get(model.id)?.includes('chat/completions') === true
+    )
+    const aspectRatio = google || chatImages || xaiImage || xaiVideo ? imageAspectRatio(options.body['size']) : undefined
+    if (xaiImage && ((options.body['background'] !== undefined && options.body['background'] !== 'auto')
+      || ![undefined, 'auto', 'low', 'medium'].includes(options.body['quality'] as string | undefined))) throw new LlmError('xAI images support automatic backgrounds and auto, low, or medium quality.', 'UNSUPPORTED_GENERATION')
+    const duration = xaiVideo && options.body['seconds'] !== undefined ? Number(options.body['seconds']) : undefined
+    if (duration !== undefined && (!Number.isFinite(duration) || duration < 1 || duration > 15)) throw new LlmError('xAI video duration must be between 1 and 15 seconds.', 'INVALID_GENERATION')
+    const googleVideo = google && options.endpoint === 'videos'
+    if (google && !googleVideo && options.body['n'] !== undefined && options.body['n'] !== 1) {
+      throw new LlmError('Gemini generateContent supports one image request; video requires a video provider endpoint.', 'UNSUPPORTED_GENERATION')
+    }
+    if (googleVideo && options.body['seconds'] !== undefined && ![4, 6, 8].includes(Number(options.body['seconds']))) throw new LlmError('Veo video duration must be 4, 6, or 8 seconds.', 'INVALID_GENERATION')
+    const endpoint = new URL(`${model.baseUrl.replace(/\/+$/, '')}/${google ? `models/${encodeURIComponent(model.id)}:${googleVideo ? 'predictLongRunning' : 'generateContent'}` : chatImages ? 'chat/completions' : xaiVideo ? 'videos/generations' : options.endpoint}`)
+    if (endpoint.username || endpoint.password || endpoint.search || endpoint.hash
+      || (endpoint.protocol !== 'https:' && !(endpoint.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(endpoint.hostname)))) {
+      throw new LlmError('Generation baseURL must use HTTPS or loopback HTTP without credentials, query, or fragment.', 'INVALID_GENERATION_ENDPOINT')
+    }
+    const refs = [...profile.apiKeyEnv === undefined ? [] : [profile.apiKeyEnv], ...profile.apiKeyFallbackEnvs]
+    let failure: unknown
+    for (let index = 0; index < Math.max(1, refs.length); index++) {
+      options.signal.throwIfAborted()
+      let apiKey: string | undefined
+      try {
+        apiKey = await this.config.resolveApiKey(options.provider, {
+          ...profile, ...refs[index] === undefined ? {} : { apiKeyEnv: refs[index] },
+        })
+      } catch (error: unknown) {
+        if (!(error instanceof LlmError) || error.code !== 'MISSING_CREDENTIAL') throw error
+        failure = error
+        continue
+      }
+      const auth = apiKey === undefined ? (await snapshot.models.getAuth(options.provider))?.auth : undefined
+      apiKey ??= auth?.apiKey
+      const fields = xaiImage || xaiVideo ? {
+        model: model.id, prompt: options.body['prompt'],
+        ...aspectRatio === undefined ? {} : { aspect_ratio: aspectRatio },
+        ...xaiImage ? { response_format: 'b64_json', ...options.body['n'] === undefined ? {} : { n: options.body['n'] },
+          ...options.body['quality'] === undefined || options.body['quality'] === 'auto' ? {} : { quality: options.body['quality'] } }
+          : { ...duration === undefined ? {} : { duration } },
+      } : googleVideo ? {
+        instances: [{ prompt: options.body['prompt'] }], parameters: {
+          sampleCount: 1, ...aspectRatio === undefined ? {} : { aspectRatio },
+          ...options.body['seconds'] === undefined ? {} : { durationSeconds: Number(options.body['seconds']) },
+        },
+      } : google ? {
+        contents: [{ role: 'user', parts: [{ text: options.body['prompt'] }] }],
+        generationConfig: { responseModalities: ['IMAGE'], ...aspectRatio === undefined ? {} : { imageConfig: { aspectRatio } } },
+      } : chatImages ? {
+        model: model.id, stream: false,
+        messages: [{ role: 'user', content: options.body['prompt'] }],
+        modalities: ['image', 'text'],
+        ...options.body['n'] === undefined ? {} : { n: options.body['n'] },
+        ...aspectRatio === undefined ? {} : { image_config: { aspect_ratio: aspectRatio } },
+      } : { ...options.body, model: model.id }
+      const form = options.endpoint === 'videos' && !xaiVideo && !googleVideo ? new FormData() : undefined
+      if (form !== undefined) {
+        for (const [key, value] of Object.entries(fields)) {
+          if (typeof value !== 'string' && typeof value !== 'number') throw new LlmError(`Video field ${key} must be text or a number.`, 'INVALID_GENERATION')
+          form.set(key, typeof value === 'number' ? String(value) : value)
+        }
+      }
+      const response = await fetchWithHttpProxy(endpoint, {
+        method: 'POST', redirect: 'error', signal: options.signal,
+        headers: {
+          ...requestHeaders(profile.headers),
+          ...auth?.headers,
+          ...form === undefined ? { 'Content-Type': 'application/json' } : {},
+          ...apiKey === undefined ? {} : google ? { 'x-goog-api-key': apiKey } : { Authorization: `Bearer ${apiKey}` },
+        },
+        body: form ?? JSON.stringify(fields),
+      }, profile.proxy)
+      if (options.endpoint === 'videos' && response.ok && options.pollIntervalMs !== undefined) {
+        const headers = {
+          ...requestHeaders(profile.headers), ...auth?.headers,
+          ...apiKey === undefined ? {} : google ? { 'x-goog-api-key': apiKey } : { Authorization: `Bearer ${apiKey}` },
+        }
+        return completeVideoGeneration(response, { protocol: google ? 'google' : xaiVideo ? 'xai' : 'openai', baseURL: model.baseUrl },
+          (url, authenticated) => fetchWithHttpProxy(url, { method: 'GET', redirect: 'manual', signal: options.signal, ...authenticated ? { headers } : {} }, profile.proxy),
+          { ...options, pollIntervalMs: options.pollIntervalMs })
+      }
+      if (xaiImage && response.ok) return this.normalizeXaiImages(response, options)
+      if (!isGenerationRejection(response.status) || index + 1 >= refs.length) return response
+      await response.body?.cancel()
+    }
+    throw failure
+  }
+
+  private async normalizeXaiImages(response: Response, options: MediaGenerationOptions): Promise<Response> {
+    if (response.body === null) throw new LlmError('xAI image response has no body.', 'MALFORMED_RESPONSE')
+    let count = 0
+    const body = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({ transform(bytes, controller) {
+      count += bytes.byteLength
+      if (count > options.maxResponseBytes) throw new LlmError('xAI image response exceeds maxResponseBytes.', 'MALFORMED_RESPONSE')
+      controller.enqueue(bytes)
+    } }))
+    const payload: unknown = await new Response(body).json()
+    const data = typeof payload === 'object' && payload !== null && 'data' in payload ? payload.data : undefined
+    if (!Array.isArray(data) || data.length === 0) throw new LlmError('xAI returned no inline images.', 'MALFORMED_RESPONSE')
+    const parts = data.map((entry: unknown) => {
+      const encoded = typeof entry === 'object' && entry !== null && 'b64_json' in entry ? entry.b64_json : undefined
+      if (typeof encoded !== 'string' || encoded === '') throw new LlmError('xAI returned an invalid inline image.', 'MALFORMED_RESPONSE')
+      const bytes = Buffer.from(encoded.slice(0, 24), 'base64')
+      const mimeType = bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) ? 'image/png'
+        : bytes.subarray(0, 3).equals(Buffer.from([255, 216, 255])) ? 'image/jpeg'
+          : bytes.subarray(0, 4).toString() === 'RIFF' && bytes.subarray(8, 12).toString() === 'WEBP' ? 'image/webp' : undefined
+      if (mimeType === undefined) throw new LlmError('xAI returned an unsupported image format.', 'MALFORMED_RESPONSE')
+      return { inlineData: { mimeType, data: encoded } }
+    })
+    options.signal.throwIfAborted()
+    return Response.json({ candidates: [{ finishReason: 'STOP', content: { parts } }] })
   }
 
   async * stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
@@ -331,6 +499,9 @@ export class PiAiAdapter extends LlmAdapter {
     // the one it started with and the next call picks up the new one.
     const snapshot = this.current()
     const profile = this.profileOf(snapshot, options.provider)
+    if (!supportsConversation(profile.modelEndpoints.get(options.model))) {
+      throw new LlmError(`Model ${options.provider}/${options.model} requires a generation tool, not conversation streaming.`, 'UNSUPPORTED_MODEL_ENDPOINT')
+    }
     const refs = [...profile.apiKeyEnv === undefined ? [] : [profile.apiKeyEnv], ...profile.apiKeyFallbackEnvs]
     yield* streamWithApiKeys(options, Math.max(1, refs.length), index => this.streamAttempt(options, snapshot, {
       ...profile, ...refs[index] === undefined ? {} : { apiKeyEnv: refs[index] },
@@ -377,6 +548,7 @@ export class PiAiAdapter extends LlmAdapter {
         ...profileOptions(profile, reasoning, apiKey),
         ...options.temperature === undefined ? {} : { temperature: options.temperature },
         ...options.maxTokens === undefined ? {} : { maxTokens: options.maxTokens },
+        ...options.maxTokens === undefined ? { onPayload: omitDefaultOutputCap } : {},
         ...options.sessionId === undefined ? {} : { sessionId: String(options.sessionId) },
         signal: watchdog.signal,
         // Profile headers are deployment-owned; attribution names are

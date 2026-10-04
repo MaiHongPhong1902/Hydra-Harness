@@ -18,6 +18,8 @@ import type {
   LlmResolvedModelInfo,
   LlmProviderInfo,
   ModelModality,
+  MediaGenerationOptions,
+  MediaGenerationResponse,
   StreamChunk,
 } from './types.ts'
 import { freezeMessage, type Message } from './message.ts'
@@ -31,6 +33,7 @@ import { normalizeLlmFailure } from './adapter-failure.ts'
 import { normalizeApiKey } from './api-key.ts'
 import type { FileAttachmentRef } from '@hydraharness/harness-attachment'
 import { contentHasFile, fileHandleText, projectFilesToText } from './content.ts'
+import { isGenerationRejection, supportsConversation } from './model-endpoints.ts'
 
 export * from './attribution.ts'
 export * from './brand.ts'
@@ -42,6 +45,8 @@ export * from './types.ts'
 export * from './content.ts'
 export * from './message.ts'
 export * from './retry-policy.ts'
+export * from './model-endpoints.ts'
+export * from './generation.ts'
 export { BlockAssembler } from './assembler.ts'
 export { callConfigEquals, deepFreeze, isAgentLoopRequest, markAgentLoopRequest } from './call-config.ts'
 export type { LlmCallConfig, LlmCallConfigAdapterDefaults } from './call-config.ts'
@@ -181,6 +186,13 @@ export interface PreparedLlmCall {
  * DeepSeek and library-backed pi-ai adapters meet this contract through different internals.
  */
 export abstract class LlmAdapter {
+  /** Send one generation request through this adapter's credentials and endpoint.
+   * @param _options - Exact provider/model and endpoint; implementations must honor cancellation.
+   * @returns One HTTP response, without retrying accepted or ambiguous requests.
+   */
+  requestGeneration(_options: MediaGenerationOptions & { provider: string; model: string }): Promise<Response> {
+    return Promise.reject(new LlmError('This adapter does not serve generation endpoints.', 'UNSUPPORTED_GENERATION'))
+  }
   /**
    * Describe one provider route owned by this adapter.
    * @param provider - a route passed to `registerAdapter()` for this instance.
@@ -286,6 +298,7 @@ export interface DirectoryRegistrationHandle {
  */
 export class LlmRuntime extends Service {
   private adapters = new Map<string, AdapterRegistration>()
+  private readonly generationPreferences: { read?: (endpoint: MediaGenerationOptions['endpoint']) => Pick<LlmCallConfig, 'provider' | 'model'> | undefined } = {}
   private directory = new Map<string, LlmConfigurableProvider>()
   private discoveries = new Map<
     string,
@@ -556,6 +569,7 @@ export class LlmRuntime extends Service {
         ...model.name === undefined ? {} : { name: model.name },
         ...model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow },
         ...model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens },
+        ...model.endpoints === undefined ? {} : { endpoints: [...model.endpoints] },
       })
     }
     return models
@@ -606,6 +620,7 @@ export class LlmRuntime extends Service {
         name: model.name,
         ...model.description === undefined ? {} : { description: model.description },
         ...inputModalities === undefined ? {} : { inputModalities },
+        ...model.endpoints === undefined ? {} : { endpoints: [...model.endpoints] },
       }
     })
   }
@@ -634,6 +649,60 @@ export class LlmRuntime extends Service {
     signal?: AbortSignal,
   ): Promise<LlmResolvedModelInfo> {
     return this.resolveModelInfoFor(this.registration(provider), model, signal)
+  }
+
+  /** Register the live, global image/video preference reader.
+   * @param resolve - Current explicit provider/model choice for the endpoint, independent of adapter ownership.
+   * @returns The disposer withdrawing this reader. A second owner is rejected.
+   */
+  registerGenerationPreferences(resolve: (endpoint: MediaGenerationOptions['endpoint']) => Pick<LlmCallConfig, 'provider' | 'model'> | undefined): () => void {
+    if (this.generationPreferences.read !== undefined) throw new LlmError('Generation preferences already have an owner.', 'DUPLICATE_REGISTRATION')
+    this.generationPreferences.read = resolve
+    let active = true
+    return () => { if (active) { active = false; delete this.generationPreferences.read } }
+  }
+
+  /** Generate with endpoint-compatible models, preferring the global provider/model selection.
+   * Missing credentials and HTTP 401/404/429 advance to the next candidate. Cancellation,
+   * transport failures, timeouts, safety refusals, and server failures stop the sequence.
+   * @param options - Endpoint, optional route restriction/model hint, JSON fields, and cancellation.
+   * @returns The accepted response and exact provider/model, or undefined when no candidate exists.
+   */
+  async generateMedia(options: MediaGenerationOptions): Promise<MediaGenerationResponse | undefined> {
+    options.signal.throwIfAborted()
+    const preference = this.generationPreferences.read?.(options.endpoint)
+    const selected = options.provider === undefined || preference?.provider === options.provider ? preference : undefined
+    if (selected !== undefined) this.registration(selected.provider)
+    const providers = this.listProviders().filter(provider => options.provider === undefined || provider.id === options.provider)
+    const catalog = (await Promise.all(providers.map(provider => this.listModels(provider.id)))).flat()
+    const preferred = (model: LlmModelInfo): boolean => model.provider === selected?.provider && model.id === selected.model
+    if (selected !== undefined && !catalog.some(preferred)) {
+      throw new LlmError(`Generation model ${selected.provider}/${selected.model} is absent from its catalog.`, 'INVALID_GENERATION_SELECTION')
+    }
+    const candidates = catalog.filter(model => preferred(model) || model.endpoints?.includes(options.endpoint))
+    const rank = (model: LlmModelInfo): number => preferred(model) ? 2 : Number(model.id === options.model)
+    candidates.sort((a, b) => rank(b) - rank(a))
+    let failure: Error | undefined
+    for (const candidate of candidates) {
+      options.signal.throwIfAborted()
+      let response: Response
+      try {
+        response = await this.registration(candidate.provider).adapter.requestGeneration({
+          ...options, provider: candidate.provider, model: candidate.id,
+        })
+      } catch (error: unknown) {
+        options.signal.throwIfAborted()
+        if (!(error instanceof LlmError) || error.code !== 'MISSING_CREDENTIAL') throw error
+        failure = error
+        continue
+      }
+      if (response.ok) return { provider: candidate.provider, model: candidate.id, response }
+      await response.body?.cancel()
+      failure = new LlmError(`Generation request failed for ${candidate.provider}/${candidate.id} (HTTP ${response.status}).`, 'GENERATION_FAILED', { status: response.status })
+      if (!isGenerationRejection(response.status)) throw failure
+    }
+    if (failure !== undefined) throw failure
+    return undefined
   }
 
   private async resolveModelInfoFor(
@@ -681,6 +750,7 @@ export class LlmRuntime extends Service {
       name: resolved.name,
       ...resolved.description === undefined ? {} : { description: resolved.description },
       ...inputModalities === undefined ? {} : { inputModalities },
+      ...resolved.endpoints === undefined ? {} : { endpoints: [...resolved.endpoints] },
       ...context === undefined ? {} : { context: { contextWindow: context.contextWindow } },
       ...defaultMaxTokens === undefined ? {} : { defaultMaxTokens },
     }
@@ -749,6 +819,9 @@ export class LlmRuntime extends Service {
     signal?: AbortSignal,
   ): Promise<{ config: LlmCallConfig; context?: LlmModelContext }> {
     const info = await this.resolveModelInfoFor(registration, config.model, signal)
+    if (!supportsConversation(info.endpoints)) {
+      throw new LlmError(`Model ${config.provider}/${config.model} requires a generation tool. Select a chat/code model for conversation.`, 'UNSUPPORTED_MODEL_ENDPOINT')
+    }
     const defaulted = config.maxTokens === undefined && info.defaultMaxTokens !== undefined
       ? { ...config, maxTokens: info.defaultMaxTokens }
       : config

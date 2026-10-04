@@ -5,11 +5,11 @@
  * replacement or header change explains the difference.
  */
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydraharness/cordis'
 import LlmRuntime, { createUserMessage, LlmError, ReasoningEffortId  } from '@hydraharness/harness-llm'
 import type { GenerateOptions, LlmModelReasoningInfo, LlmResolvedModelInfo, StreamChunk } from '@hydraharness/harness-llm'
-import SessionStore, { Session, SessionId, foldRequestHeader } from '@hydraharness/harness-session'
+import SessionStore, { Session, SessionId, SessionVersionId, ORIGINAL_SESSION_VERSION, foldRequestHeader } from '@hydraharness/harness-session'
 import SystemPrompt from '@hydraharness/harness-system-prompt'
 import ToolRuntime, { defineContentToolFixture } from '@hydraharness/harness-tools'
 import AgentRegistry, { type Agent } from '@hydraharness/harness-agent'
@@ -703,4 +703,39 @@ describe('request/context capacity records', () => {
       { provider: 'mock', model: 'unknown' },
     ])
   })
+})
+
+it('reconstructs the selected version and vetoes a path change during a request', async () => {
+  const adapter = new MockAdapter([textResponse('answer one'), textResponse('answer two'), textResponse('edited answer'), textResponse('root continued'), 'hang'])
+  const ctx = await harness(adapter)
+  try {
+    const agent = ctx.agentLoop.create(SessionId('versioned'), { provider: 'mock', model: 'mock' })
+    send(agent, 'first question')
+    await agent.whenIdle()
+    send(agent, 'second question')
+    await agent.whenIdle()
+    const original = agent.session.events
+    const boundary = agent.session.activeEvents.findLast(event => event.type === 'turn/start')!.seq
+    const versionId = SessionVersionId('edit')
+    agent.session.append('session/version', { versionId, parentVersionId: ORIGINAL_SESSION_VERSION, beforeSeq: boundary })
+    agent.inbox.clear()
+    send(agent, 'edited question')
+    await agent.whenIdle()
+    expect(JSON.stringify(adapter.requests[2]!.messages)).toContain('answer one')
+    expect(JSON.stringify(adapter.requests[2]!.messages)).toContain('edited question')
+    expect(JSON.stringify(adapter.requests[2]!.messages)).not.toContain('second question')
+    expect(agent.session.events.slice(0, original.length)).toEqual(original)
+    agent.session.append('session/version-selected', { versionId: ORIGINAL_SESSION_VERSION })
+    send(agent, 'continue original')
+    await agent.whenIdle()
+    expect(JSON.stringify(adapter.requests[3]!.messages)).toContain('second question')
+    expect(JSON.stringify(adapter.requests[3]!.messages)).not.toContain('edited question')
+    send(agent, 'running')
+    await vi.waitFor(() => { expect(adapter.requests).toHaveLength(5) })
+    const before = agent.session.events
+    expect(() => agent.session.append('session/version-selected', { versionId })).toThrow('idle')
+    expect(agent.session.events).toBe(before)
+    agent.cancel({ kind: 'user' })
+    await agent.whenIdle()
+  } finally { await ctx.fiber.dispose() }
 })

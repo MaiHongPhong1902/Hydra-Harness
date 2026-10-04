@@ -6,6 +6,10 @@ Unsent composer images remain browser-owned temporary drafts. `validateImage` ru
 
 `admitEncodedImages(attachments, images)` is the shared wire entry used by every RPC endpoint that accepts browser uploads (the session prompt endpoint and the command executor): it enforces canonical base64 on every member, then delegates batch admission — limits, validation, ordered commit — to `saveImages`. The base64 upload form is `EncodedImageAttachment`, exported from `@hydraharness/harness-attachment/types` so wire contracts can reference it.
 
+`toolImageReferences(meta)` validates recognized `tool-images` metadata and returns its opaque image references. Unrelated metadata returns an empty list; malformed recognized metadata throws. The [tool-presentation format](../../../docs/subsystems/attachment.md#tool-presentation-images) supports UI images that do not enter model history.
+
+`toolVideoReferences(meta)` applies the same policy to `tool-videos`. A `VideoAttachmentRef` extends stored file metadata with `video/mp4` or `video/webm`; producers save final bytes through `saveFile` or `saveFileStream` before publishing the result and own video-format admission. Session reads verify the stored file and authorize its logged reference; ZIP export includes the exact file bytes. `toolMediaLabels(meta)` reads string-valued provider/model labels for display.
+
 ## Model Experience
 
 Indirectly, through the role-neutral core `ImageBlock` and provider adapters that resolve its durable reference.

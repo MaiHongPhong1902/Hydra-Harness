@@ -12,13 +12,14 @@
  * history outside the direct-parent continuation path.
  */
 // Type-only: the carrier types, the forwarded Host-event face and the ctx.remote merge.
-import type { ModelSelection, SessionModels } from '@hydraharness/harness-api-remotes/client'
+import type { ConnectionHandle, ModelSelection, SessionModels } from '@hydraharness/harness-api-remotes/client'
 import type { ClientContext } from '@hydraharness/harness-client-runtime/client'
 import type { CommandUiContract, SelectOption } from '@hydraharness/harness-client-ui-commands/client'
 // Type-only: pulls the ui-conversation SlotMap merge (the input.model seat).
 import type {} from '@hydraharness/harness-client-ui-conversation/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
 import type {} from '@hydraharness/harness-client-locale/client'
+import type {} from '@hydraharness/harness-client-ui-settings/client'
 import type { TranslateNS } from '@hydraharness/harness-client-ui-slots'
 import type { ModelDirectoryState } from './directory.ts'
 import { ModelDirectoryResolver } from './service.ts'
@@ -160,8 +161,12 @@ export function apply(ctx: ClientContext): void {
       inject: (sessionId): ModelSelectInjected => {
         const directory = models.directoryFor(sessionId)
         const available = sessions.subagentAddress(sessionId) === undefined
+        const settings = scope.get('settingsScope')
         return {
           available,
+          ...settings === undefined ? {} : { generation: {
+            settings: settings.describe(), api: (scope.get('connection') as ConnectionHandle).api,
+          } },
           directory: directory.store,
           load: () => {
             if (available) directory.load().catch(() => { /* surfaced on the store */ })

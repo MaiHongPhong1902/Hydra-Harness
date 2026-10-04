@@ -17,6 +17,8 @@
   - img
 - button "Edit":
   - img
+- button "Retry prompt":
+  - img
 - status:
   - strong: This subagent is read-only for now
   - text: The parent session is offline; reopen it to continue sending messages.

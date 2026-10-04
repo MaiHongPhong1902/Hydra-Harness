@@ -460,6 +460,8 @@ type ObjectJsonSchema = JsonSchemaNode & { type: 'object' }
 
 ## Tool-presentation UI vocabulary
 
+Generation tools use `MediaCallView` (`card: 'media'`, image/video `kind`, `title`, `prompt`, optional positive `aspectRatio` for requested width divided by height) and `MediaResultView` (`card: 'media'`, `kind`, durable image/video `content`, optional actual `provider`/`model`). Pending previews use the requested ratio when known; completed output uses actual stored image or intrinsic video dimensions. The conversation renders these as standalone outputs outside tool disclosures. The [media output decision](../../.agents/notes/implemented/feature/2026-10-03-standalone-media-generation-output.md) records placement, lifecycle, and persistence.
+
 How a tool wants its call shown in a UI (an editor tool-call card, a CLI log line), provider-neutral so a tool describes itself without depending on any client protocol. `presentCall`/`presentResult` return a **`card`-tagged render intent** — a discriminated union a UI bridge switches on:
 
 - `ToolCallView` (pending): `{ card: 'generic', title, kind?, rawInput?, content?, locations? }` (the default card; `locations` is `{ path, line? }[]` files the call reads/modifies, for editor follow-along), `{ card: 'terminal', title, description?, cwd? }` (a shell command → a terminal card), or `{ card: 'diff', title, diffs, locations? }` (a file create/modify → an inline diff card; `diffs` is `{ path, oldText, newText }[]`, `oldText: null` for a new file).

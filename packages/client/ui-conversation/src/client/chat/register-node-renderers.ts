@@ -1,5 +1,6 @@
 import type { Context } from '@hydraharness/cordis'
 import type { SessionId, UserMessageNode } from '@hydraharness/harness-client-runtime/client'
+import type { SessionVersionId } from '@hydraharness/harness-session/types'
 import { NS } from '../locales.ts'
 import { AssistantNodeView } from './AssistantNodeView.tsx'
 import { CommandNodeView, ManualCompactionNodeView } from './CommandNodeView.tsx'
@@ -26,7 +27,13 @@ export function registerChatNodeRenderers(
       { name: 'conversation.chat.node', key, locale: NS,
         inject: (sessionId: SessionId) => ({
           editMessage: (node: UserMessageNode, text: string, options: PromptEditOptions) => editMessage(sessionId, node, text, options),
-          openVersion: (id: SessionId) => { ctx.sessions.open(id) },
+          openVersion: (id: SessionId | SessionVersionId) => {
+            if (ctx.sessions.list.getSnapshot().byId[sessionId]?.versionState !== undefined) {
+              return ctx.sessions.selectVersion(sessionId, id as SessionVersionId)
+            }
+            ctx.sessions.open(id as SessionId)
+          },
+          referenceVersion: (id: SessionId | SessionVersionId) => ctx.sessions.selectVersion(sessionId, id as SessionVersionId, 'reference'),
         }),
       }, UserMessageNodeView))
   }

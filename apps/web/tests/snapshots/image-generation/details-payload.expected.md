@@ -1,0 +1,9 @@
+- tabpanel "Payload":
+  - button "Copy payload": Copy
+  - text: "{"
+  - tree "Payload JSON":
+    - treeitem "prompt:\"A Hydra illustration\","
+    - treeitem "format:\"png\","
+    - treeitem "quality:\"low\","
+    - treeitem "size:\"1024x1536\""
+  - text: "}"

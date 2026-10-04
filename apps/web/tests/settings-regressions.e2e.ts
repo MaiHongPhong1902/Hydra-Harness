@@ -215,7 +215,7 @@ describe('web e2e: Settings drafts and dialog interaction', () => {
       } })
     })
     try {
-      await settings.getByRole('button', { name: 'Fetch available models', exact: true }).click()
+      await settings.getByRole('button', { name: 'Fetch', exact: true }).click()
       await expect.poll(() => probe).toEqual({ settingsNs: 'llm-pi-ai', provider: 'settings-fixture', api: 'openai-completions' })
     } finally {
       await page.unroute(discoveryRoute)

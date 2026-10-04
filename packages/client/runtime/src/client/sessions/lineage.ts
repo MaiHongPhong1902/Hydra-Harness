@@ -2,7 +2,7 @@
 // The input order is authoritative; lineage only makes each child adjacent to its parent.
 // Orphaned lineage degrades to root level; cycles fail soft and emit as roots.
 
-import type { ConversationRevision, SessionId, SessionSummary } from '@hydraharness/harness-api-remotes/client'
+import type { ConversationRevision, SessionVersionState, SessionId, SessionSummary } from '@hydraharness/harness-api-remotes/client'
 import type { SessionProjectionMap } from '@hydraharness/harness-session-projection/types'
 import type { PendingInteractionStatus } from './pending.ts'
 
@@ -15,6 +15,8 @@ export interface TitledSessionSummary extends SessionSummary {
 
 /** One flattened session-list row with lineage depth and live pending interaction. */
 export interface SessionListEntry {
+  /** Session-local transcript paths and the selected version. */
+  versionState?: SessionVersionState | undefined
   sessionId: SessionId
   title?: string
   updatedAt: number
@@ -23,7 +25,7 @@ export interface SessionListEntry {
   blank: boolean
   parentSessionId?: SessionId
   /** Prompt revision identity retained for conversation navigation. */
-  revision?: ConversationRevision
+  revision?: ConversationRevision | undefined
   /** Coarse durable origin for navigation filtering; not a continuation capability. */
   origin?: 'subagent'
   cwd?: string

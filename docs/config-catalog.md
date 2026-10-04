@@ -911,6 +911,8 @@ export interface Config {
    * @default 1024
    */
   coldBlankProbeMaxBytes?: number
+  /** UTF-8 bytes per user-selected version reference. @default 65536 */
+  versionReferenceMaxBytes?: number
   /** Maximum serialized bytes per live Git review response. @default 4194304 */
   reviewMaxBytes?: number
   /** Maximum files per live Git comparison. @default 500 */
@@ -1046,11 +1048,11 @@ Source: [`packages/jobs/jobs-local/src/index.ts:31`](../packages/jobs/jobs-local
 Requires: `llm`
 
 ```ts config-catalog
-/** Plugin settings, keyed by the route names `chatgpt` and `antigravity`. */
+/** Plugin settings keyed by account provider route. */
 export interface Config {
   /** Maximum time for one account usage request, including credential refresh. */
   usageTimeoutMs?: number
-  /** Enabled account-backed routes. An empty map leaves both routes dormant. */
+  /** Enabled account-backed routes. An empty map leaves routes dormant. */
   providers?: Record<string, AccountProviderProfile>
 }
 
@@ -1086,16 +1088,28 @@ export interface AccountProviderProfile {
   retryPolicy?: RetryPolicyConfig
   /** Maximum base64-encoded image payload accepted in one request. */
   maxRequestImageBytes?: number
-  /** Optional Cloud Code Assist endpoint used by Antigravity requests. */
+  /** Native API base URL; HTTPS or loopback HTTP without credentials, query, or fragment. */
   endpoint?: string
-  /** Loopback callback port used by Antigravity OAuth; zero asks the OS for a free port. */
+  /** Loopback callback port used by Google OAuth; zero asks the OS for a free port. */
   callbackPort?: number
-  /** Loopback callback path used by Antigravity OAuth. */
+  /** Loopback callback path used by Google OAuth. */
   callbackPath?: string
   /** Number of Antigravity onboarding attempts. */
   onboardingAttempts?: number
   /** Delay between incomplete Antigravity onboarding attempts. */
   onboardingDelayMs?: number
+  /** AWS region used by Kiro Builder ID login and requests. */
+  region?: string
+  /** AWS IAM Identity Center start URL; omission uses AWS Builder ID. */
+  startURL?: string
+  /** AWS IAM Identity Center issuer used for Kiro's scoped client registration. */
+  issuerURL?: string
+  /** Kiro profile ARN returned by the provider; omission uses the token's profile when supplied. */
+  profileArn?: string
+  /** Maximum duration of a Google, Cursor, or Kiro login attempt. */
+  loginTimeoutMs?: number
+  /** Interval between Cursor login polling requests. */
+  loginPollIntervalMs?: number
 }
 
 /** One optional model override for an account-backed route. */
@@ -1108,12 +1122,14 @@ export interface AccountModelProfile {
   contextWindow?: number
   /** Maximum output token capability. */
   maxTokens?: number
+  /** Generation or conversation endpoint families; omission uses known model family hints. */
+  endpoints?: string[]
 }
 ```
 
 Depends on: `CacheRetention` (`@earendil-works/pi-ai`) · `ModelThinkingLevel` (`@earendil-works/pi-ai`) · [`RetryPolicyConfig`](../packages/llm/llm/src/index.ts) · `ThinkingBudgets` (`@earendil-works/pi-ai`) · `Transport` (`@earendil-works/pi-ai`)
 
-Source: [`packages/llm/llm-account-auth/src/config.ts:66`](../packages/llm/llm-account-auth/src/config.ts)
+Source: [`packages/llm/llm-account-auth/src/config.ts:80`](../packages/llm/llm-account-auth/src/config.ts)
 
 <a id="hydraharness-llm-deepseek"></a>
 
@@ -1171,6 +1187,8 @@ export interface DeepSeekCatalogModel {
   maxTokens?: number
   /** Accepted request modalities; omission is text-only. */
   inputModalities?: ModelModality[]
+  /** Relative endpoint paths for selector classification; omission or an empty list permits conversation. */
+  endpoints?: string[]
 }
 ```
 
@@ -1187,6 +1205,10 @@ Requires: `llm`
 ```ts config-catalog
 /** Plugin configuration: the provider routes this instance owns. */
 export interface Config {
+  /** Global image choice, retaining provider identity when model ids repeat. */
+  imageModel?: Pick<LlmCallConfig, 'provider' | 'model'>
+  /** Global video choice, independent of the image and conversation models. */
+  videoModel?: Pick<LlmCallConfig, 'provider' | 'model'>
   /**
    * pi-ai provider routes, keyed by provider. An empty (or omitted) dict is
    * the dormant settings-driven posture: the adapter mounts with no routes
@@ -1244,8 +1266,8 @@ export interface PiAiProviderProfile {
   defaultContextWindow?: number
   /**
    * Output capability for a model this route lists that neither the entry nor
-   * the installed catalog sizes (default 16,384). pi-ai uses this value when
-   * the request omits an output cap.
+   * the installed catalog sizes (default 131,072). APIs requiring an output
+   * cap use this capacity when the request omits one; optional caps are omitted.
    */
   defaultMaxTokens?: number
   /**
@@ -1292,6 +1314,8 @@ export interface PiAiModelProfile {
   id: string
   /** Display name for selectors; defaults to the catalog name, then the id. */
   name?: string
+  /** Relative API endpoint paths; absent or empty inherits known family metadata or keeps chat routing unknown. */
+  endpoints?: string[]
   /** Maximum combined request and response context in tokens. */
   contextWindow?: number
   /**
@@ -1428,9 +1452,9 @@ export type PiAiReasoningEfforts = Partial<Record<ModelThinkingLevel, string | n
 export type PiAiThinkingFormat = NonNullable<OpenAICompletionsCompat['thinkingFormat']>
 ```
 
-Depends on: `Api` (`@earendil-works/pi-ai`) · `CacheRetention` (`@earendil-works/pi-ai`) · `Model` (`@earendil-works/pi-ai`) · `ModelThinkingLevel` (`@earendil-works/pi-ai`) · `OpenAICompletionsCompat` (`@earendil-works/pi-ai`) · [`RetryPolicyConfig`](../packages/llm/llm/src/index.ts) · `ThinkingBudgets` (`@earendil-works/pi-ai`) · `Transport` (`@earendil-works/pi-ai`)
+Depends on: `Api` (`@earendil-works/pi-ai`) · `CacheRetention` (`@earendil-works/pi-ai`) · [`LlmCallConfig`](subsystems/llm-streaming.md) · `Model` (`@earendil-works/pi-ai`) · `ModelThinkingLevel` (`@earendil-works/pi-ai`) · `OpenAICompletionsCompat` (`@earendil-works/pi-ai`) · [`RetryPolicyConfig`](../packages/llm/llm/src/index.ts) · `ThinkingBudgets` (`@earendil-works/pi-ai`) · `Transport` (`@earendil-works/pi-ai`)
 
-Source: [`packages/llm/llm-pi-ai/src/config.ts:208`](../packages/llm/llm-pi-ai/src/config.ts)
+Source: [`packages/llm/llm-pi-ai/src/config.ts:210`](../packages/llm/llm-pi-ai/src/config.ts)
 
 <a id="hydraharness-llm-replay"></a>
 
@@ -3010,6 +3034,90 @@ export interface Config {
 
 Source: [`packages/lsp/tool-lsp/src/index.ts:58`](../packages/lsp/tool-lsp/src/index.ts)
 
+<a id="hydraharness-tool-media"></a>
+
+## `@hydraharness/harness-tool-media`
+
+Requires: `tools` · `credentials` · `attachments`
+
+```ts config-catalog
+/** Provider settings for the tools controlled by the shared plugin switch. */
+export interface Config {
+  /** OpenAI-compatible image routing and admission. */
+  openai?: OpenAIImageConfig
+  /** Native Gemini image routing and admission. */
+  google?: GoogleImageConfig
+  /** Configured video routing, polling, and storage limits. */
+  video?: VideoConfig
+}
+
+/** OpenAI routing and bounded request configuration; secrets remain in credentials. */
+export interface OpenAIImageConfig {
+  /** Use endpoint-compatible models saved on the Models page before the standalone route. */
+  useProviderModels?: boolean
+  /** Restrict configured-model fallback to this provider route. */
+  provider?: string
+  /** Additional models tried on the standalone route after an explicit HTTP rejection. */
+  fallbackModels?: string[]
+  /** OpenAI image model id. */
+  model?: string
+  /** Images API base URL; HTTP is allowed only on loopback. */
+  baseURL?: string
+  /** Environment-style credential reference. */
+  apiKeyEnv?: string
+  /** Cooperative request budget in milliseconds. */
+  timeoutMs?: number
+  /** Maximum encoded HTTP response bytes. */
+  maxResponseBytes?: number
+  /** Maximum prompt characters. */
+  maxPromptChars?: number
+  /** Maximum images per call, also bounded by attachment admission. */
+  maxImages?: number
+}
+
+/** Gemini routing and response limits; credentials hold the secret value. */
+export interface GoogleImageConfig {
+  /** Use saved image models before the standalone Gemini route. */
+  useProviderModels?: boolean
+  /** Restrict configured-model fallback to this provider route. */
+  provider?: string
+  /** Bare Gemini image model id. */
+  model?: string
+  /** Gemini REST base URL; HTTP is allowed only on loopback. */
+  baseURL?: string
+  /** Environment-style credential reference. */
+  apiKeyEnv?: string
+  /** Cooperative request budget in milliseconds. */
+  timeoutMs?: number
+  /** Maximum encoded HTTP response bytes, including thought parts. */
+  maxResponseBytes?: number
+  /** Maximum prompt characters. */
+  maxPromptChars?: number
+  /** Maximum final images admitted from one response. */
+  maxImages?: number
+}
+
+/** Video routing and storage limits; credentials belong to the selected provider. */
+export interface VideoConfig {
+  /** Restrict configured-model fallback to this provider route. */
+  provider?: string
+  /** Model hint after the saved video model selection. */
+  model?: string
+  /** Deadline covering submission, polling, download, and storage. */
+  timeoutMs?: number
+  /** Interval between status requests for an accepted video job. */
+  pollIntervalMs?: number
+  /** Maximum bytes in each provider job response. */
+  maxResponseBytes?: number
+  /** Maximum downloaded video bytes. */
+  maxVideoBytes?: number
+  /** Maximum prompt characters. */
+  maxPromptChars?: number
+}
+```
+
+Source: [`packages/media/tool-media/src/index.ts:16`](../packages/media/tool-media/src/index.ts)
+
 <a id="hydraharness-tool-pwsh"></a>
 
 ## `@hydraharness/harness-tool-pwsh`
@@ -3087,6 +3195,24 @@ export interface Config {
 ```
 
 Source: [`packages/session-query/tool-session-query/src/index.ts:29`](../packages/session-query/tool-session-query/src/index.ts)
+
+<a id="hydraharness-tool-session-version"></a>
+
+## `@hydraharness/harness-tool-session-version`
+
+Requires: `tools`
+
+```ts config-catalog
+/** Deployment bounds for reference reads and version catalogs. */
+export interface Config {
+  /** UTF-8 bytes per reference page, including metadata. Defaults to 65536. */
+  maxReferenceBytes?: number
+  /** Versions per catalog page. Defaults to 50. */
+  catalogPageSize?: number
+}
+```
+
+Source: [`packages/session/tool-session-version/src/index.ts:12`](../packages/session/tool-session-version/src/index.ts)
 
 <a id="hydraharness-tool-skill"></a>
 
@@ -3333,7 +3459,7 @@ export interface Config {
 export type ToolPresentationMode = 'native' | 'code' | 'both'
 ```
 
-Source: [`packages/core/tools/src/index.ts:654`](../packages/core/tools/src/index.ts)
+Source: [`packages/core/tools/src/index.ts:656`](../packages/core/tools/src/index.ts)
 
 <a id="hydraharness-typert-loader"></a>
 

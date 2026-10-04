@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /** Model-list editing, endpoint interrogation, and hand-declared provider creation. */
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import Schema from '@hydraharness/schemastery'
 import { bindSnapshotSelector } from '@hydraharness/harness-client-test-runtime'
@@ -53,15 +53,16 @@ function piAiNamespace(
   providers: Record<string, unknown>,
   userProviders: Record<string, unknown> = providers,
   baseProviders: Record<string, unknown> = {},
+  generation: Partial<Record<'imageModel' | 'videoModel', { provider: string; model: string }>> = {},
 ): SettingsNamespaceView {
   return {
     ns: 'llm-pi-ai',
     schema: JSON.parse(JSON.stringify(PiAiConfig.toJSON())) as unknown,
     // `value` is the effective section; `user` is only the layer this page
     // writes. They differ whenever a composition `base` supplies something.
-    value: { providers },
+    value: { providers, ...generation },
     base: { providers: baseProviders },
-    user: { providers: userProviders },
+    user: { providers: userProviders, ...generation },
     applies: 'live',
     secrets: [],
     revision: 3,
@@ -74,6 +75,7 @@ function scriptedFace(options: {
   userProviders?: Record<string, unknown>
   /** Composition layer, for a route a `cordis.yml` pins rather than the page. */
   baseProviders?: Record<string, unknown>
+  generation?: Partial<Record<'imageModel' | 'videoModel', { provider: string; model: string }>>
   /** Routes the adapter reports as hand-declared; the rest come back as shipped. */
   declaredRoutes?: readonly string[]
   discover?: ReturnType<typeof vi.fn>
@@ -83,7 +85,7 @@ function scriptedFace(options: {
   const providers = options.providers ?? {
     openai: { apiKeyEnv: 'OPENAI_API_KEY', baseURL: 'https://proxy.example/v1' },
   }
-  const namespace = piAiNamespace(providers, options.userProviders ?? providers, options.baseProviders ?? {})
+  const namespace = piAiNamespace(providers, options.userProviders ?? providers, options.baseProviders ?? {}, options.generation)
   const discover = options.discover ?? vi.fn(() => Promise.resolve(ok({ models: [] })))
   const mutate = options.mutate ?? vi.fn(() => Promise.resolve(ok(namespace)))
   const set = options.set ?? vi.fn(() => Promise.resolve(ok({})))
@@ -114,6 +116,10 @@ function scriptedFace(options: {
       }))),
       set,
       unset: vi.fn(),
+    },
+    authorization: {
+      list: vi.fn(() => Promise.resolve(ok({ entries: [] }))),
+      logout: vi.fn(() => Promise.resolve(ok({}))),
     },
   }
   return { face, discover, mutate, set, namespace }
@@ -170,7 +176,7 @@ function openEditor(provider: string): void {
 
 /** Open one model row's advanced fold, where the capacities live. */
 function expandModel(index: number): void {
-  fireEvent.click(screen.getByLabelText(`${en.modelAdvanced} ${index}`))
+  fireEvent.click(screen.getByLabelText(`${en.modelDetails} ${index}`))
 }
 
 /** The button carrying `label`, typed so its disabled/title state is readable. */
@@ -199,6 +205,27 @@ describe('protocolChoices', () => {
 })
 
 describe('model list editing', () => {
+  it('fetches the complete provider listing without adding generation dropdowns to its editor', async () => {
+    const discover = vi.fn(() => Promise.resolve(ok({ models: [
+      { id: 'chat', name: 'Chat', endpoints: ['chat/completions'] },
+      { id: 'future-image', name: 'Future image' },
+      { id: 'sora-2', endpoints: ['videos'] },
+    ] })))
+    const { mutate } = await mountSection({ discover })
+    openEditor('openai')
+    fireEvent.click(screen.getByText(en.getAllModels))
+    await waitFor(() => { expect(screen.getByLabelText(`${en.modelId} 3`)).toBeTruthy() })
+    expect(document.querySelectorAll('select[aria-label="Image model"],select[aria-label="Video model"]')).toHaveLength(2)
+    expect(screen.queryByRole('dialog', { name: en.fetchTitle })).toBeNull()
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(mutate).toHaveBeenCalled() })
+    const ops = firstMutate(mutate).ops
+    expect(ops.find(op => op.path.at(-1) === 'models')?.value).toEqual([
+      { id: 'chat', name: 'Chat', endpoints: ['chat/completions'] },
+      { id: 'future-image', name: 'Future image' },
+      { id: 'sora-2', endpoints: ['videos'] },
+    ])
+  })
   it('adds, edits, and removes rows without storing emptied optional fields', async () => {
     const { mutate } = await mountSection()
     openEditor('openai')
@@ -259,6 +286,21 @@ describe('model list editing', () => {
       .toEqual([{ id: 'm', contextWindow: 1_000_000, maxTokens: 1000 }])
   })
 
+  it('clears an output cap to unlimited without storing a replacement', async () => {
+    const { mutate } = await mountSection({
+      providers: { openai: { models: [{ id: 'kept', maxTokens: 16_384 }] } },
+    })
+    openEditor('openai')
+    expandModel(1)
+    const output = screen.getByLabelText<HTMLInputElement>(`${en.modelMaxTokens} 1`)
+    fireEvent.change(output, { target: { value: '' } })
+    expect(output.value).toBe('')
+    expect(output.placeholder).toBe('Unlimited')
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(mutate).toHaveBeenCalled() })
+    expect(firstMutate(mutate).ops[0]?.value).toEqual([{ id: 'kept' }])
+  })
+
   it('refuses to apply while a capacity is unreadable', async () => {
     const { mutate } = await mountSection()
     openEditor('openai')
@@ -314,6 +356,76 @@ describe('model list editing', () => {
       { id: 'first' },
       { id: 'second', name: 'Second', maxTokens: 2048 },
     ])
+  })
+
+  it.each([
+    ['imageModel', 'gemini-3.1-flash-image'],
+    ['videoModel', 'veo-3.1-lite-generate-preview'],
+  ] as const)('clears %s atomically when its selected model is deleted, retaining the other provider choice', async (field, id) => {
+    const otherField = field === 'imageModel' ? 'videoModel' : 'imageModel'
+    const generation = { [field]: { provider: 'gemini', model: id }, [otherField]: { provider: 'other', model: id } }
+    const providers = {
+      gemini: { api: 'openai-completions', baseURL: 'https://fixture.test', models: [{ id }, { id: 'kept' }] },
+      other: { api: 'openai-completions', baseURL: 'https://other.test', models: [{ id }] },
+    }
+    const { mutate, namespace } = await mountSection({ providers, generation })
+    openEditor('gemini')
+    fireEvent.click(screen.getByLabelText(`${en.removeModel} 1`))
+    expect(mutate).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByText(en.apply))
+
+    await waitFor(() => { expect(mutate).toHaveBeenCalledOnce() })
+    const request = firstMutate(mutate)
+    expect(request).toEqual({ ns: 'llm-pi-ai', expectedRevision: 3, ops: [
+      { op: 'set', path: ['providers', 'gemini', 'models'], value: [{ id: 'kept' }] },
+      { op: 'unset', path: [field] },
+    ] })
+    let candidate = namespace.value as Record<string, unknown>
+    for (const op of request.ops) candidate = op.op === 'unset'
+      ? settingsSchema.deletePath(candidate, op.path) : settingsSchema.setPath(candidate, op.path, op.value)
+    expect(candidate[field]).toBeUndefined()
+    expect(candidate[otherField]).toEqual(generation[otherField])
+  })
+
+  it('clears a renamed generation model without choosing its replacement', async () => {
+    const { mutate } = await mountSection({ providers: { openai: { models: [{ id: 'old' }] } },
+      generation: { imageModel: { provider: 'openai', model: 'old' }, videoModel: { provider: 'openai', model: 'old' } } })
+    openEditor('openai')
+    fireEvent.change(screen.getByLabelText(`${en.modelId} 1`), { target: { value: 'new' } })
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(mutate).toHaveBeenCalledOnce() })
+    expect(firstMutate(mutate).ops).toEqual([
+      { op: 'set', path: ['providers', 'openai', 'models'], value: [{ id: 'new' }] },
+      { op: 'unset', path: ['imageModel'] }, { op: 'unset', path: ['videoModel'] },
+    ])
+  })
+
+  it('keeps selected models while deleting an unselected row', async () => {
+    const { mutate } = await mountSection({ providers: { openai: { models: [{ id: 'kept' }, { id: 'removed' }] } },
+      generation: { imageModel: { provider: 'openai', model: 'kept' }, videoModel: { provider: 'openai', model: 'kept' } } })
+    openEditor('openai')
+    fireEvent.click(screen.getByLabelText(`${en.removeModel} 2`))
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(mutate).toHaveBeenCalledOnce() })
+    expect(firstMutate(mutate).ops).toEqual([
+      { op: 'set', path: ['providers', 'openai', 'models'], value: [{ id: 'kept' }] },
+    ])
+  })
+
+  it('keeps a rejected deletion editable and leaves Cancel unwritten', async () => {
+    const mutate = vi.fn().mockResolvedValueOnce(fail('revision moved', 'settings-conflict'))
+    const { namespace } = await mountSection({ providers: { openai: { models: [{ id: 'selected' }, { id: 'kept' }] } },
+      generation: { videoModel: { provider: 'openai', model: 'selected' } }, mutate })
+    openEditor('openai')
+    fireEvent.click(screen.getByLabelText(`${en.removeModel} 1`))
+    fireEvent.click(screen.getByText(en.apply))
+    await screen.findByText(en.conflict)
+    expect(screen.getByLabelText<HTMLInputElement>(`${en.modelId} 1`).value).toBe('kept')
+    expect(settingsSchema.getPath(namespace.value, ['videoModel'])).toEqual({ provider: 'openai', model: 'selected' })
+    fireEvent.click(screen.getByText(en.cancel))
+    expect(mutate).toHaveBeenCalledOnce()
+    openEditor('openai')
+    expect(screen.getByLabelText<HTMLInputElement>(`${en.modelId} 1`).value).toBe('selected')
   })
 
   it('shows the adapter defaults as inherited until an edit takes them over', async () => {
@@ -487,7 +599,9 @@ describe('endpoint interrogation', () => {
 
   it('adopts only the picked candidates, keeping a row the user already tuned', async () => {
     const discover = vi.fn(() => Promise.resolve(ok({
-      models: [{ id: 'kept', contextWindow: 999, maxTokens: 4096 }, { id: 'fresh', contextWindow: 4096, maxTokens: 1024, name: 'Fresh' }],
+      models: [{ id: 'kept', contextWindow: 999, maxTokens: 4096 },
+        { id: 'fresh', contextWindow: 4096, maxTokens: 1024, name: 'Fresh', endpoints: ['videos'] },
+        { id: 'unnamed' }],
     })))
     const { mutate } = await mountSection({
       discover,
@@ -498,16 +612,114 @@ describe('endpoint interrogation', () => {
     fireEvent.click(screen.getByText(en.fetchModels))
     await screen.findByText(en.fetchTitle)
     // The already-configured row starts unchecked; the new one starts checked.
-    const boxes = [...document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')]
-    expect(boxes.map(box => box.checked)).toEqual([false, true])
+    const boxes = screen.getAllByRole<HTMLInputElement>('checkbox', { name: /^(kept|fresh|unnamed)$/ })
+    expect(boxes.map(box => box.checked)).toEqual([false, true, true])
+    expect(screen.getByRole('columnheader', { name: en.modelId })).toBeTruthy()
+    expect(screen.getByRole('columnheader', { name: en.fetchModelName })).toBeTruthy()
+    const unnamed = screen.getByLabelText(`${en.fetchModelName} unnamed`) as HTMLInputElement
+    expect(unnamed.value).toBe('')
+    expect(unnamed.placeholder).toBe('')
+    const fresh = screen.getByLabelText(`${en.fetchModelName} fresh`) as HTMLInputElement
+    expect(fresh.value).toBe('Fresh')
+    fireEvent.change(fresh, { target: { value: 'Renamed' } })
     fireEvent.click(screen.getByText(en.fetchAdopt))
+
+    expect(screen.queryByLabelText(/^Model use/)).toBeNull()
 
     fireEvent.click(screen.getByText(en.apply))
     await waitFor(() => { expect(mutate).toHaveBeenCalled() })
     expect(firstMutate(mutate).ops[0]?.value).toEqual([
       { id: 'kept', contextWindow: 111 },
-      { id: 'fresh', contextWindow: 4096, maxTokens: 1024, name: 'Fresh' },
+      { id: 'fresh', contextWindow: 4096, maxTokens: 1024, name: 'Renamed', endpoints: ['videos'] },
+      { id: 'unnamed' },
     ])
+  })
+
+  it('saves both generation roles, clears inferred roles, and changes an existing row without losing its metadata', async () => {
+    const discover = vi.fn(async () => ok({ models: [
+      { id: 'gpt-image-2', endpoints: ['images/generations', 'images/edits'] },
+      { id: 'alias' }, { id: 'kept', endpoints: ['videos'] },
+    ] }))
+    const { mutate } = await mountSection({ discover, providers: { openai: { models: [
+      { id: 'kept', name: 'My name', contextWindow: 111, endpoints: ['images/generations'] },
+    ] } } })
+    openEditor('openai')
+    fireEvent.click(screen.getByText(en.fetchModels))
+    await screen.findByText(en.fetchTitle)
+    const picker = within(screen.getByRole('dialog', { name: en.fetchTitle }))
+    expect(screen.getByLabelText<HTMLInputElement>('Image gpt-image-2').checked).toBe(true)
+    expect(picker.getByLabelText<HTMLInputElement>('Image kept').checked).toBe(true)
+    expect(picker.getByLabelText<HTMLInputElement>('Video kept').checked).toBe(false)
+    fireEvent.click(screen.getByLabelText('Image gpt-image-2'))
+    fireEvent.click(screen.getByLabelText('Image alias'))
+    fireEvent.click(screen.getByLabelText('Video alias'))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'kept' }))
+    fireEvent.click(picker.getByLabelText('Image kept'))
+    fireEvent.click(picker.getByLabelText('Video kept'))
+    fireEvent.click(screen.getByText(en.fetchAdopt))
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(mutate).toHaveBeenCalled() })
+    expect(firstMutate(mutate).ops[0]?.value).toEqual([
+      { id: 'kept', name: 'My name', contextWindow: 111, endpoints: ['videos'] },
+      { id: 'gpt-image-2', endpoints: ['chat/completions'] },
+      { id: 'alias', endpoints: ['images/generations', 'videos'] },
+    ])
+  })
+
+  it('edits saved classification directly on each row and respects read-only controls', async () => {
+    const { mutate } = await mountSection({ providers: { openai: { models: [{ id: 'alias', maxTokens: 123 }] } } })
+    openEditor('openai')
+    expect(screen.getByText(en.fetchModelName)).toBeTruthy()
+    fireEvent.click(screen.getByLabelText('Image alias'))
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(mutate).toHaveBeenCalled() })
+    expect(firstMutate(mutate).ops[0]?.value).toEqual([{ id: 'alias', maxTokens: 123, endpoints: ['images/generations'] }])
+    cleanup()
+    render(<ModelListEditor models={[{ id: 'alias', endpoints: ['videos'] }]} onChange={vi.fn()}
+      probe={{ settingsNs: 'llm-pi-ai' }} api={{ llm: {} } as never} t={t} disabled />)
+    expect(screen.getByLabelText<HTMLInputElement>('Video alias').disabled).toBe(true)
+  })
+
+  it('shows shared image-family inference and keeps an explicit ordinary override unchecked', async () => {
+    const { mutate } = await mountSection({ providers: { openai: { models: [
+      { id: 'gpt-image-2' }, { id: 'gemini-3.1-flash-image', endpoints: [] },
+      { id: 'gpt-image-alias', endpoints: ['chat/completions'] },
+    ] } } })
+    openEditor('openai')
+    expect(screen.getByLabelText<HTMLInputElement>('Image gpt-image-2').checked).toBe(true)
+    expect(screen.getByLabelText<HTMLInputElement>('Image gemini-3.1-flash-image').checked).toBe(true)
+    expect(screen.getByLabelText<HTMLInputElement>('Image gpt-image-alias').checked).toBe(false)
+    fireEvent.click(screen.getByLabelText('Image gpt-image-2'))
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(mutate).toHaveBeenCalled() })
+    expect(firstMutate(mutate).ops[0]?.value).toEqual([
+      { id: 'gpt-image-2', endpoints: ['chat/completions'] },
+      { id: 'gemini-3.1-flash-image', endpoints: [] },
+      { id: 'gpt-image-alias', endpoints: ['chat/completions'] },
+    ])
+  })
+
+  it('retains image-edit support when a saved image model is also marked for video', () => {
+    const change = vi.fn()
+    render(<ModelListEditor models={[{ id: 'image-alias', endpoints: ['images/generations', 'images/edits'] }]}
+      onChange={change} probe={{ settingsNs: 'llm-pi-ai' }} api={{ llm: {} } as never} t={t} disabled={false} />)
+    fireEvent.click(screen.getByLabelText('Video image-alias'))
+    expect(change).toHaveBeenCalledWith([
+      { id: 'image-alias', endpoints: ['images/generations', 'images/edits', 'videos'] },
+    ])
+  })
+
+  it('omits a provider name cleared before adoption', async () => {
+    const discover = vi.fn(() => Promise.resolve(ok({ models: [{ id: 'fresh', name: 'Fresh' }] })))
+    const { mutate } = await mountSection({ discover, providers: { openai: {} } })
+    openEditor('openai')
+    fireEvent.click(screen.getByText(en.fetchModels))
+    await screen.findByText(en.fetchTitle)
+    fireEvent.change(screen.getByLabelText(`${en.fetchModelName} fresh`), { target: { value: '' } })
+    fireEvent.click(screen.getByText(en.fetchAdopt))
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(mutate).toHaveBeenCalled() })
+    expect(firstMutate(mutate).ops[0]?.value).toEqual([{ id: 'fresh' }])
   })
 
   it('keeps the rows editable when the provider cannot be interrogated', async () => {
@@ -616,7 +828,7 @@ describe('endpoint interrogation', () => {
 
     fireEvent.click(screen.getByText(en.fetchModels))
     await screen.findByText(en.fetchTitle)
-    const boxes = [...document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')]
+    const boxes = screen.getAllByRole<HTMLInputElement>('checkbox', { name: /^(a|b)$/ })
     const first = boxes[0] as HTMLInputElement
     fireEvent.click(first)
     fireEvent.click(first)
@@ -637,7 +849,7 @@ describe('endpoint interrogation', () => {
 
     fireEvent.click(screen.getByText(en.fetchModels))
     const dialog = await screen.findByRole('dialog')
-    const boxes = [...dialog.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')]
+    const boxes = screen.getAllByRole<HTMLInputElement>('checkbox', { name: /^(a|b|c)$/ })
     expect(boxes.map(box => box.checked)).toEqual([true, true, true])
 
     fireEvent.click(within_(dialog, en.fetchDeselectAll))
@@ -721,6 +933,64 @@ describe('hand-declared providers', () => {
     return { ...scripted, onClose }
   }
 
+  it('creates a provider with all fetched models and leaves generation choices to the Models page', async () => {
+    const discover = vi.fn(() => Promise.resolve(ok({ models: [{ id: 'new-image' }, { id: 'new-video' }] })))
+    const { mutate, onClose } = mountCard({}, { discover })
+    fireEvent.change(screen.getByLabelText(en.customRoute), { target: { value: 'media' } })
+    fireEvent.change(screen.getByLabelText(en.baseUrl), { target: { value: 'https://media.example/v1' } })
+    fireEvent.click(screen.getByText(en.getAllModels))
+    await waitFor(() => { expect(screen.getByLabelText(`${en.modelId} 2`)).toBeTruthy() })
+    expect(screen.queryByLabelText(en.imageModel)).toBeNull()
+    expect(screen.queryByLabelText(en.videoModel)).toBeNull()
+    fireEvent.click(screen.getByText(en.create))
+    await waitFor(() => { expect(onClose).toHaveBeenCalledWith(true) })
+    expect(firstMutate(mutate).ops[0]?.value).toEqual({
+      api: 'openai-completions', baseURL: 'https://media.example/v1',
+      models: [{ id: 'new-image' }, { id: 'new-video' }],
+    })
+  })
+
+  it('creates Gemini API through the custom template using native discovery and a separately stored API key', async () => {
+    const discover = vi.fn(() => Promise.resolve(ok({ models: [
+      { id: 'gemini-image', endpoints: ['images/generations'] }, { id: 'veo-video', endpoints: ['videos'] },
+    ] })))
+    const { mutate, set, onClose } = mountCard({ protocols: [...PROTOCOLS, 'google-generative-ai'] }, { discover })
+    fireEvent.change(screen.getByLabelText(en.customTemplate), { target: { value: 'gemini-api' } })
+    expect(screen.getByLabelText<HTMLInputElement>(en.customRoute).value).toBe('gemini')
+    expect(screen.getByLabelText<HTMLInputElement>(en.baseUrl).value).toBe('https://generativelanguage.googleapis.com/v1beta')
+    expect(screen.getByLabelText<HTMLSelectElement>(en.customApi).value).toBe('google-generative-ai')
+    expect(screen.getByText(en.geminiApiTemplateHint)).toBeTruthy()
+    fireEvent.change(screen.getByLabelText(en.keyInput), { target: { value: ' gemini-fixture-key ' } })
+    fireEvent.click(screen.getByText(en.getAllModels))
+    await waitFor(() => { expect(screen.getByLabelText(`${en.modelId} 2`)).toBeTruthy() })
+    expect(discover).toHaveBeenCalledWith({
+      settingsNs: 'llm-pi-ai', api: 'google-generative-ai',
+      baseURL: 'https://generativelanguage.googleapis.com/v1beta', apiKey: 'gemini-fixture-key',
+    })
+    fireEvent.click(screen.getByText(en.create))
+    await waitFor(() => { expect(onClose).toHaveBeenCalledWith(true) })
+    expect(firstMutate(mutate).ops[0]).toEqual({ op: 'set', path: ['providers', 'gemini'], value: {
+      displayName: 'Gemini API', api: 'google-generative-ai',
+      baseURL: 'https://generativelanguage.googleapis.com/v1beta', apiKeyEnv: 'GEMINI_API_KEY',
+      models: [{ id: 'gemini-image', endpoints: ['images/generations'] }, { id: 'veo-video', endpoints: ['videos'] }],
+    } })
+    expect(set).toHaveBeenCalledWith({ ref: 'GEMINI_API_KEY', value: 'gemini-fixture-key' })
+  })
+
+  it('allows a different Gemini route id when the template name is already taken', () => {
+    mountCard({ taken: ['gemini'], protocols: ['google-generative-ai'] })
+    fireEvent.change(screen.getByLabelText(en.customTemplate), { target: { value: 'gemini-api' } })
+    expect(screen.getByText(en.customRouteTaken)).toBeTruthy()
+    fireEvent.change(screen.getByLabelText(en.customRoute), { target: { value: 'gemini-work' } })
+    expect(screen.queryByText(en.customRouteTaken)).toBeNull()
+    fireEvent.change(screen.getByLabelText(en.customTemplate), { target: { value: 'custom' } })
+    expect(screen.getByLabelText<HTMLInputElement>(en.customRoute).value).toBe('gemini-work')
+    expect(screen.queryByText(en.geminiApiTemplateHint)).toBeNull()
+    cleanup()
+    mountCard({ protocols: ['google-generative-ai'], readOnly: true })
+    expect(screen.getByLabelText<HTMLSelectElement>(en.customTemplate).disabled).toBe(true)
+  })
+
   it('writes the whole profile and the key under the derived reference', async () => {
     const { mutate, set, onClose } = mountCard()
 
@@ -768,7 +1038,9 @@ describe('hand-declared providers', () => {
 
     mountCard()
     fireEvent.change(screen.getByLabelText(en.customRoute), { target: { value: 'acme' } })
-    expect(fields()).toEqual([en.customRoute, en.customDisplayName, en.baseUrl, en.proxy, en.customApi, en.keyInput])
+    expect(fields()).toEqual([
+      en.customRoute, en.customDisplayName, en.baseUrl, en.proxy, en.customApi, en.keyInput,
+    ])
     cleanup()
 
     // A shipped route's models each carry their own protocol, so its editor
@@ -776,7 +1048,7 @@ describe('hand-declared providers', () => {
     await mountSection({ providers: { openai: { apiKeyEnv: 'OPENAI_API_KEY' } } })
     openEditor('openai')
     fireEvent.click(screen.getByText(en.customized))
-    expect(fields()).toEqual([en.keyInput, en.baseUrl, en.proxy])
+    expect(fields()).toEqual([en.imageModel, en.videoModel, en.keyInput, en.baseUrl, en.proxy])
     cleanup()
 
     // A hand-declared route named its own protocol at creation, so editing it
@@ -786,7 +1058,7 @@ describe('hand-declared providers', () => {
       declaredRoutes: ['acme-gateway'],
     })
     openEditor('acme-gateway')
-    expect(fields()).toEqual([en.keyInput, en.customDisplayName, en.baseUrl, en.proxy, en.customApi])
+    expect(fields()).toEqual([en.imageModel, en.videoModel, en.keyInput, en.customDisplayName, en.baseUrl, en.proxy, en.customApi])
   })
 
   it('renames a declared route and falls back to its id when the name is cleared', async () => {

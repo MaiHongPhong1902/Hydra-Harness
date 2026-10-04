@@ -29,6 +29,16 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - region "Image and video generation":
+    - heading "Image and video generation" [level=3]
+    - button "Refresh models"
+    - paragraph: Choose models marked Image or Video, grouped by provider. Fetch and save a provider's models to add them here. Generation requires a connected provider that supports the selected task.
+    - text: Image model
+    - combobox "Image model":
+      - option "Automatic fallback" [selected]
+    - text: Video model
+    - combobox "Video model":
+      - option "Automatic fallback" [selected]
   - region "API keys":
     - heading "API keys" [level=3]
     - paragraph: Configure provider API keys and optional fallback keys.
@@ -46,46 +56,46 @@
       - text: Add a custom provider
   - region "Account sign-in":
     - heading "Account sign-in" [level=3]
-    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - paragraph: Connect provider accounts independently of your API keys.
     - list:
       - listitem:
         - text: ChatGPT
         - img "Account connected"
         - button "Edit ChatGPT (chatgpt)": Edit
         - button "Delete ChatGPT (chatgpt)": Delete
-        - text: ChatGPT chatgpt Accounts
+        - text: ChatGPT chatgpt
+        - button "Add account"
+        - link "Open sign-in page":
+          - /url: https://auth.example.test/chatgpt
+        - text: Accounts 2 accounts
         - paragraph: Requests rotate between accounts. Another account is tried when a request fails or reaches its quota.
+        - searchbox "Search accounts"
+        - checkbox "Select this page"
+        - text: Select this page
         - list "Accounts":
           - listitem:
-            - text: alice@example.test Codex Plus
-            - button "Refresh usage for alice@example.test": ↻
+            - checkbox "Select alice@example.test"
+            - text: alice@example.test
+            - button "Show usage for alice@example.test": Usage
             - button "Sign out alice@example.test": Sign out
-            - text: "Banked resets: 2"
-            - region "Provider quota":
-              - text: 5 hour usage limit Resets 1/15/2027, {{clock}}
-              - strong: 75% left
-              - progressbar "5 hour usage limit"
-              - text: Weekly usage limit Resets 1/21/2027, {{clock}}
-              - strong: 45% left
-              - progressbar "Weekly usage limit"
           - listitem:
+            - checkbox "Select bob@example.test"
             - text: bob@example.test Codex Pro
+            - button "Hide usage for bob@example.test" [expanded]: Usage
             - button "Refresh usage for bob@example.test": ↻
             - button "Sign out bob@example.test": Sign out
-            - text: "Banked resets: 0"
             - region "Provider quota":
-              - text: 5 hour usage limit Resets 1/16/2027, {{clock}}
-              - strong: 25% left
-              - progressbar "5 hour usage limit"
-              - text: Weekly usage limit Resets 1/26/2027, {{clock}}
-              - strong: 88% left
-              - progressbar "Weekly usage limit"
-        - button "Add account"
+              - progressbar "5 hour usage limit":
+                - strong: 25% left
+                - text: 5h
+              - progressbar "Weekly usage limit":
+                - strong: 88% left
+                - text: Weekly
+            - text: "Banked resets: 0"
+        - text: 1–2 of 2
         - status:
           - paragraph: Continue signing in to ChatGPT in your browser.
-          - link "Open sign-in page":
-            - /url: https://auth.example.test/chatgpt
-          - paragraph: Account connected. Apply to make this provider available in the model selector.
+          - paragraph: Account connected. Apply to save provider settings.
         - group: Customized settings
         - button "Cancel"
         - button "Apply"

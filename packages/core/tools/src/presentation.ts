@@ -6,6 +6,7 @@
  */
 
 import type { ContentBlock } from '@hydraharness/harness-llm'
+import type { ImageAttachmentRef, VideoAttachmentRef } from '@hydraharness/harness-attachment'
 
 /**
  * Category of a tool call, used by a UI to pick an icon or treatment. The
@@ -43,7 +44,28 @@ export interface FileDiff {
  * Provider-neutral pending-call presentation. Tools declare one tagged intent;
  * UI bridges map it without special-casing tool names.
  */
-export type ToolCallView = GenericCallView | TerminalCallView | DiffCallView
+export type ToolCallView = GenericCallView | TerminalCallView | DiffCallView | MediaCallView
+
+/** Generation displayed as a separate chat output, outside tool activity disclosures. */
+export interface MediaCallView {
+  card: 'media'
+  kind: 'image' | 'video'
+  title: string
+  /** Authored generation prompt, retained while running and after settlement. */
+  prompt: string
+  /** Positive requested width divided by height; omitted when the provider chooses dimensions. */
+  aspectRatio?: number
+}
+
+/** Generated artifacts and the actual provider/model that produced them. */
+export interface MediaResultView {
+  card: 'media'
+  kind: 'image' | 'video'
+  title?: string
+  content: Array<{ type: 'image'; attachment: ImageAttachmentRef } | { type: 'video'; attachment: VideoAttachmentRef }>
+  model?: string
+  provider?: string
+}
 
 /**
  * The default card: a titled tool-call row with an optional category icon, a
@@ -137,7 +159,8 @@ export interface ReadFileLine {
  * `ToolDefinition.presentResult`; omitting the method keeps the pending
  * title and renders the raw result content.
  */
-export type ToolResultView = GenericResultView | TerminalResultView | DiffResultView | SearchResultView | ReadResultView | WebResultView
+export type ToolResultView = GenericResultView | TerminalResultView | DiffResultView
+  | SearchResultView | ReadResultView | WebResultView | MediaResultView
 
 /**
  * The default completed card: an optional replacement title and reformatted

@@ -1,7 +1,7 @@
 - form "Edit prompt":
-  - text: Edit prompt
+  - text: Edit prompt New version
   - textbox "Edit prompt": Tiếng Việt 🐉 Dòng thứ hai
-  - paragraph: Replaces this prompt and the conversation after it. Previous versions are kept.
-  - text: Enter to send · Shift + Enter for a new line · Esc to cancel
+  - paragraph: Generates a new response from this prompt. Previous versions and their later messages are kept.
   - button "Cancel"
   - button "Save & resend"
+  - paragraph: Enter to send · Shift + Enter for a new line · Esc to cancel

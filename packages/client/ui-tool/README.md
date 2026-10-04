@@ -2,13 +2,21 @@
 
 Client Tool presentation plugin. `ui-conversation` dispatches each ordered `tool-call` Conversation Node through the matching key of `conversation.chat.node`; this package renders its root and Code Dispatch children, then dispatches every atomic call through the keyed `tool.call.toolview` slot. Unregistered Tool names use the generic card.
 
+`card: 'media'` call/result intents become separate `media-generation` Chat Nodes. They remain outside activity disclosures and use one image/video treatment: authored prompt, animated pending preview, completion or failure, actual model, and a generation-details action. Reduced-motion preferences disable the placeholder animation. Images use the existing attachment gallery; MP4/WebM references use native video controls and download without autoplay. Reload resolves stored references through session authorization, including when the generating tool is unavailable. The [media output decision](../../../.agents/notes/implemented/feature/2026-10-03-standalone-media-generation-output.md) owns placement and persistence.
+
 Business UI packages register only their wire Tool names and atomic views. They do not pair Session events, rebuild the transcript, or own root/subcall topology. The Runtime remains authoritative for call/result pairing, lifecycle, and recursive `subCalls` projection; the conversation view remains authoritative for ChatFlow placement.
+
+Pending previews use the call's optional positive `aspectRatio` (requested width divided by height); provider-selected dimensions remain unspecified until output arrives. Generated images and pending previews fill the card width while preserving their ratios without cropping. Video controls use intrinsic video dimensions with a 480px height bound.
+
+The model caption resolves the actual result's model ID through its provider catalog and displays only its name; an unavailable catalog or removed model retains the ID. Provider identity remains in the recorded result and generation details. The authored prompt is selectable and has a copy action. Generation details open the Trajectory inspector, whose Payload and Result copy controls preserve the complete recorded text.
 
 ## Rendering contract
 
 `ToolCallTree` receives one root `ToolCallBlock` that already contains recursive `subCalls`, selection state, the session `cwd`, and Host callbacks for opening files and inspecting calls. It recursively walks the standard call blocks and sends the root and children at every depth through the same atomic dispatch path, without subscribing to a separate parent-to-children map.
 
 Each root and child wrapper preserves the `data-chat-anchor-key="call:<id>"` and `data-chat-call-id` DOM contract used for paging and selection.
+
+Successful generic result views may contain image blocks for chat presentation. The call tree passes their references to the conversation owner's `renderMessageImages` callback, which selects the shared attachment gallery through its slot. Tool presentation does not import gallery components or resolve image bytes itself.
 
 The package also fills `conversation.details.tool` with `ToolDetails`. The row and details renderers share the same pure card models for `terminal`, `read`, `diff`, `search`, and `web` render intents. Unknown intent tags and malformed wire card data fall back to flattened Tool result text.
 
@@ -45,3 +53,4 @@ None. The package is client-only presentation.
 - The Host excludes `run_code` from Code Mode program bindings, so production events produce one dispatch level; the recursive Runtime/UI contract supports nesting.
 - First-party Tool views are colocated here and can move to their owning business packages independently through the keyed slot.
 - Tool copy reuses the `ui-conversation` locale namespace.
+- Video loading buffers the session attachment response; large provider videos need a streamed read route. Video provider submission/polling is outside this presentation plugin.

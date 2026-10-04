@@ -9,7 +9,9 @@
  * @module hydra-llm-account-auth/antigravity
  */
 
-import { CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, QUOTA_EXCEEDED_CODE, type ContentBlock, type FinishReason, type GenerateOptions, type LlmModelInfo, type LlmProviderInfo, type LlmResolvedModelInfo, type ReplayEnvelope, type StreamChunk, type TokenUsage, type ToolSchema } from '@hydraharness/harness-llm'
+import { randomUUID } from 'node:crypto'
+import { imageAspectRatio } from '@hydraharness/harness-llm'
+import { CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, QUOTA_EXCEEDED_CODE, inferModelEndpoints, type ContentBlock, type FinishReason, type GenerateOptions, type LlmModelInfo, type LlmProviderInfo, type LlmResolvedModelInfo, type MediaGenerationOptions, type ReplayEnvelope, type StreamChunk, type TokenUsage, type ToolSchema } from '@hydraharness/harness-llm'
 import { idleWatchdog, timeoutOf } from '@hydraharness/harness-timeout'
 import type { AttachmentStore } from '@hydraharness/harness-attachment'
 import type { Message } from '@hydraharness/harness-llm/message'
@@ -28,7 +30,7 @@ export interface AntigravityRequest {
   project: string
   model: string
   request: AntigravityGeminiRequest
-  requestType: 'agent'
+  requestType: 'agent' | 'image_gen'
   userAgent: 'antigravity'
   requestId: string
 }
@@ -69,6 +71,8 @@ export interface AntigravityGenerationConfig {
   maxOutputTokens?: number
   stopSequences?: string[]
   thinkingConfig?: { includeThoughts: boolean }
+  responseModalities?: Array<'TEXT' | 'IMAGE'>
+  imageConfig?: { aspectRatio?: string; imageSize?: string }
 }
 
 /** One native function declaration. */
@@ -108,6 +112,8 @@ export interface AntigravityDiscoveredModel {
   supportsThinking: boolean
   /** Provider marks internal models; callers normally hide these. */
   internal: boolean
+  /** Endpoint families used by media tools; image input alone does not add generation. */
+  endpoints?: string[]
 }
 
 /** Options for fetching the per-account Antigravity model catalog. */
@@ -147,6 +153,7 @@ export interface AntigravityModelProfile {
   name?: string
   contextWindow?: number
   maxTokens?: number
+  endpoints?: readonly string[]
 }
 
 /** Credential resolver and catalog settings for {@link AntigravityAdapter}. */
@@ -513,6 +520,7 @@ export async function discoverAntigravityModels(
           || (objectRecord(mimeTypes) !== undefined && Object.keys(objectRecord(mimeTypes) ?? {}).some(mime => mime.startsWith('image/')))
         const contextWindow = numberValue(model.maxTokens)
         const maxTokens = numberValue(model.maxOutputTokens)
+        const endpoints = inferModelEndpoints(id)
         return [{
           id,
           name: displayName,
@@ -521,6 +529,7 @@ export async function discoverAntigravityModels(
           supportsImages,
           supportsThinking: model.supportsThinking === true,
           internal: model.isInternal === true,
+          ...endpoints === undefined ? {} : { endpoints },
         }]
       })
       .sort((left, right) => left.id.localeCompare(right.id))
@@ -745,7 +754,7 @@ async function errorResponse(response: Response): Promise<LlmError> {
   )
 }
 
-function streamEndpoints(options: AntigravityGenerateOptions, transport: AntigravityTransportOptions): string[] {
+function streamEndpoints(options: Pick<AntigravityGenerateOptions, 'endpoint'>, transport: AntigravityTransportOptions): string[] {
   const configured = transport.endpoint ?? options.endpoint
   if (configured !== undefined) return [configured.replace(/\/+$/u, '')]
   return [ANTIGRAVITY_DAILY_API_ENDPOINT, ANTIGRAVITY_API_ENDPOINT, ANTIGRAVITY_SANDBOX_ENDPOINT]
@@ -1042,6 +1051,7 @@ export class AntigravityAdapter extends LlmAdapter {
       provider,
       id: model.id,
       name: model.name ?? model.id,
+      ...model.endpoints === undefined ? {} : { endpoints: [...model.endpoints] },
     })))
   }
 
@@ -1051,9 +1061,88 @@ export class AntigravityAdapter extends LlmAdapter {
       provider,
       id: model,
       name: known?.name ?? model,
+      ...known?.endpoints === undefined ? {} : { endpoints: [...known.endpoints] },
       ...(known?.contextWindow === undefined ? {} : { context: { contextWindow: known.contextWindow } }),
       ...(known?.maxTokens === undefined ? {} : { defaultMaxTokens: known.maxTokens }),
     })
+  }
+
+  override async requestGeneration(options: MediaGenerationOptions & { provider: string; model: string }): Promise<Response> {
+    options.signal.throwIfAborted()
+    if (options.endpoint !== 'images/generations' || (options.body['n'] !== undefined && options.body['n'] !== 1)) {
+      throw new LlmError('Antigravity generateContent supports one image request; video requires a video provider endpoint.', 'UNSUPPORTED_GENERATION')
+    }
+    const prompt = options.body['prompt']
+    if (typeof prompt !== 'string' || prompt.trim() === '') throw new LlmError('Image generation requires a prompt.', 'INVALID_GENERATION')
+    const aspectRatio = imageAspectRatio(options.body['size'])
+    const credentials = await this.config.resolveCredentials()
+    options.signal.throwIfAborted()
+    if (credentials === undefined) throw new LlmError('Google Antigravity has no connected account', 'MISSING_CREDENTIAL')
+    const request: AntigravityRequest = {
+      project: credentials.projectId, model: options.model,
+      requestType: 'image_gen', userAgent: 'antigravity',
+      requestId: `image_gen/${Date.now()}/${randomUUID()}/12`,
+      request: {
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ['IMAGE'], ...aspectRatio === undefined ? {} : { imageConfig: { aspectRatio } } },
+      },
+    }
+    const endpoints = streamEndpoints({}, this.config)
+    for (const [index, base] of endpoints.entries()) {
+      const endpoint = new URL(`${base}/${ANTIGRAVITY_API_VERSION}:streamGenerateContent?alt=sse`)
+      const configured = new URL(base)
+      if (configured.username || configured.password || configured.search || configured.hash
+        || (endpoint.protocol !== 'https:' && !(endpoint.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(endpoint.hostname)))) {
+        throw new LlmError('Antigravity generation endpoint must use HTTPS or loopback HTTP without credentials, query, or fragment.', 'INVALID_GENERATION_ENDPOINT')
+      }
+      const response = await (this.config.fetch ?? fetch)(endpoint.href, {
+        method: 'POST', redirect: 'error', signal: options.signal,
+        headers: { Authorization: `Bearer ${credentials.access}`, Accept: 'text/event-stream', 'Content-Type': 'application/json', 'User-Agent': ANTIGRAVITY_USER_AGENT },
+        body: JSON.stringify(request),
+      })
+      if (response.ok) return this.collectImages(response, options)
+      if (response.status !== 404 || index + 1 === endpoints.length) return response
+      await response.body?.cancel()
+    }
+    /* v8 ignore next -- streamEndpoints is nonempty and its final iteration returns or throws. */
+    throw new LlmError('Antigravity generation has no endpoint', 'TRANSPORT')
+  }
+
+  private async collectImages(response: Response, options: MediaGenerationOptions): Promise<Response> {
+    if (response.body === null) throw new LlmError('Antigravity image stream has no body.', 'MALFORMED_RESPONSE')
+    let bytes = 0
+    const body = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        bytes += chunk.byteLength
+        if (bytes > options.maxResponseBytes) throw new LlmError('Antigravity image stream exceeds maxResponseBytes.', 'MALFORMED_RESPONSE')
+        controller.enqueue(chunk)
+      },
+    }))
+    const parts: unknown[] = []
+    let finishReason: unknown
+    for await (const event of parseAntigravitySse(body, options.signal)) {
+      if (event === '[DONE]') break
+      let payload: unknown
+      try { payload = JSON.parse(event) } catch {
+        throw new LlmError('Antigravity image stream returned malformed JSON.', 'MALFORMED_RESPONSE')
+      }
+      const value = objectRecord(payload)
+      if (value === undefined || value.error !== undefined) throw new LlmError('Antigravity image stream returned a provider error.', 'MALFORMED_RESPONSE')
+      const result = extractResponse(value)
+      if (result?.error !== undefined) throw new LlmError('Antigravity image stream returned a provider error.', 'MALFORMED_RESPONSE')
+      const candidates = result?.candidates
+      if (candidates === undefined) continue
+      if (!Array.isArray(candidates) || candidates.length !== 1) throw new LlmError('Antigravity image stream must return one candidate.', 'MALFORMED_RESPONSE')
+      const candidate = objectRecord(candidates[0])
+      const nextParts = objectRecord(candidate?.content)?.parts
+      if (nextParts !== undefined) {
+        if (!Array.isArray(nextParts)) throw new LlmError('Antigravity image stream returned invalid parts.', 'MALFORMED_RESPONSE')
+        parts.push(...nextParts as unknown[])
+      }
+      if (candidate?.finishReason !== undefined) finishReason = candidate.finishReason
+    }
+    options.signal.throwIfAborted()
+    return Response.json({ candidates: [{ finishReason, content: { parts } }] })
   }
 
   override async *stream(options: GenerateOptions): AsyncIterable<StreamChunk> {

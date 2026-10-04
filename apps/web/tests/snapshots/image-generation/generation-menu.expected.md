@@ -1,0 +1,10 @@
+- menu "Model and reasoning effort":
+  - menuitem "Model DeepSeek-V4-Flash":
+    - text: Model DeepSeek-V4-Flash
+    - img
+  - menuitem "Image model gpt-image-2":
+    - text: Image model gpt-image-2
+    - img
+  - menuitem "Video model sora-2":
+    - text: Video model sora-2
+    - img

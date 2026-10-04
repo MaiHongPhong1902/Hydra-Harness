@@ -43,18 +43,19 @@ function singleFit(attachment: ImageAttachmentRef): { width: number; height: num
 /**
  * Compact history renderer with retryable loading and click-to-open original
  * preview. A lone image renders at its `singleFit` size; an image among
- * several renders as a fixed 64px square tile.
+ * several renders as a fixed 64px square tile. Generated media keeps its exact
+ * aspect ratio and fills the available gallery width.
  *
  * @param props.attachment - the durable image reference to load and bound.
  * @param props.load - session-authorized URL loader.
- * @param props.variant - `single` for a message's lone image, `tile` otherwise.
+ * @param props.variant - `media` for generated output, `single` for a lone message image, `tile` otherwise.
  * @param props.labels - resolved strings (tooltip, loading, retry, lightbox).
  * @returns the bounded thumbnail button, or the retry control on failure.
  */
 export function MessageImage({ attachment, load, variant, labels }: {
   attachment: ImageAttachmentRef
   load: ImageLoader
-  variant: 'single' | 'tile'
+  variant: 'single' | 'tile' | 'media'
   labels: MessageImageLabels
 }) {
   const [src, setSrc] = useState<string | null>(null)
@@ -86,7 +87,9 @@ export function MessageImage({ attachment, load, variant, labels }: {
         type="button"
         className={css.frame}
         data-variant={variant}
-        style={fit === undefined ? undefined : { width: fit.width, height: fit.height }}
+        style={variant === 'media'
+          ? { aspectRatio: `${attachment.width} / ${attachment.height}` }
+          : fit === undefined ? undefined : { width: fit.width, height: fit.height }}
         title={labels.open}
         aria-label={labels.openNamed(label)}
         onClick={() => { if (src !== null) setOpen(true) }}
@@ -101,17 +104,19 @@ export function MessageImage({ attachment, load, variant, labels }: {
 }
 
 /** Wrapping image group shared by user and assistant history: a lone image
- * renders large, several render as 64px square tiles (DeepSeek Chat rule). */
-export function ImageGallery({ images, load, align, labels }: {
+ * renders large, several render as 64px square tiles (DeepSeek Chat rule).
+ * Generated media preserves each output's aspect ratio. */
+export function ImageGallery({ images, load, align, presentation, labels }: {
   images: readonly { attachment: ImageAttachmentRef }[]
   load: ImageLoader
   align: 'start' | 'end'
+  presentation?: 'media' | undefined
   labels: MessageImageLabels
 }) {
   if (images.length === 0) return null
-  const variant = images.length === 1 ? 'single' : 'tile'
+  const variant = presentation === 'media' ? 'media' : images.length === 1 ? 'single' : 'tile'
   return (
-    <div className={css.gallery} data-align={align}>
+    <div className={css.gallery} data-align={align} data-presentation={presentation}>
       {images.map((image, index) => (
         <MessageImage key={`${image.attachment.attachmentId}:${index}`} {...image} load={load} variant={variant} labels={labels} />
       ))}

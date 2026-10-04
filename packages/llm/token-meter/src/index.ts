@@ -37,6 +37,7 @@ interface MeasurementAnchor {
 }
 
 interface ReplayState {
+  versionGeneration: number
   consumedEvents: number
   header: EpochHeader | undefined
   surface: TokenSurfaceNode[]
@@ -171,14 +172,19 @@ export class TokenMeter extends Service {
   /** Catch one session's fold up to the current durable tail. */
   private _sync(session: Session): ReplayState {
     let state = this.states.get(session)
-    if (state === undefined) {
+    if (state === undefined || state.versionGeneration !== session.versions.generation) {
       state = {
+        versionGeneration: session.versions.generation,
         consumedEvents: 0,
         header: undefined,
         surface: [],
         surfaceTokens: 0,
         stepStart: undefined,
         anchor: undefined,
+      }
+      if (session.versions.generation > 0) {
+        for (const event of session.activeEvents) this._foldEvent(session, state, event)
+        state.consumedEvents = session.events.length
       }
       this.states.set(session, state)
     }

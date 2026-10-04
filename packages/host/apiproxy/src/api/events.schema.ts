@@ -11,7 +11,8 @@ import type { Wire } from './rpc.schema.ts'
 import { rpcErrorSchema, rpcIdSchema } from './rpc.schema.ts'
 import { approvalRequestIdSchema } from './approvals.schema.ts'
 import {
-  contentBlockSchema, conversationRevisionSchema, messageIdSchema, sessionEventSchema, sessionIdSchema, toolEventViewSchema,
+  contentBlockSchema, conversationRevisionSchema, messageIdSchema, sessionEventSchema,
+  sessionIdSchema, toolEventViewSchema, sessionVersionStateSchema,
 } from './sessions.schema.ts'
 import { taskViewSchema } from './jobs.schema.ts'
 import { workspaceIdSchema, workspaceViewSchema } from './workspace.schema.ts'
@@ -82,6 +83,7 @@ export const hostFrameSchema = z.discriminatedUnion('type', [
   /* jscpd:ignore-end */
   z.object({ type: z.literal('host/session-removed'), sessionId: sessionIdSchema, deleted: z.literal(true).optional() }),
   z.object({ type: z.literal('host/session-status'), sessionId: sessionIdSchema, running: z.boolean() }),
+  z.object({ type: z.literal('host/session-versions'), sessionId: sessionIdSchema, state: sessionVersionStateSchema }),
   z.object({ type: z.literal('host/agent-error'), sessionId: sessionIdSchema, message: z.string() }),
   z.object({ type: z.literal('host/workspace-changed'), workspace: workspaceViewSchema }),
   z.object({ type: z.literal('host/workspace-removed'), workspaceId: workspaceIdSchema }),

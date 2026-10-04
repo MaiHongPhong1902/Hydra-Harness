@@ -51,7 +51,7 @@ it('detaches SDK metadata and routes both streaming methods to the SDK provider'
     models: [{ id: 'unlisted' }], thinkingBudgets: { low: 512 }, streamIdleTimeoutMs: 1234, maxRequestImageBytes: 321,
   })
   const model = profile.piProvider.getModels()[0]! as Model<'openai-codex-responses'>
-  expect(model).toMatchObject({ id: 'unlisted', provider: 'chatgpt', name: 'Known', headers: template.headers })
+  expect(model).toMatchObject({ id: 'unlisted', provider: 'chatgpt', name: 'unlisted', headers: template.headers })
   expect(model.headers).not.toBe(template.headers)
   expect(model.thinkingLevelMap).not.toBe(template.thinkingLevelMap)
   expect(model.input).not.toBe(template.input)

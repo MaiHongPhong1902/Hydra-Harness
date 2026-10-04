@@ -750,6 +750,11 @@ time.sleep(60)
             shutdown_timeout_seconds=0.1,
         )
     ) as client:
+        # Process startup can exceed the RPC timeout on Windows.
+        startup_deadline = time.monotonic() + 5
+        while "bridge is still starting" not in client._stderr_lines:
+            assert time.monotonic() < startup_deadline
+            time.sleep(0.01)
         start = time.monotonic()
         try:
             client.initialize(provider="deepseek-official", cwd="/workspace", model="dsagent")
@@ -1037,3 +1042,43 @@ def test_client_reports_missing_bundled_runtime_dependency(monkeypatch: pytest.M
 
     with pytest.raises(FileNotFoundError, match="Install hydra-harness-runtime-bin"):
         HarnessClient().start()
+
+
+def test_version_records_remain_in_one_session(tmp_path: Path) -> None:
+    script = tmp_path / "fake_versions.py"
+    script.write_text(
+        """
+import json
+import sys
+
+def event(session_id, kind, data):
+    print(json.dumps({"jsonrpc": "2.0", "method": "session.event", "params": {"sessionId": session_id, "event": {"type": kind, "data": data}}}), flush=True)
+
+for line in sys.stdin:
+    msg = json.loads(line)
+    if msg.get("method") == "initialize":
+        print(json.dumps({"jsonrpc": "2.0", "id": msg["id"], "result": {"serverInfo": {"name": "fake-runtime"}}}), flush=True)
+    elif msg.get("method") == "session/prompt":
+        session_id = msg["params"]["sessionId"]
+        event(session_id, "agent/inbox/spliced", {"target": "next-turn", "start": 0, "inserted": [{"id": "message-1"}]})
+        print(json.dumps({"jsonrpc": "2.0", "id": msg["id"], "result": {"messageId": "message-1"}}), flush=True)
+        event(session_id, "session/version", {"versionId": "edited", "parentVersionId": "original", "beforeSeq": 0})
+        event(session_id, "session/version-selected", {"versionId": "original"})
+        event(session_id, "assistant/message", {"message": {"content": [{"type": "text", "text": "answer"}]}})
+        event(session_id, "turn/end", {"turn": 1, "reason": {"kind": "completed"}})
+        print(json.dumps({"jsonrpc": "2.0", "method": "session.status", "params": {"sessionId": session_id, "status": "idle"}}), flush=True)
+    elif msg.get("method") == "shutdown":
+        print(json.dumps({"jsonrpc": "2.0", "id": msg["id"], "result": {}}), flush=True)
+        break
+""".strip(),
+        encoding="utf-8",
+    )
+    with HydraHarness(launch_args_override=(sys.executable, str(script)), cwd=str(tmp_path)) as harness:
+        result = harness.run("hello", session_id="main")
+    assert result.session_id == "main"
+    assert [{"type": event["type"], "data": event["data"]} for event in result.events if event["type"].startswith("session/version")] == [
+        {"type": "session/version", "data": {"versionId": "edited", "parentVersionId": "original", "beforeSeq": 0}},
+        {"type": "session/version-selected", "data": {"versionId": "original"}},
+    ]
+    assert result.final_response == "answer"
+    assert result.finish_reason == "completed"

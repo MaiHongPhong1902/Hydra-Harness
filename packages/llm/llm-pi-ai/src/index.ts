@@ -56,13 +56,14 @@
  */
 
 import type { Context } from '@hydraharness/cordis'
+import { createModels } from '@earendil-works/pi-ai'
 import { launchEnvironmentOf } from '@hydraharness/harness-launch-environment'
 import { assertUsableApiKey, LlmError } from '@hydraharness/harness-llm'
 import type { AdapterRegistrationHandle, DirectoryRegistrationHandle, LlmConfigurableProvider } from '@hydraharness/harness-llm'
 import { deepEqualJson, installSettingsSection, settingsNamespace } from '@hydraharness/harness-settings'
 import { PiAiAdapter } from './adapter.ts'
 import { authContextFrom, credentialStoreFrom } from './auth.ts'
-import { catalogProviderIds } from './catalog.ts'
+import { catalogProvider, catalogProviderIds } from './catalog.ts'
 import { assertServiceable, Config, resolveProfiles } from './config.ts'
 import type { ResolvedPiAiProviderProfile } from './config.ts'
 import { discoverModels } from './discovery.ts'
@@ -70,7 +71,7 @@ import { registerPiAiFlows } from './login.ts'
 
 export { PiAiAdapter } from './adapter.ts'
 export type { PiAiAdapterOptions } from './adapter.ts'
-export { Config } from './config.ts'
+export { Config, resolveProfiles } from './config.ts'
 export {
   DEFAULT_CONTEXT_WINDOW,
   DEFAULT_MAX_REQUEST_IMAGE_BYTES,
@@ -162,12 +163,13 @@ export function apply(ctx: Context, config: Config): void {
   const profiles = (): ReadonlyMap<string, ResolvedPiAiProviderProfile> => {
     const raw = current()
     if (raw === lastRaw && memoized !== undefined) return memoized
-    const next = resolveProfiles(raw.providers)
+    const next = resolveProfiles(raw.providers, raw)
     lastRaw = raw
     memoized = next
     return next
   }
   profiles()
+  ctx.effect(() => ctx.llm.registerGenerationPreferences(endpoint => current()[endpoint === 'images/generations' ? 'imageModel' : 'videoModel']), 'llm-pi-ai: generation preferences')
 
   const resolveApiKey = async (
     provider: string,
@@ -238,19 +240,30 @@ export function apply(ctx: Context, config: Config): void {
     directoryFacts = entries
   }
   ensureDirectory()
-  // Catalog lookups need no key. Endpoint discovery tries only this profile's
-  // named credentials; an explicit draft key stays the key being tested.
+  // Discovery resolves transport from the draft, saved profile, then provider.
+  // Named credentials stay isolated from provider-native authentication.
   ctx.llm.registerModelDiscovery(NS, async (request) => {
     const profile = request.provider === undefined ? undefined : profiles().get(request.provider)
+    const probe = {
+      ...request,
+      ...request.baseURL === undefined && profile?.baseURL !== undefined ? { baseURL: profile.baseURL } : {},
+      ...request.api === undefined && profile?.api !== undefined ? { api: profile.api } : {},
+      ...request.proxy === undefined && profile?.proxy !== undefined ? { proxy: profile.proxy } : {},
+    }
     const refs = profile === undefined ? []
       : [...profile.apiKeyEnv === undefined ? [] : [profile.apiKeyEnv], ...profile.apiKeyFallbackEnvs]
     for (let index = 0; ; index++) {
       if (request.signal?.aborted) throw new LlmError('model discovery aborted by caller', 'ABORTED')
       try {
-        return await discoverModels(request, () => {
-          if (profile === undefined || request.provider === undefined) return Promise.resolve(undefined)
+        return await discoverModels(probe, async () => {
+          if (request.provider === undefined) return undefined
           const ref = refs[index]
-          return resolveApiKey(request.provider, { ...profile, ...ref === undefined ? {} : { apiKeyEnv: ref } })
+          if (profile !== undefined && ref !== undefined) return resolveApiKey(request.provider, { ...profile, apiKeyEnv: ref })
+          const provider = profile?.piProvider ?? catalogProvider(request.provider)
+          if (provider === undefined) return undefined
+          const models = createModels(auth)
+          models.setProvider(provider)
+          return (await models.getAuth(request.provider))?.auth.apiKey
         })
       } catch (error: unknown) {
         if (request.signal?.aborted || request.apiKey !== undefined || index + 1 >= refs.length) throw error

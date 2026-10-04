@@ -77,6 +77,7 @@
     "@hydraharness/harness-goal": "workspace:^",
     "@hydraharness/harness-permission-presets": "workspace:^",
     "@hydraharness/harness-plan-mode": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
     "@hydraharness/harness-tool-todo": "workspace:^"
   },
   "devDependencies": {
@@ -101,6 +102,7 @@
     "@hydraharness/harness-llm-retry": "workspace:^",
     "@hydraharness/harness-permission-presets": "workspace:^",
     "@hydraharness/harness-plan-mode": "workspace:^",
+    "@hydraharness/harness-session": "workspace:^",
     "@hydraharness/harness-session-projection": "workspace:^",
     "@hydraharness/harness-session-stats": "workspace:^",
     "@hydraharness/harness-token-meter": "workspace:^",

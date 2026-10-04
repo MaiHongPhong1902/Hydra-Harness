@@ -198,6 +198,7 @@ function scriptedFace(overrides: {
       set,
       unset,
     },
+    authorization: { logout: vi.fn(() => Promise.resolve(ok({}))) },
   }
   return { face, update, replace, mutate, set, unset }
 }
@@ -293,12 +294,56 @@ describe('ModelsSection', () => {
     fireEvent.click(screen.getByRole('button', { name: en.accountProviderAdd }))
     await screen.findByRole('button', { name: en.accountAdd })
     expect(screen.getByRole<HTMLSelectElement>('combobox', { name: en.provider }).value).toBe('chatgpt')
+    expect(screen.queryByRole('list', { name: en.accounts })).toBeNull()
+    expect(screen.queryByText('Alice')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en.cancel }))
+    fireEvent.click(screen.getByRole('button', { name: 'Edit ChatGPT (chatgpt)' }))
+    if (count > 0) expect(await screen.findByText('Alice')).toBeTruthy()
+    else expect(await screen.findByText(en.accountsEmpty)).toBeTruthy()
   })
 
   it('renders nothing before the slot injects its dependencies', () => {
     const uninjected = {} as ModelsSectionProps
     render(<ModelsSection {...uninjected} />)
     expect(document.body.textContent).toBe('')
+  })
+
+  it.each([false, true])('keeps Gemini API out of new Google sign-in and retains saved OAuth configuration: %s', async (saved) => {
+    const scripted = scriptedFace()
+    const providers = saved ? { 'gemini-api': {} } : {}
+    scripted.face.settings.describe.mockResolvedValue(ok({
+      writable: true, hasDocument: saved, namespaces: [...wireNamespaces(), {
+        ns: 'llm-account-auth', schema: Schema.object({ providers: Schema.dict(Schema.object({})) }).toJSON(),
+        value: { providers }, user: { providers }, applies: 'live', secrets: [], revision: 0,
+      }],
+    }))
+    scripted.face.llm.providers.mockResolvedValue(ok({ providers: ['antigravity', 'gemini-api'].map(provider => ({
+      provider, displayName: provider, settingsNs: 'llm-account-auth', settingsPath: ['providers', provider], active: false,
+    })).concat([{ provider: 'unconfigured', displayName: 'Unconfigured', settingsNs: 'llm-pi-ai',
+      settingsPath: ['providers', 'unconfigured'], active: false }]) }))
+    Object.assign(scripted.face, { authorization: {
+      list: async () => ok({ entries: ['antigravity'].map(provider => ({
+        key: `llm-account-auth/${provider}`, label: provider, methods: [{ id: 'oauth', label: 'Sign in' }], inFlight: false, accounts: [],
+      })) }), usage: async () => ok({}),
+    } })
+    await mountFace(scripted)
+    const apiKeys = screen.getByRole('region', { name: en.apiKeys })
+    const accounts = screen.getByRole('region', { name: en.accountLogin })
+    const legacy = within(apiKeys).queryByRole('button', { name: 'Edit gemini-api' })
+    expect(legacy !== null).toBe(saved)
+    expect(within(accounts).queryByText('gemini-api')).toBeNull()
+    fireEvent.click(within(accounts).getByRole('button', { name: en.accountProviderAdd }))
+    fireEvent.change(within(accounts).getByLabelText(en.provider), { target: { value: 'google' } })
+    expect(within(accounts).getAllByRole('combobox')).toHaveLength(1)
+    expect(within(accounts).getByText(en.antigravityOAuthHint)).toBeTruthy()
+    fireEvent.click(within(accounts).getByRole('button', { name: en.cancel }))
+    fireEvent.click(within(apiKeys).getByRole('button', { name: en.add }))
+    expect([...within(apiKeys).getByRole<HTMLSelectElement>('combobox', { name: en.provider }).options]
+      .map(option => option.value)).not.toContain('gemini-api')
+    if (legacy !== null) {
+      fireEvent.click(legacy)
+      await within(apiKeys).findByRole('button', { name: en.accountAdd })
+    }
   })
 
   it('leaves provider editors closed until the user chooses a provider', async () => {
@@ -761,6 +806,26 @@ describe('ModelsSection', () => {
       .toEqual({ index: 1, key: 'modelIdDuplicate' })
   })
 
+  it('classifies DeepSeek models on their rows while retaining hidden metadata', async () => {
+    const { mutate } = await mountDeepSeekCard({
+      mutate: vi.fn(() => Promise.resolve(ok(wireNamespaces()[0]))),
+    })
+    fireEvent.click(screen.getByText(en.customized))
+    expect(screen.getByText(en.fetchModelName)).toBeTruthy()
+    fireEvent.click(screen.getByLabelText('Image deepseek-v4-flash'))
+    fireEvent.click(screen.getByLabelText('Video deepseek-v4-flash'))
+    fireEvent.click(screen.getByLabelText('Video deepseek-v4-pro'))
+    fireEvent.click(screen.getByLabelText('Video deepseek-v4-pro'))
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(mutate).toHaveBeenCalledTimes(1) })
+    expect(mutate.mock.calls[0]?.[0].ops).toEqual([{
+      op: 'set', path: ['models'], value: [
+        { ...DEFAULT_DEEPSEEK_MODELS[0], endpoints: ['images/generations', 'videos'] },
+        { ...DEFAULT_DEEPSEEK_MODELS[1], endpoints: ['chat/completions'] },
+      ],
+    }])
+  })
+
   it('renders malformed draft fallbacks without inventing catalog values', () => {
     render(<DeepSeekModelsEditor
       models={[{}]}
@@ -773,6 +838,8 @@ describe('ModelsSection', () => {
       onReset={vi.fn()}
     />)
     expect(screen.getByLabelText<HTMLInputElement>(`${en.modelId} 1`).value).toBe('')
+    expect(screen.getByLabelText<HTMLInputElement>('Image 1').disabled).toBe(true)
+    expect(screen.getByLabelText<HTMLInputElement>('Video 1').disabled).toBe(true)
     expandRow(1)
     expect(screen.getByLabelText<HTMLInputElement>(`${en.contextWindow} 1`).placeholder)
       .toBe(en.contextWindowPlaceholder)
@@ -1227,6 +1294,29 @@ describe('ModelsSection', () => {
     await screen.findByText('DeepSeek')
   })
 
+  it.each(['chatgpt', 'antigravity', 'gemini-api', 'claude', 'xai-account', 'kimi', 'cursor', 'kiro'])(
+    'deletes the complete local account record before removing the %s provider configuration', async (provider) => {
+      const { face, mutate, controller } = await mountSection()
+      const logout = vi.fn(() => Promise.resolve(ok({})))
+      Object.assign(face, { authorization: { logout } })
+      expect(await removeProviderProfile(face as never, controller,
+        { settingsNs: 'llm-account-auth', settingsPath: ['providers', provider] })).toBeUndefined()
+      expect(logout).toHaveBeenCalledWith({ key: `llm-account-auth/${provider === 'gemini-api' ? 'antigravity' : provider}` })
+      expect(mutate).toHaveBeenCalledWith({ ns: 'llm-account-auth', ops: [{ op: 'unset', path: ['providers', provider] }] })
+      expect(logout.mock.invocationCallOrder[0]).toBeLessThan(mutate.mock.invocationCallOrder[0]!)
+    })
+
+  it('keeps the account provider configuration when credential cleanup fails and permits a retry', async () => {
+    const { face, mutate, controller } = await mountSection()
+    const logout = vi.fn().mockResolvedValueOnce(fail('sign-out failed')).mockResolvedValueOnce(ok({}))
+    Object.assign(face, { authorization: { logout } })
+    const target = { settingsNs: 'llm-account-auth', settingsPath: ['providers', 'chatgpt'] }
+    expect(await removeProviderProfile(face as never, controller, target)).toBe('sign-out failed')
+    expect(mutate).not.toHaveBeenCalled()
+    expect(await removeProviderProfile(face as never, controller, target)).toBeUndefined()
+    expect(mutate).toHaveBeenCalledOnce()
+  })
+
   it('removes by unsetting the profile path, never by rebuilding the section', async () => {
     // The page only needs to name the profile path; rebuilding the section
     // would widen the write for no benefit.
@@ -1243,6 +1333,18 @@ describe('ModelsSection', () => {
     expect(replace).not.toHaveBeenCalled()
   })
 
+  it('forgets pi-ai provider records and its managed API keys before removing the provider', async () => {
+    const { face, unset, mutate, controller } = await mountSection()
+    expect(await removeProviderProfile(face as never, controller, {
+      settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'openai'],
+      credentialRef: 'OPENAI_API_KEY', credentialRefs: ['OPENAI_API_KEY_FALLBACK_1'],
+    })).toBeUndefined()
+    expect(face.authorization.logout).toHaveBeenCalledWith({ key: 'llm-pi-ai/openai' })
+    expect(unset.mock.calls.map(args => args[0])).toEqual([{ ref: 'OPENAI_API_KEY' }, { ref: 'OPENAI_API_KEY_FALLBACK_1' }])
+    expect(face.authorization.logout.mock.invocationCallOrder[0]).toBeLessThan(unset.mock.invocationCallOrder[0]!)
+    expect(unset.mock.invocationCallOrder[1]).toBeLessThan(mutate.mock.invocationCallOrder[0]!)
+  })
+
   it('keeps the snapshot untouched and reports the message when a removal write is refused', async () => {
     const { face, controller } = await mountSection({
       mutate: vi.fn(() => Promise.resolve(fail('read-only'))),
@@ -1255,6 +1357,18 @@ describe('ModelsSection', () => {
     )
     expect(failure).toBe('read-only')
     expect(controller.store.getSnapshot().rows).toBe(before)
+  })
+
+  it('clears only generation roles on the removed provider in the same revision-checked write', async () => {
+    const { face, mutate, controller } = await mountSection()
+    const namespace = controller.store.getSnapshot().namespaces.get('llm-pi-ai')!
+    controller.store.set({ ...controller.store.getSnapshot(), namespaces: new Map(controller.store.getSnapshot().namespaces)
+      .set('llm-pi-ai', { ...namespace, value: { ...namespace.value as object,
+        imageModel: { provider: 'openai', model: 'same' }, videoModel: { provider: 'another', model: 'same' } } }) })
+    await removeProviderProfile(face as unknown as Parameters<typeof removeProviderProfile>[0], controller,
+      { settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'openai'] })
+    expect(mutate).toHaveBeenCalledWith({ ns: 'llm-pi-ai', expectedRevision: namespace.revision,
+      ops: [{ op: 'unset', path: ['providers', 'openai'] }, { op: 'unset', path: ['imageModel'] }] })
   })
 
   it('keeps a failed identified deletion recoverable in its confirmation dialog', async () => {
@@ -1284,7 +1398,7 @@ describe('ModelsSection', () => {
     const target = { provider: 'zombie', displayName: 'zombie' }
     fireEvent.click(screen.getByRole('button', { name: providerCopy(en.removeProvider, target) }))
     const dialog = screen.getByRole('dialog', { name: providerCopy(en.deleteTitle, target) })
-    expect(dialog.textContent).toContain(providerCopy(en.deleteDescription, target))
+    expect(dialog.textContent).toContain(providerCopy(en.deleteDescriptionWithRecord, target))
     fireEvent.click(within(dialog).getByRole('button', { name: providerCopy(en.deleteConfirm, target) }))
     await waitFor(() => { expect(mutate).toHaveBeenCalledOnce() })
     expect(unset).not.toHaveBeenCalled()

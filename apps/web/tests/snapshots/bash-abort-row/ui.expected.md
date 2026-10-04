@@ -13,6 +13,8 @@
   - img
 - button "Edit":
   - img
+- button "Retry prompt":
+  - img
 - button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img

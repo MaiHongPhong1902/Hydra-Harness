@@ -13,6 +13,8 @@
   - img
 - button "Edit":
   - img
+- button "Retry prompt":
+  - img
 - heading "Inline code links" [level=2]
 - paragraph:
   - text: "Preview:"

@@ -15,6 +15,8 @@
   - img
 - button "Edit":
   - img
+- button "Retry prompt":
+  - img
 - button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
@@ -32,10 +34,14 @@
   - img
 - button "Edit":
   - img
+- button "Retry prompt":
+  - img
 - text: "Interjection: include the word ORANGE in your final reply. {{clock}}"
 - button "Copy":
   - img
 - button "Edit":
+  - img
+- button "Retry prompt":
   - img
 - paragraph: "Got it: BANANA and ORANGE."
 - button "Copy":

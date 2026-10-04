@@ -84,6 +84,8 @@ export interface AccountStoreOptions {
   key: CredentialKey
   /** pi-ai provider id resolved by this pool's credential adapter. */
   providerId: string
+  /** Additional routes sharing this record, selection context, and refresh lock. */
+  providerAliases?: readonly string[]
   /** Label used when a provider login supplies no account label. */
   providerLabel: string
 }
@@ -308,6 +310,7 @@ function labelOf(providerLabel: string, credential: Credential, index: number): 
  */
 export function createAccountPool(options: AccountStoreOptions): AccountPool {
   const { ctx, key, providerId, providerLabel } = options
+  const providers = new Set([providerId, ...options.providerAliases ?? []])
   const selected = new AsyncLocalStorage<AuthorizationAccountId>()
   const loginLabels = new AsyncLocalStorage<string>()
   let cursor = 0
@@ -366,7 +369,7 @@ export function createAccountPool(options: AccountStoreOptions): AccountPool {
 
   const store: CredentialStore = {
     async read(id): Promise<Credential | undefined> {
-      if (id !== providerId) return undefined
+      if (!providers.has(id)) return undefined
       const pool = await read()
       const selectedId = selected.getStore()
       const entry = selectedId === undefined
@@ -377,10 +380,10 @@ export function createAccountPool(options: AccountStoreOptions): AccountPool {
     async list(): Promise<readonly CredentialInfo[]> {
       const pool = await read()
       const first = pool.accounts[0]
-      return first === undefined ? [] : [{ providerId, type: first.credential.type }]
+      return first === undefined ? [] : [...providers].map(providerId => ({ providerId, type: first.credential.type }))
     },
     async modify(id, callback): Promise<Credential | undefined> {
-      if (id !== providerId) return callback(undefined)
+      if (!providers.has(id)) return callback(undefined)
       let updated: Credential | undefined
       await mutate(async (pool) => {
         const selectedId = selected.getStore()
@@ -422,7 +425,7 @@ export function createAccountPool(options: AccountStoreOptions): AccountPool {
       return updated
     },
     async delete(id): Promise<void> {
-      if (id !== providerId) return
+      if (!providers.has(id)) return
       const selectedId = selected.getStore()
       await mutate(pool => selectedId === undefined
         ? { version: ACCOUNT_POOL_VERSION, accounts: [] }
@@ -452,7 +455,7 @@ export function createAccountPool(options: AccountStoreOptions): AccountPool {
 
   const selector: AccountPoolSelector = {
     async ordered(id): Promise<readonly { id: string }[]> {
-      if (id !== providerId) return []
+      if (!providers.has(id)) return []
       const current = (await read()).accounts
       if (current.length === 0) return []
       const start = cursor % current.length
@@ -460,7 +463,7 @@ export function createAccountPool(options: AccountStoreOptions): AccountPool {
       return [...current.slice(start), ...current.slice(0, start)].map(account => ({ id: account.id }))
     },
     async *stream(id, account, source): AsyncIterable<StreamChunk> {
-      if (id !== providerId) throw new LlmError(`unknown account provider "${id}"`, 'ACCOUNT_PROVIDER')
+      if (!providers.has(id)) throw new LlmError(`unknown account provider "${id}"`, 'ACCOUNT_PROVIDER')
       const accountId = authorizationAccountId(account)
       const iterator = selected.run(accountId, () => source())[Symbol.asyncIterator]()
       let exhausted = false
@@ -503,5 +506,6 @@ export function createAccountPool(options: AccountStoreOptions): AccountPool {
  * @returns the provider's credential-record key.
  */
 export function accountRecordKey(provider: string): CredentialKey {
+  if (provider === 'gemini-api') return credentialKey('llm-account-auth', 'antigravity')
   return credentialKey('llm-account-auth', provider)
 }

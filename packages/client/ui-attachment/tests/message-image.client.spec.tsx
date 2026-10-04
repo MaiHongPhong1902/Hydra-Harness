@@ -16,7 +16,7 @@ const labels: MessageImageLabels = {
   openNamed: label => `${label}, click to view original`,
   loading: 'Loading image…',
   loadFailed: 'Image failed to load; click to retry',
-  lightbox: { dialog: 'Original image preview', close: 'Close original image preview' },
+  lightbox: { dialog: 'Original image preview', close: 'Close original image preview', download: 'Download image' },
 }
 
 const attachment = {
@@ -135,6 +135,25 @@ describe('MessageImage', () => {
 })
 
 describe('ImageGallery', () => {
+  it('keeps every generated output at its own ratio while loading and after loading', async () => {
+    const load = vi.fn().mockResolvedValue('blob:output')
+    const shapes = [
+      { width: 4000, height: 100 },
+      { width: 100, height: 2000 },
+      { width: 100, height: 100 },
+    ]
+    const view = render(<ImageGallery images={shapes.map(shape => ({ attachment: { ...attachment, ...shape } }))} load={load} align="start" presentation="media" labels={labels} />)
+    const frames = view.getAllByRole('button', { name: 'history.png, click to view original' })
+    frames.forEach((frame, index) => {
+      expect(frame.style.aspectRatio).toBe(`${shapes[index]!.width} / ${shapes[index]!.height}`)
+      expect(frame.style.width).toBe('')
+      expect(frame.style.height).toBe('')
+    })
+    await waitFor(() => { expect(view.getAllByAltText('history.png')).toHaveLength(3) })
+    fireEvent.click(frames[1]!)
+    expect(view.getByRole('dialog', { name: 'Original image preview' })).toBeTruthy()
+  })
+
   it('renders nothing without images and an aligned wrapping group with them', async () => {
     const load = vi.fn().mockResolvedValue('blob:gallery')
     const empty = render(<ImageGallery images={[]} load={load} align="start" labels={labels} />)
@@ -166,6 +185,7 @@ describe('ImageGallery', () => {
         'image.loadFailed': 'Image failed to load; click to retry',
         'image.preview': 'Original image preview',
         'image.closePreview': 'Close original image preview',
+        'image.download': 'Download image',
       }
       if (key === 'image.openOriginalLabel') {
         const label = params?.label
@@ -203,11 +223,13 @@ describe('ImageGallery', () => {
       images: [{ attachment }],
       loadImage,
       align: 'end',
+      presentation: 'media',
       t,
     }
     const view = render(<MessageImages {...props} />)
     await waitFor(() => { expect(view.getByAltText('history.png')).toBeTruthy() })
     expect(view.getByRole('button', { name: 'history.png, click to view original' })).toBeTruthy()
     expect(view.container.querySelector('[data-align="end"]')).not.toBeNull()
+    expect(view.getByRole('button', { name: 'history.png, click to view original' }).style.aspectRatio).toBe('640 / 320')
   })
 })

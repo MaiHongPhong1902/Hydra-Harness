@@ -1,10 +1,10 @@
 # Packages
 
-npm scope: `@hydraharness/harness-*`; Cordis `Service` subclasses and function plugins contribute through `ctx.effect()`, `ctx.on()`, or `ctx.waterfall()`. Rules: [package](AGENTS.md), [root](../AGENTS.md#conventions).
+npm scope: `@hydraharness/harness-*`. Contributions use `ctx.effect()`, `ctx.on()`, or `ctx.waterfall()`. Rules: [package](AGENTS.md), [root](../AGENTS.md#conventions).
 
 ## Hierarchy
 
-Groups hold `packages/<group>/<pkg>/`; names stay `@hydraharness/harness-<pkg>`. **Group READMEs own package/ctx-key maps.**
+Layout: `packages/<group>/<pkg>/`. Group READMEs map packages and ctx keys.
 
 | Group | Role | Release expectation |
 |---|---|---|
@@ -15,7 +15,8 @@ Groups hold `packages/<group>/<pkg>/`; names stay `@hydraharness/harness-<pkg>`.
 | [`schedule/`](schedule/README.md) | Session-local scheduled follow-ups | Product — stable API |
 | [`feedback/`](feedback/README.md) | Human feedback | Product — stable API |
 | [`identity/`](identity/README.md) | Shared anonymous identity | Product — stable API |
-| [`llm/`](llm/README.md) | LLM capability family: the abstract service + provider adapters | Product — stable API |
+| [`llm/`](llm/README.md) | LLM service and provider adapters | Product — stable API |
+| [`media/`](media/README.md) | Media generation | Product — stable API |
 | [`e2b/`](e2b/README.md) | E2B providers | POC |
 | [`subprocess/`](subprocess/README.md) | Subprocess capability family: Service Definition + local process-tree provider | Product — stable API |
 | [`shell/`](shell/README.md) | Bash capability family: executor seam, local impl, model-facing tool | Product — stable API |

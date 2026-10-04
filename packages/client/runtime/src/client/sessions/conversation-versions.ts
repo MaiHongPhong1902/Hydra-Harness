@@ -1,6 +1,10 @@
 /** Pure grouping of prompt revisions into one navigable conversation. */
 import type { SessionId } from '@hydraharness/harness-api-remotes/client'
+import type { SessionVersionId } from '@hydraharness/harness-session/types'
 import type { SessionListState, SessionSummary } from './service.ts'
+
+/** A stored transcript path, with its selection state and owning session. */
+export type ConversationVersion = Omit<SessionSummary, 'id'> & { id: SessionId | SessionVersionId; selected?: boolean }
 
 function compareVersions(a: SessionSummary, b: SessionSummary): number {
   return Number(a.revision !== undefined) - Number(b.revision !== undefined)
@@ -14,7 +18,15 @@ function compareVersions(a: SessionSummary, b: SessionSummary): number {
  * @param sessionId - any version of the conversation.
  * @returns available versions, oldest first.
  */
-export function conversationVersions(list: SessionListState, sessionId: SessionId): SessionSummary[] {
+export function conversationVersions(list: SessionListState, sessionId: SessionId): ConversationVersion[] {
+  const summary = list.byId[sessionId]
+  if (summary?.versionState !== undefined) {
+    const { revision: _revision, ...base } = summary
+    return summary.versionState.versions.map(version => ({ ...base, id: version.id,
+      selected: version.id === summary.versionState?.current,
+      ...version.revision === undefined ? {} : { revision: version.revision },
+    }))
+  }
   const root = list.byId[sessionId]?.revision?.conversationId ?? sessionId
   const attempts = list.ids.flatMap((id) => {
     const summary = list.byId[id]

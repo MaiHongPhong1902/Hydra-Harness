@@ -25,6 +25,7 @@ import { anthropicMessagesApi } from '@earendil-works/pi-ai/api/anthropic-messag
 import { azureOpenAICompletionsApi } from '@earendil-works/pi-ai/api/azure-openai-completions.lazy'
 import { openAICompletionsApi } from '@earendil-works/pi-ai/api/openai-completions.lazy'
 import { openAIResponsesApi } from '@earendil-works/pi-ai/api/openai-responses.lazy'
+import { googleGenerativeAIApi } from '@earendil-works/pi-ai/api/google-generative-ai.lazy'
 import { catalogProvider } from './catalog.ts'
 
 /**
@@ -53,6 +54,7 @@ const PROTOCOLS: Readonly<Record<string, () => ProviderStreams>> = {
   'openai-responses': openAIResponsesApi,
   'anthropic-messages': anthropicMessagesApi,
   'azure-openai-completions': azureOpenAICompletionsApi,
+  'google-generative-ai': googleGenerativeAIApi,
 }
 
 /**

@@ -188,7 +188,8 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
     const buttonBox = await actionButton.boundingBox()
     if (buttonBox === null) throw new Error('fork source row action has no layout box')
     await page.mouse.click(buttonBox.x + buttonBox.width / 2, buttonBox.y + buttonBox.height / 2)
-    await page.getByRole('menuitem', { name: 'Fork session' }).click()
+    await page.getByRole('menuitem', { name: 'Fork', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Fork session', exact: true }).click()
     await expect.poll(
       () => scaffold.ctx.agents.list().filter(agent => agent.session.header.parentSession !== undefined).length,
       { timeout: 15_000 },
@@ -254,11 +255,11 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
     await page.getByRole('button', { name: 'Save & resend', exact: true }).click()
     const childId = await settled
     const child = scaffold.ctx.agents.get(childId)!
-    expect(child.session.events.flatMap(event => event.type === 'user/message' && event.data.source.kind === 'user'
+    expect(child.session.activeEvents.flatMap(event => event.type === 'user/message' && event.data.source.kind === 'user'
       ? [event.data.content.filter(block => block.type === 'text').map(block => block.text).join('')] : []))
       .toEqual([PROMPT, 'Please revise the answer.\nKeep it concise.'])
-    const sourceId = child.session.header.parentSession!
-    expect(scaffold.ctx.agents.get(sourceId)!.session.events).toEqual(originals.get(sourceId))
+    const original = originals.get(childId)!
+    expect(child.session.events.slice(0, original.length)).toEqual(original)
     const ended = child.session.events.findLast(event => event.type === 'turn/end')?.data
     expect(ended, JSON.stringify(ended)).toMatchObject({ reason: { kind: 'completed' } })
     expect(editAdapter.requests, JSON.stringify(child.session.events.filter(event => event.type.includes('error')))).toHaveLength(1)
@@ -292,17 +293,17 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
     await sessionRows.filter({ hasText: 'Use the read tool twice (2)' }).click()
     await page.getByText('Version 1', { exact: true }).waitFor()
     await page.locator('[data-chat-flow-kind="user"]').last().getByText(SECOND_PROMPT, { exact: true }).waitFor()
-    await page.getByRole('button', { name: 'Next version', exact: true }).click()
+    await page.locator('header').getByRole('button', { name: 'Next version', exact: true }).click()
     await page.getByText('Version 2', { exact: true }).waitFor()
     await page.getByText('Reply to the edited prompt.', { exact: true }).waitFor()
     await expect.poll(() => sessionRows.count()).toBe(countBefore)
-    await page.getByRole('button', { name: 'Previous version', exact: true }).click()
+    await page.locator('header').getByRole('button', { name: 'Previous version', exact: true }).click()
     await page.getByText('Version 1', { exact: true }).waitFor()
     await page.locator('[data-chat-flow-kind="user"]').last().getByRole('button', { name: 'See versions', exact: true }).click()
     await page.getByRole('menuitem', { name: /Version 2/ }).click()
     await page.getByText('Version 2', { exact: true }).waitFor()
     await page.screenshot({ path: '.artifacts/prompt-versions/current-version.png' })
-    await page.getByRole('button', { name: 'Previous version', exact: true }).click()
+    await page.locator('header').getByRole('button', { name: 'Previous version', exact: true }).click()
     await page.getByText('Version 1', { exact: true }).waitFor()
     await page.locator('[data-chat-flow-kind="user"]').last().getByRole('button', { name: 'Edit' }).click()
     await editor.fill('Revise this answer once more.')
@@ -313,11 +314,11 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
     await expect.poll(() => sessionRows.count()).toBe(countBefore)
     expect(editAdapter.requests).toHaveLength(2)
     expect(JSON.stringify(editAdapter.requests[1]!.messages)).not.toContain('Keep it concise.')
-    await page.locator('nav[aria-label="Prompt versions"]').getByRole('button', { name: 'See versions', exact: true }).click()
+    await page.locator('header nav[aria-label="Prompt versions"]').getByRole('button', { name: 'See versions', exact: true }).click()
     await page.getByRole('menuitem', { name: /Version 2/ }).click()
     await page.getByText('Version 2', { exact: true }).waitFor()
     await page.getByText('Please revise the answer.', { exact: false }).waitFor()
-    const versionNav = page.getByRole('navigation', { name: 'Prompt versions', exact: true })
+    const versionNav = page.locator('header').getByRole('navigation', { name: 'Prompt versions', exact: true })
     await mkdir('.artifacts/prompt-version-management', { recursive: true })
     await versionNav.screenshot({ path: '.artifacts/prompt-version-management/header.png' })
     await versionNav.getByRole('button', { name: 'See versions', exact: true }).click()
@@ -344,7 +345,7 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
     await page.keyboard.press('Escape')
     expect(await versionNav.getByRole('button', { name: 'See versions', exact: true })
       .evaluate(element => element === document.activeElement)).toBe(true)
-    await page.getByRole('button', { name: 'Next version', exact: true }).click()
+    await page.locator('header').getByRole('button', { name: 'Next version', exact: true }).click()
     await page.getByText('Revise this answer once more.', { exact: true }).waitFor()
     await expect.poll(() => sessionRows.count()).toBe(countBefore)
   })

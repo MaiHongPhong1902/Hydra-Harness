@@ -39,6 +39,10 @@
       "types": "./lib/types/message.d.ts",
       "default": "./lib/types/message.js"
     },
+    "./model-endpoints": {
+      "types": "./lib/types/model-endpoints.d.ts",
+      "default": "./lib/types/model-endpoints.js"
+    },
     "./proxy": {
       "types": "./lib/types/proxy.d.ts",
       "default": "./lib/proxy.js"

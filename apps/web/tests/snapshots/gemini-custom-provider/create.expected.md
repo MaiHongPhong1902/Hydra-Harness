@@ -1,0 +1,121 @@
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+    - button "Archived sessions":
+      - img
+      - text: Archived sessions
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Models" [level=2]
+  - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - region "Image and video generation":
+    - heading "Image and video generation" [level=3]
+    - button "Refresh models"
+    - paragraph: Choose models marked Image or Video, grouped by provider. Fetch and save a provider's models to add them here. Generation requires a connected provider that supports the selected task.
+    - text: Image model
+    - combobox "Image model":
+      - option "Automatic fallback" [selected]
+    - text: Video model
+    - combobox "Video model":
+      - option "Automatic fallback" [selected]
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list
+    - text: Custom provider Provider template
+    - combobox "Provider template":
+      - option "Custom"
+      - option "Gemini API" [selected]
+    - paragraph: Connect with a Gemini API key. API usage has separate quota and billing. Fetch or Get all loads available models; Create provider saves your selection.
+    - text: Provider ID
+    - textbox "Provider ID":
+      - /placeholder: acme-gateway
+      - text: gemini
+    - paragraph: Lowercase identifier, starting with a letter, that uniquely names this provider in requests and as its credential name.
+    - text: Display name
+    - textbox "Display name":
+      - /placeholder: gemini
+      - text: Gemini API
+    - text: Base URL
+    - textbox "Base URL":
+      - /placeholder: https://gateway.example/v1
+      - text: <gemini-fixture>
+    - text: Proxy
+    - textbox "Proxy":
+      - /placeholder: Optional HTTP(S) proxy, e.g. http://127.0.0.1:3128
+    - text: API protocol
+    - combobox "API protocol":
+      - option "openai-completions"
+      - option "openai-responses"
+      - option "anthropic-messages"
+      - option "azure-openai-completions"
+      - option "google-generative-ai" [selected]
+    - text: API key
+    - textbox "API key":
+      - /placeholder: Enter your API key
+      - text: fixture-gemini-key
+    - button "Add API key"
+    - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
+    - region "Models":
+      - text: Models
+      - button "Get all"
+      - button "Fetch"
+      - textbox "Model ID 1":
+        - /placeholder: Model ID
+        - text: gemini-chat
+      - textbox "Display name 1":
+        - /placeholder: Display name
+        - text: Gemini chat
+      - checkbox "Image gemini-chat"
+      - checkbox "Video gemini-chat"
+      - button "Model details 1"
+      - button "Delete model 1"
+      - textbox "Model ID 2":
+        - /placeholder: Model ID
+        - text: gemini-3.1-flash-image
+      - textbox "Display name 2":
+        - /placeholder: Display name
+      - checkbox "Image gemini-3.1-flash-image" [checked]
+      - checkbox "Video gemini-3.1-flash-image"
+      - button "Model details 2"
+      - button "Delete model 2"
+      - textbox "Model ID 3":
+        - /placeholder: Model ID
+        - text: veo-3.1-generate-preview
+      - textbox "Display name 3":
+        - /placeholder: Display name
+      - checkbox "Image veo-3.1-generate-preview"
+      - checkbox "Video veo-3.1-generate-preview" [checked]
+      - button "Model details 3"
+      - button "Delete model 3"
+      - button "Add model"
+    - button "Cancel"
+    - button "Create provider"
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect provider accounts independently of your API keys.
+    - list
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

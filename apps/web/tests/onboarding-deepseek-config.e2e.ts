@@ -274,10 +274,57 @@ describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', 
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)
 
+  it('persists direct DeepSeek role edits and restores ordinary selection when both are cleared', async () => {
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
+    await settings.getByRole('button', { name: 'Models', exact: true }).click()
+    const edit = settings.getByRole('button', { name: 'Edit DeepSeek (deepseek-official)', exact: true })
+    await edit.click()
+    await settings.getByText('Customized settings', { exact: true }).click()
+    await settings.getByRole('checkbox', { name: 'Image private-preview', exact: true }).check()
+    await settings.getByRole('checkbox', { name: 'Video private-preview', exact: true }).check()
+    await settings.getByRole('button', { name: 'Apply', exact: true }).click()
+    await edit.waitFor()
+    const value = JSON.stringify(['deepseek-official', 'private-preview'])
+    for (const label of ['Image model', 'Video model']) {
+      await expect.poll(() => settings.getByLabel(label, { exact: true }).locator('option').evaluateAll(
+        options => options.map(option => (option as HTMLOptionElement).value),
+      )).toEqual(['', value])
+    }
+    const warningsBeforeReload = tripwire.warnings.length
+    await page.reload({ waitUntil: 'load' })
+    acknowledgeReloadConnectionLoss(tripwire, warningsBeforeReload)
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    await settings.getByRole('button', { name: 'Models', exact: true }).click()
+    await edit.click()
+    await settings.getByText('Customized settings', { exact: true }).click()
+    expect(await settings.getByRole('checkbox', { name: 'Image private-preview', exact: true }).isChecked()).toBe(true)
+    expect(await settings.getByRole('checkbox', { name: 'Video private-preview', exact: true }).isChecked()).toBe(true)
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'classification.expected.md'),
+      await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd), MODE)
+    await settings.getByRole('checkbox', { name: 'Image private-preview', exact: true }).uncheck()
+    await settings.getByRole('checkbox', { name: 'Video private-preview', exact: true }).uncheck()
+    await settings.getByRole('button', { name: 'Apply', exact: true }).click()
+    await edit.waitFor()
+    for (const label of ['Image model', 'Video model']) {
+      await expect.poll(() => settings.getByLabel(label, { exact: true }).locator('option').evaluateAll(
+        options => options.map(option => (option as HTMLOptionElement).value),
+      )).toEqual([''])
+    }
+    await settings.getByRole('button', { name: 'Close', exact: true }).click()
+    const trigger = page.getByRole('button', { name: /^Select model/ })
+    await trigger.click()
+    await page.getByRole('menuitem', { name: /^Model/ }).click()
+    await page.getByRole('menuitemradio', { name: 'Private Preview', exact: true }).waitFor()
+    await trigger.click()
+    expect(tripwire.warnings).toEqual([])
+    expect(tripwire.pageErrors).toEqual([])
+  }, 60_000)
+
   it('keeps the fixture inventory closed', async () => {
     await assertFixtureInventory(
       SNAPSHOT_DIR,
-      ['welcome.expected.md', 'keys.expected.md', 'missing.expected.md', 'models.expected.md', 'model-required.expected.md'],
+      ['welcome.expected.md', 'keys.expected.md', 'missing.expected.md', 'models.expected.md', 'model-required.expected.md', 'classification.expected.md'],
     )
   })
 })

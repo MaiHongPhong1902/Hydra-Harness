@@ -18,13 +18,19 @@ pnpm run build
 pnpm run desktop
 ```
 
-The desktop process starts the Web profile internally on a local loopback port and loads it in one Electron window. It does not open a second browser window. Run `pnpm run build` again after source changes before launching the desktop app.
+The desktop process starts the Web profile internally on a local loopback port and loads it in one Electron window. Run `pnpm run build` again after source changes before launching the desktop app.
+
+In **Settings → Models**, **Open sign-in page** opens your default browser. Google connects Antigravity through OAuth. For Gemini API, choose **API keys → Add a custom provider → Provider template → Gemini API** and enter an API key.
 
 ## Start a task
 
 Open **Settings → Models** and configure a provider, then choose a workspace and start a session. The model and workspace setup is the same as the [Web UI quickstart](./index.md), and the [model guide](./providers.md) covers DeepSeek, catalog providers, and custom endpoints.
 
 The desktop window includes the conversation UI, the controlled browser, terminal sessions, and workspace files. These panels share the selected session and workspace while the Host keeps their permissions and approvals.
+
+Right-click a session to rename, pin, mark unread, organize it into a Section or display Project, fork, copy, archive or permanently delete it. Share displays Coming soon. Open in new window opens the selected session in another Electron window using the Web interface; the native Files, Terminal and embedded Browser panels remain in the main window. Moving a session to a display Project retains its original working directory.
+
+Use **Ctrl++** (or **Ctrl+=**) to zoom in, **Ctrl+-** to zoom out, and **Ctrl+0** to restore 100% size while focus is in the application UI. The same actions are available in **View**. The embedded Browser keeps its own page shortcuts.
 
 ## Data location
 

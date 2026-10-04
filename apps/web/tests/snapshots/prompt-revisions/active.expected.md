@@ -1,12 +1,19 @@
 - text: My name is Charlie. {{clock}}
 - button "Copy":
   - img
-- button "See versions":
-  - text: 3/3
-  - img
+- navigation "Prompt versions":
+  - button "Previous version":
+    - img
+  - button "See versions":
+    - text: 3/3
+    - img
+  - button "Next version" [disabled]:
+    - img
 - button "Edit":
   - img
 - tooltip "Edit"
+- button "Retry prompt":
+  - img
 - button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
@@ -29,4 +36,4 @@
   - text: Edit test
   - img
 - button "Send message" [disabled]
-- text: 1 turns · 1 steps LLM {{duration}} TTFT avg {{duration}}
+- text: 3 turns · 4 steps LLM {{duration}} TTFT avg {{duration}}

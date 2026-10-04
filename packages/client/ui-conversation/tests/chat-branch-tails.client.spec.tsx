@@ -112,18 +112,25 @@ describe('MessageItem arms', () => {
     const view = render(<UserMessageNodeView {...props} openVersion={openVersion} />)
     fireEvent.click(view.getByRole('button', { name: 'See versions' }))
     expect(openVersion).not.toHaveBeenCalled()
-    expect(view.getByRole('menuitem', { name: /Version 3.*Latest.*Viewing.*Edited prompt 2.*From version 2/ })).toBeTruthy()
+    expect((view.getByRole('button', { name: 'Next version' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(view.getByRole('menuitem', { name: /Version 3.*Latest.*Viewing.*Prompt 2.*From version 2/ })).toBeTruthy()
     await waitFor(() => { expect(document.activeElement).toBe(view.getByRole('menuitem', { name: /Version 3/ })) })
     fireEvent.keyDown(document.activeElement!, { key: 'Home' })
     expect(document.activeElement).toBe(view.getByRole('menuitem', { name: /Version 1/ }))
     fireEvent.click(view.getByRole('menuitem', { name: /Version 1.*Original conversation/ }))
-    expect(openVersion).toHaveBeenLastCalledWith(original.id)
+    await waitFor(() => { expect(openVersion).toHaveBeenLastCalledWith(original.id) })
     view.rerender(<UserMessageNodeView {...props} sessionId={original.id} openVersion={openVersion} />)
     fireEvent.click(view.getByRole('button', { name: 'See versions' }))
     expect(view.getByRole('menuitem', { name: /Version 1.*Viewing.*Original conversation/ })).toBeTruthy()
     expect(view.getByRole('menuitem', { name: /Version 3.*Latest/ }).textContent).not.toContain('Viewing')
-    fireEvent.click(view.getByRole('menuitem', { name: /Version 2.*Edited prompt 1/ }))
-    expect(openVersion).toHaveBeenLastCalledWith(first.id)
+    expect((view.getByRole('button', { name: 'Previous version' }) as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(view.getByRole('menuitem', { name: /Version 2.*Prompt 1/ }))
+    await waitFor(() => { expect(openVersion).toHaveBeenLastCalledWith(first.id) })
+    fireEvent.click(view.getByRole('button', { name: 'Next version' }))
+    await waitFor(() => { expect(openVersion).toHaveBeenLastCalledWith(first.id) })
+    view.rerender(<UserMessageNodeView {...props} openVersion={openVersion} />)
+    fireEvent.click(view.getByRole('button', { name: 'Previous version' }))
+    await waitFor(() => { expect(openVersion).toHaveBeenLastCalledWith(first.id) })
   })
 
   it('shows See versions only on the user prompt whose turn was revised', () => {
@@ -193,6 +200,51 @@ describe('MessageItem arms', () => {
     })
     expect(editMessage).toHaveBeenCalledExactlyOnceWith(node, text, { idempotencyKey: expect.any(String) as unknown })
     expect(view.queryByRole('textbox')).toBeNull()
+  })
+
+  it('retries the prompt directly, locks double clicks, and retains a failed request identity', async () => {
+    let finish!: () => void
+    const editMessage = vi.fn().mockRejectedValueOnce(new Error('offline'))
+      .mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve }))
+      .mockResolvedValue(undefined)
+    const text = '  Tiếng Việt 🐉\nDòng thứ hai  '
+    const node = { kind: 'user' as const, seq: 1, time: 1_000,
+      content: [{ type: 'text' as const, text }], source: null }
+    const view = render(<MessageItem t={t} node={node} editMessage={editMessage} />)
+    const retry = view.getByRole('button', { name: 'Retry prompt' })
+    await act(async () => { fireEvent.click(retry) })
+    expect(view.queryByRole('textbox')).toBeNull()
+    expect(view.getByRole('alert').textContent).toBe('Could not resend the prompt: offline')
+    fireEvent.click(retry)
+    fireEvent.click(retry)
+    expect(editMessage).toHaveBeenCalledTimes(2)
+    expect((retry as HTMLButtonElement).disabled).toBe(true)
+    expect((view.getByRole('button', { name: 'Edit' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(view.getByRole('status').textContent).toBe('Resending…')
+    expect(editMessage.mock.calls[0]).toEqual(editMessage.mock.calls[1])
+    expect(editMessage.mock.calls[0]?.slice(0, 2)).toEqual([node, text])
+    await act(async () => { finish() })
+    expect(view.queryByRole('alert')).toBeNull()
+    expect(view.queryByRole('status')).toBeNull()
+    await act(async () => { fireEvent.click(retry) })
+    expect(editMessage.mock.calls[2]?.[2]).not.toEqual(editMessage.mock.calls[1]?.[2])
+  })
+
+  it('retries image-only prompts and hides retry for unsupported or blank content', async () => {
+    const editMessage = vi.fn().mockResolvedValue(undefined)
+    const image = { type: 'image' as const, attachment: {
+      attachmentId: 'image' as import('@hydraharness/harness-attachment').AttachmentId,
+      mediaType: 'image/png' as const, bytes: 1, width: 1, height: 1,
+    } }
+    const node = { kind: 'user' as const, seq: 1, time: 1_000, content: [image], source: null }
+    const view = render(<MessageItem t={t} node={node} editMessage={editMessage} />)
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Retry prompt' })) })
+    expect(editMessage).toHaveBeenCalledExactlyOnceWith(node, '', { idempotencyKey: expect.any(String) as unknown })
+    view.rerender(<MessageItem t={t} node={{ ...node, content: [{ type: 'text', text: '  ' }] }} editMessage={editMessage} />)
+    expect(view.queryByRole('button', { name: 'Retry prompt' })).toBeNull()
+    view.rerender(<MessageItem t={t} node={{ ...node, content: [{ type: 'reasoning', text: 'unsupported' }] }} editMessage={editMessage} />)
+    expect(view.queryByRole('button', { name: 'Retry prompt' })).toBeNull()
+    expect(view.queryByRole('button', { name: 'Edit' })).toBeNull()
   })
 
   it('keeps one submission pending and lets Escape cancel without sending', async () => {

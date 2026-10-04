@@ -1,15 +1,17 @@
-/** Account-aware LLM adapters for the native ChatGPT and Antigravity routes. */
+/** Account-aware LLM adapters for native SDK and Antigravity routes. */
 
 import type { Credential } from '@earendil-works/pi-ai'
 import type { AntigravityCredentials } from './antigravity-oauth.ts'
-import { discoverChatGptModels } from './chatgpt.ts'
+import { chatGptCredential, discoverChatGptModels, requestChatGptImage } from './chatgpt.ts'
 import { emptyAuthContext, type AccountPool } from './accounts.ts'
-import type { AccountModelProfile, AccountProviderProfile, AccountProvider } from './config.ts'
+import { ACCOUNT_PROVIDER_LABELS, type AccountModelProfile, type AccountProviderProfile, type AccountProvider } from './config.ts'
 import {
   deepFreeze,
   freezeMessage,
   LlmAdapter,
   LlmError,
+  inferModelEndpoints,
+  isGenerationRejection,
   type GenerateOptions,
   type LlmDiscoveredModel,
   type LlmFailure,
@@ -17,6 +19,7 @@ import {
   type LlmProviderInfo,
   type LlmResolvedModelInfo,
   type Message,
+  type MediaGenerationOptions,
   type ResolvedRetryPolicy,
   type StreamChunk,
   resolveRetryPolicy,
@@ -26,11 +29,13 @@ import type { PiAiAdapter, ResolvedPiAiProviderProfile } from '@hydraharness/har
 /** A provider profile lookup that follows live settings changes. */
 export type AccountProfileLookup = () => AccountProviderProfile | undefined
 
-/** Inputs for the ChatGPT account adapter. */
-export interface ChatGptAdapterOptions {
+/** Inputs for a native pi-ai account adapter. */
+export interface PiAiAccountAdapterOptions {
+  /** Native account route bound to every request and credential operation. */
+  provider: 'chatgpt' | import('./sdk-accounts.ts').SdkAccountProvider
   /** Pool owning the selected account and pi-ai credential store. */
   pool: AccountPool
-  /** Current resolved ChatGPT pi-ai profile. */
+  /** Current resolved native pi-ai profile. */
   profile: () => ResolvedPiAiProviderProfile | undefined
   /** Build the current profile on first model use. */
   loadProfile?: () => Promise<ResolvedPiAiProviderProfile | undefined>
@@ -115,8 +120,13 @@ function withoutAccountReplay(options: GenerateOptions): GenerateOptions {
  * Run one account order and retry only failures seen before visible output.
  * The order is captured once for this adapter call, so every account is tried
  * at most once before the caller's normal request-recovery policy runs.
+ * @param options - captured model request and cancellation.
+ * @param provider - account route owning the pool.
+ * @param pool - request-local account selector.
+ * @param source - one account's native stream.
+ * @returns the first completed stream, without retrying after visible output.
  */
-async function* streamAccounts(
+export async function* streamAccounts(
   options: GenerateOptions,
   provider: AccountProvider,
   pool: AccountPool,
@@ -192,18 +202,18 @@ async function* streamAccounts(
   throw new LlmError(`${provider} account request failed`, 'TRANSPORT')
 }
 
-/** pi-ai adapter that binds every request to one native ChatGPT account. */
-export class ChatGptAccountAdapter extends LlmAdapter {
+/** pi-ai adapter that binds every request to one native subscription account. */
+export class PiAiAccountAdapter extends LlmAdapter {
   private delegatePromise: Promise<PiAiAdapter> | undefined
   private loadedProfile: ResolvedPiAiProviderProfile | undefined
   private profilePromise: Promise<ResolvedPiAiProviderProfile | undefined> | undefined
 
-  constructor(private readonly config: ChatGptAdapterOptions) {
+  constructor(private readonly config: PiAiAccountAdapterOptions) {
     super()
   }
 
   override providerInfo(provider: string): LlmProviderInfo {
-    return { id: provider, name: 'ChatGPT' }
+    return { id: provider, name: ACCOUNT_PROVIDER_LABELS[this.config.provider] }
   }
 
   override providerRetryPolicy(provider: string): ResolvedRetryPolicy | undefined {
@@ -217,7 +227,7 @@ export class ChatGptAccountAdapter extends LlmAdapter {
   }
 
   /**
-   * Return the local ChatGPT catalog in the discovery seam's detached form.
+   * Fetch the selected account's native catalog in the discovery seam's detached form.
    * @param signal - optional cancellation for catalog resolution.
    * @returns model metadata suitable for the LLM discovery seam.
    */
@@ -225,20 +235,19 @@ export class ChatGptAccountAdapter extends LlmAdapter {
     signal?.throwIfAborted()
     const accounts = await this.config.pool.accounts.list()
     const account = accounts[0]
-    if (account === undefined) throw new LlmError('chatgpt has no connected account', 'MISSING_CREDENTIAL')
+    if (account === undefined) throw new LlmError(`${this.config.provider} has no connected account`, 'MISSING_CREDENTIAL')
+    if (this.config.provider !== 'chatgpt') {
+      const { discoverSdkAccountModels } = await import('./sdk-accounts.ts')
+      return discoverSdkAccountModels(this.config.provider, this.config.pool, await this.ensureProfile(), signal)
+    }
     return this.config.pool.withAccount(account.id, async () => {
       signal?.throwIfAborted()
-      const stored = await this.config.pool.credentials.read('chatgpt')
-      if (stored?.type !== 'oauth' || typeof stored.access !== 'string' || stored.access.length === 0) {
-        throw new LlmError('chatgpt account has invalid credentials', 'INVALID_CREDENTIAL')
-      }
-      const accountId = (stored as Credential & { accountId?: unknown }).accountId
-      if (typeof accountId !== 'string' || accountId.length === 0) {
-        throw new LlmError('chatgpt account has no account id', 'INVALID_CREDENTIAL')
-      }
+      const profile = await this.ensureProfile()
+      const stored = await chatGptCredential(this.config.pool, profile, signal)
       return discoverChatGptModels({
         accessToken: stored.access,
-        accountId,
+        accountId: stored.accountId,
+        ...profile.baseURL === undefined ? {} : { baseURL: profile.baseURL },
         ...(signal === undefined ? {} : { signal }),
       })
     })
@@ -251,7 +260,32 @@ export class ChatGptAccountAdapter extends LlmAdapter {
 
   override async *stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
     const delegate = await this.ensureDelegate()
-    yield* streamAccounts(options, 'chatgpt', this.config.pool, (_accountId, attemptOptions) => delegate.stream(attemptOptions))
+    yield* streamAccounts(options, this.config.provider, this.config.pool, (_accountId, attemptOptions) => delegate.stream(attemptOptions))
+  }
+
+  override async requestGeneration(options: MediaGenerationOptions & { provider: string; model: string }): Promise<Response> {
+    const delegate = await this.ensureDelegate()
+    const accounts = await this.config.pool.selector.ordered(this.config.provider)
+    let lastFailure: LlmError | undefined
+    for (const [index, account] of accounts.entries()) {
+      options.signal.throwIfAborted()
+      let response: Response
+      try { response = await this.config.pool.withAccount(account.id, async () => {
+        const credential = await this.config.pool.credentials.read(this.config.provider)
+        if (credential?.type !== 'oauth') throw new LlmError(`${this.config.provider} account has no OAuth grant.`, 'MISSING_CREDENTIAL')
+        return this.config.provider === 'chatgpt'
+          ? requestChatGptImage(options, this.config.pool, await this.ensureProfile())
+          : delegate.requestGeneration(options)
+      }) } catch (error: unknown) {
+        if (options.signal.aborted || !(error instanceof LlmError) || !['MISSING_CREDENTIAL', 'INVALID_CREDENTIAL', 'ACCOUNT_GONE'].includes(error.code)) throw error
+        lastFailure = error
+        continue
+      }
+      if (!isGenerationRejection(response.status) || index + 1 === accounts.length) return response
+      await response.body?.cancel()
+    }
+    if (lastFailure !== undefined) throw lastFailure
+    throw new LlmError(`${this.config.provider} has no connected account`, 'MISSING_CREDENTIAL')
   }
 
   private async ensureProfile(): Promise<ResolvedPiAiProviderProfile> {
@@ -261,11 +295,11 @@ export class ChatGptAccountAdapter extends LlmAdapter {
       return current
     }
     if (this.config.loadProfile === undefined) {
-      throw new LlmError('ChatGPT account route has no profile', 'NO_ADAPTER')
+      throw new LlmError(`${this.config.provider} account route has no profile`, 'NO_ADAPTER')
     }
     this.profilePromise ??= this.config.loadProfile()
     const loaded = await this.profilePromise
-    if (loaded === undefined) throw new LlmError('ChatGPT account route has no profile', 'NO_ADAPTER')
+    if (loaded === undefined) throw new LlmError(`${this.config.provider} account route has no profile`, 'NO_ADAPTER')
     this.loadedProfile = loaded
     return loaded
   }
@@ -324,6 +358,7 @@ export class AntigravityAccountAdapter extends LlmAdapter {
       provider,
       id: model.id,
       name: model.name ?? model.id,
+      ...model.endpoints === undefined ? {} : { endpoints: [...model.endpoints] },
       ...(model.supportsImages === undefined
         ? {}
         : { inputModalities: model.supportsImages ? ['text', 'image'] as const : ['text'] as const }),
@@ -331,33 +366,63 @@ export class AntigravityAccountAdapter extends LlmAdapter {
   }
 
   /**
-   * Return the configured or account-authenticated Antigravity catalog.
+   * Return the account-authenticated Antigravity catalog, independent of saved model selections.
    * @param signal - optional cancellation for account refresh and discovery.
    * @returns model metadata suitable for the LLM discovery seam.
    */
   async discoverModels(signal?: AbortSignal): Promise<LlmDiscoveredModel[]> {
-    const models = await this.models(signal)
+    const models = await this.models(signal, false)
     signal?.throwIfAborted()
     return models.map(model => ({
       id: model.id,
       name: model.name ?? model.id,
       ...(model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow }),
       ...(model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens }),
+      ...model.endpoints === undefined ? {} : { endpoints: [...model.endpoints] },
     }))
   }
 
   override async resolveModel(provider: string, model: string, signal?: AbortSignal): Promise<LlmResolvedModelInfo> {
     const known = (await this.models(signal)).find(candidate => candidate.id === model)
+    const endpoints = known?.endpoints ?? inferModelEndpoints(model)
     return {
       provider,
       id: model,
       name: known?.name ?? model,
+      ...endpoints === undefined ? {} : { endpoints: [...endpoints] },
       ...(known?.supportsImages === undefined
         ? {}
         : { inputModalities: known.supportsImages ? ['text', 'image'] as const : ['text'] as const }),
       ...(known?.contextWindow === undefined ? {} : { context: { contextWindow: known.contextWindow } }),
       ...(known?.maxTokens === undefined ? {} : { defaultMaxTokens: known.maxTokens }),
     }
+  }
+
+  override async requestGeneration(options: MediaGenerationOptions & { provider: string; model: string }): Promise<Response> {
+    const profile = this.config.profile()
+    if (profile === undefined) throw new LlmError('Antigravity account route has no profile', 'NO_ADAPTER')
+    const { AntigravityAdapter } = await this.nativeModule()
+    const accounts = await this.config.pool.selector.ordered('antigravity')
+    let failure: LlmError | undefined
+    for (const [index, account] of accounts.entries()) {
+      options.signal.throwIfAborted()
+      const delegate = new AntigravityAdapter({
+        resolveCredentials: () => this.selectedCredentials(account.id, profile, options.signal),
+        ...profile.endpoint === undefined ? {} : { endpoint: profile.endpoint },
+      })
+      let response: Response
+      try {
+        response = await delegate.requestGeneration(options)
+      } catch (error: unknown) {
+        options.signal.throwIfAborted()
+        if (!(error instanceof LlmError) || error.code !== 'MISSING_CREDENTIAL') throw error
+        failure = error
+        continue
+      }
+      if (!isGenerationRejection(response.status) || index + 1 === accounts.length) return response
+      await response.body?.cancel()
+    }
+    throw failure ?? new LlmError('Google Antigravity has no connected account', 'MISSING_CREDENTIAL')
   }
 
   override async *stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
@@ -388,10 +453,14 @@ export class AntigravityAccountAdapter extends LlmAdapter {
 
   private async models(
     signal?: AbortSignal,
+    useConfigured = true,
   ): Promise<readonly AntigravityCatalogModel[]> {
     const profile = this.config.profile()
     if (profile === undefined) throw new LlmError('Antigravity account route has no profile', 'NO_ADAPTER')
-    if (profile.models !== undefined) return profile.models
+    if (useConfigured && profile.models !== undefined) return profile.models.map((model) => {
+      const endpoints = model.endpoints ?? inferModelEndpoints(model.id)
+      return { ...model, ...endpoints === undefined ? {} : { endpoints: [...endpoints] } }
+    })
     const accounts = await this.config.pool.accounts.list()
     const account = accounts[0]
     if (account === undefined) return []
@@ -432,6 +501,7 @@ export class AntigravityAccountAdapter extends LlmAdapter {
         ...(model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens }),
         supportsImages: model.supportsImages,
         supportsThinking: model.supportsThinking,
+        ...model.endpoints === undefined ? {} : { endpoints: [...model.endpoints] },
       }))
   }
 
@@ -446,6 +516,17 @@ export class AntigravityAccountAdapter extends LlmAdapter {
       let selected: AntigravityCredentials | undefined
       await this.config.pool.credentials.modify('antigravity', async (current) => {
         abortIfNeeded(signal)
+        if (current?.type === 'oauth' && current.quotaProjectId !== undefined) {
+          const { googleCredential, refreshGoogle } = await import('./google-oauth.ts')
+          const shared = googleCredential(current)
+          if (shared.expires > Date.now()) { selected = shared; return undefined }
+          const deadline = AbortSignal.timeout(profile.timeoutMs ?? 30_000)
+          const bounded = signal === undefined ? deadline : AbortSignal.any([signal, deadline])
+          const refreshed = await refreshGoogle(shared, bounded)
+          bounded.throwIfAborted()
+          selected = refreshed
+          return refreshed
+        }
         const credentials = accountCredential(current)
         if (credentials === undefined) {
           throw new LlmError(`antigravity account "${accountId}" has invalid credentials`, 'INVALID_CREDENTIAL')

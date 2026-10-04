@@ -123,6 +123,14 @@ export interface ISessions {
    */
   revise(input: PromptRevisionRequest): Promise<SessionId>
   /**
+   * View or reference a stored path in the same session.
+   * @param sessionId - Owning session.
+   * @param versionId - Stored path.
+   * @param mode - View selection or logged reference injection.
+   * @returns Host acknowledgement and refreshed session metadata.
+   */
+  selectVersion(sessionId: SessionId, versionId: import('@hydraharness/harness-session/types').SessionVersionId, mode?: 'view' | 'reference'): Promise<void>
+  /**
    * Register a per-session standard-props provider (hooks become `use<Name>`
    * selector hooks on the render side; props spread verbatim).
    * @param descriptor - static member roster plus per-session resolver.

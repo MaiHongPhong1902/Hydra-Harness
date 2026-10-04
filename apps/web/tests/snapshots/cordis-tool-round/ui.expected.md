@@ -15,6 +15,8 @@
   - img
 - button "Edit":
   - img
+- button "Retry prompt":
+  - img
 - button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
@@ -82,6 +84,8 @@
 - button "Copy":
   - img
 - button "Edit":
+  - img
+- button "Retry prompt":
   - img
 - img
 - text: Stop Cordis Plugin snap-1

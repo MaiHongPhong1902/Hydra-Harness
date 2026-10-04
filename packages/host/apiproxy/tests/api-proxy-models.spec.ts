@@ -130,6 +130,53 @@ function registerTextOnly(ctx: Context): void {
 }
 
 describe('Web session model selection', () => {
+  it('authorizes only stored video references from the addressed session', async () => {
+    const { ctx, agent, sessionId } = await harness()
+    const ref = { attachmentId: 'video-authorized', mediaType: 'video/webm', name: 'tree.webm', bytes: 3 }
+    const readFileStream = vi.fn(async function* () { yield Uint8Array.of(1); yield Uint8Array.of(2, 3) })
+    ctx.provide('attachments', { readFileStream } as never)
+    const api = createApiProxy(ctx, { cwd: '/tmp', defaultModelSelection: () => ({ provider: 'deepseek-official', model: 'deepseek-chat' }) })
+    agent.session.append('tool/result', {
+      turn: 1, step: 1, message: { id: 'video-result', role: 'user', source: { kind: 'tool', callId: 'video' },
+        content: [{ type: 'tool-result', toolCallId: 'video', content: [{ type: 'text', text: 'Video generated.' }], isError: false }] },
+      meta: { kind: 'tool-videos', videos: [ref] },
+    } as never, { surfaceOp: 'append' })
+    expect((await api.sessions.attachment(request({ sessionId, attachmentId: 'video-other' as never }))).result)
+      .toMatchObject({ ok: false, error: { details: { reason: 'ATTACHMENT_NOT_REFERENCED' } } })
+    expect(readFileStream).not.toHaveBeenCalled()
+    expect((await api.sessions.attachment(request({ sessionId, attachmentId: 'video-authorized' as never }))).result)
+      .toMatchObject({ ok: true, value: { attachment: ref, data: 'AQID' } })
+    expect(readFileStream).toHaveBeenCalledOnce()
+    const history = await api.sessions.history(request({ sessionId }))
+    expect(expectValue(history).events.find(entry => entry.event.type === 'tool/result')?.view).toMatchObject({
+      for: 'result', view: { card: 'media', kind: 'video', content: [{ type: 'video', attachment: ref }] },
+    })
+    await ctx.fiber.dispose()
+  })
+
+  it('retains generation models in Settings while excluding and refusing them for conversation', async () => {
+    const { ctx, sessionId } = await harness()
+    const models: LlmModelInfo[] = [
+      { provider: 'mixed', id: 'chat', name: 'Chat', endpoints: ['responses'] },
+      { provider: 'mixed', id: 'image', name: 'Image', endpoints: ['images/generations'] },
+      { provider: 'mixed', id: 'video', name: 'Video', endpoints: ['videos'] },
+    ]
+    ctx.llm.registerAdapter(['mixed'], new class extends CatalogAdapter {
+      override resolveModel(provider: string, model: string): Promise<LlmResolvedModelInfo> {
+        return Promise.resolve({ provider, id: model, name: model, endpoints: models.find(entry => entry.id === model)!.endpoints! })
+      }
+    }('Mixed', models))
+    const api = createApiProxy(ctx, { defaultModelSelection: () => ({ provider: 'mixed', model: 'chat' }), cwd: '/tmp' })
+    try {
+      const settings = expectValue(await api.llm.models(request({})))
+      expect(settings.groups.find(group => group.id === 'mixed')?.models.map(model => model.id)).toEqual(['chat', 'image', 'video'])
+      const conversation = expectValue(await api.sessions.models(request({ sessionId })))
+      expect(conversation.groups.find(group => group.id === 'mixed')?.models.map(model => model.id)).toEqual(['chat'])
+      expect((await api.sessions.selectModel(request({ sessionId, provider: 'mixed', model: 'image' }))).result.ok).toBe(false)
+      expect(expectValue(await api.sessions.models(request({ sessionId }))).current.model).toBe('chat')
+    } finally { await ctx.fiber.dispose() }
+  })
+
   it('blocks a dismissed implicit DeepSeek route and recovers when its catalog is restored', async () => {
     const { ctx, agent, sessionId } = await harness()
     let declined = true
@@ -296,7 +343,7 @@ describe('Web session model selection', () => {
     await ctx.fiber.dispose()
   })
 
-  it('authorizes attachment bytes only when the session event stream references the id', async () => {
+  it.each(['inbox', 'tool'])('authorizes attachment bytes only when the session event stream references the id via %s', async (carrier) => {
     const { ctx, agent, sessionId } = await harness()
     const ref = {
       attachmentId: 'att-authorized', mediaType: 'image/png' as const, bytes: 2, width: 1, height: 1,
@@ -307,14 +354,15 @@ describe('Web session model selection', () => {
       defaultModelSelection: () => ({ provider: 'deepseek-official', model: 'deepseek-chat' }),
       cwd: '/tmp',
     })
-    agent.session.append('agent/inbox/spliced', {
-      target: 'next-turn',
-      start: 0,
-      inserted: [{
-        id: 'queued-image', role: 'user', source: { kind: 'user' },
-        content: [{ type: 'image', attachment: ref }],
-      }],
+    if (carrier === 'inbox') agent.session.append('agent/inbox/spliced', {
+      target: 'next-turn', start: 0,
+      inserted: [{ id: 'queued-image', role: 'user', source: { kind: 'user' }, content: [{ type: 'image', attachment: ref }] }],
     } as never)
+    else agent.session.append('tool/result', {
+      turn: 1, step: 1,
+      message: { role: 'user', source: { kind: 'tool', callId: 'image-call' }, id: 'image-result', content: [{ type: 'tool-result', toolCallId: 'image-call', content: [{ type: 'text', text: 'Generated image.' }], isError: false }] },
+      meta: { kind: 'tool-images', images: [ref] },
+    } as never, { surfaceOp: 'append' })
 
     const allowed = await api.sessions.attachment(request({
       sessionId, attachmentId: 'att-authorized' as never,

@@ -6,7 +6,7 @@ import { ImageLightbox } from '../src/ImageLightbox.tsx'
 
 afterEach(cleanup)
 
-const labels = { dialog: 'Original image preview', close: 'Close original image preview' }
+const labels = { dialog: 'Original image preview', close: 'Close original image preview', download: 'Download image' }
 
 describe('ImageLightbox', () => {
   it('focuses its close control, closes by button and Escape, and restores focus', () => {
@@ -16,6 +16,13 @@ describe('ImageLightbox', () => {
     const onClose = vi.fn()
     const view = render(<ImageLightbox src="blob:original" alt="Original image" labels={labels} onClose={onClose} />)
     const close = view.getByRole('button', { name: 'Close original image preview' })
+    expect(document.activeElement).toBe(close)
+    const download = view.getByRole('link', { name: 'Download image' })
+    expect(download.getAttribute('href')).toBe('blob:original')
+    expect(download.getAttribute('download')).toBe('Original image')
+    fireEvent.keyDown(window, { key: 'Tab' })
+    expect(document.activeElement).toBe(download)
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true })
     expect(document.activeElement).toBe(close)
     fireEvent.keyDown(window, { key: 'a' })
     expect(onClose).not.toHaveBeenCalled()

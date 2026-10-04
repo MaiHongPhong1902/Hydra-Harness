@@ -4,6 +4,8 @@ The **basic compaction backend**: a `BasicCompactionEngine` implementing the `@h
 
 This package owns the Service Provider role of the compaction capability — see the [Service Definition package](../compaction/README.md) for its contract and the [capability-seam Agent Note](../../../.agents/notes/implemented/feature/2026-06-18-compaction-capability-seam.md) for the design.
 
+Compaction reads the selected session version. The session's construction boundary clears inherited compaction locks across every stored version, including paths selected after resume.
+
 ## What it owns
 
 This backend owns the compaction policy:

@@ -9,6 +9,7 @@
  * Script vocabulary (all optional):
  * - `FAKE_TEXT`: assistant text for each turn (default `hello from fake runtime`).
  * - `FAKE_MODEL_CALL_LOG`: include model attribution and timing events.
+ * - `FAKE_VERSION_CONTROLS`: emit same-session version creation and selection records.
  * - `FAKE_STATUS`: the `session.finished` status (default `ok`).
  * - `FAKE_REASON_KIND`: the `session.finished` reason kind (default `completed`; `none` omits the reason).
  * - `FAKE_SUBAGENT`: also emit a child session (subagent.started + child event + subagent.finished).
@@ -94,6 +95,10 @@ function runTurn(sessionId: string): void {
   if (env.FAKE_MALFORMED_EVENT !== undefined) {
     notify('session.event', { sessionId, event: 42 })
     return
+  }
+  if (env.FAKE_VERSION_CONTROLS !== undefined) {
+    event(sessionId, 'session/version', { versionId: 'edited', parentVersionId: 'original', beforeSeq: 0 })
+    event(sessionId, 'session/version-selected', { versionId: 'original' })
   }
   event(sessionId, 'turn/start', { turn: 0 })
   if (env.FAKE_MODEL_CALL_LOG !== undefined) {

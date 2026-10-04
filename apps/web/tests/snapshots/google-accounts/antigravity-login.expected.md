@@ -1,0 +1,70 @@
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+    - button "Archived sessions":
+      - img
+      - text: Archived sessions
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Models" [level=2]
+  - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - region "Image and video generation":
+    - heading "Image and video generation" [level=3]
+    - button "Refresh models"
+    - paragraph: Choose models marked Image or Video, grouped by provider. Fetch and save a provider's models to add them here. Generation requires a connected provider that supports the selected task.
+    - text: Image model
+    - combobox "Image model":
+      - option "Automatic fallback" [selected]
+    - text: Video model
+    - combobox "Video model":
+      - option "Automatic fallback" [selected]
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list
+    - button "Add provider":
+      - img
+      - text: Add provider
+    - button "Add a custom provider":
+      - img
+      - text: Add a custom provider
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect provider accounts independently of your API keys.
+    - list
+    - text: Provider
+    - combobox "Provider":
+      - option "ChatGPT"
+      - option "Google" [selected]
+      - option "Claude"
+      - option "xAI"
+      - option "Kimi Code"
+      - option "Cursor"
+      - option "Kiro"
+    - paragraph: Sign in with Google to use Antigravity. No Cloud project ID is needed.
+    - button "Add account"
+    - status
+    - group: Customized settings
+    - button "Cancel"
+    - button "Apply"

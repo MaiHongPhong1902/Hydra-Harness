@@ -537,6 +537,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         throws: ['{AuthorizationError} code `NO_FLOW` when nothing claims the key, or `NO_ACCOUNTS` when the flow has no account removal operation, or `ALREADY_IN_FLIGHT` while a login or account removal is running for the flow.'],
       },
       {
+        signature: 'async forget(key: CredentialKey): Promise<void>',
+        description: 'Forget the entire local credential record without contacting its issuer. An absent record is a no-op; orphan records need no registered flow.',
+        parameters: [{ name: 'key', description: 'the record whose saved accounts and credentials are removed.' }],
+        throws: ['{AuthorizationError} code `ALREADY_IN_FLIGHT` while login or removal holds the key.'],
+      },
+      {
         signature: 'cancel(key: CredentialKey): void',
         description: 'Withdraw the attempt running for a key, if any. Separate from the request\'s own signal because a request/response transport answers a Cancel button on a second call, with no handle on the first one\'s signal.',
         parameters: [{ name: 'key', description: 'the credential record whose attempt should stop.' }],
@@ -1308,6 +1314,18 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Resolve and validate all metadata from the adapter that owns one exact route. The result is detached from adapter-owned objects; catalog membership remains advisory and does not control request routing.',
         parameters: [{ name: 'provider', description: 'registered provider route to inspect.' }, { name: 'model', description: 'exact model id passed to the adapter.' }, { name: 'signal', description: 'optional cancellation for adapter-owned asynchronous lookup.' }],
         returns: 'exact model identity plus available context and reasoning metadata.',
+      },
+      {
+        signature: 'registerGenerationPreferences(resolve: (endpoint: MediaGenerationOptions[\'endpoint\']) => Pick<LlmCallConfig, \'provider\' | \'model\'> | undefined): () => void',
+        description: 'Register the live, global image/video preference reader.',
+        parameters: [{ name: 'resolve', description: 'Current explicit provider/model choice for the endpoint, independent of adapter ownership.' }],
+        returns: 'The disposer withdrawing this reader. A second owner is rejected.',
+      },
+      {
+        signature: 'async generateMedia(options: MediaGenerationOptions): Promise<MediaGenerationResponse | undefined>',
+        description: 'Generate with endpoint-compatible models, preferring the global provider/model selection. Missing credentials and HTTP 401/404/429 advance to the next candidate. Cancellation, transport failures, timeouts, safety refusals, and server failures stop the sequence.',
+        parameters: [{ name: 'options', description: 'Endpoint, optional route restriction/model hint, JSON fields, and cancellation.' }],
+        returns: 'The accepted response and exact provider/model, or undefined when no candidate exists.',
       },
       {
         signature: 'async resolveCallConfig(config: LlmCallConfig, signal?: AbortSignal): Promise<LlmCallConfig>',
@@ -3141,6 +3159,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     parameters: [{ name: 'session', description: 'the session whose buffered events must reach durable storage.' }],
   },
   {
+    name: 'session/version-changing',
+    mode: 'emit',
+    signature: '\'session/version-changing\'(this: Scoped<Session>, session: Session, event: SessionEvent<\'session/version\' | \'session/version-selected\'>): void',
+    summary: 'Synchronous pre-commit veto for transcript path changes.',
+    description: 'Synchronous pre-commit veto for transcript path changes. Listeners must return synchronously. Scope-filtered dispatch uses the session\'s captured owner scope.',
+    parameters: [{ name: 'session', description: 'Session proposing a transcript path change.' }, { name: 'event', description: 'Validated creation or selection record before commit.' }],
+  },
+  {
     name: 'settings/document-updated',
     mode: 'emit',
     signature: '\'settings/document-updated\'(ns: SettingsNamespace, revision: number): void',
@@ -3474,7 +3500,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'AuthorizationNotice',
-    declaration: 'export interface AuthorizationNotice {\n    message: string;\n    url?: string;\n    code?: string;\n}',
+    declaration: 'export interface AuthorizationNotice {\n    message: string;\n    url?: string;\n    code?: string;\n    snippet?: string;\n}',
   },
   {
     name: 'AuthorizationOutcome',
@@ -4005,6 +4031,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface GenerateOptions {\n    provider: string;\n    model: string;\n    reasoningEffort?: ReasoningEffortId;\n    messages: Message[];\n    system?: string;\n    tools?: ToolSchema[];\n    temperature?: number;\n    maxTokens?: number;\n    stop?: string[];\n    signal?: AbortSignal;\n    sessionId?: Branded<\'SessionId\'>;\n    purpose?: \'compaction\' | \'session-title\';\n}',
   },
   {
+    name: 'GenerationEndpoint',
+    declaration: 'export type GenerationEndpoint = \'images/generations\' | \'videos\';',
+  },
+  {
     name: 'GenericCallView',
     declaration: 'export interface GenericCallView {\n    card: \'generic\';\n    title: string;\n    kind?: ToolCallKind;\n    rawInput?: unknown;\n    content?: ContentBlock[];\n    locations?: FileLocation[];\n}',
   },
@@ -4282,7 +4312,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LlmAdapter',
-    declaration: 'export abstract class LlmAdapter {\n    providerInfo(provider: string): LlmProviderInfo;\n    providerRetryPolicy(_provider: string): ResolvedRetryPolicy | undefined;\n    listModels(_provider: string): Promise<readonly LlmModelInfo[]>;\n    resolveModel(provider: string, model: string, _signal?: AbortSignal): Promise<LlmResolvedModelInfo>;\n    abstract stream(options: GenerateOptions): AsyncIterable<StreamChunk>;\n}',
+    declaration: 'export abstract class LlmAdapter {\n    requestGeneration(_options: MediaGenerationOptions & {\n        provider: string;\n        model: string;\n    }): Promise<Response>;\n    providerInfo(provider: string): LlmProviderInfo;\n    providerRetryPolicy(_provider: string): ResolvedRetryPolicy | undefined;\n    listModels(_provider: string): Promise<readonly LlmModelInfo[]>;\n    resolveModel(provider: string, model: string, _signal?: AbortSignal): Promise<LlmResolvedModelInfo>;\n    abstract stream(options: GenerateOptions): AsyncIterable<StreamChunk>;\n}',
   },
   {
     name: 'LlmCallConfig',
@@ -4298,7 +4328,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LlmDiscoveredModel',
-    declaration: 'export interface LlmDiscoveredModel {\n    id: string;\n    name?: string;\n    contextWindow?: number;\n    maxTokens?: number;\n}',
+    declaration: 'export interface LlmDiscoveredModel {\n    id: string;\n    name?: string;\n    contextWindow?: number;\n    maxTokens?: number;\n    endpoints?: string[];\n}',
   },
   {
     name: 'LlmFailure',
@@ -4314,7 +4344,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LlmModelInfo',
-    declaration: 'export interface LlmModelInfo {\n    provider: string;\n    id: string;\n    name: string;\n    description?: string;\n    inputModalities?: readonly ModelModality[];\n}',
+    declaration: 'export interface LlmModelInfo {\n    provider: string;\n    id: string;\n    name: string;\n    description?: string;\n    inputModalities?: readonly ModelModality[];\n    endpoints?: readonly string[];\n}',
   },
   {
     name: 'LlmModelReasoningInfo',
@@ -4334,7 +4364,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LlmRuntime',
-    declaration: 'export class LlmRuntime extends Service {\n    constructor(ctx: Context);\n    registerAdapter(providers: string[], adapter: LlmAdapter): AdapterRegistrationHandle;\n    listProviders(): LlmProviderInfo[];\n    registerConfigurableProviders(entries: readonly LlmConfigurableProvider[]): DirectoryRegistrationHandle;\n    listConfigurableProviders(): LlmConfigurableProvider[];\n    registerModelDiscovery(settingsNs: string, discover: (request: LlmModelDiscoveryRequest) => Promise<readonly LlmDiscoveredModel[]>): () => void;\n    async discoverModels(settingsNs: string, request: LlmModelDiscoveryRequest): Promise<LlmDiscoveredModel[]>;\n    providerRetryPolicy(provider: string): ResolvedRetryPolicy;\n    async listModels(provider: string): Promise<LlmModelInfo[]>;\n    fileRequestText(ref: FileAttachmentRef): string;\n    async resolveModelInfo(provider: string, model: string, signal?: AbortSignal): Promise<LlmResolvedModelInfo>;\n    async resolveCallConfig(config: LlmCallConfig, signal?: AbortSignal): Promise<LlmCallConfig>;\n    async prepareCall(config: LlmCallConfig, signal?: AbortSignal): Promise<PreparedLlmCall>;\n    stream(options: GenerateOptions): AsyncIterable<StreamChunk>;\n}',
+    declaration: 'export class LlmRuntime extends Service {\n    constructor(ctx: Context);\n    registerAdapter(providers: string[], adapter: LlmAdapter): AdapterRegistrationHandle;\n    listProviders(): LlmProviderInfo[];\n    registerConfigurableProviders(entries: readonly LlmConfigurableProvider[]): DirectoryRegistrationHandle;\n    listConfigurableProviders(): LlmConfigurableProvider[];\n    registerModelDiscovery(settingsNs: string, discover: (request: LlmModelDiscoveryRequest) => Promise<readonly LlmDiscoveredModel[]>): () => void;\n    async discoverModels(settingsNs: string, request: LlmModelDiscoveryRequest): Promise<LlmDiscoveredModel[]>;\n    providerRetryPolicy(provider: string): ResolvedRetryPolicy;\n    async listModels(provider: string): Promise<LlmModelInfo[]>;\n    fileRequestText(ref: FileAttachmentRef): string;\n    async resolveModelInfo(provider: string, model: string, signal?: AbortSignal): Promise<LlmResolvedModelInfo>;\n    registerGenerationPreferences(resolve: (endpoint: MediaGenerationOptions[\'endpoint\']) => Pick<LlmCallConfig, \'provider\' | \'model\'> | undefined): () => void;\n    async generateMedia(options: MediaGenerationOptions): Promise<MediaGenerationResponse | undefined>;\n    async resolveCallConfig(config: LlmCallConfig, signal?: AbortSignal): Promise<LlmCallConfig>;\n    async prepareCall(config: LlmCallConfig, signal?: AbortSignal): Promise<PreparedLlmCall>;\n    stream(options: GenerateOptions): AsyncIterable<StreamChunk>;\n}',
   },
   {
     name: 'LspHover',
@@ -4403,6 +4433,22 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'McpServerView',
     declaration: 'export interface McpServerView {\n    readonly name: string;\n    readonly transport: McpServerTransport;\n    readonly enabled: boolean;\n    readonly status: McpServerStatus;\n    readonly detail?: string;\n    readonly command?: string;\n    readonly args?: readonly string[];\n    readonly cwd?: string;\n    readonly url?: string;\n    readonly envNames: readonly string[];\n    readonly headerNames: readonly string[];\n    readonly toolCallTimeoutMs: number;\n    readonly tools: readonly string[];\n}',
+  },
+  {
+    name: 'MediaCallView',
+    declaration: 'export interface MediaCallView {\n    card: \'media\';\n    kind: \'image\' | \'video\';\n    title: string;\n    prompt: string;\n    aspectRatio?: number;\n}',
+  },
+  {
+    name: 'MediaGenerationOptions',
+    declaration: 'export interface MediaGenerationOptions {\n    endpoint: GenerationEndpoint;\n    provider?: string;\n    model?: string;\n    body: Readonly<Record<string, unknown>>;\n    maxResponseBytes: number;\n    pollIntervalMs?: number;\n    signal: AbortSignal;\n}',
+  },
+  {
+    name: 'MediaGenerationResponse',
+    declaration: 'export interface MediaGenerationResponse {\n    provider: string;\n    model: string;\n    response: Response;\n}',
+  },
+  {
+    name: 'MediaResultView',
+    declaration: 'export interface MediaResultView {\n    card: \'media\';\n    kind: \'image\' | \'video\';\n    title?: string;\n    content: Array<{\n        type: \'image\';\n        attachment: ImageAttachmentRef;\n    } | {\n        type: \'video\';\n        attachment: VideoAttachmentRef;\n    }>;\n    model?: string;\n    provider?: string;\n}',
   },
   {
     name: 'MemoryEntry',
@@ -4594,7 +4640,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ProjectionDefinition',
-    declaration: 'export interface ProjectionDefinition<K extends keyof SessionProjectionStateMap, S extends SessionProjectionStateMap[K] = SessionProjectionStateMap[K]> {\n    key: K;\n    stateSchema: ZodType<S>;\n    init(): NoInfer<S>;\n    apply(state: NoInfer<S>, event: SessionEvent): NoInfer<S>;\n    wire?: K extends keyof SessionProjectionMap ? {\n        viewSchema: ZodType<SessionProjectionMap[K]>;\n        view(state: NoInfer<S>): SessionProjectionMap[K];\n    } : never;\n    stateVersion: number;\n}',
+    declaration: 'export interface ProjectionDefinition<K extends keyof SessionProjectionStateMap, S extends SessionProjectionStateMap[K] = SessionProjectionStateMap[K]> {\n    history?: \'active-version\';\n    key: K;\n    stateSchema: ZodType<S>;\n    init(): NoInfer<S>;\n    apply(state: NoInfer<S>, event: SessionEvent): NoInfer<S>;\n    wire?: K extends keyof SessionProjectionMap ? {\n        viewSchema: ZodType<SessionProjectionMap[K]>;\n        view(state: NoInfer<S>): SessionProjectionMap[K];\n    } : never;\n    stateVersion: number;\n}',
   },
   {
     name: 'ProjectionSnapshot',
@@ -4838,7 +4884,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionEventMap',
-    declaration: 'export interface SessionEventMap {\n    \'turn/start\': {\n        turn: number;\n    };\n    \'turn/end\': {\n        turn: number;\n        reason: TurnEndReason;\n    };\n    \'step/start\': {\n        turn: number;\n        step: number;\n    };\n    \'step/end\': {\n        turn: number;\n        step: number;\n    };\n    \'user/message\': UserMessage;\n    \'assistant/chunk\': {\n        turn: number;\n        step: number;\n        chunk: StreamChunk;\n    };\n    \'assistant/message\': {\n        turn: number;\n        step: number;\n        message: AssistantMessage;\n        usage?: TokenUsage;\n        interrupted?: true;\n    };\n    \'tool/call\': {\n        turn: number;\n        step: number;\n        callId: CallId;\n        name: string;\n        arguments: string;\n    };\n    \'tool/result\': {\n        turn: number;\n        step: number;\n        message: ToolResultMessage;\n        error?: {\n            name: string;\n            code: string;\n        };\n        meta?: JsonValue;\n    };\n    \'todo/write\': {\n        todos: TodoItem[];\n    };\n    \'request/header\': {\n        header: EpochHeader;\n        reason: RequestHeaderReason;\n    };\n    \'request/context\': RequestContext;\n    \'session/end-seed\': Record<string, never>;\n}',
+    declaration: 'export interface SessionEventMap {\n    \'session/version\': {\n        versionId: SessionVersionId;\n        parentVersionId: SessionVersionId;\n        beforeSeq: number;\n    };\n    \'session/version-selected\': {\n        versionId: SessionVersionId;\n    };\n    \'turn/start\': {\n        turn: number;\n    };\n    \'turn/end\': {\n        turn: number;\n        reason: TurnEndReason;\n    };\n    \'step/start\': {\n        turn: number;\n        step: number;\n    };\n    \'step/end\': {\n        turn: number;\n        step: number;\n    };\n    \'user/message\': UserMessage;\n    \'assistant/chunk\': {\n        turn: number;\n        step: number;\n        chunk: StreamChunk;\n    };\n    \'assistant/message\': {\n        turn: number;\n        step: number;\n        message: AssistantMessage;\n        usage?: TokenUsage;\n        interrupted?: true;\n    };\n    \'tool/call\': {\n        turn: number;\n        step: number;\n        callId: CallId;\n        name: string;\n        arguments: string;\n    };\n    \'tool/result\': {\n        turn: number;\n        step: number;\n        message: ToolResultMessage;\n        error?: {\n            name: string;\n            code: string;\n        };\n        meta?: JsonValue;\n    };\n    \'todo/write\': {\n        todos: TodoItem[];\n    };\n    \'request/header\': {\n        header: EpochHeader;\n        reason: RequestHeaderReason;\n    };\n    \'request/context\': RequestContext;\n    \'session/end-seed\': Record<string, never>;\n}',
   },
   {
     name: 'SessionEventMetadataFilter',
@@ -5087,6 +5133,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionTitleUserMessage',
     declaration: 'export interface SessionTitleUserMessage {\n    readonly seq: number;\n    readonly text: string;\n}',
+  },
+  {
+    name: 'SessionVersionId',
+    declaration: 'export type SessionVersionId = Branded<\'SessionVersionId\'>;',
   },
   {
     name: 'SettingsApplies',
@@ -5526,7 +5576,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ToolCallView',
-    declaration: 'export type ToolCallView = GenericCallView | TerminalCallView | DiffCallView;',
+    declaration: 'export type ToolCallView = GenericCallView | TerminalCallView | DiffCallView | MediaCallView;',
   },
   {
     name: 'ToolDefinition',
@@ -5610,7 +5660,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ToolResultView',
-    declaration: 'export type ToolResultView = GenericResultView | TerminalResultView | DiffResultView | SearchResultView | ReadResultView | WebResultView;',
+    declaration: 'export type ToolResultView = GenericResultView | TerminalResultView | DiffResultView | SearchResultView | ReadResultView | WebResultView | MediaResultView;',
   },
   {
     name: 'ToolRunContext',
@@ -5711,6 +5761,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'UserQuestionProvider',
     declaration: 'export interface UserQuestionProvider {\n    ask(request: AskUserQuestionRequest): Promise<AskUserQuestionAnswer>;\n}',
+  },
+  {
+    name: 'VideoAttachmentRef',
+    declaration: 'export interface VideoAttachmentRef extends FileAttachmentRef {\n    mediaType: \'video/mp4\' | \'video/webm\';\n}',
   },
   {
     name: 'WebBootEntry',

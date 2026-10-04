@@ -23,6 +23,7 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
       undo: async r => ({ rpcId: r.rpcId, result: { ok: false, error: { code: 'internal', message: 'unavailable', details: {} } } }),
     },
     sessions: {
+      selectVersion: async r => ({ rpcId: r.rpcId, result: { ok: true, value: { versionId: r.payload.versionId } } }),
       delete: async r => ({ rpcId: r.rpcId, result: { ok: true, value: { deleted: true, sessionIds: [r.payload.sessionId] } } }),
       revise: r => Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'fork-unavailable', message: 'not configured', details: { sessionId: r.payload.sessionId } } } }),
       async list(request) {
@@ -380,6 +381,7 @@ describe('unary round trip (handler ⇄ client, no network)', () => {
       .toMatchObject({ payload: { value: '[redacted]' } })
     expect((await c.authorization.cancel({ attemptId })).result.ok).toBe(true)
     expect((await c.authorization.logout({ key, accountId: 'primary' })).result.ok).toBe(true)
+    expect((await c.authorization.logout({ key })).result.ok).toBe(true)
     expect((await c.authorization.usage({ key, accountId: 'primary' })).result).toEqual({ ok: true, value: {} })
     expect((await c.webSearch.providers({})).result).toEqual({ ok: true, value: { providers: [] } })
     expect((await c.webSearch.testConnection({ provider: 'tavily' })).result)

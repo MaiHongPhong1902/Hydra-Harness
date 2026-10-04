@@ -24,12 +24,23 @@ export interface InboxNotifications {
 /** A replay-once projection that incrementally consumes later inbox splices. */
 export class Inbox {
   private readonly state: InboxState = { 'next-turn': [], 'next-step': [] }
+  private versionGeneration = -1
 
   constructor(
     private readonly session: Session,
     private readonly notifications: InboxNotifications,
   ) {
-    for (const event of session.events.slice(session.header.seedLength ?? 0)) {
+    this.syncVersion()
+  }
+
+  /** Restore pending input from the selected path before accessing its mutable lists. */
+  private syncVersion(): void {
+    if (this.versionGeneration === this.session.versions.generation) return
+    this.versionGeneration = this.session.versions.generation
+    this.state['next-turn'] = []
+    this.state['next-step'] = []
+    for (const event of this.session.activeEvents) {
+      if (event.seq < (this.session.header.seedLength ?? 0)) continue
       if (event.type !== 'agent/inbox/spliced') continue
       try {
         this.apply(event.data)
@@ -41,11 +52,13 @@ export class Inbox {
 
   /** Prompts awaiting individual turns. */
   get nextTurn(): readonly UserMessage[] {
+    this.syncVersion()
     return this.state['next-turn']
   }
 
   /** Input awaiting the next step boundary. */
   get nextStep(): readonly UserMessage[] {
+    this.syncVersion()
     return this.state['next-step']
   }
 
@@ -84,6 +97,7 @@ export class Inbox {
    * @throws if the message identity is already pending.
    */
   append(target: InboxTarget, message: UserMessage): void {
+    this.syncVersion()
     this.splice(target, this.state[target].length, 0, [message])
   }
 
@@ -147,6 +161,7 @@ export class Inbox {
 
   /** Locate one pending identity across both owned lists. */
   private locate(messageId: MessageId): { target: InboxTarget; index: number } | undefined {
+    this.syncVersion()
     for (const target of ['next-turn', 'next-step'] as const) {
       const index = this.state[target].findIndex(message => message.id === messageId)
       if (index >= 0) return { target, index }
@@ -162,6 +177,7 @@ export class Inbox {
     inserted: UserMessage[],
     discardRemoved: boolean,
   ): UserMessage[] {
+    this.syncVersion()
     const inbox = this.state[target]
     const truncatedStart = Math.trunc(start)
     const offset = Number.isNaN(truncatedStart) ? 0 : truncatedStart

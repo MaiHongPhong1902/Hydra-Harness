@@ -264,6 +264,8 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   LlmConfigurableProvider: 'llm-streaming.md',
   LlmModelDiscoveryRequest: 'llm-streaming.md',
   LlmDiscoveredModel: 'llm-streaming.md',
+  MediaGenerationOptions: 'llm-streaming.md',
+  MediaGenerationResponse: 'llm-streaming.md',
   JevSystemOneRequest: 'llm-streaming.md',
   JevSystemOneResult: 'llm-streaming.md',
   JevRequestOptions: 'llm-streaming.md',

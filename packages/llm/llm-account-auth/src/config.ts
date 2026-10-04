@@ -1,10 +1,10 @@
-/** Settings for the two native account-backed provider routes. */
+/** Settings for native account-backed provider routes. */
 
 import z from '@hydraharness/schemastery'
 import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import type { CacheRetention, ModelThinkingLevel, ThinkingBudgets, Transport } from '@earendil-works/pi-ai'
 import type { RetryPolicyConfig } from '@hydraharness/harness-llm'
-import { RetryPolicySchema } from '@hydraharness/harness-llm'
+import { RetryPolicySchema, inferModelEndpoints } from '@hydraharness/harness-llm'
 
 /** One optional model override for an account-backed route. */
 export interface AccountModelProfile {
@@ -16,6 +16,8 @@ export interface AccountModelProfile {
   contextWindow?: number
   /** Maximum output token capability. */
   maxTokens?: number
+  /** Generation or conversation endpoint families; omission uses known model family hints. */
+  endpoints?: string[]
 }
 
 /** One account-backed provider's settings. */
@@ -50,23 +52,35 @@ export interface AccountProviderProfile {
   retryPolicy?: RetryPolicyConfig
   /** Maximum base64-encoded image payload accepted in one request. */
   maxRequestImageBytes?: number
-  /** Optional Cloud Code Assist endpoint used by Antigravity requests. */
+  /** Native API base URL; HTTPS or loopback HTTP without credentials, query, or fragment. */
   endpoint?: string
-  /** Loopback callback port used by Antigravity OAuth; zero asks the OS for a free port. */
+  /** Loopback callback port used by Google OAuth; zero asks the OS for a free port. */
   callbackPort?: number
-  /** Loopback callback path used by Antigravity OAuth. */
+  /** Loopback callback path used by Google OAuth. */
   callbackPath?: string
   /** Number of Antigravity onboarding attempts. */
   onboardingAttempts?: number
   /** Delay between incomplete Antigravity onboarding attempts. */
   onboardingDelayMs?: number
+  /** AWS region used by Kiro Builder ID login and requests. */
+  region?: string
+  /** AWS IAM Identity Center start URL; omission uses AWS Builder ID. */
+  startURL?: string
+  /** AWS IAM Identity Center issuer used for Kiro's scoped client registration. */
+  issuerURL?: string
+  /** Kiro profile ARN returned by the provider; omission uses the token's profile when supplied. */
+  profileArn?: string
+  /** Maximum duration of a Google, Cursor, or Kiro login attempt. */
+  loginTimeoutMs?: number
+  /** Interval between Cursor login polling requests. */
+  loginPollIntervalMs?: number
 }
 
-/** Plugin settings, keyed by the route names `chatgpt` and `antigravity`. */
+/** Plugin settings keyed by account provider route. */
 export interface Config {
   /** Maximum time for one account usage request, including credential refresh. */
   usageTimeoutMs?: number
-  /** Enabled account-backed routes. An empty map leaves both routes dormant. */
+  /** Enabled account-backed routes. An empty map leaves routes dormant. */
   providers?: Record<string, AccountProviderProfile>
 }
 
@@ -75,6 +89,7 @@ const modelProfile: z<AccountModelProfile> = z.object({
   name: z.string(),
   contextWindow: z.number().step(1).min(1),
   maxTokens: z.number().step(1).min(1),
+  endpoints: z.array(z.string()),
 })
 
 const providerProfile: z<AccountProviderProfile> = z.object({
@@ -95,6 +110,12 @@ const providerProfile: z<AccountProviderProfile> = z.object({
   callbackPath: z.string(),
   onboardingAttempts: z.natural().min(1),
   onboardingDelayMs: z.number().step(1).min(0),
+  region: z.string(),
+  startURL: z.string(),
+  issuerURL: z.string(),
+  profileArn: z.string(),
+  loginTimeoutMs: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS),
+  loginPollIntervalMs: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS),
 })
 
 /** Schema used by the settings section and composition loader. */
@@ -104,7 +125,7 @@ export const Config: z<Config> = z.object({
 })
 
 /** The routes owned by this package, in UI and registration order. */
-export const ACCOUNT_PROVIDERS = ['chatgpt', 'antigravity'] as const
+export const ACCOUNT_PROVIDERS = ['chatgpt', 'antigravity', 'gemini-api', 'claude', 'xai-account', 'kimi', 'cursor', 'kiro'] as const
 
 /** Provider route type owned by this package. */
 export type AccountProvider = (typeof ACCOUNT_PROVIDERS)[number]
@@ -113,6 +134,12 @@ export type AccountProvider = (typeof ACCOUNT_PROVIDERS)[number]
 export const ACCOUNT_PROVIDER_LABELS: Readonly<Record<AccountProvider, string>> = {
   chatgpt: 'ChatGPT',
   antigravity: 'Google Antigravity',
+  'gemini-api': 'Google Gemini API OAuth',
+  claude: 'Claude',
+  'xai-account': 'xAI',
+  kimi: 'Kimi Code',
+  cursor: 'Cursor',
+  kiro: 'Kiro',
 }
 
 /**
@@ -129,8 +156,32 @@ export function resolveProfiles(
     if (!(ACCOUNT_PROVIDERS as readonly string[]).includes(provider)) {
       throw new Error(`llm-account-auth: unknown provider "${provider}"`)
     }
+    if (profile.region !== undefined && !/^[a-z]{2}(?:-[a-z]+)+-\d$/.test(profile.region)) throw new Error(`llm-account-auth: provider "${provider}" has an invalid AWS region`)
+    for (const field of ['startURL', 'issuerURL'] as const) {
+      if (profile[field] === undefined) continue
+      const url = new URL(profile[field])
+      if (url.protocol !== 'https:' || url.username || url.password || url.hash) throw new Error(`llm-account-auth: provider "${provider}" ${field} must use HTTPS without credentials or fragment`)
+    }
+    for (const field of ['loginTimeoutMs', 'loginPollIntervalMs'] as const) {
+      const value = profile[field]
+      if (value !== undefined && (!Number.isSafeInteger(value) || value < 1 || value > MAX_TIMER_DELAY_MS)) throw new Error(`llm-account-auth: provider "${provider}" ${field} must be a positive timer interval`)
+    }
     if (profile.endpoint !== undefined && profile.endpoint.trim().length === 0) {
       throw new Error(`llm-account-auth: provider "${provider}" has an empty endpoint`)
+    }
+    if (profile.endpoint !== undefined) {
+      const url = new URL(profile.endpoint)
+      if (url.username || url.password || url.search || url.hash
+        || (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)))) throw new Error(`llm-account-auth: provider "${provider}" endpoint must use HTTPS or loopback HTTP without credentials, query, or fragment`)
+    }
+    if (provider === 'kiro') {
+      for (const field of ['defaultMaxTokens', 'reasoning', 'thinkingBudgets', 'cacheRetention', 'transport', 'websocketConnectTimeoutMs', 'retryPolicy', 'maxRequestImageBytes'] as const) {
+        const value = profile[field]
+        if (value === undefined || (typeof value === 'object' && Object.values(value).every(entry => entry === undefined))) continue
+        throw new Error(`llm-account-auth: Kiro does not support ${field}`)
+      }
+      if (profile.timeoutMs !== undefined && (!Number.isSafeInteger(profile.timeoutMs) || profile.timeoutMs <= 0 || profile.timeoutMs > MAX_TIMER_DELAY_MS)) throw new Error('llm-account-auth: Kiro timeoutMs must be a positive timer interval')
+      if (profile.models?.some(model => model.maxTokens !== undefined)) throw new Error('llm-account-auth: Kiro models do not support maxTokens')
     }
     if (profile.callbackPath !== undefined
       && (!profile.callbackPath.startsWith('/') || profile.callbackPath.includes('?'))) {
@@ -196,11 +247,16 @@ export function resolveProfiles(
         }
       }
       /* jscpd:ignore-start -- account profile and runtime discovery use the same normalized model row. */
+      const endpoints = model.endpoints?.length ? [...model.endpoints] : inferModelEndpoints(model.id)
+      if (endpoints?.some(path => path.includes('://') || !/^[a-zA-Z][a-zA-Z0-9/{}:._-]*$/.test(path))) {
+        throw new Error(`llm-account-auth: provider "${provider}" model "${model.id}" has invalid endpoints`)
+      }
       return {
         id: model.id,
         ...model.name === undefined ? {} : { name: model.name },
         ...model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow },
         ...model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens },
+        ...endpoints === undefined ? {} : { endpoints },
       }
       /* jscpd:ignore-end */
     })

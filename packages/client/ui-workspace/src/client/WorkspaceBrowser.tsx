@@ -13,7 +13,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
 import {
   Button, IconCloseFill14, IconPersonalizationOutline16,
-  IconProjectAddOutline16, IconSearchOutline16, Menu, Modal, Tooltip,
+  IconProjectAddOutline16, IconSearchOutline16, Menu, Modal, Tooltip, writeClipboard,
 } from '@hydraharness/harness-client-ui-primitives'
 import type {
   SessionId, SessionListState, SessionSearchResultItem, WorkspaceId, WorkspaceView,
@@ -26,6 +26,13 @@ import { FLAT_SESSION_ORDER_KEY } from './stores.ts'
 import { WorkspacePickFlow } from './WorkspacePicker.tsx'
 import { DeleteSessionDialog } from './DeleteSessionDialog.tsx'
 import css from './WorkspaceBrowser.module.css'
+import { displayProjects, isOrganized, type SessionOrganization } from './organization.ts'
+import type { SessionMenuOptions } from './SessionMenu.tsx'
+
+const EMPTY_IDS: readonly string[] = []
+const EMPTY_SECTIONS: SessionOrganization['sections'] = []
+const EMPTY_ASSIGNMENTS: Readonly<Record<string, string>> = {}
+const EMPTY_PROJECTS: Readonly<Record<string, string | null>> = {}
 
 /**
  * Column slide length (--ds-transition-duration-slow): rail-search focus waits it out —
@@ -221,6 +228,10 @@ type SessionTreeProps = Pick<
   'useSessions' | 'startSession' | 'open' | 'forkSession'
   | 'insertWorkspaceBefore' | 'insertSessionBefore' | 't'
 > & {
+  organization?: SessionOrganization | undefined
+  sessionMenuFor?: ((id: SessionId) => SessionMenuOptions) | undefined
+  sourceWorkspaces?: readonly WorkspaceView[] | undefined
+  displayOnlySessionIds?: readonly string[] | undefined
   /** Host account home for POSIX hover-path abbreviation. */
   home?: string | undefined
   workspaces: readonly WorkspaceView[]
@@ -264,6 +275,7 @@ function SessionTree({
   insertWorkspaceBefore, insertSessionBefore, orderBy,
   groupExpansion, setGroupExpanded,
   sessionOrderByAccount, sessionUpdatedAtByAccount, syncSessionOrderAccount, setSessionOrder, home, t,
+  organization, sessionMenuFor, sourceWorkspaces, displayOnlySessionIds,
 }: SessionTreeProps) {
   const list = useSessions(s => s)
   const current = list.current
@@ -336,11 +348,13 @@ function SessionTree({
       ...(sessionOrderByAccount[UNGROUPED_KEY] === undefined
         ? {}
         : { ungroupedOrder: sessionOrderByAccount[UNGROUPED_KEY] }),
+    }).map(group => organization === undefined ? group : {
+      ...group, sessions: group.sessions.filter(node => !isOrganized(node.id, organization)),
     }),
-    [list, orderedWorkspaces, archivedSessionIds, expandedGroups, sessionOrderByAccount],
+    [list, orderedWorkspaces, archivedSessionIds, expandedGroups, sessionOrderByAccount, organization],
   )
   const ungroupedDeleteTargets = useMemo<SessionDeleteTarget[]>(() => {
-    const ungrouped = deriveGroups(list, orderedWorkspaces, archivedSessionIds, {
+    const ungrouped = deriveGroups(list, sourceWorkspaces ?? orderedWorkspaces, archivedSessionIds, {
       expandedGroups: [UNGROUPED_KEY],
       ...(sessionOrderByAccount[UNGROUPED_KEY] === undefined
         ? {}
@@ -349,7 +363,7 @@ function SessionTree({
     return ungrouped?.sessions
       .filter(session => !session.blank)
       .map(session => ({ id: session.id, title: session.title })) ?? []
-  }, [archivedSessionIds, list, orderedWorkspaces, sessionOrderByAccount])
+  }, [archivedSessionIds, list, orderedWorkspaces, sessionOrderByAccount, sourceWorkspaces])
   const now = Date.now()
   const commitSessionDrag = (activeDrag: DragState, over: NonNullable<DragState['over']>): void => {
     if (sessionDropCommitted.current) return
@@ -375,6 +389,8 @@ function SessionTree({
     nextOrder.splice(insertAt === -1 ? nextOrder.length : insertAt, 0, activeDrag.sessionId)
     setSessionOrder(activeDrag.accountKey, nextOrder.map(id => id as string))
     if (orderBy === 'updated' || activeDrag.accountKey === UNGROUPED_KEY) return
+    if (displayOnlySessionIds?.includes(activeDrag.sessionId) === true
+      || (anchor !== undefined && displayOnlySessionIds?.includes(anchor) === true)) return
     insertSessionBefore(activeDrag.accountKey as WorkspaceId, activeDrag.sessionId, anchor).catch((reason: unknown) => {
       console.warn('session reorder rejected:', reason)
     })
@@ -411,6 +427,11 @@ function SessionTree({
         role="tree"
         aria-label={t('section.sessions')}
       >
+        {organization !== undefined && <OrganizationGroups
+          list={list} archivedSessionIds={archivedSessionIds} organization={organization}
+          open={open} onSessionRename={onSessionRename} forkSession={forkSession}
+          onSessionArchive={onSessionArchive} onSessionDelete={onSessionDelete} sessionMenuFor={sessionMenuFor} t={t}
+        />}
         {groups.length === 0 && (
           <div className={css.empty}>{t('empty.none')}</div>
         )}
@@ -538,6 +559,7 @@ function SessionTree({
                   <SessionNodeItem
                     key={node.id}
                     node={node}
+                    management={sessionMenuFor?.(node.id)}
                     currentId={current}
                     now={now}
                     onOpen={open}
@@ -575,6 +597,7 @@ function SessionTree({
 function FlatList({
   useSessions, open, forkSession, onSessionRename, onSessionArchive, onSessionDelete, archivedSessionIds,
   orderBy, sessionOrderByAccount, sessionUpdatedAtByAccount, syncSessionOrderAccount, setSessionOrder, t,
+  organization, sessionMenuFor,
 }: Pick<
   SessionTreeProps,
   | 'useSessions'
@@ -590,11 +613,13 @@ function FlatList({
   | 'syncSessionOrderAccount'
   | 'setSessionOrder'
   | 't'
+  | 'organization'
+  | 'sessionMenuFor'
 >) {
   const list = useSessions(s => s)
   const baseRows = useMemo(
-    () => deriveFlat(list, archivedSessionIds),
-    [list, archivedSessionIds],
+    () => deriveFlat(list, archivedSessionIds).filter(node => organization === undefined || !isOrganized(node.id, organization)),
+    [list, archivedSessionIds, organization],
   )
   const sessionIds = useMemo(() => baseRows.map(row => row.id), [baseRows])
   const previousOrderBy = useRef(orderBy)
@@ -647,7 +672,12 @@ function FlatList({
   return (
     <div className={clsx(css.treeBody, css.wide)}>
       <div className={clsx(css.list, css.flatList)} role="tree" aria-label={t('section.sessions')}>
-        {rows.length === 0 && (
+        {organization !== undefined && <OrganizationGroups
+          list={list} archivedSessionIds={archivedSessionIds} organization={organization}
+          open={open} onSessionRename={onSessionRename} forkSession={forkSession}
+          onSessionArchive={onSessionArchive} onSessionDelete={onSessionDelete} sessionMenuFor={sessionMenuFor} t={t}
+        />}
+        {rows.length === 0 && (organization === undefined || deriveFlat(list, archivedSessionIds).length === 0) && (
           <div className={css.empty}>{t('empty.none')}</div>
         )}
         {rows.map((node) => {
@@ -656,6 +686,7 @@ function FlatList({
             <SessionNodeItem
               key={node.id}
               node={node}
+              management={sessionMenuFor?.(node.id)}
               currentId={list.current}
               now={now}
               onOpen={open}
@@ -691,6 +722,33 @@ function FlatList({
       <span className={css.fade} />
     </div>
   )
+}
+
+/** Pinned and custom sections reuse the same action rows in both grouping modes. */
+function OrganizationGroups({ list, organization, archivedSessionIds, open, onSessionRename, forkSession,
+  onSessionArchive, onSessionDelete, sessionMenuFor, t }: Pick<SessionTreeProps,
+    'organization' | 'archivedSessionIds' | 'open' | 'onSessionRename' | 'forkSession'
+    | 'onSessionArchive' | 'onSessionDelete' | 'sessionMenuFor' | 't'> & { list: SessionListState }) {
+  const [collapsed, setCollapsed] = useState<readonly string[]>([])
+  if (organization === undefined) return null
+  const all = deriveFlat(list, archivedSessionIds)
+  const groups = [
+    { id: 'pinned', title: t('menu.pinned'), rows: organization.pinnedSessionIds.flatMap(id => all.filter(node => node.id === id)) },
+    ...organization.sections.map(section => ({
+      ...section, rows: all.filter(node => !organization.pinnedSessionIds.includes(node.id)
+        && organization.sectionBySession[node.id] === section.id),
+    })),
+  ]
+  return groups.filter(group => group.rows.length > 0).map(group => (
+    <div className={css.groupSection} key={group.id} role="group" aria-label={group.title}>
+      <button type="button" className={css.organizationHeading} aria-expanded={!collapsed.includes(group.id)}
+        onClick={() => { setCollapsed(values => toggled(values, group.id)) }}>{group.title}</button>
+      {!collapsed.includes(group.id) && group.rows.map(node => <SessionNodeItem key={node.id}
+        node={node} currentId={list.current} now={Date.now()} onOpen={open} onRename={onSessionRename}
+        onFork={forkSession} onArchive={onSessionArchive} onDelete={onSessionDelete}
+        management={sessionMenuFor?.(node.id)} flat t={t} />)}
+    </div>
+  ))
 }
 
 interface RemoteSearchState {
@@ -780,6 +838,7 @@ export function WorkspaceBrowser({
   open,
   renameSession,
   forkSession,
+  sessionMarkdown,
   renameWorkspace,
   deleteWorkspace,
   insertWorkspaceBefore,
@@ -807,6 +866,66 @@ export function WorkspaceBrowser({
   const groupExpansion = useStore(s => s.groupExpansion)
   const sessionOrderByAccount = useStore(s => s.sessionOrderByAccount)
   const sessionUpdatedAtByAccount = useStore(s => s.sessionUpdatedAtByAccount)
+  const pinnedSessionIds = useStore(s => s.pinnedSessionIds ?? EMPTY_IDS)
+  const unreadSessionIds = useStore(s => s.unreadSessionIds ?? EMPTY_IDS)
+  const sections = useStore(s => s.sections ?? EMPTY_SECTIONS)
+  const sectionBySession = useStore(s => s.sectionBySession ?? EMPTY_ASSIGNMENTS)
+  const projectBySession = useStore(s => s.projectBySession ?? EMPTY_PROJECTS)
+  const sessionList = useSessions(state => state)
+  const organization = useMemo(() => ({ pinnedSessionIds, sections, sectionBySession }), [pinnedSessionIds, sections, sectionBySession])
+  const displayWorkspaces = useMemo(() => displayProjects(workspaces, projectBySession, sessionList.ids),
+    [workspaces, projectBySession, sessionList.ids])
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [sectionTarget, setSectionTarget] = useState<SessionId | null>(null)
+  const [sectionDraft, setSectionDraft] = useState('')
+  const openRead = (id: SessionId) => { actions.setUnread(id, false); open(id) }
+  const linkOpened = useRef(false)
+  useEffect(() => {
+    if (linkOpened.current || sessionList.phase !== 'ready') return
+    linkOpened.current = true
+    const id = new URL(window.location.href).searchParams.get('session')
+    const session = sessionList.ids.find(candidate => candidate === id)
+    if (session !== undefined) {
+      actions.setUnread(session, false)
+      open(session)
+    }
+  }, [sessionList, open, actions.setUnread])
+  const sessionLink = (id: SessionId) => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('session', id)
+    return url.href
+  }
+  const sessionMenuFor = (id: SessionId): SessionMenuOptions => {
+    const sourceProject = workspaces.find(workspace => workspace.sessionIds.includes(id))
+    const displayProject = displayWorkspaces.find(workspace => workspace.sessionIds.includes(id))
+    const cwd = sessionList.byId[id]?.cwd ?? sourceProject?.path
+    return {
+      pinned: pinnedSessionIds.includes(id), unread: unreadSessionIds.includes(id), cwd,
+      projectId: displayProject?.workspaceId, sectionId: sectionBySession[id], projects: workspaces, sections,
+      onPin: () => { actions.togglePinned(id) },
+      onUnread: () => { actions.setUnread(id, !unreadSessionIds.includes(id)) },
+      onProject: (projectId) => { actions.setProject(id, projectId); if (projectId !== null) actions.setGroupExpanded(projectId, true) },
+      onSection: (sectionId) => { actions.setSection(id, sectionId) },
+      onNewSection: () => { setSectionTarget(id); setSectionDraft('') },
+      onCopy: (kind) => {
+        setActionError(null)
+        const value = kind === 'markdown' ? sessionMarkdown(id) : Promise.resolve(kind === 'directory' ? cwd ?? '' : sessionLink(id))
+        value.then(async (text) => { if (!await writeClipboard(text)) throw new Error(t('copy.failed')) })
+          .catch((reason: unknown) => { setActionError(reason instanceof Error ? reason.message : String(reason)) })
+      },
+      onWindow: () => {
+        setActionError(null)
+        const bridge = (window as Window & { hydraDesktop?: { openSessionWindow?: (id: string) => Promise<void> } }).hydraDesktop
+        if (bridge?.openSessionWindow !== undefined) {
+          bridge.openSessionWindow(id).catch((reason: unknown) => { setActionError(String(reason)) })
+        } else {
+          const child = window.open(sessionLink(id), '_blank')
+          if (child === null) setActionError(t('window.blocked'))
+          else child.opener = null
+        }
+      },
+    }
+  }
   const currentBlankSessionId = useSessions((state) => {
     const current = state.current
     return current !== undefined && state.byId[current]?.blank === true ? current : undefined
@@ -1179,7 +1298,7 @@ export function WorkspaceBrowser({
           ? (
             <SearchResults
               useSessions={useSessions}
-              open={open}
+              open={openRead}
               workspaces={workspaces}
               archivedSessionIds={archivedSessionIds}
               query={normalizedQuery}
@@ -1191,7 +1310,8 @@ export function WorkspaceBrowser({
           : groupBy === 'flat'
             ? (
               <FlatList
-                useSessions={useSessions} open={open} forkSession={forkSession}
+                useSessions={useSessions} open={openRead} forkSession={forkSession}
+                organization={organization} sessionMenuFor={sessionMenuFor}
                 onSessionRename={onSessionRename} onSessionArchive={onSessionArchive} onSessionDelete={onSessionDelete}
                 archivedSessionIds={archivedSessionIds}
                 orderBy={orderBy}
@@ -1205,11 +1325,13 @@ export function WorkspaceBrowser({
             : (
               <SessionTree
                 useSessions={useSessions}
+                organization={organization} sessionMenuFor={sessionMenuFor} sourceWorkspaces={workspaces}
+                displayOnlySessionIds={Object.keys(projectBySession)}
                 onSessionRename={onSessionRename}
                 onSessionArchive={onSessionArchive} onSessionDelete={onSessionDelete}
                 onUngroupedDelete={setSessionDeleteTargets}
                 forkSession={forkSession}
-                workspaces={workspaces}
+                workspaces={displayWorkspaces}
                 workspacesReady={workspacesReady}
                 groupExpansion={groupExpansion}
                 setGroupExpanded={actions.setGroupExpanded}
@@ -1219,7 +1341,7 @@ export function WorkspaceBrowser({
                 setSessionOrder={actions.setSessionOrder}
                 archivedSessionIds={archivedSessionIds}
                 startSession={startSession}
-                open={open}
+                open={openRead}
                 insertWorkspaceBefore={insertWorkspaceBefore}
                 insertSessionBefore={insertSessionBefore}
                 orderBy={orderBy}
@@ -1238,6 +1360,20 @@ export function WorkspaceBrowser({
             ))}
       </div>
 
+      <Modal open={sectionTarget !== null} onClose={() => { setSectionTarget(null) }}
+        closeLabel={t('close')} title={t('section.createTitle')}
+        footer={<><Button variant="outline" onClick={() => { setSectionTarget(null) }}>{t('cancel')}</Button>
+          <Button variant="primary" disabled={sectionDraft.trim() === '' || sections.some(section => section.title === sectionDraft.trim())}
+            onClick={() => {
+              if (sectionTarget === null || sectionDraft.trim() === '') return
+              actions.addSection(crypto.randomUUID(), sectionDraft.trim(), sectionTarget)
+              setSectionTarget(null)
+            }}>{t('section.create')}</Button></>}>
+        <input data-hydra-control="field" aria-label={t('section.name')} autoFocus maxLength={100}
+          value={sectionDraft} onChange={(event) => { setSectionDraft(event.target.value) }} />
+      </Modal>
+      <Modal open={actionError !== null} onClose={() => { setActionError(null) }} closeLabel={t('close')}
+        title={t('action.failed')}><div role="alert">{actionError}</div></Modal>
       {sessionDeleteTargets === null ? null : (
         <DeleteSessionDialog
           targets={sessionDeleteTargets}

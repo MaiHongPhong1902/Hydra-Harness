@@ -2,7 +2,7 @@
 
 `streamWithApiKeys()` selects ordered credentials using request-local `ApiKeyAttempt` positions supplied through `withApiKeyAttempt()`. Agent recovery streams partial output and retries with fresh assembly. Outside that scope, multiple-key calls buffer one attempt at a time; single-key calls stream unchanged. The helper never receives credential values.
 
-Provider-neutral LLM vocabulary and abstract service. This package defines the canonical language spoken by the agent loop, session logs, and every plugin.
+Provider-neutral LLM vocabulary and abstract service. This package defines the canonical language spoken by the agent loop, session logs, and every plugin. The pure `./model-endpoints` export shares generation-family inference with browser catalog editors without importing the Host service.
 
 ## Service: `LlmRuntime` (ctx key: `llm`)
 
@@ -13,6 +13,8 @@ An adapter registry plus a single streaming call API, interceptable via a waterf
 Each provider adapter supplies its resolved route policy. Omitting provider configuration uses bounded normal mode with five retries after the first request. Layered configuration may retain `maxRetries` or `retryableCodes` after changing `mode` to `always`; resolution ignores those inactive normal-mode fields and captures a pure always policy. This service stores the effective policy but does not execute retries.
 
 ### Public API
+
+`ctx.llm.generateMedia(options)` sends image or video-job requests through configured models. One disposable `registerGenerationPreferences()` reader supplies the global provider/model choice, including routes owned by other adapters. That exact pair comes first even without endpoint metadata; an unavailable saved provider or model fails before generation I/O. An optional provider restricts candidates and excludes a preference on another route. The request's model hint comes next, followed by remaining endpoint-compatible models in provider/catalog order. Missing credentials and HTTP 401/404/429 permit fallback. Accepted responses, cancellation, timeouts, transport errors, safety refusals, and server failures stop the sequence. For video requests, an explicit `pollIntervalMs` asks the adapter to poll and download the accepted job with the same route and credentials; without it the job response returns directly. The caller owns the returned response body and exact provider/model; no candidate returns `undefined`. Adapters opt in through `requestGeneration()`; its default rejects with `UNSUPPORTED_GENERATION`. Explicitly non-conversation endpoint metadata also rejects chat preparation and dispatch.
 
 - `ctx.llm.registerAdapter(providers: string[], adapter: LlmAdapter): AdapterRegistrationHandle` Register one adapter instance for the given provider routes. Registration is all-or-nothing, and is disposed with the calling fiber. The returned disposer also carries `replace(providers)`: the candidate route set is validated in full before anything moves, so a conflict with another adapter leaves the current routes registered and serving, and the swap itself is one synchronous section with no observable gap. `replace([])` is legal — a registration holding zero routes — unlike an empty initial registration.
 - `ctx.llm.listProviders(): LlmProviderInfo[]` Describe registered provider routes in registration order.

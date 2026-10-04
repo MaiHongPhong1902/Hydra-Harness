@@ -426,7 +426,7 @@ function TurnStatus({ startTime, t }: {
  * ordered business Node crosses the keyed renderer seat.
  */
 export function ChatView({
-  useSession, useSessions, useStore, renderSlot, sessionId, openFile, loadOlder, loadImage, inspectCall, chatScroll, forkAt,
+  useSession, useSessions, useStore, renderSlot, sessionId, openFile, loadOlder, loadMedia, inspectCall, chatScroll, forkAt,
   fileMentions, t,
 }: ChatViewSlotProps) {
   const order = useSession(s => s.chat.order)
@@ -485,8 +485,8 @@ export function ChatView({
     [inbox],
   )
   const renderMessageImages = useCallback<RenderMessageImages>(
-    owner => renderSlot('conversation.message.images', { ...owner, loadImage }),
-    [loadImage, renderSlot],
+    owner => renderSlot('conversation.message.images', { ...owner, loadImage: loadMedia }),
+    [loadMedia, renderSlot],
   )
   const runningTurnStart = useMemo(() => runningTurnStartTime(timeline), [timeline])
 
@@ -714,6 +714,7 @@ export function ChatView({
               inspectCall={inspectCall}
               forkAt={forkAt}
               renderMessageImages={renderMessageImages}
+              loadMedia={loadMedia}
               fileMentions={fileMentions}
               renderSlot={renderSlot}
               t={t}
@@ -735,6 +736,7 @@ export function ChatView({
                   inspectCall={inspectCall}
                   forkAt={forkAt}
                   renderMessageImages={renderMessageImages}
+                  loadMedia={loadMedia}
                   fileMentions={fileMentions}
                   renderSlot={renderSlot}
                   t={t}

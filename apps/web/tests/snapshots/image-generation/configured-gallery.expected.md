@@ -1,0 +1,8 @@
+- region "Image ready":
+  - status: Image ready
+  - button "Copy prompt"
+  - button "View generation details"
+  - paragraph: A Hydra illustration
+  - button "generated-1.png, click to view original":
+    - img "generated-1.png"
+  - text: gpt-image-1.5

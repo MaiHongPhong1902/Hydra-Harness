@@ -8,7 +8,7 @@
 // Zero model calls: everything is pure client + persistence state on a blank
 // frame, so there is no fixture and a stray stream would fail loud on the
 // open llm seam.
-import { readFile } from 'node:fs/promises'
+import { mkdir, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
@@ -65,6 +65,46 @@ describe('web e2e: settings modal and General preferences', () => {
     expect(tripwire.pageErrors).toEqual([])
   }, 30_000)
 
+  it('keeps the expanded settings panel inside the viewport across sections', async () => {
+    onTestFailed(() => saveFailureShot(page, 'web-e2e-settings-size'))
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    const dialog = page.getByRole('dialog', { name: 'Settings' })
+    const shots = join('.artifacts', 'settings-size')
+    await mkdir(shots, { recursive: true })
+    try {
+      for (const viewport of [
+        { width: 1680, height: 1000 },
+        { width: 1040, height: 900 },
+        { width: 720, height: 900 },
+        { width: 560, height: 700 },
+      ]) {
+        await page.setViewportSize(viewport)
+        for (const section of ['General', 'Models', 'Plugins']) {
+          await dialog.getByRole('button', { name: section, exact: true }).click()
+          await expect.poll(async () => {
+            const bounds = await dialog.boundingBox()
+            return bounds && {
+              width: bounds.width,
+              height: bounds.height,
+              x: bounds.x,
+              y: bounds.y,
+            }
+          }).toEqual({
+            width: Math.min(1080, viewport.width - 48),
+            height: Math.min(900, viewport.height - 48),
+            x: Math.max(24, (viewport.width - 1080) / 2),
+            y: Math.max(24, (viewport.height - 900) / 2),
+          })
+        }
+        await page.screenshot({ path: join(shots, `settings-${viewport.width}.png`) })
+      }
+      expect(tripwire.pageErrors).toEqual([])
+    } finally {
+      await page.keyboard.press('Escape')
+      await page.setViewportSize({ width: 1680, height: 1000 })
+    }
+  }, 30_000)
+
   it('opens the settings dialog, switches sections, and closes by every path', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-settings-shell'))
     const trigger = page.getByRole('button', { name: 'Settings', exact: true })
@@ -107,8 +147,8 @@ describe('web e2e: settings modal and General preferences', () => {
     const snapshot = await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd)
     await compareOrRefreshGolden(DIALOG_EXPECTED, snapshot, MODE)
     // Section switch: aria-current moves (the Models page itself has its own scenario file).
-    await dialog.getByRole('button', { name: 'Models' }).click()
-    await expect.poll(() => dialog.getByRole('button', { name: 'Models' }).getAttribute('aria-current'), { timeout: 5_000 }).toBe('true')
+    await dialog.getByRole('button', { name: 'Models', exact: true }).click()
+    await expect.poll(() => dialog.getByRole('button', { name: 'Models', exact: true }).getAttribute('aria-current'), { timeout: 5_000 }).toBe('true')
     expect(await dialog.getByRole('button', { name: 'General' }).getAttribute('aria-current')).toBeNull()
     // Plugins projects and safely controls the same assembled Loader tree.
     // Capture one stable shipped row rather than the whole inventory so adding
@@ -139,7 +179,7 @@ describe('web e2e: settings modal and General preferences', () => {
       .toBe(String(expectedPluginCount))
     expect(await dialog.getByRole('button', { name: 'Plugins', exact: true }).getAttribute('aria-current')).toBe('true')
     expect(await dialog.getByRole('tab', { name: 'Plugins', exact: true }).getAttribute('aria-selected')).toBe('true')
-    expect(await dialog.getByRole('button', { name: 'Models' }).getAttribute('aria-current')).toBeNull()
+    expect(await dialog.getByRole('button', { name: 'Models', exact: true }).getAttribute('aria-current')).toBeNull()
     const pluginsSnapshot = await captureStableAria(
       page,
       PLUGIN_ROW_SELECTOR,

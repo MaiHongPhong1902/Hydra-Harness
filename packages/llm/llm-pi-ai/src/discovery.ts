@@ -2,21 +2,18 @@
  * Answering "which models can this provider serve?" for the configuration
  * surface's "fetch available models" action.
  *
- * A draft with a base URL is interrogated over the wire even when pi-ai ships
- * a catalog for that route, so the result reflects the deployment. A catalog
- * route with no base URL may use pi-ai's installed metadata as an offline
- * fallback. Only OpenAI-compatible protocols are interrogated.
+ * Discovery always interrogates the provider over the wire. An omitted base
+ * URL or protocol inherits the installed provider's transport defaults, never
+ * its model list. OpenAI-compatible and native Gemini listings are supported.
  *
- * Neither path is a catalog refresh. Nothing here is stored: the request
+ * Discovery does not change the configured catalog. The request
  * carries a draft the user is still editing, and the reply is candidate
  * metadata the surface offers for adoption. `settings.yaml` remains the only
  * thing that decides what a route serves.
  *
- * Only OpenAI-compatible protocols are interrogated. Their listing is the one
- * shape a gateway, a self-hosted server, and the official endpoints all agree
- * on, which is the case this action exists for; every other protocol reports
- * that it cannot be interrogated so the surface falls back to hand-entry
- * rather than guessing a response shape.
+ * Native Gemini listing follows every page token and retains every returned
+ * model regardless of generation method. Other protocols report that they
+ * cannot be interrogated and keep hand-entry available.
  *
  * @module hydra-llm-pi-ai/discovery
  */
@@ -25,19 +22,20 @@ import { INVALID_CREDENTIAL_CODE, LlmError, normalizeApiKey } from '@hydraharnes
 import { fetchWithHttpProxy } from '@hydraharness/harness-llm/proxy'
 import type { LlmDiscoveredModel, LlmModelDiscoveryRequest } from '@hydraharness/harness-llm'
 import { attributionHeaders } from '@hydraharness/harness-llm'
-import { catalogModels } from './catalog.ts'
+import { inferModelEndpoints } from '@hydraharness/harness-llm'
+import { catalogProvider } from './catalog.ts'
 
 /**
- * Protocols whose model listing this module can read: the two that speak
- * OpenAI's `GET /models` shape with bearer auth. Azure is absent despite its
+ * Readable model listings: OpenAI's `GET /models` with bearer auth and
+ * Gemini's paginated `models` resource with x-goog-api-key. Azure is absent despite its
  * OpenAI lineage — it authenticates with an `api-key` header and requires an
  * `api-version` query — and Codex authenticates through OAuth; guessing at
  * either would report an authentication failure as a provider with no models.
- * pi-ai's remaining protocols are absent for the same reason.
  */
 const LISTABLE_PROTOCOLS: ReadonlySet<string> = new Set([
   'openai-completions',
   'openai-responses',
+  'google-generative-ai',
 ])
 
 /**
@@ -59,6 +57,32 @@ interface ListingEntry {
   context_length?: unknown
   max_tokens?: unknown
   max_output_tokens?: unknown
+  supported_endpoints?: unknown
+  supported_endpoint_types?: unknown
+  endpoints?: unknown
+}
+
+/** Normalize gateway endpoint metadata while retaining unknown relative paths. */
+function endpointsOf(entry: ListingEntry, id: string): string[] | undefined {
+  const value = 'supported_endpoints' in entry ? entry.supported_endpoints
+    : 'supported_endpoint_types' in entry ? entry.supported_endpoint_types : entry.endpoints
+  if (value === undefined) return inferModelEndpoints(id)
+  if (!Array.isArray(value) || value.length === 0 || value.some(item => typeof item !== 'string' || item.trim() === '')) {
+    throw new LlmError(`Model ${id} has invalid endpoint metadata; enter its endpoints by hand.`, 'DISCOVERY_FAILED')
+  }
+  const aliases: Readonly<Record<string, string>> = {
+    'chat-completion': 'chat/completions', 'chat-completions': 'chat/completions',
+    'image-generation': 'images/generations', 'image-edit': 'images/edits',
+    'video-generation': 'videos',
+  }
+  return [...new Set((value as string[]).map((item) => {
+    const path = item.trim().replace(/^\/?v1\//, '').replace(/^\//, '')
+    const endpoint = aliases[path] ?? path
+    if (endpoint.includes('://') || !/^[a-zA-Z][a-zA-Z0-9/{}:._-]*$/.test(endpoint)) {
+      throw new LlmError(`Model ${id} has invalid endpoint metadata; enter its endpoints by hand.`, 'DISCOVERY_FAILED')
+    }
+    return endpoint
+  }))]
 }
 
 /** A positive integer field of a listing entry, or `undefined` when absent or unusable. */
@@ -147,15 +171,17 @@ function readListing(body: unknown): LlmDiscoveredModel[] {
   for (const raw of data) {
     const entry = raw as ListingEntry | null
     const id = label(entry?.id)
-    if (id === undefined) continue
-    const name = label(entry?.name, entry?.display_name)
-    const contextWindow = capacity(entry?.context_window, entry?.context_length)
-    const maxTokens = capacity(entry?.max_output_tokens, entry?.max_tokens)
+    if (id === undefined || entry === null) continue
+    const name = label(entry.name, entry.display_name)
+    const contextWindow = capacity(entry.context_window, entry.context_length)
+    const maxTokens = capacity(entry.max_output_tokens, entry.max_tokens)
+    const endpoints = endpointsOf(entry, id)
     models.push({
       id,
       ...name === undefined ? {} : { name },
       ...contextWindow === undefined ? {} : { contextWindow },
       ...maxTokens === undefined ? {} : { maxTokens },
+      ...endpoints === undefined ? {} : { endpoints },
     })
   }
   return models
@@ -196,90 +222,123 @@ export async function discoverModels(
   request: LlmModelDiscoveryRequest,
   storedApiKey?: () => Promise<string | undefined>,
 ): Promise<readonly LlmDiscoveredModel[]> {
-  // A catalog is only an offline fallback. Once an endpoint is supplied, the
-  // user asked for the deployment's live models and its listing wins.
-  if (request.baseURL === undefined || request.baseURL.length === 0) {
-    if (request.provider === undefined) {
-      throw new LlmError(
-        'set a baseURL to fetch models from this provider endpoint',
-        'DISCOVERY_FAILED',
-      )
-    }
-    const installed = catalogModels(request.provider)
-    if (installed.size > 0) {
-      return [...installed.values()].map(model => ({
-        id: model.id,
-        name: model.name,
-        contextWindow: model.contextWindow,
-        maxTokens: model.maxTokens,
-      }))
-    }
-    throw new LlmError("set a baseURL, or enter this provider's models by hand", 'DISCOVERY_FAILED')
+  const installed = request.provider === undefined ? undefined : catalogProvider(request.provider)
+  const baseURL = request.baseURL || installed?.baseUrl
+  if (baseURL === undefined) {
+    throw new LlmError('set a baseURL to fetch models from this provider endpoint', 'DISCOVERY_FAILED')
   }
-  // A draft that has not chosen a protocol yet is asked as OpenAI Chat
-  // Completions: it is the shape a gateway is overwhelmingly likely to speak,
-  // and the alternative — refusing until the field is filled — would withhold
-  // the action from the case it exists for. The cost is a misdirected message
-  // when the endpoint speaks something else (an Anthropic gateway answers 401,
-  // which reads as a credential problem), and hand-entry remains the way out.
-  const api = request.api ?? 'openai-completions'
+  const apis = new Set(installed?.getModels().map(model => model.api))
+  // Responses and Chat Completions share the same listing resource and auth.
+  const api = request.api ?? (apis.size === 1 ? [...apis][0]
+    : apis.size > 0 && [...apis].every(value => value === 'openai-completions' || value === 'openai-responses')
+      ? 'openai-completions' : installed === undefined ? 'openai-completions' : undefined)
+  if (api === undefined) throw new LlmError('set an api to fetch this provider\'s live models', 'DISCOVERY_UNSUPPORTED')
   if (!LISTABLE_PROTOCOLS.has(api)) {
     throw new LlmError(
       `pi-ai protocol "${api}" has no model listing this build can read; enter this provider's models by hand`,
       'DISCOVERY_UNSUPPORTED',
     )
   }
-  const url = listingUrl(request.baseURL)
-  // A key typed into the form wins: it is the one the user is testing, and it
-  // may be the replacement for exactly the stored key that is failing. The
-  // stored one is only asked for here, past the catalog short-circuit and the
-  // protocol check, so a route answered from the registry costs no credential
-  // lookup — and no diagnostic about a credential it never needed.
-  // A probe carrying no key stays unauthenticated, which is how a route that
-  // relies on the provider's own ambient discovery is meant to be asked.
+  const xai = installed?.id === 'xai' && baseURL === installed.baseUrl
+  const resources = xai ? ['models', 'image-generation-models', 'video-generation-models'] : ['models']
+  let resourceIndex = 0
+  let url = listingUrl(baseURL)
+  const google = api === 'google-generative-ai'
+  // Typed credentials test the draft; otherwise the plugin resolves the saved
+  // route's references or its provider-native authentication.
   const supplied = request.apiKey ?? await storedApiKey?.()
   const apiKey = supplied === undefined ? undefined : usableProbeKey(supplied)
-  let response: Response
-  try {
-    response = await fetchWithHttpProxy(url, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        ...apiKey === undefined ? {} : { authorization: `Bearer ${apiKey}` },
-        ...attributionHeaders(),
-      },
-      ...request.signal === undefined ? {} : { signal: request.signal },
-    }, request.proxy)
-  } catch (error: unknown) {
-    if (request.signal?.aborted) {
-      throw new LlmError('model discovery aborted by caller', 'ABORTED', { cause: error })
+  const models: LlmDiscoveredModel[] = []
+  const tokens = new Set<string>()
+  for (;;) {
+    let response: Response
+    try {
+      response = await fetchWithHttpProxy(url, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          ...apiKey === undefined ? {} : google ? { 'x-goog-api-key': apiKey } : { authorization: `Bearer ${apiKey}` },
+          ...attributionHeaders(),
+        },
+        ...request.signal === undefined ? {} : { signal: request.signal },
+      }, request.proxy)
+    } catch (error: unknown) {
+      if (request.signal?.aborted) {
+        throw new LlmError('model discovery aborted by caller', 'ABORTED', { cause: error })
+      }
+      throw new LlmError(`could not reach ${url}`, 'DISCOVERY_FAILED', { cause: error })
     }
-    throw new LlmError(`could not reach ${url}`, 'DISCOVERY_FAILED', { cause: error })
-  }
-  if (!response.ok) {
-    await response.body?.cancel()
-    throw new LlmError(
-      `${url} answered ${response.status}${response.status === 401 || response.status === 403 ? '; check the API key' : ''}`,
-      'DISCOVERY_FAILED',
-    )
-  }
-  let text: string
-  try {
-    text = await readBounded(response, url)
-  } catch (error: unknown) {
-    // Cancellation during the body read rejects with the abort reason, which
-    // may be any value; the caller gets the same coded failure it would have
-    // for a cancellation before the request went out.
-    if (request.signal?.aborted) {
-      throw new LlmError('model discovery aborted by caller', 'ABORTED', { cause: error })
+    if (!response.ok) {
+      await response.body?.cancel()
+      throw new LlmError(
+        `${url} answered ${response.status}${response.status === 401 || response.status === 403 ? '; check the API key' : ''}`,
+        'DISCOVERY_FAILED',
+      )
     }
-    throw error
+    let text: string
+    try {
+      text = await readBounded(response, url)
+    } catch (error: unknown) {
+      // Cancellation during the body read rejects with the abort reason, which
+      // may be any value; the caller gets the same coded failure it would have
+      // for a cancellation before the request went out.
+      if (request.signal?.aborted) {
+        throw new LlmError('model discovery aborted by caller', 'ABORTED', { cause: error })
+      }
+      throw error
+    }
+    let body: unknown
+    try {
+      body = JSON.parse(text)
+    } catch (error: unknown) {
+      throw new LlmError(`${url} did not answer with JSON`, 'DISCOVERY_FAILED', { cause: error })
+    }
+    if (!google) {
+      const resource = resources[resourceIndex]
+      if (resource === 'models') models.push(...readListing(body))
+      else {
+        const page = body as { models?: unknown } | null
+        if (!Array.isArray(page?.models)) throw new LlmError(`${url} answered with no models array`, 'DISCOVERY_FAILED')
+        models.push(...readListing({ data: page.models.map((raw: unknown) => {
+          const entry = raw as ListingEntry | null
+          return { ...entry, endpoints: resource === 'image-generation-models' ? ['images/generations'] : ['videos'] }
+        }) }))
+      }
+      resourceIndex++
+      if (resourceIndex >= resources.length) {
+        // The dedicated resource enriches ids also advertised by /models.
+        const merged = new Map<string, LlmDiscoveredModel>()
+        for (const model of models) merged.set(model.id, { ...merged.get(model.id), ...model })
+        return [...merged.values()]
+      }
+      url = `${baseURL.replace(/\/+$/, '')}/${resources[resourceIndex]}`
+      continue
+    }
+    const page = body as { models?: unknown; nextPageToken?: unknown } | null
+    if (!Array.isArray(page?.models)) throw new LlmError('Gemini model listing has no models array.', 'DISCOVERY_FAILED')
+    models.push(...readListing({ data: page.models.map((raw: unknown) => {
+      const entry = raw as {
+        name?: unknown
+        displayName?: unknown
+        inputTokenLimit?: unknown
+        outputTokenLimit?: unknown
+        supportedGenerationMethods?: unknown
+      } | null
+      const id = label(entry?.name)?.replace(/^models\//, '')
+      const methods = id === undefined ? undefined : endpointsOf({ endpoints: entry?.supportedGenerationMethods }, id)
+      const endpoints = (id === undefined ? undefined : inferModelEndpoints(id)) ?? methods?.map(method =>
+        method === 'predictLongRunning' ? 'videos' : method === 'predict' ? 'images/generations' : method)
+      return {
+        id, name: entry?.displayName,
+        context_window: entry?.inputTokenLimit, max_output_tokens: entry?.outputTokenLimit,
+        ...endpoints === undefined ? {} : { endpoints },
+      }
+    }) }))
+    if (page.nextPageToken === undefined || page.nextPageToken === '') return models
+    if (typeof page.nextPageToken !== 'string' || tokens.has(page.nextPageToken)) throw new LlmError('Gemini returned an invalid or repeated model page token.', 'DISCOVERY_FAILED')
+    tokens.add(page.nextPageToken)
+    const next = new URL(listingUrl(baseURL))
+    next.searchParams.set('pageToken', page.nextPageToken)
+    url = next.href
   }
-  let body: unknown
-  try {
-    body = JSON.parse(text)
-  } catch (error: unknown) {
-    throw new LlmError(`${url} did not answer with JSON`, 'DISCOVERY_FAILED', { cause: error })
-  }
-  return readListing(body)
 }

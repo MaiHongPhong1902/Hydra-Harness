@@ -1,0 +1,8 @@
+- region "Video ready":
+  - status: Video ready
+  - button "Copy prompt"
+  - button "View generation details"
+  - paragraph: "Static wide shot of a tree gently swaying in the wind. Landscape composition. Duration: 6 seconds. No people or on-screen text."
+  - link "Download video":
+    - /url: blob:{{host}}/{{uuid}}
+  - text: veo-3.1-generate-preview

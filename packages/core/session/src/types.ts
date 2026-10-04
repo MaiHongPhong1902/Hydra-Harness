@@ -30,6 +30,21 @@ export function SessionId(id: string): SessionId {
   return id as SessionId
 }
 
+/** Identifies a transcript path inside one session, independently of its storage identity. */
+export type SessionVersionId = Branded<'SessionVersionId'>
+
+/**
+ * Brand a session-local version identifier.
+ * @param id - Raw version identifier.
+ * @returns The branded identifier.
+ */
+export function SessionVersionId(id: string): SessionVersionId {
+  return id as SessionVersionId
+}
+
+/** Original transcript path in every session. */
+export const ORIGINAL_SESSION_VERSION = SessionVersionId('original')
+
 /**
  * The on-disk session format version, stamped into every newly-written {@link SessionHeader}
  * and enforced by every persistence backend on load. The single source of truth for the
@@ -232,6 +247,10 @@ export type RequestHeaderReason = 'initial' | 'resume' | 'change'
  * store the canonical log verbatim.
  */
 export interface SessionEventMap {
+  /** A new transcript path references an earlier prefix without copying its events. */
+  'session/version': { versionId: SessionVersionId; parentVersionId: SessionVersionId; beforeSeq: number }
+  /** Select a stored transcript path; future events extend that path. */
+  'session/version-selected': { versionId: SessionVersionId }
   /**
    * Opens turn `turn` before the loop claims queued input or runs pre-step.
    * Rejection, empty input, cancellation, or failure may close it with no

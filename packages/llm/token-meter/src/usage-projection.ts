@@ -147,10 +147,11 @@ type ContextPressureState = z.infer<typeof contextPressureStateSchema>
  */
 export const tokenUsageProjectionDefinition = {
   key: 'tokenUsage',
-  stateVersion: 1,
+  stateVersion: 2,
   stateSchema: tokenUsageStateSchema,
   init: () => ({ totals: zeroBuckets(), last: null }),
   apply: (state, event) => {
+    if (event.type === 'session/version' || event.type === 'session/version-selected') return { ...state, last: null }
     const sample = usageSampleOf(event)
     if (sample === undefined) return state
     const { turn, step, usage } = sample
@@ -180,10 +181,11 @@ const hasTokens = (usage: TokenUsageProjection): boolean =>
 /** Provider usage grouped by the exact request route active for each sample. */
 export const modelTokenUsageProjectionDefinition = {
   key: 'modelTokenUsage',
-  stateVersion: 1,
+  stateVersion: 2,
   stateSchema: modelTokenUsageStateSchema,
   init: () => ({ route: null, totals: {}, last: null }),
   apply: (state, event) => {
+    if (event.type === 'session/version' || event.type === 'session/version-selected') return { ...state, last: null }
     if (event.type === 'request/header') {
       const { provider, model } = event.data.header.config
       if (state.route?.provider === provider && state.route.model === model) return state
@@ -250,8 +252,9 @@ export const modelTokenUsageProjectionDefinition = {
  * against the surface its own request saw.
  */
 export const contextPressureProjectionDefinition = {
+  history: 'active-version',
   key: 'contextPressure',
-  stateVersion: 4,
+  stateVersion: 5,
   stateSchema: contextPressureStateSchema,
   init: () => ({ surfaceTokens: 0 }),
   apply: (state, event) => {

@@ -10,6 +10,9 @@
 
 import type { Message } from '@hydraharness/harness-llm'
 import type { SessionEvent, SurfaceEvent, SurfaceEventType, SurfaceOp } from './types.ts'
+import { SessionVersionIndex } from './versions.ts'
+
+export { SessionVersionIndex, sessionVersions } from './versions.ts'
 
 /** Runtime counterpart of the message-producing event union. */
 const SURFACE_EVENT_TYPES = new Set<string>([
@@ -386,8 +389,16 @@ function applySurfacePlan(
  */
 export function foldSurface(events: readonly SessionEvent[]): SurfaceFoldResult {
   const state = createFoldState()
+  const versions = new SessionVersionIndex()
   const replacements: SurfaceFoldReplacement[] = []
   for (const [index, event] of events.entries()) {
+    versions.append(event)
+    if (event.type === 'session/version' || event.type === 'session/version-selected') {
+      state.nodes = []
+      state.replaceGeneration++
+      for (const entry of versions.events()) applySurfaceEvent(state, entry, entry.seq, events, 0)
+      continue
+    }
     const replacement = applySurfaceEvent(state, event, index, events, 0)
     if (replacement !== undefined) replacements.push(replacement)
   }
@@ -396,6 +407,7 @@ export function foldSurface(events: readonly SessionEvent[]): SurfaceFoldResult 
 
 /** Incremental ordered surface view and append-boundary validator. */
 export class SurfaceManager implements SessionSurface {
+  private readonly versions = new SessionVersionIndex()
   /** Shared transition state; replacement history is not retained. */
   private _state = createFoldState()
   /** Last processed absolute seq. */
@@ -421,6 +433,7 @@ export class SurfaceManager implements SessionSurface {
   validateNext(event: SessionEvent): void {
     if (this._lastProcessedSeq < this.baseSeq + this.log.length - 1) this._processDelta()
     const expectedSeq = this.baseSeq + this.log.length
+    if (this.baseSeq === 0) this.versions.validate(event)
     this._pendingPlan = {
       event,
       expectedSeq,
@@ -452,6 +465,14 @@ export class SurfaceManager implements SessionSurface {
         applySurfacePlan(this._state, pending.plan)
       } else {
         applySurfaceEvent(this._state, event, seq, this.log, this.baseSeq)
+      }
+      if (this.baseSeq === 0) {
+        this.versions.append(event)
+        if (event.type === 'session/version' || event.type === 'session/version-selected') {
+          this._state.nodes = []
+          this._state.replaceGeneration++
+          for (const entry of this.versions.events()) applySurfaceEvent(this._state, entry, entry.seq, this.log, 0)
+        }
       }
       if (pending !== undefined && pending.expectedSeq <= seq) this._pendingPlan = undefined
       this._lastProcessedSeq = seq

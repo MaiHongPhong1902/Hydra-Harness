@@ -10,10 +10,165 @@ import { providerAccountKey, providerUsable } from '../src/client/store.ts'
 import { en } from '../src/client/locales.ts'
 import { settingsSchema } from './settings-schema.client.ts'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  delete (globalThis as typeof globalThis & { hydraDesktop?: unknown }).hydraDesktop
+  Reflect.deleteProperty(navigator, 'clipboard')
+})
+
+it('opens account sign-in through the Desktop system browser and retains masked authorization prompts', async () => {
+  const openExternal = vi.fn(async () => undefined)
+  Object.assign(globalThis, { hydraDesktop: { openExternal } })
+  const api = {
+    list: async () => ok({ entries: [{ key: 'llm-account-auth/chatgpt', label: 'ChatGPT',
+      methods: [{ id: 'oauth', label: 'Sign in' }], inFlight: false, accounts: [] }] }),
+    begin: vi.fn(async () => ok({ attemptId: 'chatgpt-desktop' })), answer: vi.fn(async () => ok({})),
+    state: async () => ok({ attempt: { id: 'chatgpt-desktop', status: 'running',
+      notice: { message: 'Complete sign-in in your browser.', url: 'https://auth.openai.com/authorize' },
+      prompt: { id: 'session', kind: 'secret', message: 'Authorization code' } } }),
+    cancel: vi.fn(async () => ok({})),
+  }
+  const view = render(<ProviderAccounts flowKey="llm-account-auth/chatgpt" api={api as never}
+    t={t} disabled={false} onBusy={vi.fn()} mode="add" />)
+  const add = screen.getByRole<HTMLButtonElement>('button', { name: en.accountAdd })
+  await waitFor(() => { expect(add.disabled).toBe(false) })
+  fireEvent.click(add)
+  const open = await screen.findByRole('link', { name: en.accountOpenBrowser })
+  const session = screen.getByLabelText<HTMLInputElement>('Authorization code')
+  expect(session.type).toBe('password')
+  expect(open.getAttribute('href')).toBe('https://auth.openai.com/authorize')
+  expect(api.begin).toHaveBeenCalledWith({ key: 'llm-account-auth/chatgpt' })
+  fireEvent.click(open)
+  expect(openExternal).toHaveBeenCalledWith('https://auth.openai.com/authorize')
+  expect(screen.getByRole<HTMLButtonElement>('button', { name: en.accountCancel }).disabled).toBe(false)
+  expect(api.answer).not.toHaveBeenCalled()
+  expect(screen.queryByRole('button', { name: en.accountCopyConsole })).toBeNull()
+  view.unmount()
+  expect(api.cancel).toHaveBeenCalledWith({ attemptId: 'chatgpt-desktop' })
+})
+
+it('copies an authorization snippet on request and retains manual copying when clipboard access fails', async () => {
+  const api = {
+    list: async () => ok({ entries: [{ key: 'example/import', label: 'Example',
+      methods: [{ id: 'import', label: 'Import' }], inFlight: false, accounts: [] }] }),
+    begin: async () => ok({ attemptId: 'snippet' }),
+    state: async () => ok({ attempt: { id: 'snippet', status: 'running',
+      notice: { message: 'Example instructions.', snippet: 'copy("fixture-code")' } } }),
+    cancel: async () => ok({}),
+  }
+  render(<ProviderAccounts flowKey="example/import" api={api as never} t={t} disabled={false} onBusy={vi.fn()} mode="add" />)
+  const add = screen.getByRole<HTMLButtonElement>('button', { name: en.accountAdd })
+  await waitFor(() => { expect(add.disabled).toBe(false) })
+  fireEvent.click(add)
+  await screen.findByRole('button', { name: en.accountCopyConsole })
+  const writeText = vi.fn(async () => {})
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+  fireEvent.click(screen.getByRole('button', { name: en.accountCopyConsole }))
+  await screen.findByText(en.accountConsoleCopied)
+  expect(writeText).toHaveBeenCalledExactlyOnceWith('copy("fixture-code")')
+  writeText.mockRejectedValueOnce(new Error('denied'))
+  fireEvent.click(screen.getByRole('button', { name: en.accountCopyConsole }))
+  await screen.findByText(en.accountConsoleCopyFailed)
+})
 const t = (key: keyof typeof en) => en[key]
 const ok = <T,>(value: T): RpcResponse<T> => ({ rpcId: 'accounts-test' as never, result: { ok: true, value } })
 const flowKey = 'llm-account-auth/chatgpt'
+
+it.each(['first', 'second'])('starts the explicitly selected authorization %s method', async (choice) => {
+  const key = 'example/import'
+  const begin = vi.fn(async () => ok({ attemptId: 'gemini-choice' }))
+  const api = { list: async () => ok({ entries: [{ key, label: 'Example import', methods: [
+    { id: 'first', label: 'First' }, { id: 'second', label: 'Second' },
+  ], inFlight: false, accounts: [] }] }), begin, state: async () => ok({ attempt: { id: 'gemini-choice', status: 'running' } }),
+  cancel: async () => ok({}) }
+  render(<ProviderAccounts flowKey={key} api={api as never} t={t} disabled={false} onBusy={vi.fn()} mode="add" />)
+  const method = await screen.findByLabelText<HTMLSelectElement>(en.accountSignInMethod)
+  expect(method.value).toBe('first')
+  fireEvent.change(method, { target: { value: choice } })
+  fireEvent.click(screen.getByRole('button', { name: en.accountAdd }))
+  await waitFor(() => { expect(begin).toHaveBeenCalledWith({ key, method: choice }) })
+})
+
+it.each(['antigravity', 'gemini-api'])('starts the selected %s method on the shared Google pool', async (provider) => {
+  const key = 'llm-account-auth/antigravity'
+  const begin = vi.fn(async () => ok({ attemptId: 'google-login' }))
+  const config = Schema.object({ providers: Schema.dict(Schema.object({ models: Schema.array(Schema.object({ id: Schema.string() })) })) })
+  render(<ProviderEditor provider={provider} displayName="Google" settingsPath={['providers', provider]}
+    namespace={{ ns: 'llm-account-auth', schema: config.toJSON(), revision: 1, applies: 'live', secrets: [],
+      value: { providers: {} }, base: {}, user: {} }} schema={settingsSchema} t={t} readOnly={false} onClose={vi.fn()}
+    api={{ authorization: { list: async () => ok({ entries: [{ key, label: 'Google', methods: [
+      { id: 'oauth', label: 'Antigravity' }, { id: 'gemini-api', label: 'Gemini API' },
+    ], inFlight: false, accounts: [] }] }), begin,
+    state: async () => ok({ attempt: { id: 'google-login', status: 'authorized' } }),
+    usage: async () => ok({}), cancel: async () => ok({}) } } as never} />)
+  await screen.findByText(en.accountsEmpty)
+  fireEvent.click(screen.getByRole('button', { name: en.accountAdd }))
+  await screen.findByText(en.accountAdded)
+  expect(begin).toHaveBeenCalledWith({ key, method: provider === 'gemini-api' ? 'gemini-api' : 'oauth' })
+})
+
+it('opens Antigravity OAuth through the Desktop system browser', async () => {
+  const url = 'https://accounts.google.com/o/oauth2/v2/auth?state=fixture'
+  const openExternal = vi.fn(async () => undefined)
+  Object.assign(globalThis, { hydraDesktop: { openExternal } })
+  const key = 'llm-account-auth/antigravity'
+  const begin = vi.fn(async () => ok({ attemptId: 'antigravity-login' }))
+  const api = {
+    list: async () => ok({ entries: [{ key, label: 'Antigravity', methods: [
+      { id: 'gemini-api', label: 'Gemini API' }, { id: 'oauth', label: 'Antigravity' },
+    ], inFlight: false, accounts: [] }] }),
+    begin,
+    state: async () => ok({ attempt: { id: 'antigravity-login', status: 'running', notice: { message: 'Sign in with Google.', url } } }),
+    cancel: vi.fn(async () => ok({})),
+  }
+  render(<ProviderAccounts flowKey={key} method="oauth" mode="add" api={api as never}
+    t={t} disabled={false} onBusy={vi.fn()} />)
+  const add = screen.getByRole<HTMLButtonElement>('button', { name: en.accountAdd })
+  await waitFor(() => { expect(add.disabled).toBe(false) })
+  fireEvent.click(add)
+  const link = await screen.findByRole('link', { name: en.accountOpenBrowser })
+  expect(link.getAttribute('href')).toBe(url)
+  fireEvent.click(link)
+  expect(begin).toHaveBeenCalledWith({ key, method: 'oauth' })
+  expect(openExternal).toHaveBeenCalledWith(url)
+})
+
+it('keeps account inventory and quota in manage mode while add mode completes login', async () => {
+  let accounts = [{ id: 'alice', label: 'alice@example.test' }]
+  const api = {
+    list: vi.fn(async () => ok({ entries: [{ key: flowKey, label: 'ChatGPT',
+      methods: [{ id: 'oauth', label: 'Sign in' }], inFlight: false, accounts }] })),
+    begin: vi.fn(async () => ok({ attemptId: 'login' })),
+    state: vi.fn(async () => {
+      accounts = [...accounts, { id: 'bob', label: 'bob@example.test' }]
+      return ok({ attempt: { id: 'login', status: 'authorized' } })
+    }),
+    usage: vi.fn(async () => ok({})),
+    cancel: vi.fn(async () => ok({})),
+  }
+  const onBusy = vi.fn()
+  const view = render(<ProviderAccounts mode="add" flowKey={flowKey}
+    api={api as unknown as IApiClient['authorization']} t={t} disabled={false} onBusy={onBusy} />)
+  const add = screen.getByRole<HTMLButtonElement>('button', { name: en.accountAdd })
+  await waitFor(() => { expect(add.disabled).toBe(false) })
+  expect(screen.queryByRole('list', { name: en.accounts })).toBeNull()
+  expect(screen.queryByText(en.accounts)).toBeNull()
+  expect(screen.queryByText('alice@example.test')).toBeNull()
+  expect(api.usage).not.toHaveBeenCalled()
+  fireEvent.click(add)
+  await screen.findByText(en.accountAdded)
+  expect(screen.queryByText('alice@example.test')).toBeNull()
+  expect(screen.queryByText('bob@example.test')).toBeNull()
+  expect(api.usage).not.toHaveBeenCalled()
+  expect(onBusy).toHaveBeenLastCalledWith(false)
+  view.rerender(<ProviderAccounts flowKey={flowKey}
+    api={api as unknown as IApiClient['authorization']} t={t} disabled={false} onBusy={onBusy} />)
+  expect(await screen.findByText('alice@example.test')).toBeDefined()
+  expect(await screen.findByText('bob@example.test')).toBeDefined()
+  expect(api.usage).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Show usage for alice@example.test' }))
+  await waitFor(() => { expect(api.usage).toHaveBeenCalledOnce() })
+})
 
 it('adds a second account and signs out only the selected account', async () => {
   let accounts = [{ id: 'alice', label: 'alice@example.test' }]
@@ -49,6 +204,7 @@ it('adds a second account and signs out only the selected account', async () => 
   expect(input.type).toBe('password')
   const link = screen.getByRole('link', { name: en.accountOpenBrowser })
   expect(link.getAttribute('rel')).toBe('noopener noreferrer')
+  expect(link.parentElement).toBe(screen.getByRole('button', { name: en.accountAdd }).parentElement)
   fireEvent.click(link)
   expect(openExternal).toHaveBeenCalledWith('https://example.test/login')
   fireEvent.change(input, { target: { value: 'one-use-code' } })
@@ -97,9 +253,17 @@ it('shows provider-reported windows and banked resets per account', async () => 
     usage,
   }
   render(<ProviderAccounts flowKey={flowKey} api={api as unknown as IApiClient['authorization']} t={t} disabled={false} onBusy={vi.fn()} />)
-  await screen.findByText('5 hour usage limit')
+  const fiveHour = await screen.findByRole('progressbar', { name: '5 hour usage limit' })
+  expect(fiveHour.getAttribute('aria-valuenow')).toBe('75')
+  expect(fiveHour.getAttribute('aria-valuetext')).toBe('75% left')
+  expect(fiveHour.getAttribute('aria-description')).toContain('Resets ')
+  expect(screen.queryByText(/Resets /)).toBeNull()
+  fireEvent.focus(fiveHour)
+  expect(screen.getByRole('tooltip').textContent).toContain('Resets ')
+  fireEvent.blur(fiveHour)
   expect(screen.getByText('75% left')).toBeDefined()
-  expect(screen.getByText('Weekly usage limit')).toBeDefined()
+  expect(screen.getByText('5h')).toBeDefined()
+  expect(screen.getByText('Weekly')).toBeDefined()
   expect(screen.getByText('50% left')).toBeDefined()
   expect(screen.getByText(/Banked resets: 2/)).toBeDefined()
   fireEvent.click(screen.getByRole('button', { name: en.accountUsageRefresh.replace('{account}', 'alice@example.test') }))
@@ -121,7 +285,7 @@ it('renders an unnamed plan, an unwindowed limit, and unavailable banked resets'
   expect(screen.getByText(en.accountBankedResetsUnavailable)).toBeTruthy()
 })
 
-it('groups Google model quota into the shared usage cards', async () => {
+it('groups Google quota into compact meters with complete details on hover and focus', async () => {
   const googleKey = 'llm-account-auth/antigravity'
   const api = {
     list: async () => ok({ entries: [{ key: googleKey, label: 'Google Antigravity', methods: [{ id: 'oauth', label: 'Sign in' }],
@@ -147,12 +311,18 @@ it('groups Google model quota into the shared usage cards', async () => {
   expect(screen.getByText('82% left')).toBeTruthy()
   expect(screen.getByText('60% left')).toBeTruthy()
   expect(screen.getByText('Search · 5 hour usage limit')).toBeTruthy()
-  expect(screen.getByText('Weekly usage limit')).toBeTruthy()
-  expect(screen.getByText('820 remaining')).toBeTruthy()
+  expect(screen.getByText('Weekly')).toBeTruthy()
+  const weekly = screen.getByRole('progressbar', { name: 'Weekly usage limit' })
+  expect(weekly.getAttribute('aria-description')).toContain('Gemini 3.1 Flash')
+  expect(weekly.getAttribute('aria-description')).toContain('820 remaining')
+  fireEvent.mouseEnter(weekly)
+  expect(screen.getByRole('tooltip').textContent).toContain('820 remaining')
+  fireEvent.mouseLeave(weekly)
   expect(screen.getByText('GOOGLE_ONE_AI: 1,200 credits')).toBeTruthy()
   expect(screen.getByText('free: 4 credits')).toBeTruthy()
   expect(screen.getByText(en.accountUsageUnavailable)).toBeTruthy()
-  expect(screen.getByText('Credit use starts at 100')).toBeTruthy()
+  fireEvent.focus(screen.getByText('GOOGLE_ONE_AI: 1,200 credits').parentElement!)
+  expect(screen.getByRole('tooltip').textContent).toBe('Credit use starts at 100')
   expect(screen.getByText('Disabled')).toBeTruthy()
   expect(screen.getAllByRole('progressbar')).toHaveLength(4)
   expect(screen.queryByText(/Banked resets/)).toBeNull()
@@ -185,6 +355,7 @@ it('keeps unknown providers on the generic usage presentation', async () => {
 it('requires a connected account for an active account-backed provider', () => {
   expect(providerAccountKey('llm-account-auth', 'chatgpt')).toBe(flowKey)
   expect(providerAccountKey('llm-account-auth', 'antigravity')).toBe('llm-account-auth/antigravity')
+  expect(providerAccountKey('llm-account-auth', 'gemini-api')).toBe('llm-account-auth/antigravity')
   expect(providerAccountKey('llm-pi-ai', 'openai')).toBeUndefined()
   const row = { entry: { active: true }, accountCount: 0 } as Parameters<typeof providerUsable>[0]
   expect(providerUsable(row)).toBe(false)
@@ -213,7 +384,7 @@ it.each(['chatgpt', 'future-provider'])('saves %s without requiring or storing a
     expect(screen.getByDisplayValue('custom-model')).toBeDefined()
     fireEvent.click(screen.getByRole('button', { name: en.resetModels }))
     expect(screen.queryByDisplayValue('custom-model')).toBeNull()
-  } else expect(screen.queryByRole('button', { name: en.accountAdd })).toBeNull()
+  } else expect(screen.getByRole<HTMLButtonElement>('button', { name: en.accountAdd }).disabled).toBe(true)
   fireEvent.click(screen.getByRole('button', { name: en.apply }))
   await waitFor(() => { expect(onClose).toHaveBeenCalledWith(true) })
   expect(mutate).toHaveBeenCalledWith({ ns: 'llm-account-auth', expectedRevision: 1,

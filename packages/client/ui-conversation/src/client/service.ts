@@ -14,7 +14,7 @@ import type { Context } from '@hydraharness/cordis'
 // method) instead of the standalone helper.
 import type { ISessions, SessionFace, SessionId } from '@hydraharness/harness-client-runtime/client'
 import type { SubmitImageAttachment, SubmitOutcome } from '@hydraharness/harness-client-ui-input-trigger/client'
-import type { ImageAttachmentRef, ImageMediaType } from '@hydraharness/harness-attachment'
+import type { ImageAttachmentRef, ImageMediaType, VideoAttachmentRef } from '@hydraharness/harness-attachment'
 import type { BrowserAnnotationAttachment, ComposerAttachment } from './contract/slots.ts'
 import type { QueueAction, QueueItemId } from './contract/queue.ts'
 import type { ComposerBlocks } from './input/blocks.ts'
@@ -389,25 +389,25 @@ export class ConversationController extends Service implements IConversation {
   }
 
   /**
-   * Resolve and cache one session-authorized historical image URL.
+   * Resolve and cache one session-authorized image or video URL.
    * @param sessionId - owning session authorization scope.
-   * @param attachment - durable image reference.
+   * @param attachment - durable media reference.
    * @returns browser URL valid until its rendered session is released.
    */
-  resolveImage(sessionId: SessionId, attachment: ImageAttachmentRef): Promise<string> {
-    if (this.disposed) return Promise.reject(new Error('conversation.resolveImage: service is disposed'))
+  resolveMedia(sessionId: SessionId, attachment: ImageAttachmentRef | VideoAttachmentRef): Promise<string> {
+    if (this.disposed) return Promise.reject(new Error('conversation.resolveMedia: service is disposed'))
     const key = `${sessionId}:${attachment.attachmentId}`
     const cached = this.imageUrls.get(key)
     if (cached !== undefined) return cached.pending
     const generation = this.imageGenerations.get(sessionId) ?? 0
     const session = this.requireSessions().binding(sessionId)?.session
     if (session === undefined) {
-      return Promise.reject(new Error(`conversation.resolveImage: unknown session "${sessionId}"`))
+      return Promise.reject(new Error(`conversation.resolveMedia: unknown session "${sessionId}"`))
     }
     const pending = session.readAttachment(attachment.attachmentId)
       .then((result) => {
         if (!result.ok) throw new Error(`${result.error.code}: ${result.error.message}`)
-        if (this.disposed) throw new Error('conversation.resolveImage: service was disposed before loading completed')
+        if (this.disposed) throw new Error('conversation.resolveMedia: service was disposed before loading completed')
         if ((this.imageGenerations.get(sessionId) ?? 0) !== generation) {
           throw new Error('historical image scope was released before loading completed')
         }

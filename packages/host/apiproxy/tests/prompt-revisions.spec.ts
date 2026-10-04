@@ -1,291 +1,183 @@
 import { expect, it, onTestFinished, vi } from 'vitest'
 import { Context } from '@hydraharness/cordis'
-import AgentRegistry, { Inbox, type Agent, type CreateAgentOptions } from '@hydraharness/harness-agent'
+import AgentRegistry, { Inbox, type Agent } from '@hydraharness/harness-agent'
 import { createUserMessage, type ContentBlock } from '@hydraharness/harness-llm'
-import SessionStore, { SessionId, type Session, type SessionEvent } from '@hydraharness/harness-session'
+import SessionStore, { SessionId, ORIGINAL_SESSION_VERSION, type SessionEvent, type TurnEndReason } from '@hydraharness/harness-session'
 import { WorkspaceId } from '@hydraharness/harness-workspace'
 import { createPromptReviser } from '../src/prompt-revisions.ts'
-import type { ConversationRevision, PromptRevisionRequest } from '../src/api/sessions.ts'
+import type { PromptRevisionRequest } from '../src/api/sessions.ts'
 
 type Dependencies = Parameters<typeof createPromptReviser>[1]
-type Source = Awaited<ReturnType<Dependencies['read']>>
 const sourceId = SessionId('original')
 const workspaceId = WorkspaceId('project')
 const text = (value: string): ContentBlock[] => [{ type: 'text', text: value }]
 const request = (edit: PromptRevisionRequest['edit'] = { messageSeq: 1, text: 'edited' }): PromptRevisionRequest => ({
   sessionId: sourceId, workspaceId, idempotencyKey: 'operation', ...edit === undefined ? {} : { edit },
 })
-
 function user(content: ContentBlock[], seq: number): SessionEvent {
   return { type: 'user/message', seq, time: seq, surfaceOp: 'append', data: createUserMessage({ content, source: { kind: 'user' } }) }
 }
-
-function revision(message = createUserMessage({ content: text('admitted'), source: { kind: 'user' } })): ConversationRevision {
-  return {
-    sessionId: sourceId, conversationId: sourceId, previousSessionId: sourceId, turn: 1, createdAt: 1,
-    admission: { fingerprint: 'previous', messageId: message.id, message: { ...message, content: [{ type: 'text', text: 'admitted' }], source: { kind: 'user' } } },
-  }
-}
-
-async function harness() {
+const seed: SessionEvent[] = [
+  { type: 'turn/start', seq: 0, time: 0, data: { turn: 1 } }, user(text('original'), 1),
+  { type: 'turn/end', seq: 2, time: 2, data: { turn: 1, reason: { kind: 'completed' } } },
+]
+async function harness(events = seed, origin?: 'subagent') {
   const ctx = new Context()
   onTestFinished(async () => { await ctx.fiber.dispose() })
   await ctx.plugin(SessionStore)
   await ctx.plugin(AgentRegistry)
-  const source: Source = {
-    id: sourceId, header: { id: sourceId, version: 0, createdAt: 0, cwd: '/project' },
-    events: [
-      { type: 'turn/start', seq: 0, time: 0, data: { turn: 1 } },
-      user(text('original'), 1),
-      { type: 'turn/end', seq: 2, time: 2, data: { turn: 1, reason: { kind: 'completed' } } },
-    ],
-  }
+  const session = ctx.sessions.create(sourceId, { seed: events, meta: { cwd: process.cwd(), ...origin === undefined ? {} : { origin } } })
   const calls: string[] = []
-  const workspace = { id: workspaceId, sessionIds: [sourceId], attachSession: vi.fn(async (_id: SessionId) => { calls.push('attach') }) }
+  const workspace = { id: workspaceId, sessionIds: [sourceId], attachSession: vi.fn() }
   ctx.provide('workspaceRegistry', { list: () => [workspace] } as never)
   const readImage = vi.fn(async () => ({ data: new Uint8Array(5) }))
   const imageLimits = { maxImagesPerMessage: 2, maxMessageImageBytes: 10 }
   ctx.provide('attachments', { readImage, imageLimits } as never)
   const flush = vi.spyOn(ctx.sessions, 'flush').mockImplementation(async () => { calls.push('flush'); return true })
-  function agent(session: Session): Agent {
-    const inbox = new Inbox(session, { inserted() {}, discarded() {}, claimed() {} })
-    return {
-      id: session.id, session, ctx, inbox, status: 'idle',
-      send: vi.fn<Agent['send']>((message, target) => { calls.push('park'); inbox.append(target, message) }),
-      followup: vi.fn(() => { calls.push('followup') }),
-      cancel: vi.fn(), whenIdle: vi.fn(async () => undefined),
-    } as unknown as Agent
-  }
-  const create = vi.spyOn(ctx.agents, 'create').mockImplementation(async (options: CreateAgentOptions) => {
-    const session = ctx.sessions.create(options.sessionId, {
-      ...options.seed === undefined ? {} : { seed: [...options.seed] },
-      ...options.meta === undefined ? {} : { meta: options.meta },
-    })
-    const created = agent(session)
-    ctx.agents.register(created)
-    return { agent: created, dispose: async () => undefined }
-  })
-  const deps = {
-    retain: vi.fn<Dependencies['retain']>(), read: vi.fn(async () => source),
-    find: vi.fn<Dependencies['find']>(async (id) => {
-      const session = ctx.sessions.get(id)
-      return session === undefined ? undefined : { id, header: session.header, events: [...session.events] }
+  const inbox = new Inbox(session, { inserted() {}, discarded() {}, claimed() {} })
+  const state = { reason: 'completed' as 'completed' | 'error' | 'aborted' | 'interrupted' | 'blocked', running: false }
+  const implementation = {
+    id: session.id, session, ctx, inbox,
+    get status() { return state.running ? 'running' : 'idle' },
+    send: vi.fn<Agent['send']>((message, target) => { calls.push('park'); inbox.append(target, message) }),
+    followup: vi.fn<Agent['followup']>((message) => {
+      calls.push('followup')
+      const turn = (session.activeEvents.findLast(event => event.type === 'turn/start')?.data.turn ?? 0) + 1
+      session.append('turn/start', { turn })
+      session.append('user/message', message, { surfaceOp: 'append' })
+      const reason: TurnEndReason = state.reason === 'aborted' ? { kind: 'aborted', reason: { kind: 'user' } }
+        : state.reason === 'error' ? { kind: 'error', error: { code: 'UNKNOWN', message: 'generation failed' } }
+          : { kind: state.reason }
+      session.append('turn/end', { turn, reason })
     }),
-    compose: vi.fn<Dependencies['compose']>(async () => ({ agentOptions: {} })),
-    resume: vi.fn<Dependencies['resume']>(), validateModel: vi.fn<Dependencies['validateModel']>(async () => undefined),
+    cancel: vi.fn(() => { state.running = false; inbox.clear() }), whenIdle: vi.fn(async () => undefined),
   }
-  return { ctx, source, deps, create, workspace, flush, readImage, imageLimits, calls, agent, revise: createPromptReviser(ctx, deps) }
+  const agent = implementation as unknown as Agent
+  ctx.agents.register(agent)
+  const create = vi.spyOn(ctx.agents, 'create')
+  const deps = {
+    read: vi.fn<Dependencies['read']>(async () => ({ id: session.id, header: session.header, events: [...session.events] })),
+    resume: vi.fn<Dependencies['resume']>(async () => agent),
+    serialize: <T>(_agent: Agent, operation: () => Promise<T>) => operation(),
+    validateModel: vi.fn<Dependencies['validateModel']>(async () => undefined),
+  }
+  return { ctx, session, agent, send: implementation.send, followup: implementation.followup,
+    deps, create, workspace, flush, readImage, imageLimits, calls, state, revise: createPromptReviser(ctx, deps) }
 }
 
-it('persists an immutable edit before attaching and waking exactly one child', async () => {
+it('stores edits and retries in one session, preserving the original log prefix and Agent', async () => {
   const h = await harness()
-  const before = structuredClone(h.source)
+  const before = h.session.events
   const pending = h.revise(request())
   expect(h.revise(request())).toBe(pending)
-  await expect(h.revise({ ...request(), edit: { messageSeq: 1, text: 'conflict' } })).rejects.toThrow('idempotency key')
+  await expect(h.revise({ ...request(), edit: { messageSeq: 1, text: 'conflict' } })).rejects.toThrow('being admitted')
   const result = await pending
-  expect(h.source).toEqual(before)
-  expect(result.sessionId).toMatch(/^session-edit-[a-f0-9]{64}$/u)
-  expect(result.revision).toMatchObject({
-    conversationId: sourceId, previousSessionId: sourceId, turn: 1, revisionId: result.sessionId, attempt: 1,
-  })
-  const child = h.ctx.agents.get(result.sessionId)!
-  expect(child.session.header).toMatchObject({ cwd: '/project', parentSession: sourceId, seedLength: 1 })
-  expect(child.session.events[0]).toMatchObject({ type: 'session/revision', data: result.revision })
-  expect(child.inbox.nextTurn).toEqual([])
-  expect(h.calls).toEqual(['park', 'flush', 'attach', 'followup'])
-  expect(h.deps.retain).toHaveBeenCalledOnce()
-  child.session.append('turn/start', { turn: 1 })
+  expect(result.sessionId).toBe(sourceId)
+  expect(result.revision.previousVersionId).toBe(ORIGINAL_SESSION_VERSION)
+  expect(h.session.events.slice(0, before.length)).toEqual(before)
+  expect(h.ctx.agents.get(sourceId)).toBe(h.agent)
+  expect(h.create).not.toHaveBeenCalled()
+  expect(h.workspace.attachSession).not.toHaveBeenCalled()
+  expect(h.session.versions.ids).toHaveLength(2)
+  expect(JSON.stringify(h.session.deriveMessages())).toContain('edited')
+  expect(JSON.stringify(h.session.deriveMessages())).not.toContain('original')
   await expect(h.revise(request())).resolves.toEqual(result)
-  expect(h.create).toHaveBeenCalledOnce()
-  expect(h.calls.filter(call => call === 'followup')).toHaveLength(1)
+  expect(h.followup).toHaveBeenCalledOnce()
   await expect(h.revise({ ...request(), edit: { messageSeq: 1, text: 'other' } })).rejects.toThrow('idempotency key')
 })
 
-it('recovers a durable parked admission after an attachment failure', async () => {
+it('recovers a parked admission after a durability failure without duplicating the version', async () => {
   const h = await harness()
-  h.workspace.attachSession.mockRejectedValueOnce(new Error('workspace offline'))
-  await expect(h.revise(request())).rejects.toThrow('workspace offline')
-  const child = h.deps.retain.mock.calls[0]![0].agent
-  expect(child.inbox.nextTurn).toHaveLength(1)
-  expect(h.calls.filter(call => call === 'followup')).toHaveLength(0)
+  h.flush.mockRejectedValueOnce(new Error('storage offline'))
+  await expect(h.revise(request())).rejects.toThrow('storage offline')
+  expect(h.agent.inbox.nextTurn).toHaveLength(1)
+  expect(h.followup).not.toHaveBeenCalled()
   await h.revise(request())
-  expect(h.calls.filter(call => call === 'park')).toHaveLength(1)
-  expect(h.calls.filter(call => call === 'followup')).toHaveLength(1)
-  expect(child.inbox.nextTurn).toEqual([])
+  expect(h.send).toHaveBeenCalledOnce()
+  expect(h.followup).toHaveBeenCalledOnce()
+  expect(h.session.versions.ids).toHaveLength(2)
+  expect(h.agent.inbox.nextTurn).toEqual([])
 })
 
-it('resumes a cold admission and avoids restarting an already attempted live log', async () => {
+it('resumes the same cold session and does not rerun an already consumed admission', async () => {
   const h = await harness()
-  const result = await h.revise(request())
-  const child = h.ctx.agents.get(result.sessionId)!
-  h.deps.resume.mockResolvedValue(child)
+  await h.revise(request())
   vi.spyOn(h.ctx.agents, 'get').mockReturnValue(undefined)
   await h.revise(request())
-  expect(h.deps.resume).toHaveBeenCalledWith(result.sessionId)
-  const snapshot = { id: child.id, header: child.session.header, events: [...child.session.events] }
-  h.deps.find.mockResolvedValue(snapshot)
-  child.session.append('turn/start', { turn: 1 })
+  expect(h.deps.resume).toHaveBeenCalledWith(sourceId)
+  expect(h.followup).toHaveBeenCalledOnce()
+})
+
+it('keeps the latest model header while excluding downstream messages', async () => {
+  const h = await harness()
+  h.session.append('request/header', { header: { config: { provider: 'fixture', model: 'latest' } }, reason: 'initial' })
   await h.revise(request())
-  expect(h.calls.filter(call => call === 'followup')).toHaveLength(2)
+  expect(h.session.requestHeader()?.config.model).toBe('latest')
+  h.session.append('session/version-selected', { versionId: ORIGINAL_SESSION_VERSION })
+  expect(JSON.stringify(h.session.deriveMessages())).toContain('original')
 })
 
-it('keeps the latest model header, title and composition while cutting a prior turn', async () => {
-  const h = await harness()
-  h.source.events.push(
-    { type: 'request/header', seq: 3, time: 3, data: { header: { config: { provider: 'fixture', model: 'test' } }, reason: 'initial' } },
-    { type: 'session/title', seq: 4, time: 4, data: { title: 'title' } } as SessionEvent,
-  )
-  const original = h.agent(h.ctx.sessions.create(sourceId))
-  h.ctx.agents.register(original)
-  h.deps.compose.mockResolvedValue({ agentOptions: {}, agentPreset: 'custom', setup: async () => undefined })
-  const result = await h.revise(request())
-  const child = h.ctx.agents.get(result.sessionId)!
-  expect(original.status).toBe('idle')
-  expect(child.session.header.agentPreset).toBe('custom')
-  expect(child.session.events.slice(0, 3).map(event => event.type)).toEqual(['request/header', 'session/revision', 'session/title'])
-  expect(h.create.mock.calls[0]![0].setup).toBeDefined()
-})
-
-it('balances an interrupted turn before revising a steering prompt', async () => {
-  const h = await harness()
-  h.source.events.splice(2, 1, { type: 'step/start', seq: 2, time: 2, data: { turn: 1, step: 0 } }, user(text('steer'), 3))
-  const result = await h.revise(request({ messageSeq: 3, text: 'revised steering' }))
-  expect(result.revision.turn).toBe(2)
-  expect(h.ctx.sessions.get(result.sessionId)!.events.slice(0, 6).map(event => event.type)).toEqual([
-    'turn/start', 'user/message', 'step/start', 'step/end', 'turn/end', 'session/revision',
-  ])
-})
-
-it.each(['subagent', 'workspace', 'missing', 'non-user', 'no-turn', 'ended-turn', 'unsupported', 'empty'])('rejects %s edits before creating a child', async (invalid) => {
-  const h = await harness()
+it.each(['workspace', 'missing', 'empty', 'subagent', 'non-user', 'no-turn', 'ended-turn'])('rejects %s edits before creating a version', async (invalid) => {
+  const events = invalid === 'no-turn' ? [user(text('original'), 0)] : [...seed]
+  if (invalid === 'non-user') events[1] = { type: 'user/message', seq: 1, time: 1, surfaceOp: 'append', data: createUserMessage({ content: text('tool'), source: { kind: 'tool', callId: 'call' as never } }) }
+  if (invalid === 'ended-turn') events.push(user(text('late'), 3))
+  const h = await harness(events, invalid === 'subagent' ? 'subagent' : undefined)
   const input = request()
-  let error = ''
-  switch (invalid) {
-    case 'subagent': h.source.header = { ...h.source.header, origin: 'subagent' }; error = 'Subagent messages'; break
-    case 'workspace': input.workspaceId = WorkspaceId('other'); error = 'addressed workspace'; break
-    case 'missing': input.edit = { messageSeq: 99, text: 'edit' }; error = 'not a user message'; break
-    case 'non-user': h.source.events[1] = { ...user(text('tool'), 1), data: createUserMessage({ content: text('tool'), source: { kind: 'tool', callId: 'call' as never } }) } as SessionEvent; error = 'not a user message'; break
-    case 'no-turn': h.source.events.shift(); error = 'no owning turn'; break
-    case 'ended-turn': h.source.events.push(user(text('late'), 3)); input.edit = { messageSeq: 3, text: 'edit' }; error = 'no owning turn'; break
-    case 'unsupported': h.source.events[1] = user([{ type: 'file', attachment: {} } as ContentBlock], 1); error = 'cannot preserve'; break
-    case 'empty': input.edit = { messageSeq: 1, text: '  ' }; error = 'Enter a message'; break
-  }
-  await expect(h.revise(input)).rejects.toThrow(error)
+  if (invalid === 'workspace') input.workspaceId = WorkspaceId('other')
+  if (invalid === 'missing') input.edit = { messageSeq: 99, text: 'edit' }
+  if (invalid === 'empty') input.edit = { messageSeq: 1, text: '  ' }
+  if (invalid === 'no-turn') input.edit = { messageSeq: 0, text: 'edit' }
+  if (invalid === 'ended-turn') input.edit = { messageSeq: 3, text: 'edit' }
+  await expect(h.revise(input)).rejects.toThrow()
+  expect(h.session.versions.ids).toEqual([ORIGINAL_SESSION_VERSION])
   expect(h.create).not.toHaveBeenCalled()
 })
 
 const imageBlock = { type: 'image', attachment: { attachmentId: 'image' as never, mediaType: 'image/png', bytes: 5, width: 1, height: 1 } } satisfies ContentBlock
-it('preserves image-only prompts and checks both count and byte budgets', async () => {
-  const h = await harness()
-  h.source.events[1] = user([imageBlock], 1)
+it('preserves image-only prompts and validates retained attachments', async () => {
+  const h = await harness([seed[0]!, user([imageBlock], 1), seed[2]!])
   const result = await h.revise(request({ messageSeq: 1, text: '' }))
   expect(result.revision.admission!.message.content).toEqual([imageBlock, { type: 'text', text: '' }])
-  expect(h.deps.validateModel).toHaveBeenCalledWith(h.source, true)
+  expect(h.deps.validateModel.mock.calls[0]![1]).toBe(true)
   expect(h.readImage).toHaveBeenCalledWith(imageBlock.attachment)
-  h.source.events[1] = user([imageBlock, imageBlock, imageBlock], 1)
-  await expect(h.revise({ ...request(), idempotencyKey: 'count' })).rejects.toThrow('Too many images')
-  h.source.events[1] = user([imageBlock], 1)
-  h.readImage.mockResolvedValue({ data: new Uint8Array(11) })
-  await expect(h.revise({ ...request(), idempotencyKey: 'bytes' })).rejects.toThrow('byte limit')
 })
 
-it.each(['error', 'aborted', 'interrupted', 'blocked', 'unstarted'] as const)('retries %s attempts with the same revision identity and prompt', async (reason) => {
-  const h = await harness()
-  const previous = revision()
-  h.source.header = { ...h.source.header, seedLength: 1 }
-  h.source.events = [{ type: 'session/revision', seq: 0, time: 0, data: previous, ignorable: true }]
-  if (reason !== 'unstarted') h.source.events.push(
-    { type: 'turn/start', seq: 1, time: 1, data: { turn: 1 } },
-    { type: 'user/message', seq: 2, time: 2, data: previous.admission!.message },
-    { type: 'turn/end', seq: 3, time: 3, data: { turn: 1, reason: { kind: reason } } } as SessionEvent,
-  )
-  const result = await h.revise({ sessionId: sourceId, workspaceId, idempotencyKey: 'retry' })
-  expect(result.revision).toMatchObject({ previousSessionId: sourceId, revisionId: sourceId, attempt: 2, createdAt: previous.createdAt })
-  expect(result.revision.admission!.message).toEqual(previous.admission!.message)
+it.each(['count', 'bytes', 'missing', 'model'])('rejects %s image admission without altering the version graph', async (reason) => {
+  const h = await harness([seed[0]!, user(reason === 'count' ? [imageBlock, imageBlock, imageBlock] : [imageBlock], 1), seed[2]!])
+  if (reason === 'bytes') h.readImage.mockResolvedValue({ data: new Uint8Array(11) })
+  if (reason === 'missing') h.readImage.mockRejectedValue(new Error('missing attachment'))
+  if (reason === 'model') h.deps.validateModel.mockRejectedValue(new Error('unsupported model'))
+  await expect(h.revise(request())).rejects.toThrow()
+  expect(h.session.versions.ids).toHaveLength(1)
 })
 
-it.each(['no-receipt', 'inherited', 'no-admission', 'later-user', 'completed', 'running'])('rejects retry with %s state', async (state) => {
+it.each(['error', 'aborted', 'interrupted', 'blocked'] as const)('retries %s generation with the exact admitted prompt in the same session', async (reason) => {
   const h = await harness()
-  const previous = revision()
-  h.source.header = { ...h.source.header, seedLength: 1 }
-  h.source.events = [{ type: 'session/revision', seq: 0, time: 0, data: previous, ignorable: true }]
-  let error = 'no admitted prompt revision'
-  switch (state) {
-    case 'no-receipt': h.source.events = []; break
-    case 'inherited': previous.sessionId = SessionId('parent'); break
-    case 'no-admission': delete previous.admission; break
-    case 'later-user': h.source.events.push(user(text('later'), 1)); error = 'later user prompt'; break
-    case 'completed': h.source.events.push({ type: 'turn/end', seq: 1, time: 1, data: { turn: 1, reason: { kind: 'completed' } } }); error = 'Only a failed'; break
-    case 'running': vi.spyOn(h.ctx.agents, 'get').mockReturnValue({ status: 'running' } as Agent); error = 'Only a failed'; break
-  }
-  await expect(h.revise({ sessionId: sourceId, workspaceId, idempotencyKey: 'retry' })).rejects.toThrow(error)
+  h.state.reason = reason
+  const first = await h.revise(request())
+  const second = await h.revise({ sessionId: sourceId, workspaceId, idempotencyKey: 'retry' })
+  expect(second.sessionId).toBe(sourceId)
+  expect(second.revision.admission!.message).toEqual(first.revision.admission!.message)
+  expect(second.revision).toMatchObject({ previousVersionId: first.revision.versionId, attempt: 2, createdAt: first.revision.createdAt })
+  expect(h.session.versions.ids).toHaveLength(3)
   expect(h.create).not.toHaveBeenCalled()
 })
 
-it('admits unassigned sessions without inventing a workspace or cwd', async () => {
+it('rejects successful-generation retry and prompts outside the selected version', async () => {
   const h = await harness()
-  h.workspace.sessionIds = []
-  h.source.header = { id: sourceId, version: 0, createdAt: 0 }
-  const result = await h.revise({ ...request(), workspaceId: null })
-  const child = h.ctx.agents.get(result.sessionId)!
-  expect(child.session.header.cwd).toBeUndefined()
-  expect(h.workspace.attachSession).not.toHaveBeenCalled()
-  const existing = { id: result.sessionId, header: { ...child.session.header }, events: [...child.session.events] }
-  delete existing.header.seedLength
-  h.deps.find.mockResolvedValue(existing)
-  await h.revise({ ...request(), workspaceId: null })
-  expect(h.calls.filter(call => call === 'followup')).toHaveLength(2)
-  h.deps.find.mockResolvedValue({ id: result.sessionId, header: { ...existing.header, parentSession: sourceId }, events: [] })
-  await expect(h.revise({ ...request(), workspaceId: null })).rejects.toThrow('idempotency key')
-})
-
-it('retains an existing header and title in the prefix and preserves revision lineage', async () => {
-  const h = await harness()
-  const previous = { ...revision(), revisionId: SessionId('first-revision'), attempt: 2 }
-  h.source.events = [
-    { type: 'session/revision', seq: 0, time: 0, data: previous, ignorable: true },
-    { type: 'request/header', seq: 1, time: 1, data: { header: { config: { provider: 'fixture', model: 'test' } }, reason: 'initial' } },
-    { type: 'session/title', seq: 2, time: 2, data: { title: 'kept' } } as SessionEvent,
-    { type: 'turn/start', seq: 3, time: 3, data: { turn: 1 } },
-    user(text('original'), 4),
-    { type: 'turn/end', seq: 5, time: 5, data: { turn: 1, reason: { kind: 'completed' } } },
-  ]
-  const result = await h.revise(request({ messageSeq: 4, text: 'edit again' }))
-  expect(result.revision.previousSessionId).toBe(previous.revisionId)
-  const events = h.ctx.sessions.get(result.sessionId)!.events
-  expect(events.filter(event => event.type === 'request/header')).toHaveLength(1)
-  expect(events.filter(event => event.type === 'session/title')).toHaveLength(1)
-})
-
-it('validates retained retry images before starting another attempt', async () => {
-  const h = await harness()
-  const previous = { ...revision(), revisionId: SessionId('first-revision'), attempt: 3 }
-  previous.admission!.message.content.unshift(imageBlock)
-  h.source.events = [{ type: 'session/revision', seq: 0, time: 0, data: previous, ignorable: true }]
-  const result = await h.revise({ sessionId: sourceId, workspaceId, idempotencyKey: 'image-retry' })
-  expect(h.readImage).toHaveBeenCalledExactlyOnceWith(imageBlock.attachment)
-  expect(result.revision).toMatchObject({ revisionId: previous.revisionId, attempt: 4 })
-})
-
-it('does not restart a restored child whose first turn was already admitted', async () => {
-  const h = await harness()
-  const result = await h.revise(request())
-  const child = h.ctx.agents.get(result.sessionId)!
-  const started = { type: 'turn/start', seq: 0, time: 0, data: { turn: 1 } } as SessionEvent
-  const header = { ...child.session.header }
-  delete header.seedLength
-  const snapshot = { id: child.id, header, events: [child.session.events[0]!, started] }
-  const resumed = h.agent({
-    id: child.id, events: [started], header,
-  } as unknown as Session)
-  h.deps.find.mockResolvedValue(snapshot)
-  h.deps.resume.mockResolvedValue(resumed)
   await h.revise(request())
-  expect(h.calls.filter(call => call === 'followup')).toHaveLength(1)
-  snapshot.events.pop()
-  vi.spyOn(h.ctx.agents, 'get').mockReturnValue(undefined)
-  await h.revise(request())
-  expect(h.deps.resume).toHaveBeenCalledExactlyOnceWith(child.id)
-  expect(h.calls.filter(call => call === 'followup')).toHaveLength(1)
+  await expect(h.revise({ sessionId: sourceId, workspaceId, idempotencyKey: 'retry' })).rejects.toThrow('Only a failed')
+  await expect(h.revise({ ...request(), idempotencyKey: 'inactive' })).rejects.toThrow('not a user message')
+})
+
+it('closes a steering prefix and clears inherited pending input before admission', async () => {
+  const h = await harness([seed[0]!, user(text('initial'), 1), user(text('steering'), 2)])
+  const queued = createUserMessage({ content: text('queued'), source: { kind: 'user' } })
+  h.agent.inbox.append('next-turn', queued)
+  const result = await h.revise(request({ messageSeq: 2, text: 'replacement steer' }))
+  const path = h.session.versions.events(result.revision.versionId)
+  expect(path.find(event => event.type === 'turn/end')?.data.reason.kind).toBe('interrupted')
+  expect(h.agent.inbox.hasPending).toBe(false)
+  expect(JSON.stringify(h.session.deriveMessages())).toContain('initial')
+  expect(JSON.stringify(h.session.deriveMessages())).not.toContain('"text":"steering"')
 })

@@ -5,6 +5,7 @@ import {
   LlmAdapter, LlmError,
   type AdapterRegistrationHandle, type GenerateOptions, type LlmDiscoveredModel,
   type LlmModelInfo, type LlmProviderInfo, type LlmResolvedModelInfo, type StreamChunk,
+  type MediaGenerationOptions,
 } from '@hydraharness/harness-llm'
 import { accountRecordKey, createAccountPool, type AccountPool } from './accounts.ts'
 import {
@@ -19,7 +20,7 @@ export type { AccountModelProfile, AccountProviderProfile } from './config.ts'
 
 const NS = settingsNamespace(name)
 const emptyProfile: AccountProviderProfile = {}
-type AccountRuntime = import('./adapter.ts').ChatGptAccountAdapter | import('./adapter.ts').AntigravityAccountAdapter
+type AccountRuntime = import('./adapter.ts').PiAiAccountAdapter | import('./adapter.ts').AntigravityAccountAdapter | import('./kiro.ts').KiroAccountAdapter | import('./gemini-api.ts').GeminiApiAccountAdapter
 
 /** One lazy delegate per settings snapshot; active requests retain their own delegate. */
 class AccountAdapter extends LlmAdapter {
@@ -34,6 +35,10 @@ class AccountAdapter extends LlmAdapter {
   ) { super() }
 
   invalidate(): void { this.pending = undefined }
+
+  override async requestGeneration(options: MediaGenerationOptions & { provider: string; model: string }): Promise<Response> {
+    return (await this.load()).requestGeneration(options)
+  }
 
   private load(): Promise<AccountRuntime> {
     const profile = this.profile()
@@ -50,12 +55,26 @@ class AccountAdapter extends LlmAdapter {
   private async create(profile: AccountProviderProfile): Promise<AccountRuntime> {
     const runtime = await import('./adapter.ts')
     const common = { pool: this.pool, resolveAttachments: () => this.ctx.get('attachments') }
+    if (this.provider === 'gemini-api') {
+      const { GeminiApiAccountAdapter } = await import('./gemini-api.ts')
+      return new GeminiApiAccountAdapter(this.pool, profile, common.resolveAttachments)
+    }
     if (this.provider === 'antigravity') {
       return new runtime.AntigravityAccountAdapter({ ...common, profile: () => profile })
     }
+    if (this.provider === 'claude' || this.provider === 'xai-account' || this.provider === 'kimi') {
+      const { buildSdkAccountProfile } = await import('./sdk-accounts.ts')
+      const resolved = await buildSdkAccountProfile(this.provider, profile)
+      return new runtime.PiAiAccountAdapter({ ...common, provider: this.provider, profile: () => resolved })
+    }
+    if (this.provider === 'kiro') {
+      const { KiroAccountAdapter } = await import('./kiro.ts')
+      return new KiroAccountAdapter(this.pool, profile)
+    }
+    if (this.provider !== 'chatgpt') throw new LlmError(`${this.provider} native transport is unavailable.`, 'NO_ADAPTER')
     const { buildChatGptProfile } = await import('./chatgpt.ts')
     const resolved = await buildChatGptProfile(profile)
-    return new runtime.ChatGptAccountAdapter({ ...common, profile: () => resolved })
+    return new runtime.PiAiAccountAdapter({ ...common, provider: this.provider, profile: () => resolved })
   }
 
   override providerInfo(provider: string): LlmProviderInfo {
@@ -103,9 +122,17 @@ export function apply(ctx: Context, config: Config): void {
   }
   profiles()
 
+  const pools = new Map<string, AccountPool>()
   const routes = ACCOUNT_PROVIDERS.map((provider) => {
     const key = accountRecordKey(provider)
-    const pool = createAccountPool({ ctx, key, providerId: provider, providerLabel: ACCOUNT_PROVIDER_LABELS[provider] })
+    const google = provider === 'antigravity' || provider === 'gemini-api'
+    let pool = pools.get(key)
+    if (pool === undefined) {
+      pool = createAccountPool({ ctx, key, providerId: provider,
+        ...google ? { providerAliases: ['antigravity', 'gemini-api'] } : {},
+        providerLabel: google ? 'Google' : ACCOUNT_PROVIDER_LABELS[provider] })
+      pools.set(key, pool)
+    }
     return {
       provider, key, pool,
       adapter: new AccountAdapter(ctx, provider, pool, () => profiles().get(provider) ?? emptyProfile),
@@ -113,20 +140,24 @@ export function apply(ctx: Context, config: Config): void {
     }
   })
 
-  ctx.llm.registerConfigurableProviders(routes.map(({ provider }) => ({
+  ctx.llm.registerConfigurableProviders(ACCOUNT_PROVIDERS.map(provider => ({
     provider, displayName: ACCOUNT_PROVIDER_LABELS[provider], settingsNs: NS,
     settingsPath: ['providers', provider],
   })))
   ctx.llm.registerModelDiscovery(NS, async (request) => {
     const route = routes.find(candidate => candidate.provider === request.provider)
-    if (route === undefined) throw new LlmError('Select ChatGPT or Google Antigravity to discover models', 'INVALID_DISCOVERY')
+    if (route === undefined) throw new LlmError('Select an account sign-in provider to discover models', 'INVALID_DISCOVERY')
     return route.adapter.discover(request.signal)
   })
 
   ctx.inject(['authorization'], (authorized) => {
+    const registered = new Set<string>()
     for (const { provider, key, pool } of routes) {
+      if (registered.has(key)) continue
+      registered.add(key)
+      const google = provider === 'antigravity' || provider === 'gemini-api'
       authorized.authorization.registerFlow({
-        key, label: ACCOUNT_PROVIDER_LABELS[provider],
+        key, label: google ? 'Google' : ACCOUNT_PROVIDER_LABELS[provider],
         accounts: {
           ...pool.accounts,
           async usage(id, signal) {
@@ -136,22 +167,29 @@ export function apply(ctx: Context, config: Config): void {
               source().usageTimeoutMs ?? 15_000, signal)
           },
         },
-        methods: [{ id: 'oauth', label: 'Sign in with ' + ACCOUNT_PROVIDER_LABELS[provider] }],
+        methods: google ? [
+          { id: 'oauth', label: 'Sign in with Google for Antigravity' },
+          { id: 'gemini-api', label: 'Connect Gemini API with a Cloud project' },
+        ] : [{ id: 'oauth', label: provider === 'kiro' ? 'Sign in with AWS Builder ID' : 'Sign in with ' + ACCOUNT_PROVIDER_LABELS[provider] }],
         async run(session) {
+          if (google) {
+            const { loginGoogle } = await import('./google-oauth.ts')
+            await loginGoogle(session, pool, profiles().get('antigravity') ?? emptyProfile,
+              profiles().get('gemini-api') ?? emptyProfile)
+            return
+          }
           if (provider === 'chatgpt') {
             const { loginChatGpt } = await import('./chatgpt.ts')
             await loginChatGpt(session, pool)
             return
           }
-          const { loginAntigravity } = await import('./antigravity-oauth.ts')
-          const profile = profiles().get(provider)
-          const grant = await loginAntigravity(session, {
-            ...profile?.callbackPort === undefined ? {} : { callbackPort: profile.callbackPort },
-            ...profile?.callbackPath === undefined ? {} : { callbackPath: profile.callbackPath },
-            ...profile?.onboardingAttempts === undefined ? {} : { onboardingAttempts: profile.onboardingAttempts },
-            ...profile?.onboardingDelayMs === undefined ? {} : { onboardingDelayMs: profile.onboardingDelayMs },
-          })
-          await pool.add(undefined, { type: 'oauth', ...grant }, session.signal)
+          if (provider === 'claude' || provider === 'xai-account' || provider === 'kimi') {
+            const { loginSdkAccount } = await import('./sdk-accounts.ts')
+            await loginSdkAccount(provider, session, pool)
+            return
+          }
+          const { loginCursor, loginKiro } = await import('./native-login.ts')
+          await (provider === 'cursor' ? loginCursor : loginKiro)(session, pool, profiles().get(provider) ?? emptyProfile)
         },
       })
     }
@@ -159,17 +197,17 @@ export function apply(ctx: Context, config: Config): void {
 
   const register = (): void => {
     for (const route of routes) {
-      const enabled = profiles().has(route.provider)
+      const enabled = route.provider !== 'cursor' && profiles().has(route.provider)
       if (route.registration !== undefined) route.registration.replace(enabled ? [route.provider] : [])
       else if (enabled) route.registration = ctx.llm.registerAdapter([route.provider], route.adapter)
     }
   }
   register()
   ctx.on('credentials/record-updated', (key) => {
-    const route = routes.find(candidate => candidate.key === key)
-    if (route === undefined) return
-    route.adapter.invalidate()
-    if (route.registration !== undefined && profiles().has(route.provider)) route.registration.replace([route.provider])
+    for (const route of routes.filter(candidate => candidate.key === key)) {
+      route.adapter.invalidate()
+      if (route.registration !== undefined && profiles().has(route.provider)) route.registration.replace([route.provider])
+    }
   })
   installSettingsSection(ctx, NS, Config, config, {
     validate: (value) => { resolveProfiles(value.providers) },

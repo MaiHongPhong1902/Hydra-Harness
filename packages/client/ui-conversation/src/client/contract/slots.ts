@@ -1,6 +1,6 @@
 /** Conversation slot declarations and their composed component props. */
 import type { ReactNode, RefObject } from 'react'
-import type { ImageAttachmentRef } from '@hydraharness/harness-attachment'
+import type { ImageAttachmentRef, VideoAttachmentRef } from '@hydraharness/harness-attachment'
 import type {
   InjectFace, MaybeSnapshotSelectorHook, PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore,
   SlotHookFactory, SnapshotSelectorHook,
@@ -68,6 +68,8 @@ export interface MessageImagesOwnerProps {
   loadImage: (attachment: ImageAttachmentRef) => Promise<string>
   /** Message-side alignment. */
   align: 'start' | 'end'
+  /** Generated output preserves each image's dimensions instead of using message thumbnails. */
+  presentation?: 'media' | undefined
 }
 
 /** Slot-backed renderer used by chat nodes without importing an attachment implementation. */
@@ -430,6 +432,8 @@ export interface ChatNodeTurnDataInjected {
 
 /** Stable owner currency delivered to one keyed Chat business renderer. */
 export interface ChatNodeOwnerProps {
+  /** Resolve session-authorized media for a generated output. */
+  loadMedia: (attachment: ImageAttachmentRef | VideoAttachmentRef) => Promise<string>
   /** Selected Tool call, when the shared details store names one. */
   selectedCallId?: CallId | undefined
   /** Session workspace root; Tool summaries display paths relative to it. */
@@ -524,6 +528,10 @@ export interface ConversationSessionHeaderInjected {
   }
   /** Select a real Session through the runtime navigation owner. */
   open: (sessionId: SessionId) => void
+  /** Select a stored transcript path without changing Session identity. */
+  openVersion?: ((id: SessionId | import('@hydraharness/harness-session/types').SessionVersionId) => Promise<void> | void) | undefined
+  /** Add a stored transcript path as logged model reference context. */
+  referenceVersion?: ((id: SessionId | import('@hydraharness/harness-session/types').SessionVersionId) => Promise<void> | void) | undefined
 }
 
 /**
@@ -780,8 +788,8 @@ export interface ChatViewInjected {
    */
   openFile: (path: string) => Promise<void>
   loadOlder: () => void
-  /** Resolve a session-authorized historical image for inline display. */
-  loadImage: (attachment: ImageAttachmentRef) => Promise<string>
+  /** Resolve session-authorized historical media for inline display. */
+  loadMedia: (attachment: ImageAttachmentRef | VideoAttachmentRef) => Promise<string>
   /** Hand a call off to the trajectory view: write the one-shot inspect target and switch tabs. */
   inspectCall: (callId: CallId) => void
   /**

@@ -57,7 +57,8 @@
     "@hydraharness/harness-client-ui-conversation": "workspace:^",
     "@hydraharness/harness-client-ui-input-trigger": "workspace:^",
     "@hydraharness/harness-invariants": "workspace:^",
-    "@hydraharness/cordis": "workspace:^"
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-client-ui-settings": "workspace:^"
   },
   "devDependencies": {
     "@hydraharness/harness-api-remotes": "workspace:^",
@@ -73,7 +74,8 @@
     "@hydraharness/harness-invariants": "workspace:^",
     "@types/react": "~18.3.1",
     "@hydraharness/cordis": "workspace:^",
-    "react": "^18.2.0"
+    "react": "^18.2.0",
+    "@hydraharness/harness-client-ui-settings": "workspace:^"
   },
   "files": [
     "lib/index.js",

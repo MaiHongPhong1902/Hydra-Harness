@@ -12,6 +12,7 @@ export type ActivityKind = 'commands' | 'image' | 'read' | 'read-commands' | 'wr
 /** Map a wire tool name to the activity family a reader sees in the transcript. */
 export function activityKindForTool(toolName: string): Exclude<ActivityKind, 'read-commands'> {
   const name = toolName.toLowerCase()
+  if (name === 'image_generate' || name === 'image_generate_google') return 'other'
   if (name === 'read_image' || name === 'view_image' || name.includes('image')) return 'image'
   if (name === 'bash' || name === 'pwsh' || name === 'run_code' || name === 'skill' || name.startsWith('browser_')) return 'commands'
   if (name === 'read' || name === 'grep' || name === 'glob' || name.startsWith('read_')

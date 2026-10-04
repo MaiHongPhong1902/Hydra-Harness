@@ -15,6 +15,7 @@ import { apiKeyFailure } from './apiKey.ts'
 import { EditorFooter } from './EditorFooter.tsx'
 import { ProviderAccounts } from './ProviderAccounts.tsx'
 import { ModelListEditor } from './ModelListEditor.tsx'
+import type { ModelDraft } from './ModelListEditor.tsx'
 import { deriveKeyRef, messageOf, protocolChoices, providerAccountKey } from './store.ts'
 import type { SettingsSchemaOperations } from './schema-operations.ts'
 import type { en } from './locales.ts'
@@ -34,6 +35,8 @@ export interface ProviderEditorProps {
   displayName: string
   /** Hide the title row (the add card renders its own provider select). */
   hideTitle?: boolean
+  /** Add mode keeps account inventory and usage in the provider's Edit card. */
+  accountMode?: 'add' | 'manage'
   /**
    * Whether the adapter reports this route as hand-declared — absent from its
    * installed catalog. Such a route carries its own wire protocol, chosen when
@@ -128,6 +131,8 @@ function refFor(
 export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   const { namespace, schema, settingsPath, api, t } = props
   const [draft, setDraft] = useState<Record<string, unknown>>(() => draftAt(schema, namespace, settingsPath))
+  // Undefined keeps the sibling catalog untouched; null restores its inherited catalog.
+  const [relatedModels, setRelatedModels] = useState<ModelDraft[] | null | undefined>(undefined)
   const [keyDraft, setKeyDraft] = useState('')
   const [keyState, setKeyState] = useState<CredentialView | undefined>(undefined)
   const [busy, setBusy] = useState(false)
@@ -146,6 +151,18 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   const fallbackKeys = useFallbackKeys(fallback, props.provider, api)
   const disabled = props.readOnly || busy
   const layout = layoutOf(namespace.ns)
+  const googleCounterpart = layout === 'accounts' && (props.provider === 'antigravity' || props.provider === 'gemini-api')
+    ? props.provider === 'antigravity' ? 'gemini-api' : 'antigravity' : undefined
+  const relatedProvider = googleCounterpart !== undefined
+    && schema.getPath(namespace.value, ['providers', googleCounterpart]) !== undefined ? googleCounterpart : undefined
+  const relatedPath = ['providers', relatedProvider ?? '', 'models']
+  const relatedInheritedModels: unknown = schema.getPath(namespace.base, relatedPath)
+    ?? schema.nodeAtPath(root, relatedPath)?.meta.default
+  const relatedCatalogModels = modelDrafts(relatedModels === undefined
+    ? schema.getPath(namespace.value, relatedPath) ?? relatedInheritedModels
+    : relatedModels ?? relatedInheritedModels)
+  const relatedLabel = relatedProvider === 'antigravity' ? 'Antigravity' : 'Gemini API'
+  const catalogLabel = googleCounterpart === undefined ? undefined : props.provider === 'antigravity' ? 'Antigravity' : 'Gemini API'
   const accountKey = providerAccountKey(namespace.ns, props.provider)
   const keyRef = refFor(schema, namespace, settingsPath, props.provider)
   // The same schema read the create card makes, so the choices offered here
@@ -198,6 +215,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   // The model list is validated by the same per-row checker for both families,
   // so a bad row is named by its position rather than by a blanket message.
   const modelFailure = validateDeepSeekModels(schema.getPath(draft, ['models']))
+  const relatedModelFailure = validateDeepSeekModels(relatedModels ?? undefined)
   const keyFailure = apiKeyFailure(keyDraft) ?? fallbackKeys.failure
   // What a probe or a write must carry: the typed key with paste whitespace
   // removed. A blank field yields an empty string, which both call sites read
@@ -244,6 +262,10 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
     if (failure !== undefined) {
       return `${t('model')} ${String(failure.index + 1)}: ${t(failure.key)}`
     }
+    /* v8 ignore next 3 -- the sibling checker also disables submit */
+    if (relatedModelFailure !== undefined) {
+      return `${relatedLabel} ${t('model')} ${String(relatedModelFailure.index + 1)}: ${t(relatedModelFailure.key)}`
+    }
     /* v8 ignore next -- apply is only reachable from the rendered card, which required a resolved node */
     if (node !== undefined && settingsPath.length === 0) {
       const sectionError = schema.validate(node, next)
@@ -256,6 +278,23 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
     const ops: SettingsPathOpView[] = materializesNativeProfile
       ? [{ op: 'set', path: [...settingsPath], value: {} }]
       : pathOps(settingsPath, committedOriginal, next)
+    // Catalog validation requires selection removal in the same settings mutation.
+    if (layout === 'pi-ai' && schema.hasPath(next, ['models'])) {
+      const models = modelDrafts(schema.getPath(next, ['models']))
+      for (const field of ['imageModel', 'videoModel'] as const) {
+        const selection = schema.getPath(namespace.value, [field]) as { provider: string; model: string } | undefined
+        if (selection?.provider === props.provider && !models.some(model => model.id === selection.model)) {
+          ops.push({ op: 'unset', path: [field] })
+        }
+      }
+    }
+    if (relatedProvider !== undefined) {
+      const path = ['providers', relatedProvider]
+      if (schema.getPath(namespace.value, path) === undefined) ops.push({ op: 'set', path, value: {} })
+      if (relatedModels !== undefined) ops.push(relatedModels === null
+        ? { op: 'unset', path: [...path, 'models'] }
+        : { op: 'set', path: [...path, 'models'], value: relatedModels })
+    }
     if (ops.length > 0) {
       const response = await api.settings.mutate({ ns, ops, expectedRevision })
       if (!response.result.ok) {
@@ -485,20 +524,38 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
         )}
       {layout === 'unknown'
         ? <p className={styles['advancedHint']}>{`${t('advancedHint')} (${namespace.ns})`}</p>
-        : layout === 'accounts' && accountKey !== undefined
+        : layout === 'accounts'
           ? <>
-            <ProviderAccounts flowKey={accountKey} api={api.authorization} t={t}
-              disabled={disabled} onBusy={setAccountBusy} />
+            {props.provider === 'gemini-api' || props.provider === 'antigravity' ? <p className={styles['advancedHint']}>
+              {t(props.provider === 'antigravity' ? 'antigravityOAuthHint' : 'geminiApiOAuthHint')}
+            </p> : null}
+            <ProviderAccounts flowKey={accountKey as string} api={api.authorization} t={t}
+              {...props.provider === 'gemini-api' ? { method: 'gemini-api' }
+                : props.provider === 'antigravity' ? { method: 'oauth' } : {}}
+              mode={props.accountMode ?? 'manage'} disabled={disabled} onBusy={setAccountBusy} />
+            {props.provider === 'cursor' ? <p className={styles['advancedHint']}>{t('accountTransportUnavailable')}</p> : null}
             <details className={styles['customized']}>
               <summary className={styles['customizedSummary']}>{t('customized')}</summary>
+              {props.provider === 'chatgpt' ? <p className={styles['advancedHint']}>{t('codexImageCatalog')}</p> : null}
               <ModelListEditor models={modelDrafts(schema.getPath(draft, ['models']) ?? inheritedModels())}
                 overridden={schema.hasPath(draft, ['models'])} disabled={disabled} t={t}
                 onChange={(models) => { setDraft(current => schema.setPath(current, ['models'], models)) }}
                 onReset={() => { setDraft(current => schema.deletePath(current, ['models'])) }}
+                probeBlocked={props.provider === 'cursor' ? 'accountTransportUnavailable' : undefined}
+                catalogLabel={catalogLabel}
+                relatedCatalog={relatedProvider === undefined ? undefined : {
+                  label: relatedLabel, probe: { settingsNs: namespace.ns, provider: relatedProvider },
+                  models: relatedCatalogModels, onChange: setRelatedModels,
+                }}
                 probe={{ settingsNs: namespace.ns, provider: props.provider }} api={api} />
+              {relatedProvider === undefined ? null : <ModelListEditor
+                models={relatedCatalogModels} catalogLabel={relatedLabel} hideDiscoveryActions
+                overridden={relatedModels === undefined ? schema.hasPath(namespace.user, relatedPath) : relatedModels !== null}
+                disabled={disabled} t={t} onChange={setRelatedModels} onReset={() => { setRelatedModels(null) }}
+                probe={{ settingsNs: namespace.ns, provider: relatedProvider }} api={api} />}
             </details>
           </>
-          : layout === 'accounts' ? null : curatedFields(layout)}
+          : curatedFields(layout)}
       {failure !== undefined ? <p className={styles['error']}>{failure}</p> : null}
       {modelFailure === undefined
         ? null
@@ -507,11 +564,15 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
             {`${t('model')} ${String(modelFailure.index + 1)}: ${t(modelFailure.key)}`}
           </p>
         )}
+      {relatedModelFailure === undefined ? null : <p className={styles['advancedHint']}>
+        {`${relatedLabel} ${t('model')} ${String(relatedModelFailure.index + 1)}: ${t(relatedModelFailure.key)}`}
+      </p>}
       <EditorFooter
         t={t}
         busy={busy}
         submitDisabled={disabled || accountBusy || layout === 'unknown'
           || modelFailure !== undefined
+          || relatedModelFailure !== undefined
           || keyFailure !== undefined}
         submitLabel="apply"
         submitBusyLabel="applying"

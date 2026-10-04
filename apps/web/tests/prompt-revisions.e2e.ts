@@ -1,14 +1,14 @@
 /** Edit acceptance through the shipped Web composition, real log, RPC, and browser. */
 import { randomUUID } from 'node:crypto'
-import { cp } from 'node:fs/promises'
+import { cp, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydraharness/cordis'
-import { createAssistantMessage, createUserMessage, LlmAdapter, resolveRetryPolicy } from '@hydraharness/harness-llm'
+import { CallId, createAssistantMessage, createUserMessage, LlmAdapter, resolveRetryPolicy } from '@hydraharness/harness-llm'
 import type { GenerateOptions, StreamChunk } from '@hydraharness/harness-llm'
-import SessionStore, { SessionId, interruptedTurnClosers } from '@hydraharness/harness-session'
+import SessionStore, { SessionId, ORIGINAL_SESSION_VERSION, interruptedTurnClosers } from '@hydraharness/harness-session'
 import SqliteSessionPersistence from '@hydraharness/harness-session-persistence-sqlite'
 import type { Session } from '@hydraharness/harness-session'
 import { RpcId } from '@hydraharness/harness-host-apiproxy'
@@ -26,7 +26,7 @@ function value<T>(response: RpcResponse<T>): T {
 
 class RevisionAdapter extends LlmAdapter {
   requests: GenerateOptions[] = []
-  mode: 'normal' | 'fail' | 'hang' = 'normal'
+  mode: 'normal' | 'fail' | 'hang' | 'read-version' = 'normal'
   stopped = 0
   override providerRetryPolicy() { return resolveRetryPolicy({ mode: 'normal', maxRetries: 0 }, 'test') }
   override listModels(provider: string) { return Promise.resolve([{ provider, id: 'edit-test', name: 'Edit test', inputModalities: ['text', 'image'] as const }]) }
@@ -35,6 +35,15 @@ class RevisionAdapter extends LlmAdapter {
     const mode = this.mode
     this.mode = 'normal'
     if (mode === 'fail') throw new Error('Deliberate generation failure')
+    if (mode === 'read-version') {
+      const id = CallId('read-session-version')
+      const args = JSON.stringify({ version_id: ORIGINAL_SESSION_VERSION })
+      yield { type: 'block-start', index: 0, blockType: 'tool-call' }
+      yield { type: 'tool-call-delta', index: 0, id, name: 'session_version_read', argumentsDelta: args }
+      yield { type: 'block-end', index: 0, block: { type: 'tool-call', id, name: 'session_version_read', arguments: args } }
+      yield { type: 'finish', reason: { kind: 'tool-calls' } }
+      return
+    }
     yield { type: 'text-delta', index: 0, text: 'Hello from the active revision.' }
     if (mode === 'hang') {
       const signal = options.signal!
@@ -90,7 +99,7 @@ describe('prompt revisions: immutable conversation paths', () => {
       sessionId: session.id,
       workspaceId: scaffold.ctx.workspaceRegistry.list().find(w => w.sessionIds.includes(session.id))?.id ?? null,
       idempotencyKey: randomUUID(),
-      edit: { messageSeq: session.events.filter(event => event.type === 'user/message')[index]!.seq, text },
+      edit: { messageSeq: session.activeEvents.filter(event => event.type === 'user/message' && event.data.source.kind === 'user')[index]!.seq, text },
     }
   }
   async function revise(payload: PromptRevisionRequest) {
@@ -101,6 +110,7 @@ describe('prompt revisions: immutable conversation paths', () => {
     return { ...receipt, session: agent.session }
   }
   async function open(title: string) {
+    await page.setViewportSize({ width: 1680, height: 1000 })
     await page.goto(scaffold.baseUrl)
     await page.getByRole('tree', { name: 'Sessions', exact: true }).waitFor()
     const group = page.getByRole('treeitem').first()
@@ -118,7 +128,7 @@ describe('prompt revisions: immutable conversation paths', () => {
     expect(value(responses[0]).sessionId).toBe(value(responses[1]).sessionId)
     const first = await revise(edit)
     expect(adapter.requests).toHaveLength(1)
-    expect(original.events).toEqual(before)
+    expect(original.events.slice(0, before.length)).toEqual(before)
     const context = JSON.stringify(adapter.requests.at(-1)!.messages)
     expect(context).toContain('My name is Alice.')
     expect(context).toContain('Nice to meet you, Alice.')
@@ -175,10 +185,9 @@ describe('prompt revisions: immutable conversation paths', () => {
     const third = value(await scaffold.ctx.apiProxy.sessions.revise(request(input(second.session, 'Stop this revision'))))
     const thirdAgent = scaffold.ctx.agents.get(third.sessionId)!
     await vi.waitFor(() => {
-      expect(thirdAgent.session.events.some(event => event.type === 'assistant/chunk'
-        && event.seq >= thirdAgent.session.header.seedLength!)).toBe(true)
+      expect(thirdAgent.session.activeEvents.some(event => event.type === 'assistant/chunk')).toBe(true)
     })
-    const crashPrefix = [...thirdAgent.session.events]
+    const crashPrefix = [...thirdAgent.session.activeEvents]
     const repaired = [...crashPrefix, ...interruptedTurnClosers(crashPrefix)]
     expect(repaired.at(-1)?.data).toMatchObject({ reason: { kind: 'interrupted' } })
     value(await scaffold.ctx.apiProxy.sessions.cancel(request({ sessionId: third.sessionId })))
@@ -204,6 +213,7 @@ describe('prompt revisions: immutable conversation paths', () => {
       const settled = scaffold.whenTurnSettled()
       await form.getByRole('button', { name: 'Save & resend' }).click()
       const selected = await settled
+      await expect.poll(() => page.getByRole('textbox', { name: 'Edit prompt' }).count()).toBe(0)
       await page.getByText('Updated financial question', { exact: true }).waitFor()
       expect(scaffold.ctx.sessions.get(selected)!.deriveMessages().find(message => message.source.kind === 'user')?.content)
         .toEqual([{ type: 'image', attachment }, { type: 'text', text: 'Updated financial question' }])
@@ -253,13 +263,13 @@ describe('prompt revisions: immutable conversation paths', () => {
       const response = await scaffold.ctx.apiProxy.sessions.revise(request(payload))
       expect(response.result).toMatchObject({ ok: false, error: { message: 'Lost durability acknowledgement' } })
       expect(adapter.requests).toHaveLength(requests)
-      expect(scaffold.ctx.sessions.list()).toHaveLength(before + 1)
+      expect(scaffold.ctx.sessions.list()).toHaveLength(before)
     } finally { failure.mockRestore() }
     const revised = await revise(payload)
-    expect(scaffold.ctx.sessions.list()).toHaveLength(before + 1)
+    expect(scaffold.ctx.sessions.list()).toHaveLength(before)
     expect(adapter.requests).toHaveLength(requests + 1)
-    expect(revised.session.events.filter(event => event.type === 'user/message' && event.data.source.kind === 'user')).toHaveLength(1)
-    expect(revised.session.events.filter(event => event.type === 'turn/start')).toHaveLength(1)
+    expect(revised.session.activeEvents.filter(event => event.type === 'user/message' && event.data.source.kind === 'user')).toHaveLength(1)
+    expect(revised.session.activeEvents.filter(event => event.type === 'turn/start')).toHaveLength(1)
   })
 
   it('starts a durable parked admission exactly once after a Host restart', async () => {
@@ -282,8 +292,8 @@ describe('prompt revisions: immutable conversation paths', () => {
       const agent = restarted.ctx.agents.get(receipt.sessionId)!
       await agent.whenIdle()
       expect(adapter.requests).toHaveLength(requests + 1)
-      expect(agent.session.events.filter(event => event.type === 'user/message' && event.data.source.kind === 'user')).toHaveLength(1)
-      expect(agent.session.events.filter(event => event.type === 'turn/start')).toHaveLength(1)
+      expect(agent.session.activeEvents.filter(event => event.type === 'user/message' && event.data.source.kind === 'user')).toHaveLength(1)
+      expect(agent.session.activeEvents.filter(event => event.type === 'turn/start')).toHaveLength(1)
       expect(value(await restarted.ctx.apiProxy.sessions.revise(request(payload))).sessionId).toBe(receipt.sessionId)
       expect(adapter.requests).toHaveLength(requests + 1)
     } finally { await restarted.close() }
@@ -310,7 +320,7 @@ describe('prompt revisions: immutable conversation paths', () => {
       expect(value(await restarted.ctx.apiProxy.sessions.revise(request(completedInput))).sessionId).toBe(completed.sessionId)
       expect(adapter.requests).toHaveLength(requests)
       const loaded = await restarted.ctx.sessionPersistence.load(interrupted.sessionId)
-      expect(loaded.events.at(-1)?.data).toMatchObject({ reason: { kind: 'interrupted' } })
+      expect(loaded.events.findLast(event => event.type === 'turn/end')?.data).toMatchObject({ reason: { kind: 'interrupted' } })
       expect(value(await restarted.ctx.apiProxy.sessions.revise(request(interruptedInput))).sessionId).toBe(interrupted.sessionId)
       expect(adapter.requests).toHaveLength(requests)
       const retry = value(await restarted.ctx.apiProxy.sessions.revise(request({
@@ -339,8 +349,6 @@ describe('prompt revisions: immutable conversation paths', () => {
     expect(context).toContain('New steering')
     expect(context).not.toContain('Old steering')
     expect(context).not.toContain('Downstream steering')
-    original.append('step/end', { turn: 1, step: 1 })
-    original.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
   })
 
   it('round-trips original and revised logs through a closed and reopened SQLite database', async () => {
@@ -351,7 +359,7 @@ describe('prompt revisions: immutable conversation paths', () => {
     try {
       await writer.plugin(SessionStore)
       await writer.plugin(SqliteSessionPersistence, { path })
-      for (const session of [original, edited.session]) {
+      for (const session of [original]) {
         await writer.sessionPersistence.create(session.header)
         await writer.sessionPersistence.append(session.id, session.events)
       }
@@ -388,6 +396,7 @@ describe('prompt revisions: immutable conversation paths', () => {
       const settled = scaffold.whenTurnSettled()
       await editor.press('Enter')
       const bob = await settled
+      await expect.poll(() => editor.count()).toBe(0)
       await page.getByText('My name is Bob.', { exact: true }).waitFor()
       for (const old of ['Nice to meet you, Alice.', 'What is my name?', 'Alice.']) {
         expect(await page.getByText(old, { exact: true }).count()).toBe(0)
@@ -396,7 +405,8 @@ describe('prompt revisions: immutable conversation paths', () => {
       await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
       await page.reload()
       await page.getByText('My name is Bob.', { exact: true }).waitFor()
-      expect(scaffold.ctx.sessions.get(bob)!.header.parentSession).toBe(original.id)
+      expect(bob).toBe(original.id)
+      const bobVersion = original.versions.current
       await page.locator('[data-chat-flow-kind="user"]').getByRole('button', { name: 'Edit', exact: true }).click()
       await editor.fill('My name is Charlie.')
       const settledAgain = scaffold.whenTurnSettled()
@@ -404,9 +414,9 @@ describe('prompt revisions: immutable conversation paths', () => {
       const charlie = await settledAgain
       await page.getByText('My name is Charlie.', { exact: true }).waitFor()
       await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
-      expect(scaffold.ctx.sessions.get(bob)!.deriveMessages().find(message => message.source.kind === 'user')!.content)
-        .toEqual([{ type: 'text', text: 'My name is Bob.' }])
-      expect(scaffold.ctx.sessions.get(charlie)!.header.parentSession).toBe(bob)
+      expect(JSON.stringify(original.versions.events(bobVersion))).toContain('My name is Bob.')
+      expect(charlie).toBe(original.id)
+      expect(original.versions.ids).toHaveLength(3)
       await compareOrRefreshGolden(golden, await captureStableAria(page, '[data-conversation-scroll]', scaffold.workspaceCwd), webSnapshotMode())
     } catch (error) { await saveFailureShot(page, 'prompt-revisions'); throw error }
   })
@@ -427,6 +437,7 @@ describe('prompt revisions: immutable conversation paths', () => {
     const settled = scaffold.whenTurnSettled()
     await editor.press('Enter')
     await settled
+    await expect.poll(() => editor.count()).toBe(0)
     await page.getByText(`New beginning ${messages}`, { exact: true }).waitFor()
     await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
     expect(await page.locator('[data-chat-flow-kind="user"]').count()).toBe(1)
@@ -451,7 +462,7 @@ describe('prompt revisions: immutable conversation paths', () => {
     await page.getByRole('button', { name: 'Save & resend', exact: true }).click()
     const childId = await settled
     await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
-    expect(original.events).toEqual(before)
+    expect(original.events.slice(0, before.length)).toEqual(before)
     expect(scaffold.ctx.sessions.get(childId)!.deriveMessages().filter(message => message.source.kind === 'user')
       .map(message => message.content)).toEqual([[{ type: 'text', text }]])
     const context = JSON.stringify(adapter.requests.at(-1)!.messages)
@@ -464,13 +475,149 @@ describe('prompt revisions: immutable conversation paths', () => {
     expect(await editor.inputValue()).toBe(text)
     settled = scaffold.whenTurnSettled()
     await editor.press('Enter')
-    expect(await settled).not.toBe(childId)
+    expect(await settled).toBe(childId)
     await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
     expect(adapter.requests).toHaveLength(requestsBefore + 2)
     // The active-revision swap and the assistant text settle on separate
     // render passes, so the user row can transiently read 0 right after the
     // text appears — poll instead of a single-shot count.
     await expect.poll(() => page.locator('[data-chat-flow-kind="user"]').count()).toBe(1)
+  })
+
+  it('references another version through the UI and Agent tools while retaining one session', async () => {
+    const original = await source('Version references')
+    const agent = scaffold.ctx.agents.get(original.id)!
+    const count = scaffold.ctx.sessions.list().length
+    const receipt = await revise(input(original, 'Active revised question'))
+    const selected = original.versions.current
+    expect(receipt.sessionId).toBe(original.id)
+    expect(scaffold.ctx.agents.get(original.id)).toBe(agent)
+    expect(scaffold.ctx.sessions.list()).toHaveLength(count)
+    expect(original.header.parentSession).toBeUndefined()
+    expect(JSON.stringify(adapter.requests.at(-1)!.messages)).not.toContain('My name is Alice.')
+    await open('Version references')
+    const pager = page.locator('[data-chat-flow-kind="user"]').first().getByRole('navigation', { name: 'Prompt versions', exact: true })
+    await pager.getByRole('button', { name: 'See versions' }).click()
+    await page.getByRole('menuitem', { name: 'Reference version 1', exact: true }).click()
+    await vi.waitFor(() => { expect(agent.inbox.nextStep.some(message => message.source.kind === 'plugin' && message.source.form === 'recall')).toBe(true) })
+    expect(original.versions.current).toBe(selected)
+    value(await scaffold.ctx.apiProxy.sessions.prompt(request({ sessionId: original.id, mode: 'queue', content: [{ type: 'text', text: 'Compare the referenced answer' }] })))
+    await agent.whenIdle()
+    expect(JSON.stringify(adapter.requests.at(-1)!.messages)).toContain('Referenced session version original')
+    expect(JSON.stringify(adapter.requests.at(-1)!.messages)).toContain('My name is Alice.')
+    const references = original.activeEvents.filter(event => event.type === 'user/message' && event.data.source.kind === 'plugin' && event.data.source.form === 'recall')
+    expect(references).toHaveLength(1)
+    adapter.mode = 'read-version'
+    value(await scaffold.ctx.apiProxy.sessions.prompt(request({ sessionId: original.id, mode: 'queue', content: [{ type: 'text', text: 'Read the first stored version' }] })))
+    await agent.whenIdle()
+    const result = original.activeEvents.findLast(event => event.type === 'tool/result')
+    expect(result?.type).toBe('tool/result')
+    expect(JSON.stringify(result?.data)).toContain('Nice to meet you, Alice.')
+    expect(JSON.stringify(adapter.requests.at(-1)!.messages)).toContain('Nice to meet you, Alice.')
+    expect(original.versions.current).toBe(selected)
+    expect(scaffold.ctx.sessions.list()).toHaveLength(count)
+    await page.reload()
+    await page.getByText('Active revised question', { exact: true }).waitFor()
+    await compareOrRefreshGolden(fileURLToPath(new URL('./snapshots/prompt-revisions/references.expected.md', import.meta.url)),
+      await captureStableAria(page, '[data-conversation-scroll]', scaffold.workspaceCwd), webSnapshotMode())
+  })
+
+  it('retries directly and browses preserved versions without generating during navigation', async () => {
+    const text = '  Tiếng Việt 🐉\nGửi lại nguyên bản  '
+    const original = await source('Direct prompt retry', 2, [{ type: 'text', text }])
+    const before = [...original.events]
+    const requestsBefore = adapter.requests.length
+    await open('Direct prompt retry')
+    const user = page.locator('[data-chat-flow-kind="user"]').first()
+    const retry = user.getByRole('button', { name: 'Retry prompt', exact: true })
+    await page.route('**/api/session.revise', route => route.fulfill({ status: 503, body: 'Temporarily offline' }), { times: 1 })
+    await retry.click()
+    await page.getByRole('alert').filter({ hasText: 'Could not resend the prompt' }).waitFor()
+    expect(await page.getByRole('textbox', { name: 'Edit prompt' }).count()).toBe(0)
+    expect(original.events.slice(0, before.length)).toEqual(before)
+
+    let settled = scaffold.whenTurnSettled()
+    await retry.evaluate((element) => { (element as HTMLButtonElement).click(); (element as HTMLButtonElement).click() })
+    const firstId = await settled
+    await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
+    const first = scaffold.ctx.sessions.get(firstId)!
+    expect(adapter.requests).toHaveLength(requestsBefore + 1)
+    expect(first.deriveMessages().filter(message => message.source.kind === 'user').map(message => message.content))
+      .toEqual([[{ type: 'text', text }]])
+    const modelContext = JSON.stringify(adapter.requests.at(-1)!.messages)
+    expect(modelContext).not.toContain('Nice to meet you, Alice.')
+    expect(modelContext).not.toContain('What is my name?')
+    expect(original.events.slice(0, before.length)).toEqual(before)
+    const firstEvents = [...first.events]
+
+    settled = scaffold.whenTurnSettled()
+    await retry.click()
+    const secondId = await settled
+    expect(secondId).toBe(firstId)
+    expect(original.versions.ids).toHaveLength(3)
+    await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
+    expect(adapter.requests).toHaveLength(requestsBefore + 2)
+    expect(first.events.slice(0, firstEvents.length)).toEqual(firstEvents)
+    const pager = user.getByRole('navigation', { name: 'Prompt versions', exact: true })
+    await pager.getByRole('button', { name: 'See versions' }).click()
+    await page.getByRole('menuitem', { name: /Version 3.*Latest.*Viewing.*Prompt 1.*From version 2/ }).waitFor()
+    await compareOrRefreshGolden(fileURLToPath(new URL('./snapshots/prompt-revisions/retry-history.expected.md', import.meta.url)),
+      await captureStableAria(page, '[role="menu"]', scaffold.workspaceCwd), webSnapshotMode())
+    await page.keyboard.press('Escape')
+    await pager.getByRole('button', { name: 'Previous version' }).click()
+    await expect.poll(() => pager.getByRole('button', { name: 'See versions' }).innerText()).toContain('2/3')
+    await pager.getByRole('button', { name: 'Previous version' }).click()
+    await page.getByText('Nice to meet you, Alice.', { exact: true }).waitFor()
+    expect(await pager.getByRole('button', { name: 'Previous version' }).isDisabled()).toBe(true)
+    await pager.getByRole('button', { name: 'Next version' }).click()
+    await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
+    await pager.getByRole('button', { name: 'Next version' }).click()
+    await expect.poll(() => pager.getByRole('button', { name: 'See versions' }).innerText()).toContain('3/3')
+    await page.reload()
+    await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
+    await expect.poll(() => pager.getByRole('button', { name: 'See versions' }).innerText()).toContain('3/3')
+    expect(adapter.requests).toHaveLength(requestsBefore + 2)
+    await compareOrRefreshGolden(fileURLToPath(new URL('./snapshots/prompt-revisions/direct-retry.expected.md', import.meta.url)),
+      await captureStableAria(page, '[data-conversation-scroll]', scaffold.workspaceCwd), webSnapshotMode())
+
+    const shots = fileURLToPath(new URL('../../../.artifacts/prompt-retry/', import.meta.url))
+    await mkdir(shots, { recursive: true })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    for (const theme of ['Light', 'Dark']) {
+      await page.setViewportSize({ width: 1280, height: 900 })
+      await page.getByRole('button', { name: 'Settings', exact: true }).click()
+      const settings = page.getByRole('dialog', { name: 'Settings' })
+      await settings.getByRole('button', { name: 'General', exact: true }).click()
+      await settings.getByRole('button', { name: theme, exact: true }).click()
+      await expect.poll(() => page.locator('body').getAttribute('data-ds-dark-theme')).toBe(theme === 'Dark' ? '' : null)
+      await page.keyboard.press('Escape')
+      for (const width of [1280, 760]) {
+        await page.setViewportSize({ width, height: 900 })
+        await user.getByRole('button', { name: 'Edit', exact: true }).click()
+        const editor = page.getByRole('textbox', { name: 'Edit prompt' })
+        expect(await editor.inputValue()).toBe(text)
+        const geometry = await editor.evaluate((element) => {
+          const rect = element.getBoundingClientRect()
+          return { width: rect.width, height: rect.height, right: rect.right, viewport: innerWidth,
+            outline: getComputedStyle(element.closest('form')!.parentElement!).outlineWidth }
+        })
+        expect(geometry.height).toBeGreaterThanOrEqual(96)
+        expect(geometry.width).toBeGreaterThan(200)
+        expect(geometry.right).toBeLessThanOrEqual(geometry.viewport)
+        expect(geometry.outline).toBe('2px')
+        await user.screenshot({ path: join(shots, `${theme.toLowerCase()}-${width}-editor.png`) })
+        await editor.press('Escape')
+        await pager.getByRole('button', { name: 'See versions' }).click()
+        await page.getByRole('menuitem', { name: /Version 3.*Viewing/ }).waitFor()
+        const menu = page.getByRole('menu')
+        const box = await menu.boundingBox()
+        expect(box!.x).toBeGreaterThanOrEqual(0)
+        expect(box!.x + box!.width).toBeLessThanOrEqual(width)
+        await menu.screenshot({ path: join(shots, `${theme.toLowerCase()}-${width}-history.png`) })
+        await page.keyboard.press('Escape')
+      }
+    }
+    await page.setViewportSize({ width: 1680, height: 1000 })
   })
 
   it('EDIT-004–007/016–021: retains exact failed drafts, retries generation once, and keeps a stopped branch active', async () => {
@@ -523,7 +670,7 @@ describe('prompt revisions: immutable conversation paths', () => {
     const retried = scaffold.ctx.sessions.get(retriedId)!
     const humanId = (session: Session) => session.events.findLast(event => event.type === 'user/message' && event.data.source.kind === 'user')?.data
     expect(humanId(retried)).toEqual(humanId(failed))
-    expect(scaffold.ctx.sessions.list()).toHaveLength(before + 2)
+    expect(scaffold.ctx.sessions.list()).toHaveLength(before)
     expect(original.events.some(event => event.type === 'user/message' && JSON.stringify(event.data.content).includes('Tiếng Việt'))).toBe(true)
     await edit.click()
     await editor.fill('Stop this edited response')

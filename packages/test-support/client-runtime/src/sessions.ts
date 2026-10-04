@@ -185,7 +185,7 @@ export class TestSessions implements ISessions {
   /** Calls observed on the service-level face, newest last. */
   readonly calls: {
     method: 'open' | 'openSubagent' | 'setSubagentCatalogOpen' | 'refreshSubagents' | 'refresh'
-      | 'clear' | 'search' | 'fork' | 'revise' | 'create' | 'delete'
+      | 'clear' | 'search' | 'fork' | 'revise' | 'selectVersion' | 'create' | 'delete'
     args: unknown[]
   }[] = []
 
@@ -528,6 +528,18 @@ export class TestSessions implements ISessions {
   revise(input: Parameters<ISessions['revise']>[0]): Promise<SessionId> {
     this.calls.push({ method: 'revise', args: [input] })
     return Promise.resolve(input.sessionId)
+  }
+
+  /**
+   * Select a stored session-local path in the test runtime.
+   * @param sessionId - Owning session.
+   * @param versionId - Stored path.
+   * @param mode - View or reference.
+   * @returns Completed test operation.
+   */
+  selectVersion(sessionId: SessionId, versionId: Parameters<ISessions['selectVersion']>[1], mode: 'view' | 'reference' = 'view'): Promise<void> {
+    this.calls.push({ method: 'selectVersion', args: [sessionId, versionId, mode] })
+    return Promise.resolve()
   }
 
   /**

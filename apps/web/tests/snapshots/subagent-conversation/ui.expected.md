@@ -20,6 +20,8 @@
   - img
 - button "Edit":
   - img
+- button "Retry prompt":
+  - img
 - button "Context injection @hydraharness/harness-system-prompt":
   - img
   - img
@@ -41,6 +43,8 @@
 - button "Copy":
   - img
 - button "Edit":
+  - img
+- button "Retry prompt":
   - img
 - button "Think The user is asking for a one-sentence description of event sourcing. This is a straightforward knowledge question that doesn't require any skill loading or tool calls.":
   - img

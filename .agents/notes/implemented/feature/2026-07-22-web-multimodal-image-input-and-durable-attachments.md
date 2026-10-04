@@ -14,6 +14,8 @@ Peer products converge on an attachment rail above the editor, but their storage
 
 ## Decision
 
+The [OpenAI image tool](2026-10-02-openai-image-generation.md) uses the same commit-before-event storage lifecycle for UI presentation metadata, independently of model-visible image input.
+
 Pasted or dropped raster images are the Web composer's first consumer of a durable attachment capability. Unsent files remain temporary client-owned draft state. Every rich-content intake adapter decodes its wire blocks, proves route capability, and delegates the complete image batch to the attachment service before appending its message event. A provider adapter that produces structured image output must durably commit the output before appending its assistant block. Canonical user and assistant content contains only role-neutral `ImageBlock` references.
 
 Version one supports PNG, JPEG, WebP, and GIF paste and drag-and-drop, image-only or mixed prompts, historical user and assistant image rendering, and original-image preview on a single click (display and interaction specifics superseded in part by the [attachment-display alignment note](2026-08-11-web-attachment-display-alignment.md)). File picking, generic files, PDF, audio, video, image copying, and a custom context menu remain separate follow-ups.

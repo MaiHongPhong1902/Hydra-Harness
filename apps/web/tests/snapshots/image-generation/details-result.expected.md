@@ -1,0 +1,3 @@
+- tabpanel "Result":
+  - button "Copy result": Copy
+  - text: Generated 1 image(s) with OpenAI (gpt-image-1.5).

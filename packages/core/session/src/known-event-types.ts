@@ -53,6 +53,8 @@ export const KNOWN_SESSION_EVENT_TYPES: ReadonlySet<string> = new Set([
   'session/revision',
   'session/title',
   'session/title-llm-request',
+  'session/version',
+  'session/version-selected',
   'step/end',
   'step/start',
   'subagent/admission',

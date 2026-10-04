@@ -67,8 +67,11 @@ export interface AuthorizationApi {
   /** Withdraw one running attempt. */
   cancel(request: RpcRequest<{ attemptId: string }>): Promise<RpcResponse<{}>>
 
-  /** Remove one provider-owned account from a flow's credential pool. */
-  logout(request: RpcRequest<{ key: string; accountId: string }>): Promise<RpcResponse<{}>>
+  /**
+   * Remove one account, or forget the entire local record when accountId is omitted.
+   * Browser sign-ins are kept.
+   */
+  logout(request: RpcRequest<{ key: string; accountId?: string }>): Promise<RpcResponse<{}>>
 
   /** Fetch live provider usage for one connected account. */
   usage(

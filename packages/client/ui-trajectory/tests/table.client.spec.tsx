@@ -9,6 +9,7 @@ import type { TrajectoryTurnModel } from '../src/client/layout.ts'
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
   Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo')
 })
 
@@ -65,6 +66,19 @@ const FOLD_PROPS = {
 }
 
 describe('TrajectoryTable', () => {
+  it('copies the full selected payload and result while retaining their structured presentation', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    render(<TrajectoryTable turns={TURNS} {...FOLD_PROPS} />)
+    fireEvent.click(screen.getByRole('row', { name: /TOOL, bash \{"command":"false"\}/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Copy payload' }))
+    await waitFor(() => { expect(writeText).toHaveBeenLastCalledWith('{"command":"false"}') })
+    expect(screen.getByRole('tree', { name: 'Payload JSON' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Copy result' }))
+    await waitFor(() => { expect(writeText).toHaveBeenLastCalledWith('ToolError: non_zero_exit') })
+    expect(screen.getAllByText('Copied')).toHaveLength(2)
+  })
+
   it('shows a muted placeholder for an assistant response containing only tool calls', () => {
     const turns: readonly TrajectoryTurnModel[] = [{
       turn: 1,

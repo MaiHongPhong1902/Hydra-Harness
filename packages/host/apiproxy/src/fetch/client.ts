@@ -24,6 +24,7 @@ import {
   sessionDeleteValueSchema,
   sessionForkValueSchema,
   sessionReviseValueSchema,
+  sessionSelectVersionValueSchema,
   sessionHistoryValueSchema,
   sessionListValueSchema,
   sessionModelsValueSchema,
@@ -113,6 +114,7 @@ export interface IApiClient {
     rename(payload: RequestPayload<'session.rename'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'session.rename'>>>
     fork(payload: RequestPayload<'session.fork'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'session.fork'>>>
     revise(payload: RequestPayload<'session.revise'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'session.revise'>>>
+    selectVersion(payload: RequestPayload<'session.selectVersion'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'session.selectVersion'>>>
     prompt(payload: RequestPayload<'session.prompt'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'session.prompt'>>>
     attachment(payload: RequestPayload<'session.attachment'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'session.attachment'>>>
     updateQueue(payload: RequestPayload<'session.updateQueue'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'session.updateQueue'>>>
@@ -221,6 +223,7 @@ const UNARY_VALUE_SCHEMAS: { [K in keyof RpcMethodMap]: z.ZodType<Wire<ResponseV
   'session.rename': sessionRenameValueSchema,
   'session.fork': sessionForkValueSchema,
   'session.revise': sessionReviseValueSchema,
+  'session.selectVersion': sessionSelectVersionValueSchema,
   'session.prompt': sessionPromptValueSchema,
   'session.attachment': sessionAttachmentValueSchema,
   'session.updateQueue': sessionUpdateQueueValueSchema,
@@ -490,6 +493,7 @@ export abstract class AbstractApiClient implements IApiClient {
     rename: (payload, signal) => this.callUnary('session.rename', payload, signal),
     fork: (payload, signal) => this.callUnary('session.fork', payload, signal),
     revise: (payload, signal) => this.callUnary('session.revise', payload, signal),
+    selectVersion: (payload, signal) => this.callUnary('session.selectVersion', payload, signal),
     prompt: (payload, signal) => this.callUnary('session.prompt', payload, signal),
     attachment: (payload, signal) => this.callUnary('session.attachment', payload, signal),
     updateQueue: (payload, signal) => this.callUnary('session.updateQueue', payload, signal),

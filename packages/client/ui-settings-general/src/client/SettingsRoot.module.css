@@ -1,5 +1,5 @@
 /* Settings shell (figma 501:29904 mask context / 501:29947 panel): sidebar
-   foot trigger row + centered 1080x700 modal panel. The trigger uses the
+   foot trigger row + centered modal panel. The trigger uses the
    sidebar foot's 42px row / 36px rail circle rhythm; the
    panel is a two-column layout -- 188px nav rail + content column with a
    54px header and the 24px-padded options area. */
@@ -46,12 +46,8 @@
   white-space: nowrap;
 }
 
-/* Panel (figma Settings 501:29947): r24, white, lv3 shadow (figma effects
-   match --dsw-shadow-lv3 exactly); figma's 1080x700 is shrunk to 800 wide.
-   One height for every section, taken from the viewport rather than the
-   content: sections differ by hundreds of pixels (a settings list against the
-   composition editor), and a content-sized panel would resize under the
-   pointer on every nav click. Whatever does not fit scrolls in `.options`. */
+/* The panel keeps its size across sections and fits inside the viewport
+   with a 24px outer margin. Longer sections scroll within `.options`. */
 .panel {
   position: relative;
   z-index: 1;
@@ -59,8 +55,9 @@
   flex-direction: row;
   gap: 0;
   padding: 0;
-  width: 800px;
-  height: min(800px, calc(100vh - 48px));
+  box-sizing: border-box;
+  width: 1080px;
+  height: min(900px, calc(100vh - 48px));
   max-width: calc(100vw - 48px);
   border: 1px solid var(--dsw-alias-border-l1);
   border-radius: var(--dsw-radius-dialog);

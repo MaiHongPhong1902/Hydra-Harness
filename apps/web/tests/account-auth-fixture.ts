@@ -63,7 +63,7 @@ function entriesFromRecord(record: unknown): AccountEntry[] {
   })
 }
 
-function usageFor(provider: (typeof ACCOUNT_AUTH_PROVIDERS)[number], accountId: string): AuthorizationUsage {
+function usageFor(provider: (typeof ACCOUNT_AUTH_PROVIDERS)[number], accountId: string, reconnected: boolean): AuthorizationUsage {
   if (provider.provider === 'chatgpt') {
     const bob = accountId === 'chatgpt-2'
     return {
@@ -79,10 +79,10 @@ function usageFor(provider: (typeof ACCOUNT_AUTH_PROVIDERS)[number], accountId: 
     }
   }
   return {
-    planType: 'Google AI Pro',
+    planType: reconnected ? 'Google AI Ultra' : 'Google AI Pro',
     limits: [
       { name: 'Gemini 3.1 Flash', group: 'Gemini models', window: 'weekly', windowMinutes: 10_080,
-        usedPercent: 18, remainingAmount: 820, resetsAt: 1_800_000_000 },
+        usedPercent: reconnected ? 7 : 18, remainingAmount: reconnected ? 930 : 820, resetsAt: 1_800_000_000 },
       { name: 'Gemini 3.1 Pro', group: 'Gemini models', window: '5 hours', windowMinutes: 300,
         usedPercent: 32, remainingAmount: 680, resetsAt: 1_800_060_000 },
       { name: 'Claude 3.7 Sonnet', group: 'Claude and GPT models', window: 'weekly', windowMinutes: 10_080,
@@ -99,6 +99,7 @@ function accountStore(
   ctx: Context,
   key: ReturnType<typeof credentialKey>,
   provider: (typeof ACCOUNT_AUTH_PROVIDERS)[number],
+  reconnected: () => boolean,
 ): AuthorizationAccounts {
   return {
     async list(): Promise<readonly AccountEntry[]> {
@@ -112,7 +113,7 @@ function accountStore(
     },
     async usage(id, signal): Promise<AuthorizationUsage> {
       signal?.throwIfAborted()
-      return usageFor(provider, String(id))
+      return usageFor(provider, String(id), reconnected())
     },
   }
 }
@@ -150,11 +151,12 @@ class AccountAuthAdapter extends LlmAdapter {
 
 function flowFor(ctx: Context, provider: (typeof ACCOUNT_AUTH_PROVIDERS)[number]): AuthorizationFlow {
   const key = credentialKey('llm-account-auth', provider.provider)
+  let completedLogins = 0
   return {
     key,
     label: provider.displayName,
     methods: [{ id: 'oauth', label: `Sign in with ${provider.displayName}` }],
-    accounts: accountStore(ctx, key, provider),
+    accounts: accountStore(ctx, key, provider, () => completedLogins > 1),
     async run(session) {
       // The browser sees a normal provider notice and a safe HTTPS link, but
       // the test never leaves the local process to perform OAuth.
@@ -164,13 +166,18 @@ function flowFor(ctx: Context, provider: (typeof ACCOUNT_AUTH_PROVIDERS)[number]
       })
       await ctx.credentials.modifyRecord(key, async (current) => {
         const accounts = entriesFromRecord(current)
-        const id = `${provider.provider}-${String(accounts.length + 1)}`
+        const id = provider.provider === 'antigravity' ? 'antigravity-1' : `${provider.provider}-${String(accounts.length + 1)}`
         const labels = provider.provider === 'chatgpt'
           ? ['alice@example.test', 'bob@example.test']
           : ['google@example.test']
-        const label = labels[accounts.length] ?? `${provider.provider}-${String(accounts.length + 1)}@example.test`
-        return { kind: 'grant', payload: { accounts: [...accounts, { id, label }] } }
+        const label = labels[provider.provider === 'antigravity' ? 0 : accounts.length]
+          ?? `${provider.provider}-${String(accounts.length + 1)}@example.test`
+        const next = accounts.some(account => account.id === id)
+          ? accounts.map(account => account.id === id ? { id, label } : account)
+          : [...accounts, { id, label }]
+        return { kind: 'grant', payload: { accounts: next } }
       })
+      completedLogins += 1
     },
   }
 }

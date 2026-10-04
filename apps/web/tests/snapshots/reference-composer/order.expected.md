@@ -13,6 +13,8 @@
   - img
 - button "Edit":
   - img
+- button "Retry prompt":
+  - img
 - button "Session recall Research notes":
   - img
   - text: Session recall Research notes

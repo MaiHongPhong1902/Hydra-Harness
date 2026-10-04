@@ -1,0 +1,11 @@
+- menu:
+  - text: Prompt versions
+  - menuitem "Version 1 Original conversation"
+  - menuitem "Version 2 Prompt 1 · From version 1"
+  - menuitem "Version 3 Latest Viewing Prompt 1 · From version 2":
+    - text: Version 3 Latest Viewing Prompt 1 · From version 2
+    - img
+  - text: Add reference to next prompt
+  - menuitem "Reference version 1"
+  - menuitem "Reference version 2"
+  - menuitem "Reference version 3"

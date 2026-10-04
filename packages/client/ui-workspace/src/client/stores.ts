@@ -17,6 +17,11 @@ export type SessionOrderBy = 'manual' | 'updated'
 
 /** Workspace browser viewing state persisted across surface remounts and reloads. */
 type WorkspaceViewState = {
+  pinnedSessionIds?: string[]
+  unreadSessionIds?: string[]
+  sections?: { id: string; title: string }[]
+  sectionBySession?: Record<string, string>
+  projectBySession?: Record<string, string | null>
   groupBy: SessionGroupBy
   orderBy: SessionOrderBy
   /** Explicit zero-or-five-session state keyed by Workspace group identity. */
@@ -32,6 +37,11 @@ type WorkspaceViewState = {
  * return type); drift fails assignability at the defineStore call.
  */
 type WorkspaceViewActions = {
+  togglePinned: (draft: WorkspaceViewState, id: string) => void
+  setUnread: (draft: WorkspaceViewState, id: string, unread: boolean) => void
+  addSection: (draft: WorkspaceViewState, id: string, title: string, sessionId: string) => void
+  setSection: (draft: WorkspaceViewState, sessionId: string, sectionId: string | null) => void
+  setProject: (draft: WorkspaceViewState, sessionId: string, workspaceId: string | null) => void
   setGroupBy: (draft: WorkspaceViewState, mode: SessionGroupBy) => void
   setOrderBy: (draft: WorkspaceViewState, mode: SessionOrderBy) => void
   setGroupExpanded: (draft: WorkspaceViewState, key: string, expanded: boolean) => void
@@ -52,6 +62,11 @@ type WorkspaceViewActions = {
 export function createWorkspaceViewStore(): EngineStoreHandle<WorkspaceViewState, WorkspaceViewActions> {
   return defineStore({
     init: (): WorkspaceViewState => ({
+      pinnedSessionIds: [],
+      unreadSessionIds: [],
+      sections: [],
+      sectionBySession: {},
+      projectBySession: {},
       groupBy: 'workspace',
       orderBy: 'updated',
       groupExpansion: {},
@@ -60,6 +75,30 @@ export function createWorkspaceViewStore(): EngineStoreHandle<WorkspaceViewState
     }),
     persist: 'hydra.workspace.view.v5',
     actions: {
+      togglePinned: (d, id: string) => {
+        const pinned = d.pinnedSessionIds ?? []
+        d.pinnedSessionIds = pinned.includes(id)
+          ? pinned.filter(value => value !== id) : [...pinned, id]
+      },
+      setUnread: (d, id: string, unread: boolean) => {
+        d.unreadSessionIds = (d.unreadSessionIds ?? []).filter(value => value !== id)
+        if (unread) d.unreadSessionIds.push(id)
+      },
+      addSection: (d, id: string, title: string, sessionId: string) => {
+        const sections = d.sections ??= []
+        sections.push({ id, title })
+        const assignments = d.sectionBySession ??= {}
+        assignments[sessionId] = id
+      },
+      setSection: (d, sessionId: string, sectionId: string | null) => {
+        const assignments = d.sectionBySession ??= {}
+        if (sectionId === null) d.sectionBySession = Object.fromEntries(Object.entries(assignments).filter(([key]) => key !== sessionId))
+        else assignments[sessionId] = sectionId
+      },
+      setProject: (d, sessionId: string, workspaceId: string | null) => {
+        const assignments = d.projectBySession ??= {}
+        assignments[sessionId] = workspaceId
+      },
       setGroupBy: (d, mode: SessionGroupBy) => { d.groupBy = mode },
       setOrderBy: (d, mode: SessionOrderBy) => { d.orderBy = mode },
       setGroupExpanded: (d, key: string, expanded: boolean) => { d.groupExpansion[key] = expanded },

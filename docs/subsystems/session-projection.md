@@ -21,6 +21,8 @@ interface ProjectionDefinition<
   K extends keyof SessionProjectionStateMap,
   S extends SessionProjectionStateMap[K] = SessionProjectionStateMap[K],
 > {
+  /** Active-version units refold selected event references when a transcript path changes. */
+  history?: 'active-version'
   /** The projection key this unit owns (its `SessionProjectionStateMap` entry). */
   key: K
   /** Validates persisted state before it seeds a fold. */

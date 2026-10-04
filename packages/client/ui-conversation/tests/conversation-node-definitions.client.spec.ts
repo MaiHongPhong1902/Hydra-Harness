@@ -118,6 +118,23 @@ function toolResult(callId: string, text: string) {
 }
 
 describe('built-in conversation node Definitions', () => {
+  it.each(['image', 'video'] as const)('routes %s generation outside tool groups while preserving identity and legacy history', (kind) => {
+    const call = at(1, 'tool/call', { turn: 1, step: 1, callId: 'media', name: 'generate', arguments: '{}' })
+    const value = assembler([{ ...call, view: { for: 'call', view: { card: 'media', kind, title: 'Generate', prompt: 'A tree' } } }])
+    const pending = node(snapshot(value), 'media-generation')
+    expect(pending).toBeDefined()
+    expect(node(snapshot(value), 'tool-call')).toBeUndefined()
+    expect(snapshot(value).legacy.runningCalls[0]?.callId).toBe('media')
+    value.append(at(2, 'tool/result', { turn: 1, step: 1, message: toolResult('media', 'Done') }, { surfaceOp: 'append' }))
+    value.flush()
+    expect(node(snapshot(value), 'media-generation')?.key).toBe(pending?.key)
+    expect(snapshot(value).nodes.values().filter(node => node.kind === 'media-generation')).toHaveLength(1)
+    expect(snapshot(value).legacy.nodes).toMatchObject([{ kind: 'tool-result', callId: 'media' }])
+    const result = at(2, 'tool/result', { turn: 1, step: 1, message: toolResult('media', 'Done') }, { surfaceOp: 'append' })
+    const replay = assembler([{ ...result, view: { for: 'result', view: { card: 'media', kind, content: [] } } }])
+    expect(node(snapshot(replay), 'media-generation')).toBeDefined()
+  })
+
   it('keeps one keyed Assistant node while streaming settles and materializes interruption from Location', () => {
     const value = assembler([
       at(1, 'turn/start', { turn: 1 }),

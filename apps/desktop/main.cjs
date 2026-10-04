@@ -16,7 +16,8 @@ const nodePty = require('node-pty')
 const CLI_ENTRY = join(require.resolve('@hydraharness/harness/package.json'), '..', 'lib', 'bin.js')
 const BROWSER_ENTRY = join(require.resolve('@hydraharness/harness-browser-electron/package.json'), '..', 'electron-app', 'main.cjs')
 const DESKTOP_ICON = join(__dirname, 'assets', process.platform === 'win32' ? 'hydra.ico' : 'hydra.png')
-const SMOKE = process.argv.includes('--smoke')
+const SMOKE_ZOOM = process.argv.includes('--smoke-zoom')
+const SMOKE = process.argv.includes('--smoke') || SMOKE_ZOOM
 const HOST_READY_TIMEOUT_MS = 90_000
 const HOST_REQUEST_TIMEOUT_MS = 15_000
 const HOST_SHUTDOWN_TIMEOUT_MS = 7_000
@@ -58,11 +59,30 @@ function panelShortcut(input) {
   return undefined
 }
 
+function zoomShortcut(input) {
+  if (input.type !== 'keyDown' || !input.control || input.alt || input.meta) return undefined
+  if (input.key === '+' || input.key === '=') return 1
+  if (!input.shift && input.key === '-') return -1
+  if (!input.shift && input.key === '0') return 0
+  return undefined
+}
+
+/** Applies one zoom step; zero restores the application's actual size. */
+function applyZoom(contents, step) {
+  contents.setZoomLevel(step === 0 ? 0 : contents.getZoomLevel() + step)
+}
+
 app.on('web-contents-created', (_event, contents) => {
   contents.on('before-input-event', (event, input) => {
-    if (contents !== mainWindow?.webContents) return
+    if (mainWindow === undefined || mainWindow.isDestroyed() || contents !== mainWindow.webContents) return
+    const zoom = zoomShortcut(input)
+    if (zoom !== undefined) {
+      event.preventDefault()
+      applyZoom(contents, zoom)
+      return
+    }
     const shortcut = panelShortcut(input)
-    if (shortcut === undefined || mainWindow === undefined || mainWindow.isDestroyed()) return
+    if (shortcut === undefined) return
     event.preventDefault()
     mainWindow.webContents.send('hydra-desktop:panel-shortcut', shortcut)
   })
@@ -643,6 +663,26 @@ function installRendererIpc() {
     url.password = ''
     await shell.openExternal(url.href)
   })
+
+  ipcMain.handle('hydra-desktop:open-session-window', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event) || typeof value?.sessionId !== 'string'
+      || value.sessionId.length === 0 || value.sessionId.length > 256 || value.sessionId.includes('\0')) {
+      throw new Error('invalid session window request')
+    }
+    const url = new URL(hostBaseUrl)
+    url.searchParams.set('session', value.sessionId)
+    const child = new BrowserWindow({
+      width: 1200, height: 800, minWidth: 800, minHeight: 600,
+      show: !SMOKE,
+      title: 'Hydra harness', icon: DESKTOP_ICON,
+      webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false },
+    })
+    child.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+    child.webContents.on('will-navigate', (navigation, target) => {
+      if (new URL(target).origin !== url.origin) navigation.preventDefault()
+    })
+    try { await child.loadURL(url.href) } catch (error) { child.destroy(); throw error }
+  })
   ipcMain.handle('hydra-desktop:chrome-action', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('desktop is unavailable')
     if (typeof value !== 'string') throw new Error('desktop action is invalid')
@@ -666,9 +706,9 @@ function installRendererIpc() {
         || nativeAction === 'paste' || nativeAction === 'delete' || nativeAction === 'selectAll') {
         mainWindow.webContents[nativeAction]()
       }
-      else if (nativeAction === 'zoomIn') mainWindow.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() + 1)
-      else if (nativeAction === 'zoomOut') mainWindow.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() - 1)
-      else if (nativeAction === 'resetZoom') mainWindow.webContents.setZoomLevel(0)
+      else if (nativeAction === 'zoomIn') applyZoom(mainWindow.webContents, 1)
+      else if (nativeAction === 'zoomOut') applyZoom(mainWindow.webContents, -1)
+      else if (nativeAction === 'resetZoom') applyZoom(mainWindow.webContents, 0)
       else if (nativeAction === 'fullscreen') mainWindow.setFullScreen(!mainWindow.isFullScreen())
       else if (nativeAction === 'close') mainWindow.close()
       else if (nativeAction === 'quit') app.quit()
@@ -1014,6 +1054,32 @@ async function cleanupSmokeWorkspace() {
   if (cleanupError !== undefined) throw cleanupError
 }
 
+async function smokeZoomShortcuts() {
+  const contents = mainWindow.webContents
+  contents.setZoomLevel(0)
+  const actual = []
+  for (const [shortcut, keyCode, modifiers] of [
+    ['Ctrl+=', '=', ['control']],
+    ['Ctrl+-', '-', ['control']],
+    ['Ctrl+Shift+=', '=', ['control', 'shift']],
+    ['Ctrl+0', '0', ['control']],
+    ['Ctrl+-', '-', ['control']],
+    ['Ctrl+0', '0', ['control']],
+    ['Ctrl+Alt+=', '=', ['control', 'alt']],
+    ['Ctrl+Shift+-', '-', ['control', 'shift']],
+  ]) {
+    contents.sendInputEvent({ type: 'keyDown', keyCode, modifiers })
+    contents.sendInputEvent({ type: 'keyUp', keyCode, modifiers })
+    await delay(100)
+    actual.push(`${shortcut}: ${Math.round(contents.getZoomFactor() * 100)}%`)
+  }
+  const transcript = `${actual.join('\n')}\n`
+  const expected = await readFile(join(__dirname, 'tests', 'snapshots', 'zoom-shortcuts.expected.md'), 'utf8')
+  if (transcript !== expected.replaceAll('\r\n', '\n')) {
+    throw new Error(`desktop zoom shortcuts differ from the snapshot:\n${transcript}`)
+  }
+}
+
 async function smoke() {
   if (nativeImage.createFromPath(DESKTOP_ICON).isEmpty()) throw new Error('desktop Hydra icon is unavailable')
   if (typeof smokeWorkspace?.workspaceId !== 'string') throw new Error('desktop smoke Workspace is unavailable')
@@ -1031,6 +1097,27 @@ async function smoke() {
   })()`)
   if (!titleBarReady) throw new Error('desktop title bar controls are unavailable')
   if (mainWindow.getTitle() !== 'Hydra harness') throw new Error(`unexpected desktop title: ${mainWindow.getTitle()}`)
+  const externalUrls = []
+  const openExternal = shell.openExternal
+  shell.openExternal = async url => { externalUrls.push(url) }
+  try {
+    await mainWindow.webContents.executeJavaScript('window.hydraDesktop.openExternal("https://gemini.google.com/app")')
+    if (externalUrls.length !== 1 || externalUrls[0] !== 'https://gemini.google.com/app') {
+      throw new Error('Desktop Gemini sign-in did not delegate to the system browser')
+    }
+    const invalidExternal = await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.openExternal('file:///private')
+      .then(() => false, error => error.message.includes('external URL is invalid'))`)
+    if (!invalidExternal || externalUrls.length !== 1) throw new Error('Desktop external browser accepted an unsupported URL')
+  } finally { shell.openExternal = openExternal }
+  const windowSession = await hostRequest('session.create', { workspaceId: smokeWorkspace.workspaceId })
+  await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.openSessionWindow(${JSON.stringify(windowSession.sessionId)})`)
+  const sessionWindow = BrowserWindow.getAllWindows().find(window => window !== mainWindow)
+  if (sessionWindow === undefined) throw new Error('session window did not open')
+  const sessionWindowReady = await sessionWindow.webContents.executeJavaScript(`typeof window.hydraDesktop === 'undefined'
+    && new URL(location.href).searchParams.get('session') === ${JSON.stringify(windowSession.sessionId)}`)
+  if (!sessionWindowReady) throw new Error('session window URL or native isolation is invalid')
+  sessionWindow.destroy()
+  await hostRequest('session.delete', { sessionId: windowSession.sessionId })
   if (panelShortcut({ type: 'keyDown', control: true, alt: false, meta: false, shift: false, key: 'p' }) !== 'files'
     || panelShortcut({ type: 'keyUp', control: true, alt: false, meta: false, shift: false, key: 'p' }) !== undefined
     || panelShortcut({ type: 'keyDown', control: true, alt: true, meta: false, shift: false, key: 's' }) !== 'side-chat'
@@ -1485,7 +1572,12 @@ app.whenReady().then(async () => {
       }
     })
     if (SMOKE) {
-      await smoke()
+      if (SMOKE_ZOOM) {
+        await smokeZoomShortcuts()
+        process.stdout.write(`${JSON.stringify({ event: 'desktop-zoom-smoke', ok: true })}\n`)
+      } else {
+        await smoke()
+      }
       await shutdown()
     }
   } catch (error) {

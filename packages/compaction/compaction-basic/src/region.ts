@@ -160,10 +160,10 @@ export async function compactSurfaceRegion(
 ): Promise<CompactionResult> {
   if (options.owner === null) signal?.throwIfAborted()
   const selection = validateSurfaceRegion(session, start, end)
-  const entryState = inspectCompactionEntryState(session.events)
+  const entryState = inspectCompactionEntryState(session.activeEvents)
   assertCompactionInactive(
     entryState.unmatchedCompactionStart,
-    entryState.latestEndSeedSeq,
+    Math.max(entryState.latestEndSeedSeq ?? -1, session.firstLiveSeq),
     'compaction',
   )
 
@@ -298,15 +298,15 @@ function assertCompactionInactive(
 }
 
 /**
- * Recheck the durable compaction lock after an asynchronous policy decision.
- * @param session - session whose latest marker state is inspected.
+ * Recheck the selected version's compaction lock against the current session lifecycle.
+ * @param session - Session providing selected events and the construction boundary.
  * @param stage - operation label included in the busy diagnostic.
  */
 export function assertNoActiveCompaction(session: Session, stage: string): void {
-  const entryState = inspectCompactionEntryState(session.events)
+  const entryState = inspectCompactionEntryState(session.activeEvents)
   assertCompactionInactive(
     entryState.unmatchedCompactionStart,
-    entryState.latestEndSeedSeq,
+    Math.max(entryState.latestEndSeedSeq ?? -1, session.firstLiveSeq),
     stage,
   )
 }

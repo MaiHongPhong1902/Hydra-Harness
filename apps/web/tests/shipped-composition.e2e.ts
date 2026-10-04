@@ -28,11 +28,12 @@ const FILE_REFERENCE_PROMPT = fileURLToPath(new URL(
 /** Shipped agent tools, including bounded Obsidian access and public HTTP fetch. */
 const EXPECTED_TOOLS = [
   'ask_user_question',
-  'bash',
   'create_goal',
   'edit',
   'exit_plan_mode',
   'get_goal',
+  'image_generate',
+  'image_generate_google',
   'interrupt_agent',
   'job_kill',
   'job_list',
@@ -45,12 +46,15 @@ const EXPECTED_TOOLS = [
   'read',
   'read_image',
   'send_message',
+  'session_version_list',
+  'session_version_read',
   'skill',
   'skill_search',
   'subagent',
   'subagent_fork',
   'todo_write',
   'update_goal',
+  'video_generate',
   'web_fetch',
   'web_search',
   'workflow',
@@ -64,6 +68,7 @@ const EXPECTED_TOOLS = [
  * dependency.
  */
 const RIPGREP_TOOLS = ['glob', 'grep']
+const SHELL_TOOL = process.platform === 'win32' ? 'pwsh' : 'bash'
 
 let scaffold: WebScaffold | undefined
 
@@ -133,7 +138,9 @@ it('assembles the shipped Web catalog, file-reference guidance, retry policy, an
     }
   `)
   expect(ctx.tools.schemas().map(schema => schema.name).sort()).toEqual([
+    'image_generate', 'image_generate_google',
     'obsidian_knowledge_read', 'obsidian_knowledge_recall', 'obsidian_knowledge_save_approved',
+    'session_version_list', 'session_version_read', 'video_generate',
   ])
   const handle = await ctx.agents.create({
     sessionId: SessionId('shipped-composition'),
@@ -143,7 +150,7 @@ it('assembles the shipped Web catalog, file-reference guidance, retry policy, an
     const names = ctx.tools.schemas(handle.agent).map(schema => schema.name).sort()
     const browserTools = names.filter(name => name.startsWith('browser_'))
     expect(browserTools.length).toBeGreaterThan(0)
-    expect(names.filter(name => !RIPGREP_TOOLS.includes(name) && !name.startsWith('browser_'))).toEqual(EXPECTED_TOOLS)
+    expect(names.filter(name => !RIPGREP_TOOLS.includes(name) && !name.startsWith('browser_'))).toEqual([...EXPECTED_TOOLS, SHELL_TOOL].sort())
     // The packaged ripgrep binary ships with the dependency, so the pair is a
     // fixed roster member on every host.
     expect(names.filter(name => RIPGREP_TOOLS.includes(name))).toEqual(RIPGREP_TOOLS)
@@ -191,15 +198,15 @@ it('lets a preset producer reach the background-job registry', async () => {
   })
   try {
     const signal = new AbortController().signal
-    // `tool-bash` is a preset row and `tasks` is a host registry; the producer
+    // The shell tool is a preset row and jobs is a host registry; the producer
     // resolves it with `ctx.get`, so a registry hidden behind a preset realm
     // fails here — with every task control still listed in the catalog above.
     const started = await ctx.tools.execute({
       signal,
       callId: CallId('shipped-bash-background'),
-      name: 'bash',
+      name: SHELL_TOOL,
       arguments: {
-        command: 'printf SHIPPED_BACKGROUND_OK',
+        command: process.platform === 'win32' ? 'Write-Output SHIPPED_BACKGROUND_OK' : 'printf SHIPPED_BACKGROUND_OK',
         description: 'shipped background probe',
         run_in_background: true,
       },
@@ -207,7 +214,7 @@ it('lets a preset producer reach the background-job registry', async () => {
     })
     expect({ isError: started.isError, content: started.content }).toEqual({
       isError: false,
-      content: [{ type: 'text', text: 'started background job bash-1' }],
+      content: [{ type: 'text', text: `started background job ${SHELL_TOOL}-1` }],
     })
 
     // The controller reads what the producer started: same registry, one
@@ -221,7 +228,7 @@ it('lets a preset producer reach the background-job registry', async () => {
     })
     expect(listed.isError).toBe(false)
     expect(listed.content).toEqual([
-      { type: 'text', text: expect.stringContaining('bash-1 [bash]') as unknown as string },
+      { type: 'text', text: expect.stringContaining(`${SHELL_TOOL}-1 [${SHELL_TOOL}]`) as unknown as string },
     ])
 
     // The full round trip: the output a host-plane producer wrote is collected
@@ -230,7 +237,7 @@ it('lets a preset producer reach the background-job registry', async () => {
       signal,
       callId: CallId('shipped-task-output'),
       name: 'job_output',
-      arguments: { job_id: 'bash-1', wait: true },
+      arguments: { job_id: `${SHELL_TOOL}-1`, wait: true },
       agent: handle.agent,
     })
     expect(collected.isError).toBe(false)

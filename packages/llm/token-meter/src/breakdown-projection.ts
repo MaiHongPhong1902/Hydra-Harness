@@ -53,8 +53,9 @@ const breakdownSchema = z.object({
  * O(1) over the session's life.
  */
 export const contextBreakdownProjectionDefinition = {
+  history: 'active-version',
   key: 'contextBreakdown',
-  stateVersion: 2,
+  stateVersion: 3,
   stateSchema: contextBreakdownStateSchema,
   init: () => ({ systemTokens: 0, toolsTokens: 0, messageTokens: 0 }),
   apply: (state, event) => {

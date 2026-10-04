@@ -1,6 +1,7 @@
 /** Package-owned durable clock-context invariants. @module @hydraharness/harness-time-context/invariant */
 
 import type { Context } from '@hydraharness/cordis'
+import { SessionVersionIndex } from '@hydraharness/harness-session'
 import type { Session, SessionEvent } from '@hydraharness/harness-session'
 import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 import {
@@ -161,11 +162,13 @@ function validateReading(
 /* jscpd:ignore-start -- package companions share replay and dispatch plumbing */
 /** Validate all package-owned readings already present in one session. */
 function validateSession(session: Session, fail: InvariantFailure): void {
-  for (const [index, event] of session.events.entries()) {
+  const versions = new SessionVersionIndex()
+  for (const event of session.events) {
+    versions.append(event)
     if (event.type !== 'user/message'
       || event.data.source.kind !== 'plugin'
       || event.data.source.plugin !== SOURCE_NAME) continue
-    validateReading(session.events.slice(0, index), event, fail)
+    validateReading(versions.events().filter(entry => entry.seq < event.seq), event, fail)
   }
 }
 
@@ -179,7 +182,7 @@ const install: InvariantInstaller = Object.assign((ctx: Context, fail: Invariant
     if (event.type !== 'user/message'
       || event.data.source.kind !== 'plugin'
       || event.data.source.plugin !== SOURCE_NAME) return
-    validateReading(session.events, event, fail)
+    validateReading(session.activeEvents, event, fail)
   }, { global: true })
 }, { inject: ['sessions'] })
 /* jscpd:ignore-end */

@@ -36,6 +36,10 @@
   min-height: 64px;
 }
 
+.gallery[data-presentation='media'] { width: 100%; align-items: flex-start; }
+.frame[data-variant='media'] { width: 100%; max-width: 100%; min-width: 0; min-height: 0; }
+.frame[data-variant='media'] img { object-fit: contain; }
+
 .frame img {
   display: block;
   width: 100%;

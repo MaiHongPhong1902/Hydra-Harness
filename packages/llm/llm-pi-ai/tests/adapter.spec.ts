@@ -112,6 +112,26 @@ beforeEach(() => {
 })
 
 describe('PiAiAdapter provider routing', () => {
+  it.each([
+    'http://remote.test/v1', 'https://user:pass@remote.test/v1',
+    'https://remote.test/v1?key=value', 'https://remote.test/v1#fragment',
+  ])('refuses generation through an unsafe endpoint %s', async (baseURL) => {
+    const adapter = adapterOf({ fixture: { api: 'openai-completions', baseURL, models: [{ id: 'gpt-image-2' }] } })
+    await expect(adapter.requestGeneration({
+      provider: 'fixture', model: 'gpt-image-2', endpoint: 'images/generations', body: {}, maxResponseBytes: 32768, signal: new AbortController().signal,
+    })).rejects.toMatchObject({ code: 'INVALID_GENERATION_ENDPOINT' })
+  })
+
+  it('refuses a wrong generation endpoint and direct conversation streaming for image models', async () => {
+    const adapter = adapterOf({ fixture: {
+      api: 'openai-completions', baseURL: 'https://gateway.test/v1', models: [{ id: 'gpt-image-2' }],
+    } })
+    await expect(adapter.requestGeneration({
+      provider: 'fixture', model: 'gpt-image-2', endpoint: 'videos', body: {}, maxResponseBytes: 32768, signal: new AbortController().signal,
+    })).rejects.toMatchObject({ code: 'UNSUPPORTED_GENERATION' })
+    await expect(adapter.stream({ provider: 'fixture', model: 'gpt-image-2', messages: [] })[Symbol.asyncIterator]().next())
+      .rejects.toMatchObject({ code: 'UNSUPPORTED_MODEL_ENDPOINT' })
+  })
   it('resolves a catalog model dynamically and uses a private endpoint', async () => {
     const server = await mockServer([{ events: textEvents }])
     const ctx = await harness(server.url)
@@ -520,7 +540,6 @@ describe('PiAiAdapter provider routing', () => {
 describe('provider profile lifecycle', () => {
   it('keeps adapter helpers off the package root', () => {
     for (const helper of [
-      'resolveProfiles',
       'toPiContext',
       'toPiReplayState',
       'toPiAssistant',
@@ -528,6 +547,7 @@ describe('provider profile lifecycle', () => {
       'mapUsage',
       'toStreamChunks',
     ]) expect(LlmPiAi).not.toHaveProperty(helper)
+    expect(LlmPiAi.resolveProfiles).toBeTypeOf('function')
   })
 
   it('registers every profile atomically and unregisters on dispose', async () => {

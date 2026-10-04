@@ -9,6 +9,8 @@ export interface ImageLightboxLabels {
   dialog: string
   /** Accessible label of the close control. */
   close: string
+  /** Label of the original-byte download link. */
+  download: string
 }
 
 /**
@@ -20,7 +22,7 @@ export interface ImageLightboxLabels {
  *
  * @param props.src - the original image URL.
  * @param props.alt - the image's alt text.
- * @param props.labels - dialog and close-control strings.
+ * @param props.labels - dialog, close-control, and download strings.
  * @param props.onClose - dismiss callback owned by the opener.
  * @returns the modal preview dialog.
  */
@@ -31,6 +33,7 @@ export function ImageLightbox({ src, alt, labels, onClose }: {
   onClose: () => void
 }) {
   const closeRef = useRef<HTMLButtonElement | null>(null)
+  const downloadRef = useRef<HTMLAnchorElement | null>(null)
   const restoreRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -38,6 +41,11 @@ export function ImageLightbox({ src, alt, labels, onClose }: {
     closeRef.current?.focus()
     const onKeyDown = (event: globalThis.KeyboardEvent): void => {
       if (event.key === 'Escape') onClose()
+      if (event.key === 'Tab') {
+        event.preventDefault()
+        if (document.activeElement === closeRef.current) downloadRef.current?.focus()
+        else closeRef.current?.focus()
+      }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => {
@@ -55,6 +63,7 @@ export function ImageLightbox({ src, alt, labels, onClose }: {
     >
       <div className={css.mask} aria-hidden="true" onMouseDown={onClose} />
       <img className={css.image} src={src} alt={alt} />
+      <a ref={downloadRef} className={css.download} href={src} download={alt}>{labels.download}</a>
       <button ref={closeRef} type="button" className={css.close} aria-label={labels.close} onClick={onClose}>
         <IconCloseOutline16 size={16} />
       </button>

@@ -954,6 +954,36 @@ describe('plugin registration and config', () => {
     ])
   })
 
+  it.each(['https://host.test/images', '/images/generations', 'videos?key=secret', '']) (
+    'rejects non-relative endpoint metadata %s at schema and resolution', (endpoint) => {
+      expect(() => LlmDeepSeek.Config({ models: [{ id: 'alias', endpoints: [endpoint] }] })).toThrow()
+      expect(() => resolveAdapterOptions({ models: [{ id: 'alias', endpoints: [endpoint] }] }))
+        .toThrow(/endpoints must be relative paths/)
+    },
+  )
+
+  it('rejects direct conversation calls to generation-only models before resolving a credential', async () => {
+    const resolveApiKey = vi.fn(() => Promise.resolve('fixture-key'))
+    const fetch = vi.spyOn(globalThis, 'fetch')
+    const adapter = new DeepSeekAdapter({
+      options: () => resolveAdapterOptions({ models: [{ id: 'alias', endpoints: ['videos'] }] }),
+      resolveApiKey,
+      resolveUserId: () => TEST_USER_ID,
+    })
+    await expect(drain(adapter.stream({ provider: 'deepseek-official', model: 'alias', messages: [] })))
+      .rejects.toMatchObject({ code: 'UNSUPPORTED_MODEL_ENDPOINT' })
+    expect(resolveApiKey).not.toHaveBeenCalled()
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('keeps empty endpoint metadata advisory and detaches explicit classification', () => {
+    expect(resolveAdapterOptions({ models: [{ id: 'alias', endpoints: [] }] }).models[0]?.endpoints).toBeUndefined()
+    const endpoints = ['images/generations']
+    const resolved = resolveAdapterOptions({ models: [{ id: 'alias', endpoints }] })
+    endpoints.push('videos')
+    expect(resolved.models[0]?.endpoints).toEqual(['images/generations'])
+  })
+
   it('defaults an adapter-supplied catalog entry to text input', async () => {
     const connection = resolveAdapterOptions({ models: [] })
     const adapter = new DeepSeekAdapter({

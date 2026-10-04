@@ -9,6 +9,9 @@
   ],
   "references": [
     {
+      "path": "../../llm/llm"
+    },
+    {
       "path": "../../../vendor/cordis"
     },
     {

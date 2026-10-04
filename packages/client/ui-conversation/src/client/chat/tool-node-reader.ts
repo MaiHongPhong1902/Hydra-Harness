@@ -4,8 +4,9 @@ import type {
 import { conversationContextKey } from '@hydraharness/harness-client-runtime/client'
 import type { ChatNode } from '../contract/chat-nodes.ts'
 
-function toolNode(node: ReturnType<ConversationSnapshot['chat']['nodes']['get']>): ChatNode<'tool-call'> | undefined {
-  return node?.kind === 'tool-call' ? node as ChatNode<'tool-call'> : undefined
+function toolNode(node: ReturnType<ConversationSnapshot['chat']['nodes']['get']>): ChatNode<'tool-call' | 'media-generation'> | undefined {
+  return node?.kind === 'tool-call' || node?.kind === 'media-generation'
+    ? node as ChatNode<'tool-call' | 'media-generation'> : undefined
 }
 
 /**

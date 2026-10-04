@@ -290,16 +290,31 @@ export class AuthorizationService extends Service {
     if (flow === undefined) {
       throw new AuthorizationError(`no authorization flow is registered for "${key}"`, 'NO_FLOW')
     }
-    if (flow.accounts === undefined) {
+    const accounts = flow.accounts
+    if (accounts === undefined) {
       throw new AuthorizationError(
         `authorization flow for "${key}" does not own an account pool`, 'NO_ACCOUNTS')
     }
+    await this.removeStored(key, () => accounts.remove(accountId))
+  }
+
+  /**
+   * Forget the entire local credential record without contacting its issuer.
+   * An absent record is a no-op; orphan records need no registered flow.
+   * @param key - the record whose saved accounts and credentials are removed.
+   * @throws {AuthorizationError} code `ALREADY_IN_FLIGHT` while login or removal holds the key.
+   */
+  async forget(key: CredentialKey): Promise<void> {
+    await this.removeStored(key, () => this.ctx.credentials.deleteRecord(key))
+  }
+
+  private async removeStored(key: CredentialKey, remove: () => Promise<void>): Promise<void> {
     if (this.isBusy(key)) {
-      throw new AuthorizationError('cancel authorization before removing an account', 'ALREADY_IN_FLIGHT')
+      throw new AuthorizationError('cancel authorization before removing credentials', 'ALREADY_IN_FLIGHT')
     }
     this.removing.add(key)
     try {
-      await flow.accounts.remove(accountId)
+      await remove()
     } finally {
       this.removing.delete(key)
     }

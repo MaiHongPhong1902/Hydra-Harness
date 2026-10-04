@@ -6,6 +6,7 @@ import type { SessionId, SessionListState, SessionSummary } from '@hydraharness/
 import { conversationVersions } from '@hydraharness/harness-client-runtime/client'
 import { IconChevronDownOutline14, IconChevronLeftOutline14, IconChevronRightOutline14 } from '@hydraharness/harness-client-ui-primitives'
 import { PromptVersionMenu } from '../chat/PromptVersionMenu.tsx'
+import { useVersionNavigation } from '../chat/useVersionNavigation.ts'
 import type {
   ConversationSessionHeaderSlotProps, ConversationSessionSlotProps,
 } from '../contract/slots.ts'
@@ -68,7 +69,7 @@ function equalBreadcrumbs(left: readonly Breadcrumb[], right: readonly Breadcrum
  */
 export function ConversationSessionHeader({
   sessionId, useSession, useSessions, useStore, actions,
-  renderSlot, views, open, t,
+  renderSlot, views, open, openVersion, referenceVersion, t,
 }: ConversationSessionHeaderProps) {
   useSyncExternalStore(views.subscribe, views.version)
   const tabs = views.list()
@@ -76,8 +77,12 @@ export function ConversationSessionHeader({
   const active = resolveActiveView(tabs, selectedId)
   const ancestry = useSessions(s => deriveAncestry(s, sessionId), equalBreadcrumbs)
   const versions = useSessions(s => conversationVersions(s, sessionId), (a, b) =>
-    a.length === b.length && a.every((version, index) => version.id === b[index]?.id && version.revision === b[index].revision))
-  const versionIndex = versions.findIndex(version => version.id === sessionId)
+    a.length === b.length && a.every((version, index) => version.id === b[index]?.id
+      && version.revision === b[index].revision && version.selected === b[index].selected))
+  const versionIndex = versions.findIndex(version => version.selected === true || version.id === sessionId)
+  const select = openVersion ?? ((id: (typeof versions)[number]['id']) => { open(id as SessionId) })
+  const navigation = useVersionNavigation(select)
+  const canReference = useSessions(list => list.byId[sessionId]?.versionState !== undefined)
   const previousVersion = versions[versionIndex - 1]
   const nextVersion = versions[versionIndex + 1]
   const composerPhase = useSession(s => s.composerPhase)
@@ -152,20 +157,23 @@ export function ConversationSessionHeader({
           </div>
           {versions.length > 1 && (
             <nav className={css.versions} aria-label={t('message.versions')}>
-              <button type="button" aria-label={t('message.previousVersion')} disabled={previousVersion === undefined}
-                onClick={() => { if (previousVersion !== undefined) open(previousVersion.id) }}>
+              <button type="button" aria-label={t('message.previousVersion')} disabled={navigation.pending || previousVersion === undefined}
+                onClick={() => { if (previousVersion !== undefined) void navigation.navigate(previousVersion.id) }}>
                 <IconChevronLeftOutline14 />
               </button>
-              <PromptVersionMenu versions={versions} sessionId={sessionId} openVersion={open} t={t} className={css.versionPicker}>
+              <PromptVersionMenu versions={versions} sessionId={sessionId} openVersion={id => navigation.navigate(id)}
+                referenceVersion={canReference ? referenceVersion : undefined} t={t}
+                disabled={navigation.pending} className={css.versionPicker}>
                 <span aria-live="polite">{t('message.version', { version: String(versionIndex + 1) })}</span>
                 {nextVersion === undefined && <span className={css.versionCount}>{t('message.latestVersion')}</span>}
                 <span className={css.versionCount}>{versionIndex + 1}/{versions.length}</span>
                 <IconChevronDownOutline14 />
               </PromptVersionMenu>
-              <button type="button" aria-label={t('message.nextVersion')} disabled={nextVersion === undefined}
-                onClick={() => { if (nextVersion !== undefined) open(nextVersion.id) }}>
+              <button type="button" aria-label={t('message.nextVersion')} disabled={navigation.pending || nextVersion === undefined}
+                onClick={() => { if (nextVersion !== undefined) void navigation.navigate(nextVersion.id) }}>
                 <IconChevronRightOutline14 />
               </button>
+              {navigation.error !== null && <span role="alert">{navigation.error}</span>}
             </nav>
           )}
           {tabs.length > 1 && (

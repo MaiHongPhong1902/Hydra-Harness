@@ -8,6 +8,8 @@ Pure React atoms (zero cordis): the Hydra harness `BrandWordmark`, StateDot, Dis
 
 Portalled `Menu` lists attach to their enclosing dialog when present, otherwise to the document body. This keeps menu controls inside modal focus handling while retaining viewport-relative positioning. An open menu consumes Escape before the enclosing dialog.
 
+Menu rows support trailing shortcut or availability hints and selected submenu entries. Arrow keys, Home and End move focus between enabled items; ArrowRight enters a submenu and Escape closes the menu. Fixed-position submenu cards clamp to the viewport and open to the left when needed. Both cards scroll independently; pointer grace permits crossing the gap between cards.
+
 ## Hover cards
 
 `HoverCard` keeps its portaled preview reachable across the anchor gap with a pointer-leave grace. A consumer may also pass `copyText`: the card then exposes button semantics for pointer and keyboard activation, includes that value after the `copyLabel` prefix in its accessible name, writes the exact value through the package clipboard helper, and temporarily replaces its content with `copiedLabel` only after the host accepts the write. A non-collapsed text selection intersecting the card suppresses pointer-click activation, while success feedback retains the original card height and clears when the card closes or after one second. `copyLabel` and `copiedLabel` are label props because this zero-cordis atom cannot read the application locale; omitting `copyText` preserves the read/select-only card. Historical rationale: [the archived hover-card copy note](../../../.agents/notes/archived/feature/2026-07-31-hover-card-click-copy.md).

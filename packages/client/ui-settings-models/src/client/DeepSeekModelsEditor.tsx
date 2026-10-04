@@ -11,13 +11,14 @@ import {
   IconChevronDownOutline14, IconChevronRightOutline14, IconPlusOutline16, IconTrashOutline16,
 } from '@hydraharness/harness-client-ui-primitives'
 import type { en } from './locales.ts'
+import { ModelColumnHeaders, ModelTypeCheckbox } from './ModelClassification.tsx'
 import styles from './ModelsSection.module.css'
 
 /** One catalog entry kept structurally open so hidden or future fields survive an edit. */
 export type DeepSeekModelDraft = Record<string, unknown>
 
 /** The catalog fields this editor writes. */
-type CatalogField = 'id' | 'name' | 'contextWindow' | 'maxTokens'
+type CatalogField = 'id' | 'name' | 'contextWindow' | 'maxTokens' | 'endpoints'
 
 /** The two token counts edited as K/M-suffixed text behind a row's disclosure. */
 type CapacityField = 'contextWindow' | 'maxTokens'
@@ -144,7 +145,7 @@ export interface DeepSeekModelsEditorProps {
 
 /**
  * Render the direct DeepSeek adapter's model catalog: id and display name on
- * each row, capacities behind the row's own disclosure.
+ * each row alongside generation roles, capacities behind the row's own disclosure.
  * @param props - effective rows plus the array-level override actions.
  * @returns the catalog editor.
  */
@@ -277,6 +278,7 @@ export function DeepSeekModelsEditor(props: DeepSeekModelsEditorProps): ReactNod
               type="button"
               className={styles['linkButton']}
               disabled={props.disabled}
+              title={props.t('resetModelsHint')}
               onClick={reset}
             >
               {props.t('resetModels')}
@@ -288,6 +290,7 @@ export function DeepSeekModelsEditor(props: DeepSeekModelsEditorProps): ReactNod
         ? <p className={styles['modelEmpty']}>{props.t('modelsEmpty')}</p>
         : (
           <div className={styles['modelList']}>
+            <ModelColumnHeaders t={props.t} />
             {props.models.map((model, index) => (
               <div className={styles['modelEntry']} key={index}>
                 <div className={styles['modelRow']}>
@@ -317,6 +320,12 @@ export function DeepSeekModelsEditor(props: DeepSeekModelsEditorProps): ReactNod
                       update(index, 'name', event.target.value === '' ? undefined : event.target.value)
                     }}
                   />
+                  {(['image', 'video'] as const).map(role => (
+                    <ModelTypeCheckbox key={role} role={role}
+                      model={typeof model['id'] === 'string' && model['id'].length > 0 ? model['id'] : index + 1}
+                      endpoints={model['endpoints'] as string[] | undefined} t={props.t} disabled={props.disabled}
+                      onChange={(endpoints) => { update(index, 'endpoints', endpoints) }} />
+                  ))}
                   <button
                     type="button"
                     className={styles['iconButton']}

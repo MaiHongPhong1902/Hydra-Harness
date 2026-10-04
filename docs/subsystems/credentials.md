@@ -45,7 +45,7 @@ interface CredentialInfo {
 
 ## Account authorization
 
-An [authorization flow](../../packages/credentials/authorization/README.md) owns its credential record and may expose account inventory and removal through `AuthorizationAccounts`. `AuthorizationAccount` contains an opaque `AuthorizationAccountId` and a display label; it never contains access or refresh credentials. The generic service delegates `listAccounts(key)` and `removeAccount(key, id)` to that flow without decoding its stored payload. Removal is refused while the same flow is authorizing, and storage failures propagate to the caller.
+An [authorization flow](../../packages/credentials/authorization/README.md) owns its credential record and may expose account inventory and removal through `AuthorizationAccounts`. `AuthorizationAccount` contains an opaque `AuthorizationAccountId` and a display label; it never contains access or refresh credentials. The generic service delegates `listAccounts(key)` and `removeAccount(key, id)` to that flow without decoding its stored payload. `forget(key)` deletes the whole local record without changing browser sign-ins. Login and both removal operations exclude each other for the same key; storage failures propagate to the caller.
 
 ## Change commits
 
@@ -119,6 +119,14 @@ async getUsage(key: CredentialKey, accountId: AuthorizationAccountId, signal?: A
  *   flow.
  */
 async removeAccount(key: CredentialKey, accountId: AuthorizationAccountId): Promise<void>
+
+/**
+ * Forget the entire local credential record without contacting its issuer.
+ * An absent record is a no-op; orphan records need no registered flow.
+ * @param key - the record whose saved accounts and credentials are removed.
+ * @throws {AuthorizationError} code `ALREADY_IN_FLIGHT` while login or removal holds the key.
+ */
+async forget(key: CredentialKey): Promise<void>
 
 /**
  * Withdraw the attempt running for a key, if any. Separate from the

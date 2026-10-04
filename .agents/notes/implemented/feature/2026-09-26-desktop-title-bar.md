@@ -10,6 +10,8 @@ The Electron shell used the platform titlebar and exposed no product-level Back,
 
 Electron renders the web client with a custom 36px top bar inside the titlebar overlay on supported desktop platforms. The bar provides Back and Forward controls, a Sidebar control, and File, Edit, View, and Help menus. Renderer menus use the shared `Menu` and `Tooltip` primitives, keep their triggers keyboard-operable, and route session, workspace, and panel actions through the existing client services. Actions that require the main process use a narrow allowlist for editing commands, zoom, fullscreen, close, and help. ChatGPT-only menu entries are not presented because Hydra does not provide their backing behavior.
 
+The main-process `before-input-event` handler recognizes Ctrl+plus, Ctrl+equals, Ctrl+minus, and Ctrl+0 only in the application renderer. Keyboard and View-menu zoom actions use the same zoom-step implementation; a reset restores 100%. Alt combinations and shifted minus or zero do not trigger application zoom. Embedded Browser contents retain their own shortcut handling.
+
 ## Alternatives considered
 
 **Keep the platform titlebar and native application menu.** Rejected because the desktop surface needs the same product controls and visual height across supported platforms, while the renderer owns session, workspace, and panel state.
@@ -25,3 +27,5 @@ The desktop shell has a consistent 36px product bar and reserves the titlebar ov
 ## Testing
 
 The desktop smoke and focused `ui-layout` checks cover the custom bar's rendered controls, menu actions, titlebar geometry, and native action dispatch; browser-only runs continue to exercise the web shell without desktop titlebar state.
+
+`pnpm --filter @hydraharness/harness-desktop run smoke:zoom` sends native key events through the real Host and renderer and replays [the zoom shortcut snapshot](../../../../apps/desktop/tests/snapshots/zoom-shortcuts.expected.md), including shifted plus, zoom out below 100%, reset, and ignored modifier combinations. It uses a separate process from the Files, Terminal, and embedded Browser smoke so zoom changes do not alter their initial viewport. Smoke runs require a temporary `HYDRA_HOME` to isolate user data.

@@ -433,7 +433,7 @@ describe('web e2e: seeded history renders through cold resume', () => {
       await compareOrRefreshGolden(FILE_OPEN_FAILURE_EXPECTED, snapshot, MODE)
       await expect.poll(() => dialog.innerText(), { timeout: 5_000 })
         .toContain('path open failed: xdg-open is not available')
-      await page.getByRole('button', { name: 'Retry' }).click()
+      await dialog.getByRole('button', { name: 'Retry', exact: true }).click()
       await expect.poll(() => openPath.mock.calls.length, { timeout: 5_000 }).toBe(2)
       expect(openPath.mock.calls[0]![0].payload).toEqual(openPath.mock.calls[1]![0].payload)
       await page.getByRole('button', { name: 'Cancel' }).click()

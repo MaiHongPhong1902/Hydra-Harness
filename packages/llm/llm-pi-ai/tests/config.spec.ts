@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assertServiceable, Config } from '../src/config.ts'
+import { assertServiceable, Config, resolveProfiles } from '../src/config.ts'
 
 /** Validate one hand-declared route, with the caller's fields layered onto it. */
 const routeWith = (profile: Record<string, unknown>): (() => unknown) =>
@@ -17,6 +17,27 @@ const routeWith = (profile: Record<string, unknown>): (() => unknown) =>
 /** Validate that route with the caller's fields on its single model entry. */
 const configWith = (model: Record<string, unknown>): (() => unknown) =>
   routeWith({ models: [{ id: 'm', ...model }] })
+
+describe('generation preferences', () => {
+  it('rejects a selected model missing from the provider catalog', () => {
+    for (const field of ['imageModel', 'videoModel']) {
+      expect(() => resolveProfiles({ fixture: { api: 'openai-completions', baseURL: 'https://fixture.test', models: [{ id: 'm' }] } }, { [field]: { provider: 'fixture', model: 'absent' } }))
+        .toThrow(/generation model "absent" is absent/)
+    }
+  })
+  it('marks each selected route and accepts preferences owned by another adapter', () => {
+    const providers = Object.fromEntries(['first', 'second'].map(provider => [provider, {
+      api: 'openai-completions' as const, baseURL: 'https://fixture.test', models: [{ id: 'same-id' }],
+    }]))
+    const resolved = resolveProfiles(providers, { imageModel: { provider: 'second', model: 'same-id' }, videoModel: { provider: 'first', model: 'same-id' } })
+    expect(resolved.get('first')?.modelEndpoints.get('same-id')).toEqual(['videos'])
+    expect(resolved.get('second')?.modelEndpoints.get('same-id')).toEqual(['images/generations'])
+    expect(() => resolveProfiles(providers, { imageModel: { provider: 'another-adapter', model: 'same-id' } })).not.toThrow()
+    expect(() => resolveProfiles({ first: { ...providers['first'], imageModel: 'same-id' } } as never)).toThrow(/moved to top-level/)
+    expect(() => Config({ imageModel: { model: 'same-id' } } as never)).toThrow()
+    expect(() => Config({ imageModel: { provider: 'first' } } as never)).toThrow()
+  })
+})
 
 describe('reasoning schema boundary', () => {
   it('rejects a level pi-ai does not know at the write that produced it', () => {

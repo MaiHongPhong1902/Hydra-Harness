@@ -21,7 +21,7 @@ import type { CredentialRef } from '@hydraharness/harness-credentials'
 import { MAX_TIMER_DELAY_MS } from '@hydraharness/harness-timeout'
 import { resolveRetryPolicy, RetryPolicySchema } from '@hydraharness/harness-llm'
 import { normalizeHttpProxy } from '@hydraharness/harness-llm/proxy'
-import type { ResolvedRetryPolicy, RetryPolicyConfig } from '@hydraharness/harness-llm'
+import type { LlmCallConfig, ResolvedRetryPolicy, RetryPolicyConfig } from '@hydraharness/harness-llm'
 import {
   CACHE_CONTROL_FORMATS,
   CHAT_TEMPLATE_VARS,
@@ -57,8 +57,8 @@ export const DEFAULT_MAX_REQUEST_IMAGE_BYTES = 20 * 1024 * 1024
 /** Context fallback for a model neither configuration nor the catalog sizes. */
 export const DEFAULT_CONTEXT_WINDOW = 131_072
 
-/** Output fallback for a model neither configuration nor the catalog sizes. */
-export const DEFAULT_MAX_TOKENS = 16_384
+/** Output capacity fallback for required-cap APIs when a model has no metadata. */
+export const DEFAULT_MAX_TOKENS = DEFAULT_CONTEXT_WINDOW
 
 /**
  * Modalities assumed for a model neither configuration nor the catalog
@@ -130,8 +130,8 @@ export interface PiAiProviderProfile {
   defaultContextWindow?: number
   /**
    * Output capability for a model this route lists that neither the entry nor
-   * the installed catalog sizes (default 16,384). pi-ai uses this value when
-   * the request omits an output cap.
+   * the installed catalog sizes (default 131,072). APIs requiring an output
+   * cap use this capacity when the request omits one; optional caps are omitted.
    */
   defaultMaxTokens?: number
   /**
@@ -202,10 +202,16 @@ export interface ResolvedPiAiProviderProfile
    * own, so a catalog capability must not appear here.
    */
   configuredMaxTokens: ReadonlyMap<string, number>
+  /** Known or configured endpoint paths for each model. */
+  modelEndpoints: ReadonlyMap<string, readonly string[]>
 }
 
 /** Plugin configuration: the provider routes this instance owns. */
 export interface Config {
+  /** Global image choice, retaining provider identity when model ids repeat. */
+  imageModel?: Pick<LlmCallConfig, 'provider' | 'model'>
+  /** Global video choice, independent of the image and conversation models. */
+  videoModel?: Pick<LlmCallConfig, 'provider' | 'model'>
   /**
    * pi-ai provider routes, keyed by provider. An empty (or omitted) dict is
    * the dormant settings-driven posture: the adapter mounts with no routes
@@ -278,6 +284,7 @@ const reasoningEfforts = z.dict(
 /** The fields a `models` entry and a `modelOverrides` value share; only the id's home differs. */
 const modelFields = {
   name: z.string(),
+  endpoints: z.array(z.string()),
   contextWindow: z.number().step(1).min(1),
   maxTokens: z.number().step(1).min(1),
   // No explicit default, unlike the route's `defaultInput`: schemastery
@@ -327,6 +334,8 @@ const profile = z.object({
 /** Runtime schema for {@link Config}. */
 export const Config: z<Config> = z.object({
   providers: z.dict(profile).default({}),
+  imageModel: z.union([z.object({ provider: z.string().required(), model: z.string().required() })]),
+  videoModel: z.union([z.object({ provider: z.string().required(), model: z.string().required() })]),
 })
 
 /**
@@ -342,7 +351,7 @@ export const Config: z<Config> = z.object({
  * @throws Error naming the route and model that cannot be served.
  */
 export function assertServiceable(config: Config): void {
-  resolveProfiles(config.providers)
+  resolveProfiles(config.providers, config)
 }
 
 /** Reject removed pre-release profile fields and name their replacements. */
@@ -351,6 +360,9 @@ function rejectRemovedFields(provider: string, source: PiAiProviderProfile): voi
     provider?: unknown
     maxRetries?: unknown
     maxRetryDelayMs?: unknown
+  }
+  if ('imageModel' in source || 'videoModel' in source) {
+    throw new Error(`llm-pi-ai: provider "${provider}" generation choices moved to top-level imageModel/videoModel with provider and model fields`)
   }
   if ('provider' in legacy) {
     throw new Error(`llm-pi-ai: provider "${provider}" sets "provider", which moved to the providers dict key`)
@@ -369,10 +381,12 @@ function rejectRemovedFields(provider: string, source: PiAiProviderProfile): voi
  * resolves to the empty (dormant) route set here rather than through a hidden
  * fallback, and each route's models and pi-ai provider are materialized once.
  * @param providers - configured provider profiles keyed by route.
+ * @param generation - global image/video selections applied to their owning routes.
  * @returns validated profiles in configuration order.
  */
 export function resolveProfiles(
   providers: Readonly<Record<string, PiAiProviderProfile>> | undefined,
+  generation: Pick<Config, 'imageModel' | 'videoModel'> = {},
 ): Map<string, ResolvedPiAiProviderProfile> {
   if (Array.isArray(providers)) {
     throw new Error('llm-pi-ai: providers is now a dict keyed by provider route, not an array of profiles')
@@ -425,6 +439,17 @@ export function resolveProfiles(
       defaultContextWindow: source.defaultContextWindow ?? DEFAULT_CONTEXT_WINDOW,
       defaultMaxTokens: source.defaultMaxTokens ?? DEFAULT_MAX_TOKENS,
     })
+    const modelEndpoints = new Map(catalog.modelEndpoints)
+    const imageModel = generation.imageModel?.provider === provider ? generation.imageModel.model : undefined
+    const videoModel = generation.videoModel?.provider === provider ? generation.videoModel.model : undefined
+    for (const [model, endpoint] of [[imageModel, 'images/generations'], [videoModel, 'videos']] as const) {
+      if (model === undefined) continue
+      if (!catalog.models.some(entry => entry.id === model)) {
+        throw new Error(`llm-pi-ai: provider "${provider}" generation model "${model}" is absent from its catalog`)
+      }
+      const endpoints = modelEndpoints.get(model)?.filter(path => path !== 'generateContent') ?? []
+      modelEndpoints.set(model, [...new Set([...endpoints, endpoint])])
+    }
     const { apiKeyEnv, apiKeyFallbackEnvs, retryPolicy, models: _models, displayName: _displayName, proxy: _proxy, ...rest } = source
     resolved.set(provider, {
       ...rest,
@@ -440,6 +465,7 @@ export function resolveProfiles(
       ...rest.headers === undefined ? {} : { headers: { ...rest.headers } },
       ...rest.thinkingBudgets === undefined ? {} : { thinkingBudgets: { ...rest.thinkingBudgets } },
       configuredMaxTokens: catalog.configuredMaxTokens,
+      modelEndpoints,
       piProvider: buildProvider({
         provider,
         displayName,

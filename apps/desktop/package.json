@@ -19,7 +19,8 @@
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "smoke": "electron . --smoke"
+    "smoke": "electron . --smoke",
+    "smoke:zoom": "electron . --smoke-zoom"
   },
   "dependencies": {
     "@hydraharness/harness": "workspace:^",

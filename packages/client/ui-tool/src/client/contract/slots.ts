@@ -62,6 +62,14 @@ export type ToolTreeProps = PropsRuntime<'conversation.chat.node', 'tool-call'>
   & PropsLocale<'conversation'>
   & InjectFace<ToolHostDescriptionInjected>
 
+/** Standalone image/video output with session-authorized media loading. */
+export type MediaGenerationProps = PropsRuntime<'conversation.chat.node', 'media-generation'>
+  & PropsLocale<'conversation'>
+  & InjectFace<{
+    /** Resolve the actual generated model's display name from its provider catalog. */
+    loadModelName: (provider: string | undefined, model: string) => Promise<string | undefined>
+  }>
+
 /** Full props of the selected Tool output renderer in the details panel. */
 export type ToolDetailsProps = PropsRuntime<'conversation.details.tool'>
   & PropsLocale<'conversation'>

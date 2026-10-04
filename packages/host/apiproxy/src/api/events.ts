@@ -16,7 +16,7 @@ import type { ToolCallView, ToolResultView } from '@hydraharness/harness-tools/p
 import type { RpcError, RpcId, RpcRequest } from './rpc.ts'
 import type { JobView } from './jobs.ts'
 import type { WorkspaceView } from './workspace.ts'
-import type { ConversationRevision } from './sessions.ts'
+import type { ConversationRevision, SessionVersionState } from './sessions.ts'
 
 // Client-side consumers take the render-intent vocabulary from the contract;
 // @hydraharness/harness-tools remains its owner.
@@ -138,6 +138,7 @@ export type HostFrame =
   }
   | { type: 'host/session-removed'; sessionId: SessionId; deleted?: true }
   | { type: 'host/session-status'; sessionId: SessionId; running: boolean }
+  | { type: 'host/session-versions'; sessionId: SessionId; state: SessionVersionState }
   | { type: 'host/agent-error'; sessionId: SessionId; message: string }
   | { type: 'host/workspace-changed'; workspace: WorkspaceView }
   | { type: 'host/workspace-removed'; workspaceId: WorkspaceView['workspaceId'] }

@@ -243,6 +243,8 @@ export interface LlmDiscoveredModel {
   contextWindow?: number
   /** Maximum output tokens, when disclosed. */
   maxTokens?: number
+  /** Relative API endpoint paths; absence means the listing did not disclose them. */
+  endpoints?: string[]
 }
 
 /** One adapter-discovered model; catalog membership is advisory, not request validation. */
@@ -257,6 +259,39 @@ export interface LlmModelInfo {
   description?: string
   /** Accepted request modalities; absent means unknown, while an explicit omission is negative capability. */
   inputModalities?: readonly ModelModality[]
+  /** Relative API endpoint paths; explicit non-chat endpoints exclude conversation dispatch. */
+  endpoints?: readonly string[]
+}
+
+/** Endpoint families currently consumed by generation tools. */
+export type GenerationEndpoint = 'images/generations' | 'videos'
+
+/** One generation request over configured provider/model candidates. */
+export interface MediaGenerationOptions {
+  /** Required API endpoint family. */
+  endpoint: GenerationEndpoint
+  /** Restrict fallback to this configured provider when specified. */
+  provider?: string
+  /** Model hint used after the provider's user-selected generation model. */
+  model?: string
+  /** Provider JSON fields; routing always supplies the selected model. */
+  body: Readonly<Record<string, unknown>>
+  /** Encoded response byte limit, also enforced before adapters assemble a streamed reply. */
+  maxResponseBytes: number
+  /** For videos, poll the accepted job at this interval and return the downloaded video; omission returns the job response. */
+  pollIntervalMs?: number
+  /** Cancellation for the complete candidate sequence. */
+  signal: AbortSignal
+}
+
+/** Successful response with the exact route that generated it. */
+export interface MediaGenerationResponse {
+  /** Provider that accepted generation. */
+  provider: string
+  /** Model that accepted generation. */
+  model: string
+  /** Response body owned by the caller; video bytes when polling is requested, otherwise the provider reply. */
+  response: Response
 }
 
 /** Provider-owned context capacity for one exact provider/model route. */

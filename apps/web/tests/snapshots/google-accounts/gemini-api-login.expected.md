@@ -1,0 +1,80 @@
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+    - button "Archived sessions":
+      - img
+      - text: Archived sessions
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Models" [level=2]
+  - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - region "Image and video generation":
+    - heading "Image and video generation" [level=3]
+    - button "Refresh models"
+    - paragraph: Choose models marked Image or Video, grouped by provider. Fetch and save a provider's models to add them here. Generation requires a connected provider that supports the selected task.
+    - text: Image model
+    - combobox "Image model":
+      - option "Automatic fallback" [selected]
+    - text: Video model
+    - combobox "Video model":
+      - option "Automatic fallback" [selected]
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list:
+      - listitem:
+        - text: Google Gemini API OAuth
+        - img "Account connected"
+        - button "Edit Google Gemini API OAuth (gemini-api)": Edit
+        - button "Delete Google Gemini API OAuth (gemini-api)": Delete
+        - text: Google Gemini API OAuth gemini-api
+        - paragraph: Gemini API uses a Cloud project's API quota and billing. Sign in with Google, then enter a project with the Generative Language API enabled. Shared account usage shown here is Antigravity usage.
+        - button "Add account"
+        - text: Accounts 1 account
+        - paragraph: Requests rotate between accounts. Another account is tried when a request fails or reaches its quota.
+        - list "Accounts":
+          - listitem:
+            - text: google@example.test · fixture-project
+            - button "Hide usage for google@example.test · fixture-project" [expanded]: Usage
+            - button "Refresh usage for google@example.test · fixture-project": ↻
+            - button "Sign out google@example.test · fixture-project": Sign out
+            - text: Usage unavailable from provider
+        - text: 1–1 of 1
+        - status
+        - group: Customized settings
+        - button "Cancel"
+        - button "Apply"
+    - button "Add provider":
+      - img
+      - text: Add provider
+    - button "Add a custom provider":
+      - img
+      - text: Add a custom provider
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect provider accounts independently of your API keys.
+    - list
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

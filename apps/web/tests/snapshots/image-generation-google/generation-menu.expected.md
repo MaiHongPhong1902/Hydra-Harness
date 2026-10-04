@@ -1,0 +1,10 @@
+- menu "Model and reasoning effort":
+  - menuitem "Model DeepSeek-V4-Flash":
+    - text: Model DeepSeek-V4-Flash
+    - img
+  - menuitem "Image model gemini-3.1-flash-image":
+    - text: Image model gemini-3.1-flash-image
+    - img
+  - menuitem "Video model veo-3.1":
+    - text: Video model veo-3.1
+    - img

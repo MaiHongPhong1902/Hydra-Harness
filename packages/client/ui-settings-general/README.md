@@ -8,7 +8,7 @@ A loopback browser loads the provider's `hasDocument` capability through `settin
 
 The Host half registers `ui-onboarding` in the user-settings seam. Its composition base hides the shipped official DeepSeek row on a fresh Web installation; the Models page writes `false` when the user explicitly adds that provider and writes `true` when the user deletes it. The welcome step contributed by `ui-settings-models` reads and writes its `welcomeNoticeVersion` through the existing public settings boundary. The shell itself remains policy-free.
 
-The Settings panel uses the shared [Modal](../ui-primitives/README.md#dialogs-and-menus) for keyboard focus and nested dismissal. Closing a child dialog leaves Settings open; closing Settings restores focus to its trigger.
+The Settings panel uses the shared [Modal](../ui-primitives/README.md#dialogs-and-menus) for keyboard focus and nested dismissal. It measures up to 1080 × 900 pixels, fits within a 24-pixel viewport margin, and keeps the same size across sections; longer content scrolls inside the panel. Closing a child dialog leaves Settings open; closing Settings restores focus to its trigger.
 
 ## Model Experience
 

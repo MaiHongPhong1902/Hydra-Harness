@@ -12,6 +12,8 @@ declare module '@hydraharness/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Root Tool lifecycle with recursively nested subcalls. */
     'tool-call': ToolChatData
+    /** Media generation output rendered outside tool activity groups. */
+    'media-generation': ToolChatData
   }
 }
 
@@ -264,7 +266,9 @@ export const toolDefinition: ConversationNodeDefinition<ToolState> = {
     const projected = projectBlock(state.root, state, interruption(context))
     const anchor = context.start?.event.seq
       ?? ('kind' in state.root ? state.root.seq : context.matches[0]?.event.seq ?? 0)
-    return chatNode(context, 'tool-call', anchor, { root: projected } satisfies ToolChatData)
+    const media = projected.callView?.card === 'media'
+      || ('kind' in projected && projected.resultView?.card === 'media')
+    return chatNode(context, media ? 'media-generation' : 'tool-call', anchor, { root: projected } satisfies ToolChatData)
   },
 }
 

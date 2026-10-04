@@ -38,6 +38,7 @@ function scriptedApi(overrides: {
   return {
     review: { list: r => ok(r, { changes: [] }), workspace: r => ok(r, { workspace: '', repository: null, branch: null, branches: [], commits: [], mode: r.payload.mode, baseRef: null, files: [], truncated: false }), keep: err, undo: err, ...overrides.review },
     sessions: {
+      selectVersion: r => ok(r, { versionId: r.payload.versionId }),
       delete: r => ok(r, { deleted: true as const, sessionIds: [r.payload.sessionId] }),
       revise: r => Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'fork-unavailable', message: 'not configured', details: { sessionId: r.payload.sessionId } } } }),
       list: r => ok(r, { items: [] }),

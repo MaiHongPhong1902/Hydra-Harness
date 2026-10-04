@@ -164,6 +164,28 @@ describe('request-level dynamic configuration', () => {
     ])
   })
 
+  it('persists generation classification and restores conversation when cleared', async () => {
+    vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
+    const dir = await home()
+    const server = await mockServer([{ kind: 'sse', events: textEvents }])
+    const { ctx } = await boot(dir, { baseURL: server.url })
+    await ctx.settings.update(NS, {
+      models: [{ id: 'alias', endpoints: ['images/generations', 'videos'] }],
+    })
+    await expect(ctx.llm.listModels('deepseek-official')).resolves.toMatchObject([
+      { id: 'alias', endpoints: ['images/generations', 'videos'] },
+    ])
+    await expect(ctx.llm.resolveModelInfo('deepseek-official', 'alias')).resolves.toMatchObject({
+      endpoints: ['images/generations', 'videos'],
+    })
+    const rejected = await assemble(ctx, { model: 'alias', messages: [] })
+    expect(rejected.finish).toMatchObject({ kind: 'error', failure: { code: 'UNSUPPORTED_MODEL_ENDPOINT' } })
+    expect(server.requests).toHaveLength(0)
+    await ctx.settings.update(NS, { models: [{ id: 'alias', endpoints: ['chat/completions'] }] })
+    await assemble(ctx, { model: 'alias', messages: [] })
+    expect(server.requests).toHaveLength(1)
+  })
+
   it('applies a changed request image bound to the next request', async () => {
     vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
     const dir = await home()

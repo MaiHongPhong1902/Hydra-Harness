@@ -1,0 +1,6 @@
+- region "Video generation failed":
+  - status: Video generation failed
+  - button "Copy prompt"
+  - button "View generation details"
+  - paragraph: "Static wide shot of a tree gently swaying in the wind. Landscape composition. Duration: 6 seconds. No people or on-screen text."
+  - alert: "Error: Video generation failed; the accepted job was not resubmitted."

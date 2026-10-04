@@ -24,7 +24,7 @@ import type {
   StreamChunk,
   TokenUsage,
 } from '@hydraharness/harness-llm'
-import SessionStore, { Session, SessionId, type SessionEvent } from '@hydraharness/harness-session'
+import SessionStore, { Session, SessionId, SessionVersionId, ORIGINAL_SESSION_VERSION, type SessionEvent } from '@hydraharness/harness-session'
 import LlmRuntime from '@hydraharness/harness-llm'
 import TokenMeter from '@hydraharness/harness-token-meter'
 import type { Agent } from '@hydraharness/harness-agent'
@@ -462,6 +462,18 @@ describe('compactNow transaction and failure classification', () => {
     const agent = fakeAgent(reloaded, () => () => undefined)
 
     await expect(compact.compactNow(agent, SIGNAL)).resolves.not.toBeNull()
+    expect(compact.calls).toHaveLength(1)
+  })
+
+  it('clears inherited compaction locks when selecting a version outside the resumed path', async () => {
+    const { compact } = detachedService()
+    const original = closedConversation(2)
+    original.append('compaction/start', { compactionId: CompactionId('old-version-lock'), turn: null })
+    original.append('session/version', { versionId: SessionVersionId('new-path'), parentVersionId: ORIGINAL_SESSION_VERSION, beforeSeq: 0 })
+    const reloaded = Session.create(SessionId('resumed-versions'), original.events)
+    reloaded.append('session/version-selected', { versionId: ORIGINAL_SESSION_VERSION })
+    expect(reloaded.activeEvents.some(event => event.type === 'session/end-seed')).toBe(false)
+    await expect(compact.compactNow(fakeAgent(reloaded, () => () => undefined), SIGNAL)).resolves.not.toBeNull()
     expect(compact.calls).toHaveLength(1)
   })
 

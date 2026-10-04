@@ -150,7 +150,7 @@ describe('ConversationController', () => {
     const attachment = {
       attachmentId: AttachmentId('image-1'), mediaType: 'image/png', bytes: 1, width: 1, height: 1,
     } as const
-    const pending = b.root.resolveImage(sessionId, attachment)
+    const pending = b.root.resolveMedia(sessionId, attachment)
     b.root.releaseSessionImages(sessionId)
     read.resolve({ ok: true, value: { attachment, data: Uint8Array.of(1) } })
     await expect(pending).rejects.toThrow('historical image scope was released')

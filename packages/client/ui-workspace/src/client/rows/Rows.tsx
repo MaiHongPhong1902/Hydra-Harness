@@ -1,14 +1,14 @@
 /**
  * Workspace browser tree row components (figma Cell set 14:3080): pure presentational —
  * all data and callbacks arrive via props. Hover swaps (folder->chevron,
- * time->ellipsis, action buttons) are CSS-only. Row ... menus are visual-only
- * except workspace Rename/Delete and session Rename/Fork/Archive; the session
- * and workspace hover cards are suppressed while a menu is open.
+ * time->ellipsis, action buttons) are CSS-only. Session menus open from the
+ * overflow button, right-click or Shift+F10; organization actions arrive from
+ * the browser owner. Hover cards are suppressed while a menu is open.
  */
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import clsx from 'clsx'
 import {
-  HoverCard, IconArchiveOutline20, IconBranchOutline16, IconEditOutline16,
+  HoverCard, IconEditOutline16,
   IconEllipsisOutline16, IconFolderClose16, IconFolderOpen16, IconPlusOutline16,
   IconTrashOutline16, IconTriangleRightFill14, Menu, StateDot,
 } from '@hydraharness/harness-client-ui-primitives'
@@ -18,6 +18,7 @@ import type { WorkspaceBrowserProps } from '../contract/slots.ts'
 import type { GroupNode, SearchResultNode, SessionNode } from '../tree.ts'
 import { relativeTime } from '../tree.ts'
 import css from './Rows.module.css'
+import { SessionActionIcon, sessionMenuItems, type SessionMenuOptions } from '../SessionMenu.tsx'
 
 /** The standard locale seat, prop-passed from the browser root. */
 type RowTranslate = WorkspaceBrowserProps['t']
@@ -385,7 +386,9 @@ export function SearchResultItem({ result, currentId, onOpen, t }: {
  * @param props.t - the browser root's locale seat.
  * @returns the session row.
  */
-export function SessionNodeItem({ node, currentId, now, onOpen, onRename, onFork, onArchive, onDelete, drag, flat = false, t }: {
+export function SessionNodeItem({
+  node, currentId, now, onOpen, onRename, onFork, onArchive, onDelete, drag, flat = false, management, t,
+}: {
   node: SessionNode
   currentId: string | undefined
   now: number
@@ -402,6 +405,8 @@ export function SessionNodeItem({ node, currentId, now, onOpen, onRename, onFork
   drag?: RowDragProps | undefined
   /** The row is rendered without a parent Workspace header. */
   flat?: boolean | undefined
+  /** Extended session organization and clipboard actions supplied by the browser owner. */
+  management?: SessionMenuOptions | undefined
   t: RowTranslate
 }) {
   const row = node
@@ -411,19 +416,31 @@ export function SessionNodeItem({ node, currentId, now, onOpen, onRename, onFork
   const primaryStatus = statuses[0]
   const showStatus = primaryStatus.state !== 'done' || row.completed
   const [menuOpen, setMenuOpen] = useState(false)
+  const rowRef = useRef<HTMLDivElement>(null)
+  const [contextPoint, setContextPoint] = useState<{ x: number; y: number } | null>(null)
   // Archive hides the row through the registry-global archive set and never
   // touches the session log, so it is not styled as destructive and needs no
   // confirmation dialog.
-  const sessionMenuItems = [
-    { id: 'rename', label: t('rename'), icon: <IconEditOutline16 /> },
-    { id: 'fork', label: t('menu.fork'), icon: <IconBranchOutline16 /> },
-    // 20-native glyph in the menu's 16px icon slot (Menu.module.css .itemIcon).
-    { id: 'archive', label: t('menu.archiveSession'), icon: <IconArchiveOutline20 size={16} /> },
-    { id: 'delete', label: t('delete.session'), icon: <IconTrashOutline16 />, danger: true },
-  ]
+  const selectAction = (id: string) => {
+    setMenuOpen(false)
+    if (id === 'rename') onRename(node.id, row.title)
+    else if (id === 'fork') onFork(node.id)
+    else if (id === 'archive') onArchive(node.id)
+    else if (id === 'delete') onDelete(node.id, row.title)
+    else if (id === 'pin') management?.onPin()
+    else if (id === 'unread') management?.onUnread()
+    else if (id === 'window') management?.onWindow()
+    else if (id === 'section:new') management?.onNewSection()
+    else if (id.startsWith('project:')) management?.onProject(id === 'project:none' ? null : id.slice(8))
+    else if (id.startsWith('section:')) management?.onSection(id === 'section:none' ? null : id.slice(8))
+    else if (id === 'copy:link') management?.onCopy('link')
+    else if (id === 'copy:markdown') management?.onCopy('markdown')
+    else if (id === 'copy:directory' && management?.cwd !== undefined) management.onCopy('directory')
+  }
   // Figma session cell: pad 8, status slot 16, then a 4px title gap.
   const ownRow = (
     <div
+      ref={rowRef}
       className={clsx(
         css.sessionRow, selected && css.selected, menuOpen && css.menuOpen,
         flat && !showStatus && css.flatSessionRowWithoutStatus,
@@ -431,7 +448,42 @@ export function SessionNodeItem({ node, currentId, now, onOpen, onRename, onFork
       )}
       role="treeitem"
       aria-selected={selected}
+      tabIndex={0}
       onClick={() => { onOpen(node.id) }}
+      onContextMenu={(event) => {
+        if (row.blank) return
+        event.preventDefault()
+        event.stopPropagation()
+        rowRef.current?.focus()
+        setContextPoint({ x: event.clientX, y: event.clientY })
+        setMenuOpen(true)
+      }}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onOpen(node.id)
+          return
+        }
+        if (row.blank) return
+        if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+          event.preventDefault()
+          const rect = event.currentTarget.getBoundingClientRect()
+          setContextPoint({ x: rect.left + 16, y: rect.bottom })
+          setMenuOpen(true)
+          return
+        }
+        const key = event.key.toLowerCase()
+        const action = event.altKey && event.ctrlKey && !event.shiftKey
+          ? { r: 'rename', p: 'pin', l: 'copy:link' }[key]
+          : event.ctrlKey && event.shiftKey && !event.altKey
+            ? { u: 'unread', c: 'copy:directory', a: 'archive' }[key] : undefined
+        if (action !== undefined && management !== undefined) {
+          event.preventDefault()
+          event.stopPropagation()
+          selectAction(action)
+        }
+      }}
       draggable={drag !== undefined}
       onDragStart={drag === undefined
         ? undefined
@@ -466,6 +518,8 @@ export function SessionNodeItem({ node, currentId, now, onOpen, onRename, onFork
         </span>
       )}
       <span className={css.title}>{title}</span>
+      {management?.pinned === true && <span className={css.organizationIcon} aria-label={t('menu.pinned')}><SessionActionIcon kind="pin" /></span>}
+      {management?.unread === true && <span className={css.unreadDot} aria-label={t('menu.unreadStatus')} />}
       {/* A blank New Session row is a provisional placeholder: nothing has
           happened in it yet, so a "now" timestamp and the row verbs
           (rename/fork/archive) would all act on content that does not
@@ -476,22 +530,25 @@ export function SessionNodeItem({ node, currentId, now, onOpen, onRename, onFork
           <Menu
             open={menuOpen}
             onClose={() => { setMenuOpen(false) }}
-            items={sessionMenuItems}
-            onSelect={(id) => {
-              setMenuOpen(false)
-              if (id === 'rename') onRename(node.id, row.title)
-              if (id === 'fork') onFork(node.id)
-              if (id === 'archive') onArchive(node.id)
-              if (id === 'delete') onDelete(node.id, row.title)
-            }}
+            items={sessionMenuItems(t, management)}
+            onSelect={selectAction}
+            selectedIds={management === undefined ? undefined : [
+              `project:${management.projectId ?? 'none'}`, `section:${management.sectionId ?? 'none'}`,
+            ]}
+            {...contextPoint === null ? {} : { getAnchorRect: () => new DOMRect(contextPoint.x, contextPoint.y, 0, 0) }}
             portal
-            closeOnPointerLeave
+            compact
+            autoFocus={contextPoint !== null}
+            closeOnPointerLeave={contextPoint === null}
             anchor={(
               <button
                 type="button"
                 className={css.iconButton}
                 aria-label={t('actions.session.aria', { name: title })}
-                onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v) }}
+                data-hydra-control="action"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                onClick={(e) => { e.stopPropagation(); setContextPoint(null); setMenuOpen(v => !v) }}
               >
                 <IconEllipsisOutline16 />
               </button>

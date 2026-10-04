@@ -469,6 +469,12 @@
         headChars: 4096
         tailChars: 1024
 
+    - id: tool-media
+      name: '@hydraharness/harness-tool-media'
+
+    - id: tool-session-version
+      name: '@hydraharness/harness-tool-session-version'
+
     - id: tool-todo
       name: '@hydraharness/harness-tool-todo'
       config:

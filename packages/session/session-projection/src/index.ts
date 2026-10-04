@@ -20,6 +20,7 @@
 import { Context, Service } from '@hydraharness/cordis'
 import type { ZodType } from 'zod'
 import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import { sessionVersions } from '@hydraharness/harness-session'
 
 declare module '@hydraharness/cordis' {
   interface Context {
@@ -43,6 +44,8 @@ export interface ProjectionDefinition<
   K extends keyof SessionProjectionStateMap,
   S extends SessionProjectionStateMap[K] = SessionProjectionStateMap[K],
 > {
+  /** Active-version units refold selected event references when a transcript path changes. */
+  history?: 'active-version'
   /** The projection key this unit owns (its `SessionProjectionStateMap` entry). */
   key: K
   /** Validates persisted state before it seeds a fold. */
@@ -127,6 +130,7 @@ export type ProjectionCheckpoint = Record<string, ProjectionCheckpointRow>
 
 /** Type-erased unit view the drive machinery works with (the registration contract already proved the typed form). */
 interface ErasedDefinition {
+  history: 'active-version' | undefined
   key: string
   stateSchema: { parse(value: unknown): unknown }
   init(): unknown
@@ -228,6 +232,7 @@ export class SessionProjectionRegistry extends Service {
       view(state: S): unknown
     } | undefined
     const erased: ErasedDefinition = {
+      history: definition.history,
       key: definition.key,
       stateSchema: definition.stateSchema,
       init: () => definition.init(),
@@ -246,7 +251,7 @@ export class SessionProjectionRegistry extends Service {
       if (existing === undefined) {
         this.registrations.set(key, { def: erased, cells: new WeakMap(), refs: 1 })
       } else {
-        if (existing.def.stateVersion !== erased.stateVersion) {
+        if (existing.def.stateVersion !== erased.stateVersion || existing.def.history !== erased.history) {
           throw new Error(`session projection key ${JSON.stringify(key)} is already registered at stateVersion ${String(existing.def.stateVersion)}; refusing to share it with stateVersion ${String(erased.stateVersion)}`)
         }
         existing.refs += 1
@@ -463,10 +468,14 @@ export class SessionProjectionRegistry extends Service {
           + 'its checkpoint row is missing, version-mismatched, or beyond the supplied log end; re-read from seq 0',
         )
       }
-      let state = usable ? def.stateSchema.parse(row.val) : def.init()
+      if (def.history === 'active-version' && baseSeq > 0 && events.some(event => event.type === 'session/version' || event.type === 'session/version-selected')) {
+        throw new Error('active-version projection requires a complete log after a path change; re-read from seq 0')
+      }
+      const active = def.history === 'active-version' && baseSeq === 0 ? sessionVersions(events).events() : undefined
+      let state = active === undefined && usable ? def.stateSchema.parse(row.val) : def.init()
       const from = usable ? row.seq : baseSeq - 1
-      for (const event of events) {
-        if (event.seq > from) state = def.apply(state, event)
+      for (const event of active ?? events) {
+        if (active !== undefined || event.seq > from) state = def.apply(state, event)
       }
       if (def.wire !== undefined) values[def.key] = def.wire.viewSchema.parse(def.wire.view(state))
       refreshed[def.key] = { ver: def.stateVersion, seq: endSeq, val: state }
@@ -480,7 +489,8 @@ export class SessionProjectionRegistry extends Service {
   /** Fold one unit from init over `events`, producing a cell watermarked at the last folded event. */
   private buildCell(def: ErasedDefinition, events: readonly SessionEvent[]): UnitCell {
     let state = def.init()
-    for (const event of events) state = def.apply(state, event)
+    const source = def.history === 'active-version' ? sessionVersions(events).events() : events
+    for (const event of source) state = def.apply(state, event)
     return { state, observedSeq: (events.at(-1)?.seq ?? -1) }
   }
 
@@ -504,7 +514,8 @@ export class SessionProjectionRegistry extends Service {
         cell = this.buildCell(registration.def, session.events.slice(0, event.seq))
         registration.cells.set(session, cell)
       }
-      const next = registration.def.apply(cell.state, event)
+      const next = registration.def.history === 'active-version' && (event.type === 'session/version' || event.type === 'session/version-selected')
+        ? this.buildCell(registration.def, session.events).state : registration.def.apply(cell.state, event)
       const changed = !Object.is(next, cell.state)
       cell.state = next
       cell.observedSeq = event.seq

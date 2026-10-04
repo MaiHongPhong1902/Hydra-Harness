@@ -60,9 +60,8 @@
 
 /* Viewport fit: the card stops 12px short of the viewport's top/bottom edges
  * (24 = 2 × the portal MARGIN in Menu.tsx) and taller content scrolls inside
- * .viewport, so a pinned .footer stays visible. Menus with submenu rows skip
- * this class — the overflow clip would crop the side card, so they rely on
- * staying short. */
+ * .viewport, so a pinned .footer stays visible. Fixed submenu cards fit the
+ * viewport independently of this scrolling region. */
 .scrollable {
   max-height: calc(100vh - 24px);
 }
@@ -183,6 +182,13 @@
   color: var(--dsw-alias-label-primary);
 }
 
+.hint {
+  flex: none;
+  font-size: 11px;
+  color: var(--dsw-alias-label-tertiary);
+  white-space: nowrap;
+}
+
 /* Selected cell keeps the plain fill (marker is the trailing check); the
  * class remains as a hook for owner-side emphasis. */
 .selected {
@@ -217,19 +223,18 @@
   background: var(--dsw-alias-border-l1);
 }
 
-/* Nested card to the right of the parent row (figma 419:16920).
- * Bottom-aligned with the parent menu card (grows upward): itemWrap sits in
- * .list's 4px pad, so bottom: -4px matches the list's outer bottom edge.
- * Horizontal: list pad (4px) + 6px card gap = 10px past itemWrap — plain
- * `100% + 6px` collapses to ~2px between outer card edges.
- * ::before bridges the full gap so the pointer can cross without mouseLeave. */
+/* Fixed nested card; Menu measures its parent row and clamps it to either
+ * side of the viewport. Pointer grace covers the six-pixel gap. */
 .submenu {
-  position: absolute;
+  position: fixed;
   top: auto;
-  bottom: -4px;
+  bottom: auto;
   left: calc(100% + 10px);
   z-index: 101;
   min-width: 163px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
 }
 
 .submenu::before {

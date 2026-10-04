@@ -1,0 +1,10 @@
+{"type":"session","version":0,"id":"01a11c10-0000-4000-8000-000000000003","createdAt":1790870400000,"cwd":"{{cwd}}","delegationDepth":0}
+{"type":"user/message","data":{"content":[{"type":"text","text":"Create a 6-second landscape video of a tree moving gently in the wind, with a static wide shot. No people or text. Display it in chat."}],"source":{"kind":"user"},"role":"user","id":"01a11c10-0000-4000-8000-000000000004"},"surfaceOp":"append"}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"tool-call-delta","index":0,"id":"video-fixture","name":"video_generate","argumentsDelta":"{\"prompt\":\"Static wide shot of a tree gently swaying in the wind. Landscape composition. Duration: 6 seconds. No people or on-screen text.\",\"seconds\":6,\"size\":\"1280x720\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"video-fixture","name":"video_generate","arguments":"{\"prompt\":\"Static wide shot of a tree gently swaying in the wind. Landscape composition. Duration: 6 seconds. No people or on-screen text.\",\"seconds\":6,\"size\":\"1280x720\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"block-start","index":0,"blockType":"text"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"text-delta","index":0,"text":"Your video is displayed in chat."}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"block-end","index":0,"block":{"type":"text","text":"Your video is displayed in chat."}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"finish","reason":{"kind":"stop"}}}}

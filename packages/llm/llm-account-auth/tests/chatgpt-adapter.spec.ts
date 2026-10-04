@@ -5,7 +5,7 @@ import type { StreamChunk } from '@hydraharness/harness-llm'
 import type { PiAiAdapterOptions } from '@hydraharness/harness-llm-pi-ai'
 import { MemoryCredentials } from '../../../credentials/authorization/tests/memory.ts'
 import { accountRecordKey, createAccountPool } from '../src/accounts.ts'
-import { ChatGptAccountAdapter } from '../src/adapter.ts'
+import { PiAiAccountAdapter } from '../src/adapter.ts'
 import { buildChatGptProfile } from '../src/chatgpt.ts'
 
 const sdk = vi.hoisted(() => ({ create: vi.fn(), discover: vi.fn() }))
@@ -19,7 +19,7 @@ vi.mock('../src/chatgpt.ts', async load => ({
 }))
 
 const contexts: Context[] = []
-const grant = { type: 'oauth', access: 'access', refresh: 'refresh', expires: 1000, accountId: 'fixture-account' } as const
+const grant = { type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000, accountId: 'fixture-account' } as const
 const finish: StreamChunk = { type: 'finish', reason: { kind: 'stop' } }
 const delegate = {
   listModels: vi.fn(async () => [{ provider: 'chatgpt', id: 'test', name: 'Test' }]),
@@ -51,7 +51,7 @@ it.each([false, true])('reuses the delegate and forwards its profile and attachm
   const pool = await poolFixture(grant)
   const loadProfile = vi.fn(async () => profile)
   const resolveAttachments = () => undefined
-  const adapter = new ChatGptAccountAdapter({
+  const adapter = new PiAiAccountAdapter({ provider: 'chatgpt',
     pool,
     profile: () => lazy ? undefined : profile,
     ...lazy ? { loadProfile, resolveAttachments } : {},
@@ -76,7 +76,7 @@ it.each([false, true])('reuses the delegate and forwards its profile and attachm
 it('rejects a missing profile with and without a lazy resolver', async () => {
   const pool = await poolFixture()
   for (const loadProfile of [undefined, async () => undefined]) {
-    const adapter = new ChatGptAccountAdapter({ pool, profile: () => undefined, ...(loadProfile === undefined ? {} : { loadProfile }) })
+    const adapter = new PiAiAccountAdapter({ provider: 'chatgpt', pool, profile: () => undefined, ...(loadProfile === undefined ? {} : { loadProfile }) })
     expect(adapter.providerRetryPolicy('chatgpt')).toBeUndefined()
     await expect(adapter.listModels('chatgpt')).rejects.toMatchObject({ code: 'NO_ADAPTER' })
   }
@@ -87,12 +87,13 @@ it.each([
   undefined,
   { type: 'api_key', key: 'fixture' },
   { ...grant, access: '' },
-  { type: 'oauth', access: 'fixture', refresh: 'refresh', expires: 1000 },
+  { type: 'oauth', access: 'fixture', refresh: 'refresh', expires: Date.now() + 60_000 },
   { ...grant, accountId: '' },
 ] satisfies (Credential | undefined)[])('rejects discovery without usable account credentials: %j', async (credential) => {
   const pool = await poolFixture(credential === undefined ? undefined : grant)
   if (credential !== undefined) vi.spyOn(pool.credentials, 'read').mockResolvedValue(credential)
-  const adapter = new ChatGptAccountAdapter({ pool, profile: () => undefined })
+  const profile = await buildChatGptProfile({})
+  const adapter = new PiAiAccountAdapter({ provider: 'chatgpt', pool, profile: () => profile })
   await expect(adapter.discoverModels()).rejects.toMatchObject({
     code: credential === undefined ? 'MISSING_CREDENTIAL' : 'INVALID_CREDENTIAL',
   })
@@ -101,10 +102,11 @@ it.each([
 
 it('discovers with account-scoped credentials and forwards cancellation', async () => {
   const pool = await poolFixture(grant)
-  const adapter = new ChatGptAccountAdapter({ pool, profile: () => undefined })
+  const profile = await buildChatGptProfile({})
+  const adapter = new PiAiAccountAdapter({ provider: 'chatgpt', pool, profile: () => profile })
   for (const signal of [undefined, new AbortController().signal]) {
     expect(await adapter.discoverModels(signal)).toEqual([{ id: 'discovered' }])
-    expect(sdk.discover).toHaveBeenLastCalledWith({ accessToken: 'access', accountId: 'fixture-account', ...signal ? { signal } : {} })
+    expect(sdk.discover).toHaveBeenLastCalledWith({ accessToken: 'access', accountId: 'fixture-account', baseURL: 'https://chatgpt.com/backend-api', ...signal ? { signal } : {} })
   }
   await expect(adapter.discoverModels(AbortSignal.abort(new Error('before discovery')))).rejects.toThrow('before discovery')
   const controller = new AbortController()

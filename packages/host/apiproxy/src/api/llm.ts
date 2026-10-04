@@ -87,4 +87,6 @@ export interface DiscoveredModelView {
   contextWindow?: number
   /** Maximum output tokens, when disclosed. */
   maxTokens?: number
+  /** Relative API endpoint paths when disclosed or inferred from a known model family. */
+  endpoints?: string[]
 }

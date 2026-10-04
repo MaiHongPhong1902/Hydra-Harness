@@ -158,6 +158,10 @@ flowchart LR
   cfg --> plugin_hydra_base_session_checkpoint_policy
   plugin_hydra_base_tool_result_pruner["tool-result-pruner<br/>@hydraharness/harness-compaction-tool-result-pruner"]
   cfg --> plugin_hydra_base_tool_result_pruner
+  plugin_hydra_base_tool_media["tool-media<br/>@hydraharness/harness-tool-media"]
+  cfg --> plugin_hydra_base_tool_media
+  plugin_hydra_base_tool_session_version["tool-session-version<br/>@hydraharness/harness-tool-session-version"]
+  cfg --> plugin_hydra_base_tool_session_version
   plugin_hydra_base_tool_todo["tool-todo<br/>@hydraharness/harness-tool-todo"]
   cfg --> plugin_hydra_base_tool_todo
   plugin_hydra_base_tool_goal["tool-goal<br/>@hydraharness/harness-tool-goal"]
@@ -279,6 +283,8 @@ flowchart LR
 | `spill-policy` | `@hydraharness/harness-spill-policy` |
 | `session-checkpoint-policy` | `@hydraharness/harness-session-checkpoint-policy` |
 | `tool-result-pruner` | `@hydraharness/harness-compaction-tool-result-pruner` |
+| `tool-media` | `@hydraharness/harness-tool-media` |
+| `tool-session-version` | `@hydraharness/harness-tool-session-version` |
 | `tool-todo` | `@hydraharness/harness-tool-todo` |
 | `tool-goal` | `@hydraharness/harness-tool-goal` |
 | `tool-ralph` | `@hydraharness/harness-tool-ralph` |

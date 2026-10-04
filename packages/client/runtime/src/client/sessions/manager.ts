@@ -641,6 +641,11 @@ export class SessionManager {
     try {
       const { result } = await this.api.sessions.revise(input)
       if (result.ok) {
+        if (result.value.sessionId === input.sessionId) {
+          await this.refreshList()
+          await this.sessions.get(input.sessionId)?.resync()
+          return result
+        }
         const source = this.summaries.find(summary => summary.sessionId === input.sessionId)
         this.recordMutation({ kind: 'upsert', summary: {
           sessionId: result.value.sessionId, revision: result.value.revision,
@@ -650,6 +655,20 @@ export class SessionManager {
       }
       return result
     } catch (error) { return transportError(error) }
+  }
+
+  /**
+   * View or reference a stored path without creating another Session object.
+   * @param sessionId - Owning session.
+   * @param versionId - Stored path.
+   * @param mode - View or reference operation.
+   * @returns Host acknowledgement and refreshed catalog.
+   */
+  async selectVersion(sessionId: SessionId, versionId: import('@hydraharness/harness-session/types').SessionVersionId, mode: 'view' | 'reference'): Promise<void> {
+    const { result } = await this.api.sessions.selectVersion({ sessionId, versionId, mode })
+    if (!result.ok) throw new Error(result.error.message)
+    await this.refreshList()
+    if (mode === 'view') await this.sessions.get(sessionId)?.resync()
   }
 
   /**
@@ -865,6 +884,14 @@ export class SessionManager {
           && (this.selected === frame.parentSessionId || this.openCatalogs.has(frame.parentSessionId))) {
           this.scheduleCatalogRefresh(frame.parentSessionId)
         }
+        return
+      }
+      case 'host/session-versions': {
+        const current = this.summaries.find(summary => summary.sessionId === frame.sessionId)
+        if (current === undefined) return
+        const { revision: _revision, ...summary } = current
+        const revision = frame.state.versions.find(version => version.id === frame.state.current)?.revision
+        this.mergeSummary({ ...summary, versionState: frame.state, ...revision === undefined ? {} : { revision } })
         return
       }
       case 'host/session-removed': {
@@ -1154,6 +1181,10 @@ function applyMutation(summaries: readonly SessionSummary[], mutation: SessionLi
           ? { origin: mutation.summary.origin } : {}),
         ...(existing.revision === undefined && mutation.summary.revision !== undefined
           ? { revision: mutation.summary.revision } : {}),
+        ...(mutation.summary.versionState === undefined ? {} : {
+          versionState: mutation.summary.versionState,
+          revision: mutation.summary.versionState.versions.find(version => version.id === mutation.summary.versionState?.current)?.revision,
+        }),
         // Newest wins, not fill-only: a blank-session preset switch replaces
         // the creation-time value, and every producer of this field (the
         // create echo, the select echo, a list row) reports the CURRENT one.
@@ -1163,6 +1194,7 @@ function applyMutation(summaries: readonly SessionSummary[], mutation: SessionLi
       if (filled.cwd === existing.cwd && filled.parentSessionId === existing.parentSessionId
         && filled.origin === existing.origin && filled.blank === existing.blank
         && filled.revision === existing.revision
+        && filled.versionState === existing.versionState
         && filled.agentPreset === existing.agentPreset) return [...summaries]
       return summaries.map(summary => summary.sessionId === mutation.summary.sessionId ? filled : summary)
     }

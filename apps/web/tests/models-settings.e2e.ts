@@ -13,13 +13,15 @@
 // never shadow the derived reference. The deletion dialog distinguishes a
 // reference-free profile from a page-managed key before the credential and
 // settings unsets reach the wire.
-import { readFile } from 'node:fs/promises'
+import { mkdir, readFile } from 'node:fs/promises'
+import { createServer, type Server } from 'node:http'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import { Context } from '@hydraharness/cordis'
+import { credentialKey } from '@hydraharness/harness-credentials'
 import { Config as PiAiConfig } from '@hydraharness/harness-llm-pi-ai'
 import { settingsNamespace } from '@hydraharness/harness-settings'
 import FileSettingsProvider from '@hydraharness/harness-settings-file'
@@ -27,7 +29,7 @@ import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold,
 } from './scaffold.ts'
-import { saveFailureShot } from './support.ts'
+import { REPO_ROOT, saveFailureShot } from './support.ts'
 
 const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/models-settings', import.meta.url))
 const EMPTY_EXPECTED = join(SNAPSHOT_DIR, 'empty.expected.md')
@@ -46,8 +48,22 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
   let page: Page
   let tripwire: ReturnType<typeof watchConsole>
   let peer: Context | undefined
+  let catalogServer: Server
+  let catalogUrl: string
 
   beforeAll(async () => {
+    catalogServer = createServer((_request, response) => {
+      response.setHeader('content-type', 'application/json')
+      response.end(JSON.stringify({ data: [
+        { id: 'MiniMax-M2.7', name: 'MiniMax M2.7' },
+        { id: 'MiniMax-M2.7-highspeed' },
+        { id: 'MiniMax-M3' },
+      ] }))
+    })
+    await new Promise<void>(resolve => catalogServer.listen(0, '127.0.0.1', resolve))
+    const address = catalogServer.address()
+    if (address === null || typeof address === 'string') throw new Error('Model fixture has no TCP port')
+    catalogUrl = `http://127.0.0.1:${address.port}/v1`
     scaffold = await launchWebScaffold({})
     browser = await chromium.launch()
     page = await browser.newPage({ viewport: { width: 1680, height: 1000 }, locale: 'en-US' })
@@ -60,6 +76,15 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     await browser?.close()
     await peer?.fiber.dispose()
     await scaffold?.close()
+    if (catalogServer !== undefined) {
+      await new Promise<void>((resolve, reject) => {
+        catalogServer.close((error) => {
+          if (error === undefined) resolve()
+          else reject(error)
+        })
+        catalogServer.closeAllConnections()
+      })
+    }
   })
 
   it('opens the add card over the dormant directory vocabulary', async () => {
@@ -185,44 +210,6 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)
 
-  it('selects and clears the discovered model catalog in one action', async () => {
-    onTestFailed(() => saveFailureShot(page, 'web-e2e-models-picker'))
-    const settingsDialog = page.getByRole('dialog', { name: 'Settings' })
-    await settingsDialog.getByRole('button', { name: 'Edit minimax-cn' }).click()
-    await settingsDialog.getByText('Customized settings').click()
-    // A blank draft endpoint asks for the installed catalog without contacting the saved example URL.
-    await settingsDialog.getByLabel('Base URL').fill('')
-    await settingsDialog.getByRole('button', { name: 'Fetch available models' }).click()
-
-    const picker = page.getByRole('dialog', { name: 'Choose models to add' })
-    await picker.waitFor({ timeout: 10_000 })
-    const boxes = picker.getByRole('checkbox')
-    const count = await boxes.count()
-    expect(count).toBeGreaterThan(0)
-    expect(await boxes.evaluateAll(nodes => nodes.map(node => (node as HTMLInputElement).checked))).toEqual(
-      Array.from({ length: count }, () => true),
-    )
-
-    await picker.getByRole('button', { name: 'Deselect all' }).click()
-    expect(await boxes.evaluateAll(nodes => nodes.map(node => (node as HTMLInputElement).checked))).toEqual(
-      Array.from({ length: count }, () => false),
-    )
-    await picker.getByRole('button', { name: 'Select all' }).waitFor()
-    const snapshot = await captureStableAria(
-      page,
-      '[role="dialog"][aria-label="Choose models to add"]',
-      scaffold.workspaceCwd,
-    )
-    await compareOrRefreshGolden(MODEL_PICKER_EXPECTED, snapshot, MODE)
-
-    await picker.getByRole('button', { name: 'Select all' }).click()
-    expect(await boxes.evaluateAll(nodes => nodes.map(node => (node as HTMLInputElement).checked))).toEqual(
-      Array.from({ length: count }, () => true),
-    )
-    await picker.getByRole('button', { name: 'Cancel', exact: true }).click()
-    await settingsDialog.getByRole('button', { name: 'Cancel', exact: true }).click()
-  }, 60_000)
-
   it('declares a route the adapter does not ship', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-models-declare'))
     const dialog = page.getByRole('dialog', { name: 'Settings' })
@@ -238,12 +225,18 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     expect(await dialog.getByLabel('Reasoning effort').count()).toBe(0)
     await dialog.getByRole('button', { name: 'Add model' }).click()
     await dialog.getByLabel('Model ID 1').fill('acme-large')
+    await dialog.getByRole('button', { name: 'Model details 1', exact: true }).click()
+    const output = dialog.getByLabel('Max output tokens 1', { exact: true })
+    expect(await output.getAttribute('placeholder')).toBe('Unlimited')
+    await output.fill('16K')
+    await output.fill('')
     await dialog.getByRole('button', { name: 'Create provider', exact: true }).click()
 
     const row = dialog.getByText('Acme Gateway', { exact: true }).first()
     await row.waitFor({ timeout: 10_000 })
     const document = await readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8')
     expect(document).toContain('acme-gateway:')
+    expect(document).not.toContain('maxTokens:')
 
     // The tag follows the adapter's installed catalog: this route is in no
     // catalog, while minimax-cn is — even though both now have profiles.
@@ -254,6 +247,80 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     const snapshot = await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd)
     await compareOrRefreshGolden(DECLARED_EXPECTED, snapshot, MODE)
     expect(tripwire.pageErrors).toEqual([])
+  }, 60_000)
+
+  it('selects and clears the discovered model catalog in one action', async () => {
+    onTestFailed(() => saveFailureShot(page, 'web-e2e-models-picker'))
+    const settingsDialog = page.getByRole('dialog', { name: 'Settings' })
+    await settingsDialog.getByRole('button', { name: 'Edit Acme Gateway (acme-gateway)' }).click()
+    await settingsDialog.getByText('Customized settings').click()
+    await settingsDialog.getByLabel('Base URL').fill(catalogUrl)
+    await settingsDialog.getByRole('button', { name: 'Fetch' }).click()
+
+    const picker = page.getByRole('dialog', { name: 'Choose models to add' })
+    await picker.waitFor({ timeout: 10_000 })
+    expect(await picker.getByRole('columnheader').allTextContents()).toEqual(['Model ID', 'Model name', 'Image', 'Video'])
+    expect(await picker.getByRole('textbox', { name: 'Model name MiniMax-M2.7', exact: true }).inputValue()).toBe('MiniMax M2.7')
+    const unnamed = picker.getByRole('textbox', { name: 'Model name MiniMax-M3', exact: true })
+    expect(await unnamed.inputValue()).toBe('')
+    expect(await unnamed.getAttribute('placeholder')).toBe('')
+    const boxes = picker.getByRole('checkbox', { name: /^MiniMax-/ })
+    const count = await boxes.count()
+    expect(count).toBeGreaterThan(0)
+    expect(await boxes.evaluateAll(nodes => nodes.map(node => (node as HTMLInputElement).checked))).toEqual(
+      Array.from({ length: count }, () => true),
+    )
+
+    await picker.getByRole('button', { name: 'Deselect all' }).click()
+    expect(await boxes.evaluateAll(nodes => nodes.map(node => (node as HTMLInputElement).checked))).toEqual(
+      Array.from({ length: count }, () => false),
+    )
+    await picker.getByRole('button', { name: 'Select all' }).waitFor()
+    await picker.getByRole('checkbox', { name: 'Image MiniMax-M3', exact: true }).check()
+    const snapshot = await captureStableAria(
+      page,
+      '[role="dialog"][aria-label="Choose models to add"]',
+      scaffold.workspaceCwd,
+    )
+    await compareOrRefreshGolden(MODEL_PICKER_EXPECTED, snapshot, MODE)
+
+    await picker.getByRole('button', { name: 'Select all' }).click()
+    expect(await picker.getByRole('checkbox', { name: 'Image MiniMax-M3', exact: true }).isChecked()).toBe(true)
+    expect(await boxes.evaluateAll(nodes => nodes.map(node => (node as HTMLInputElement).checked))).toEqual(
+      Array.from({ length: count }, () => true),
+    )
+    const shots = join(REPO_ROOT, '.artifacts', 'model-fetch-picker')
+    await mkdir(shots, { recursive: true })
+    for (const theme of ['Light', 'Dark']) {
+      if (theme === 'Dark') {
+        await picker.getByRole('button', { name: 'Cancel', exact: true }).click()
+        await settingsDialog.getByRole('button', { name: 'General', exact: true }).click()
+        await settingsDialog.getByRole('button', { name: theme, exact: true }).click()
+        await expect.poll(() => page.locator('body').getAttribute('data-ds-dark-theme')).toBe('')
+        await settingsDialog.getByRole('button', { name: 'Models', exact: true }).click()
+        await settingsDialog.getByRole('button', { name: 'Edit Acme Gateway (acme-gateway)' }).click()
+        await settingsDialog.getByText('Customized settings').click()
+        await settingsDialog.getByLabel('Base URL').fill(catalogUrl)
+        await settingsDialog.getByRole('button', { name: 'Fetch' }).click()
+        await picker.waitFor()
+      }
+      for (const width of [1680, 560]) {
+        await page.setViewportSize({ width, height: 1000 })
+        await expect.poll(() => picker.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true)
+        if (width === 1680) expect((await picker.boundingBox())!.width).toBeGreaterThan(700)
+        await page.screenshot({ path: join(shots, `${theme.toLowerCase()}-${width}.png`) })
+        await picker.screenshot({ path: join(shots, `picker-${theme.toLowerCase()}-${width}.png`) })
+      }
+      await page.setViewportSize({ width: 1680, height: 1000 })
+    }
+    await unnamed.fill('My M3')
+    await picker.getByRole('checkbox', { name: 'Image MiniMax-M3', exact: true }).check()
+    await picker.getByRole('button', { name: 'Add selected', exact: true }).click()
+    expect(await settingsDialog.getByLabel('Display name 4', { exact: true }).inputValue()).toBe('My M3')
+    await settingsDialog.getByLabel('Model details 4', { exact: true }).click()
+    expect(await settingsDialog.getByRole('checkbox', { name: 'Image MiniMax-M3', exact: true }).isChecked()).toBe(true)
+    expect(await readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8')).not.toContain('My M3')
+    await settingsDialog.getByRole('button', { name: 'Cancel', exact: true }).click()
   }, 60_000)
 
   it('reopens the name and protocol a declared route was created with', async () => {
@@ -269,8 +336,80 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     expect(await protocol.inputValue()).toBe('openai-completions')
     const name = dialog.getByLabel('Display name', { exact: true })
     expect(await name.inputValue()).toBe('Acme Gateway')
+    expect(await dialog.getByRole('combobox', { name: /^Model use/ }).count()).toBe(0)
+    await dialog.getByRole('button', { name: 'Model details 1', exact: true }).click()
+    const output = dialog.getByLabel('Max output tokens 1', { exact: true })
+    expect(await output.inputValue()).toBe('')
+    expect(await output.getAttribute('placeholder')).toBe('Unlimited')
+    await output.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: join(REPO_ROOT, '.artifacts', 'unlimited-output-settings.png') })
     const snapshot = await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd)
     await compareOrRefreshGolden(DECLARED_EDIT_EXPECTED, snapshot, MODE)
+
+    const shots = join(REPO_ROOT, '.artifacts', 'models-without-use')
+    await mkdir(shots, { recursive: true })
+    for (const theme of ['Light', 'Dark']) {
+      await dialog.getByRole('button', { name: 'General', exact: true }).click()
+      await dialog.getByRole('button', { name: theme, exact: true }).click()
+      await expect.poll(() => page.locator('body').getAttribute('data-ds-dark-theme')).toBe(theme === 'Dark' ? '' : null)
+      await dialog.getByRole('button', { name: 'Models', exact: true }).click()
+      await dialog.getByRole('button', { name: 'Edit Acme Gateway (acme-gateway)' }).click()
+      await dialog.getByText('Customized settings').click()
+      await dialog.getByLabel('Model ID 1').scrollIntoViewIfNeeded()
+      await page.screenshot({ path: join(shots, `${theme.toLowerCase()}.png`) })
+      for (const width of [1680, 720, 560]) {
+        await page.setViewportSize({ width, height: 1000 })
+        const catalog = dialog.getByRole('region', { name: 'Models', exact: true })
+        const actions = catalog.getByRole('button').filter({ hasText: /Restore|Get all|Fetch/ })
+        expect(await actions.count()).toBe(3)
+        const geometry = await actions.evaluateAll(nodes => nodes.map((node) => {
+          const bounds = node.getBoundingClientRect()
+          return { top: bounds.top, height: bounds.height, fill: getComputedStyle(node).backgroundColor }
+        }))
+        expect(Math.max(...geometry.map(action => action.top)) - Math.min(...geometry.map(action => action.top))).toBeLessThan(1)
+        expect(new Set(geometry.map(action => action.height)).size).toBe(1)
+        expect(new Set(geometry.map(action => action.fill)).size).toBe(3)
+        const hints = [
+          'Restore the default model catalog. Apply to save.',
+          'Fetch every available model and add it to the draft. Apply to save.',
+          'Fetch available models and choose which ones to add. Apply to save.',
+        ]
+        for (const [index, action] of (await actions.all()).entries()) {
+          await action.hover()
+          expect(await action.getAttribute('title')).toBe(hints[index])
+        }
+        await page.screenshot({ path: join(shots, `${theme.toLowerCase()}-hover-${width}.png`) })
+        await catalog.screenshot({ path: join(shots, `${theme.toLowerCase()}-catalog-${width}.png`) })
+        expect(await page.evaluate(() => globalThis.document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+        expect(await catalog.getByRole('checkbox').evaluateAll(inputs => inputs.every((input) => {
+          const bounds = input.getBoundingClientRect()
+          const row = input.closest('[class*="modelRow"]')!.getBoundingClientRect()
+          return bounds.left >= row.left && bounds.right <= row.right
+        }))).toBe(true)
+        expect(await actions.evaluateAll(nodes => nodes.map((node) => {
+          const range = globalThis.document.createRange()
+          range.selectNodeContents(node)
+          const text = range.getBoundingClientRect()
+          const button = node.getBoundingClientRect()
+          const section = node.closest('section')!.getBoundingClientRect()
+          return {
+            label: node.textContent,
+            fits: text.top >= button.top && text.bottom <= button.bottom
+              && text.left >= button.left && text.right <= button.right
+              && button.left >= section.left && button.right <= section.right,
+          }
+        }))).toEqual([
+          { label: 'Restore', fits: true },
+          { label: 'Get all', fits: true },
+          { label: 'Fetch', fits: true },
+        ])
+      }
+      await page.setViewportSize({ width: 1680, height: 1000 })
+    }
+    await page.setViewportSize({ width: 720, height: 900 })
+    await dialog.getByLabel('Model ID 1').scrollIntoViewIfNeeded()
+    await page.screenshot({ path: join(shots, 'narrow.png') })
+    await page.setViewportSize({ width: 1680, height: 1000 })
 
     await protocol.selectOption('anthropic-messages')
     await name.fill('Renamed Acme Gateway')
@@ -290,8 +429,10 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)
 
-  it('confirms an identified provider deletion before removing its profile and key', async () => {
+  it('confirms an identified provider deletion before removing its profile, SDK record, and API key', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-models-delete'))
+    const recordKey = credentialKey('llm-pi-ai', 'minimax-cn')
+    await scaffold.ctx.credentials.modifyRecord(recordKey, async () => ({ kind: 'api-key', key: 'sk-sdk-minimax-stored' }))
     const settingsDialog = page.getByRole('dialog', { name: 'Settings' })
     await settingsDialog.getByRole('button', { name: 'Delete minimax-cn', exact: true }).click()
     const deleteDialog = page.getByRole('dialog', { name: 'Delete minimax-cn?' })
@@ -305,6 +446,7 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
 
     await deleteDialog.getByRole('button', { name: 'Cancel', exact: true }).click()
     expect(await readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8')).toContain('minimax-cn:')
+    expect(await scaffold.ctx.credentials.readRecord(recordKey)).toMatchObject({ kind: 'api-key', key: 'sk-sdk-minimax-stored' })
     // A second process can still hold the provider before the UI deletes it.
     peer = new Context()
     await peer.plugin(FileSettingsProvider, { hydraHome: scaffold.harnessHome, watch: false })
@@ -319,6 +461,10 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     ).not.toContain('minimax-cn:')
     expect(await readFile(join(scaffold.harnessHome, '.credentials.yaml'), 'utf8'))
       .not.toContain('MINIMAX_CN_API_KEY')
+    expect(await scaffold.ctx.credentials.readRecord(recordKey)).toBeUndefined()
+    const credentialsAfter = await readFile(join(scaffold.harnessHome, '.credentials.yaml'), 'utf8')
+    expect(credentialsAfter).not.toContain('llm-pi-ai/minimax-cn')
+    expect(credentialsAfter).not.toContain('sk-sdk-minimax-stored')
     await expect.poll(
       async () => page.getByRole('dialog', { name: 'Delete minimax-cn?' }).count(),
       { timeout: 10_000 },
@@ -341,6 +487,7 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     await reopened.getByRole('button', { name: 'Models', exact: true }).click()
     await reopened.getByRole('button', { name: 'Edit Renamed Acme Gateway (acme-gateway)' }).waitFor()
     expect(await reopened.getByRole('button', { name: 'Edit minimax-cn', exact: true }).count()).toBe(0)
+    await expect.poll(() => reopened.getByRole('button', { name: 'Refresh models', exact: true }).isEnabled()).toBe(true)
     await compareOrRefreshGolden(DELETED_EXPECTED,
       await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd), MODE)
     await page.keyboard.press('Escape')

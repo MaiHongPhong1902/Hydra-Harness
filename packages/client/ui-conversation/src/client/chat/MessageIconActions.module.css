@@ -44,9 +44,19 @@
   cursor: pointer;
 }
 
-.action:hover {
+.action:hover:not(:disabled) {
   background: var(--dsw-alias-interactive-bg-hover);
   color: var(--dsw-alias-label-secondary);
+}
+
+.action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--dsw-alias-focus-ring);
+  outline-offset: 2px;
 }
 
 /* Unavailable stays focusable and hoverable so Tooltip can explain why. */

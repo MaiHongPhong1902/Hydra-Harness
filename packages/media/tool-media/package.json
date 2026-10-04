@@ -1,0 +1,62 @@
+{
+  "name": "@hydraharness/harness-tool-media",
+  "description": "Image and video generation with durable chat attachments",
+  "hydra": {
+    "plugin": {
+      "application": "Generate images and videos and show them directly in chat."
+    }
+  },
+  "version": "0.1.1-rc.4",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
+    "directory": "packages/media/tool-media"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/types/invariant.d.ts",
+      "default": "./lib/invariant.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/invariant.js",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-attachment": "workspace:^",
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^"
+  },
+  "dependencies": {
+    "@hydraharness/schemastery": "workspace:^",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@hydraharness/harness-attachment": "workspace:^",
+    "@hydraharness/harness-credentials": "workspace:^",
+    "@hydraharness/harness-invariants": "workspace:^",
+    "@hydraharness/harness-tools": "workspace:^",
+    "@hydraharness/cordis": "workspace:^",
+    "@hydraharness/harness-attachment-local": "workspace:^",
+    "@hydraharness/harness-credentials-local": "workspace:^",
+    "@hydraharness/harness-llm": "workspace:^",
+    "@hydraharness/harness-system-prompt": "workspace:^"
+  }
+}

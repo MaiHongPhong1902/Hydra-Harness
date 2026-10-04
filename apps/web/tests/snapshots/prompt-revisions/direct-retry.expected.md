@@ -1,0 +1,38 @@
+- text: Tiếng Việt 🐉 Gửi lại nguyên bản {{clock}}
+- button "Copy":
+  - img
+- navigation "Prompt versions":
+  - button "Previous version":
+    - img
+  - button "See versions":
+    - text: 3/3
+    - img
+  - button "Next version" [disabled]:
+    - img
+- button "Edit":
+  - img
+- button "Retry prompt":
+  - img
+- button "Context injection @hydraharness/harness-system-prompt":
+  - img
+  - img
+  - text: Context injection @hydraharness/harness-system-prompt
+- paragraph: Hello from the active revision.
+- button "Copy":
+  - img
+- button "Good response":
+  - img
+- button "Bad response":
+  - img
+- button "Branch into a new conversation":
+  - img
+- text: {{clock}} Ran for {{duration}} TTFT {{duration}}
+- textbox "Message the agent"
+- button "Commands":
+  - img
+- 'button "Access mode, current: Edit"': Edit
+- button "Select model, current Edit test":
+  - text: Edit test
+  - img
+- button "Send message" [disabled]
+- text: 3 turns · 4 steps LLM {{duration}} TTFT avg {{duration}}

@@ -29,6 +29,16 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - region "Image and video generation":
+    - heading "Image and video generation" [level=3]
+    - button "Refresh models"
+    - paragraph: Choose models marked Image or Video, grouped by provider. Fetch and save a provider's models to add them here. Generation requires a connected provider that supports the selected task.
+    - text: Image model
+    - combobox "Image model":
+      - option "Automatic fallback" [selected]
+    - text: Video model
+    - combobox "Video model":
+      - option "Automatic fallback" [selected]
   - region "API keys":
     - heading "API keys" [level=3]
     - paragraph: Configure provider API keys and optional fallback keys.
@@ -38,7 +48,11 @@
         - img "API key missing"
         - button "Edit settings-fixture": Edit
         - button "Delete settings-fixture": Delete
-    - text: Custom provider Provider ID
+    - text: Custom provider Provider template
+    - combobox "Provider template" [disabled]:
+      - option "Custom" [selected]
+      - option "Gemini API"
+    - text: Provider ID
     - textbox "Provider ID" [disabled]:
       - /placeholder: acme-gateway
       - text: settings-fixture
@@ -60,6 +74,7 @@
       - option "openai-responses"
       - option "anthropic-messages"
       - option "azure-openai-completions"
+      - option "google-generative-ai"
     - text: API key
     - textbox "API key":
       - /placeholder: Enter your API key
@@ -68,13 +83,16 @@
     - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
     - region "Models":
       - text: Models
-      - button "Fetch available models" [disabled]
+      - button "Get all" [disabled]
+      - button "Fetch" [disabled]
       - textbox "Model ID 1" [disabled]:
         - /placeholder: Model ID
         - text: fixture-model
       - textbox "Display name 1" [disabled]:
         - /placeholder: Display name
-      - button "Capacities 1"
+      - checkbox "Image fixture-model" [disabled]
+      - checkbox "Video fixture-model" [disabled]
+      - button "Model details 1"
       - button "Delete model 1" [disabled]
       - button "Add model" [disabled]
     - paragraph: Fixture key write refused
@@ -82,7 +100,7 @@
     - button "Create provider"
   - region "Account sign-in":
     - heading "Account sign-in" [level=3]
-    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - paragraph: Connect provider accounts independently of your API keys.
     - list
     - button "Add sign-in provider":
       - img

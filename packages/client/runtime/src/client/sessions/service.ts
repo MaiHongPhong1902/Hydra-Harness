@@ -16,7 +16,7 @@
  */
 import type { Context, Fiber } from '@hydraharness/cordis'
 import type {
-  ConversationRevision, IApiClient, RpcError, RpcResult, SessionId, SubagentAddress, JobView, WorkspaceId,
+  ConversationRevision, SessionVersionState, IApiClient, RpcError, RpcResult, SessionId, SubagentAddress, JobView, WorkspaceId,
 } from '@hydraharness/harness-api-remotes/client'
 // Value import from the inline-safe wire layer (not the connection plugin):
 // plugin-to-plugin value imports are a bundle purity error.
@@ -41,6 +41,8 @@ import type { Session } from './session.ts'
 
 /** Session list row projected from the host list RPC plus live stream increments. */
 export interface SessionSummary {
+  /** Transcript paths sharing this session's storage identity. */
+  versionState?: SessionVersionState
   id: SessionId
   /** Latest durable log-backed title, absent until the host projects one. */
   title?: string
@@ -568,6 +570,18 @@ export class SessionRuntime implements ISessions {
   }
 
   /**
+   * Select or reference a session-local transcript path.
+   * @param sessionId - Owning session.
+   * @param versionId - Stored transcript path.
+   * @param mode - View only or add logged reference context.
+   * @returns Completion after the Host acknowledgement and refreshed catalog.
+   */
+  async selectVersion(sessionId: SessionId, versionId: import('@hydraharness/harness-session/types').SessionVersionId, mode: 'view' | 'reference' = 'view'): Promise<void> {
+    await this.manager.selectVersion(sessionId, versionId, mode)
+    this.projectList()
+  }
+
+  /**
    * Resolve an Agent-scoped context view (use-and-discard).
    * @param id - session id (the agent identity — 1:1 same axis).
    * @returns scoped ctx, or undefined for a session neither listed nor already scoped.
@@ -718,6 +732,7 @@ export class SessionRuntime implements ISessions {
         ...(entry.cwd !== undefined ? { cwd: entry.cwd } : {}),
         ...(entry.parentSessionId !== undefined ? { parentId: entry.parentSessionId } : {}),
         ...(entry.revision === undefined ? {} : { revision: entry.revision }),
+        ...(entry.versionState === undefined ? {} : { versionState: entry.versionState }),
         ...(entry.origin !== undefined ? { origin: entry.origin } : {}),
         ...(entry.agentPreset !== undefined ? { agentPreset: entry.agentPreset } : {}),
       }

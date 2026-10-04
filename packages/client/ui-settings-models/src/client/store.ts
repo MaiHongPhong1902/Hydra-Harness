@@ -97,8 +97,8 @@ export function deriveKeyRef(provider: string): string {
  * @returns its authorization key, or undefined for API-key routes.
  */
 export function providerAccountKey(namespace: string, provider: string): string | undefined {
-  return namespace === 'llm-account-auth' && (provider === 'chatgpt' || provider === 'antigravity')
-    ? `${namespace}/${provider}` : undefined
+  return namespace === 'llm-account-auth'
+    ? `${namespace}/${provider === 'gemini-api' ? 'antigravity' : provider}` : undefined
 }
 
 /**
@@ -296,15 +296,17 @@ export class ModelsSettingsStore {
       s.credentialError = credentialError
       s.credentials = credentials
       s.writable = writable
-      s.rows = rows.map(row => ({
-        ...row,
-        ...providerAccountKey(row.entry.settingsNs, row.entry.provider) === undefined ? {}
-          : { accountCount: accounts.get(`${row.entry.settingsNs}/${row.entry.provider}`) ?? 0 },
-        fallbackCredentials: Object.fromEntries(Object.keys(row.fallbackCredentials).map(ref => [ref, credentials[ref]])),
-        ...row.apiKeyEnv !== undefined && credentials[row.apiKeyEnv] !== undefined
-          ? { credential: credentials[row.apiKeyEnv] }
-          : {},
-      }))
+      s.rows = rows.map((row) => {
+        const accountKey = providerAccountKey(row.entry.settingsNs, row.entry.provider)
+        return {
+          ...row,
+          ...accountKey === undefined ? {} : { accountCount: accounts.get(accountKey) ?? 0 },
+          fallbackCredentials: Object.fromEntries(Object.keys(row.fallbackCredentials).map(ref => [ref, credentials[ref]])),
+          ...row.apiKeyEnv !== undefined && credentials[row.apiKeyEnv] !== undefined
+            ? { credential: credentials[row.apiKeyEnv] }
+            : {},
+        }
+      })
       s.namespaces = namespaces
       s.officialDeepSeekDeclined = officialDeepSeekDeclined
     })

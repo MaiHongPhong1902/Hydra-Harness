@@ -142,6 +142,15 @@ async function bench() {
 const projection = (id: string) => ({ sessionId: sid(id) })
 
 describe('ui-model-selection dual entry', () => {
+  it('reads optional generation settings through the service lookup without requiring direct property injection', async () => {
+    const b = await bench()
+    const settings = { getSnapshot: () => ({ status: 'unavailable' }), subscribe: () => () => {}, ensure: async () => {} }
+    b.ctx.provide('settingsScope', { describe: () => settings })
+    b.mint('generation-settings')
+    expect(b.seat().inject?.(sid('generation-settings')).generation?.settings).toBe(settings)
+    await b.fiber.dispose()
+  })
+
   it('registers the /model contribution and the composer model seat', async () => {
     const b = await bench()
     expect(b.contribution().name).toBe('model')

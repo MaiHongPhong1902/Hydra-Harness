@@ -3,16 +3,49 @@
   - button "Close":
     - img
   - paragraph: These are the models this provider has available. Choose the ones to add.
+  - paragraph: Mark Image or Video to group generation models. Leave both unchecked for ordinary models.
   - button "Select all"
-  - list:
-    - listitem:
-      - checkbox "MiniMax-M2.7"
-      - text: MiniMax-M2.7
-    - listitem:
-      - checkbox "MiniMax-M2.7-highspeed"
-      - text: MiniMax-M2.7-highspeed
-    - listitem:
-      - checkbox "MiniMax-M3"
-      - text: MiniMax-M3
+  - table:
+    - rowgroup:
+      - row "Model ID Model name Image Video":
+        - columnheader "Model ID"
+        - columnheader "Model name"
+        - columnheader "Image"
+        - columnheader "Video"
+    - rowgroup:
+      - row "MiniMax-M2.7 MiniMax M2.7 Image MiniMax-M2.7 Video MiniMax-M2.7":
+        - cell "MiniMax-M2.7":
+          - checkbox "MiniMax-M2.7"
+          - text: MiniMax-M2.7
+        - cell "MiniMax M2.7":
+          - textbox "Model name MiniMax-M2.7":
+            - /placeholder: ""
+            - text: MiniMax M2.7
+        - cell "Image MiniMax-M2.7":
+          - checkbox "Image MiniMax-M2.7"
+        - cell "Video MiniMax-M2.7":
+          - checkbox "Video MiniMax-M2.7"
+      - row "MiniMax-M2.7-highspeed Image MiniMax-M2.7-highspeed Video MiniMax-M2.7-highspeed":
+        - cell "MiniMax-M2.7-highspeed":
+          - checkbox "MiniMax-M2.7-highspeed"
+          - text: MiniMax-M2.7-highspeed
+        - cell:
+          - textbox "Model name MiniMax-M2.7-highspeed":
+            - /placeholder: ""
+        - cell "Image MiniMax-M2.7-highspeed":
+          - checkbox "Image MiniMax-M2.7-highspeed"
+        - cell "Video MiniMax-M2.7-highspeed":
+          - checkbox "Video MiniMax-M2.7-highspeed"
+      - row "MiniMax-M3 Image MiniMax-M3 Video MiniMax-M3":
+        - cell "MiniMax-M3":
+          - checkbox "MiniMax-M3"
+          - text: MiniMax-M3
+        - cell:
+          - textbox "Model name MiniMax-M3":
+            - /placeholder: ""
+        - cell "Image MiniMax-M3":
+          - checkbox "Image MiniMax-M3" [checked]
+        - cell "Video MiniMax-M3":
+          - checkbox "Video MiniMax-M3"
   - button "Cancel"
   - button "Add selected"

@@ -1,0 +1,7 @@
+- dialog "Delete ChatGPT (chatgpt)?":
+  - heading "Delete ChatGPT (chatgpt)?" [level=2]
+  - button "Close":
+    - img
+  - paragraph: Deleting ChatGPT (chatgpt) removes its configuration and all accounts saved in Hydra. Browser sign-ins are kept.
+  - button "Cancel"
+  - button "Delete ChatGPT (chatgpt)"

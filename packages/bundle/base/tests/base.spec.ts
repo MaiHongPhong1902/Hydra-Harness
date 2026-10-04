@@ -39,6 +39,11 @@ describe('hydra-base bundle', () => {
     expect(rows.filter(row => row.id === 'subagent-claude-code')).toHaveLength(0)
     expect(rows.find(row => row.id === 'plugin-runtime')).toMatchObject({ name: '@hydraharness/harness-plugin-runtime' })
     expect(rows.find(row => row.id === 'research-policy')).toMatchObject({ name: '@hydraharness/harness-research-policy' })
+    {
+      const row = rows.find(row => row.id === 'tool-media')
+      expect(row).toMatchObject({ name: '@hydraharness/harness-tool-media' })
+      expect(row).not.toHaveProperty('disabled')
+    }
     expect(rows.find(row => row.id === 'research-policy')?.config).toBeUndefined()
     expect(manifest.dependencies).not.toHaveProperty('@hydraharness/harness-subagent-codex')
     expect(manifest.dependencies).not.toHaveProperty('@hydraharness/harness-subagent-claude-code')

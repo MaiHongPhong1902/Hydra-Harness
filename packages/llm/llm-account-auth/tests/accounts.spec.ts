@@ -13,10 +13,16 @@ import type {
   ResolvedCredential,
 } from '@hydraharness/harness-credentials'
 import { createAccountPool, emptyAuthContext, parseAccountPool } from '../src/accounts.ts'
-import { readAccountUsage } from '../src/usage.ts'
+import { readAccountUsage as readUsage } from '../src/usage.ts'
 import type { StreamChunk } from '@hydraharness/harness-llm'
 
 const usageMocks = vi.hoisted(() => ({ chatgptRefresh: vi.fn(), antigravityRefresh: vi.fn(), oauthAvailable: true }))
+
+async function readAccountUsage(...args: Parameters<typeof readUsage>) {
+  const usage = await readUsage(...args)
+  if (usage === undefined) throw new Error('expected provider-reported usage')
+  return usage
+}
 vi.mock('@earendil-works/pi-ai/providers/openai-codex', async (load) => {
   const original = await load<typeof import('@earendil-works/pi-ai/providers/openai-codex')>()
   return {

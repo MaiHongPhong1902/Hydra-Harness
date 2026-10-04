@@ -58,6 +58,7 @@ const noticeSchema = z.object({
   message: z.string().min(1).max(4096),
   url: z.url().optional(),
   code: z.string().max(1024).optional(),
+  snippet: z.string().max(8192).optional(),
 })
 
 const promptOptionSchema = z.object({
@@ -123,7 +124,7 @@ export const authorizationStateValueSchema = z.object({
 export const authorizationAnswerRequestSchema = z.object({
   attemptId: authorizationIdSchema,
   promptId: authorizationIdSchema,
-  value: z.string().max(16384),
+  value: z.string().max(65536),
 }) satisfies z.ZodType<Wire<RequestPayload<'authorization.answer'>>>
 
 /** authorization.answer response value. */
@@ -140,7 +141,7 @@ export const authorizationCancelValueSchema = z.object({}) satisfies z.ZodType<W
 /** authorization.logout request payload. */
 export const authorizationLogoutRequestSchema = z.object({
   key: authorizationKeySchema,
-  accountId: identifierSchema,
+  accountId: identifierSchema.optional(),
 }) satisfies z.ZodType<Wire<RequestPayload<'authorization.logout'>>>
 
 /** authorization.logout response value. */

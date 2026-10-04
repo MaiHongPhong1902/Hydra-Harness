@@ -2,6 +2,8 @@
 
 Replay-aware token measurement through the singleton `ctx.tokenMeter` service. It advances one isolated fold per session from the durable log, so compaction and other pressure-sensitive plugins can share accounting without depending on `CompactionEngine`.
 
+Context pressure, breakdowns, and token-estimate caches follow the selected transcript and invalidate on a version change. Provider-reported usage remains cumulative for the whole session; a version change clears the prior turn/step sample identity so regenerated steps are counted separately.
+
 ## Configuration
 
 The estimator has no settings. It intentionally uses one fixed heuristic: four characters per token plus structural overhead for roles, blocks, and request-envelope fields. Any key is rejected; model capacity belongs to the adapter that owns an exact provider/model route and is available through `ctx.llm.resolveModelInfo().context`.

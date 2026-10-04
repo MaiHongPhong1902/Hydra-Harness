@@ -1,27 +1,25 @@
 /** ChatGPT OAuth provider construction and authorization flow. */
 
-import type {
-  AuthInteraction,
-  AuthEvent,
-  AuthPrompt,
-  Model,
-  Provider,
+import {
+  type AuthInteraction,
+  type Model,
+  type Provider,
 } from '@earendil-works/pi-ai'
 import type { Context } from '@hydraharness/cordis'
 import type {
   AuthorizationMethod,
-  AuthorizationPrompt,
   AuthorizationSession,
 } from '@hydraharness/harness-authorization'
 import { accountRecordKey, type AccountPool } from './accounts.ts'
-import type { AccountProviderProfile } from './config.ts'
+import type { AccountModelProfile, AccountProviderProfile } from './config.ts'
+import { accountInteraction } from './interaction.ts'
 import {
   DEFAULT_CONTEXT_WINDOW,
   DEFAULT_MAX_REQUEST_IMAGE_BYTES,
   DEFAULT_MAX_TOKENS,
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
 } from '@hydraharness/harness-llm-pi-ai'
-import { attributionHeaders, LlmError, resolveRetryPolicy } from '@hydraharness/harness-llm'
+import { attributionHeaders, inferModelEndpoints, LlmError, resolveRetryPolicy, type LlmDiscoveredModel, type MediaGenerationOptions } from '@hydraharness/harness-llm'
 import type { ResolvedPiAiProviderProfile } from '@hydraharness/harness-llm-pi-ai'
 
 /** One model row returned by ChatGPT's account-scoped model endpoint. */
@@ -47,17 +45,23 @@ interface ChatGptModelRow {
  */
 export const CHATGPT_MODELS_CLIENT_VERSION = '1.0.0'
 
+/** Image models served by Codex's image endpoint, absent from its conversation catalog. Account entitlement is checked on generation. */
+export const CHATGPT_IMAGE_MODELS = [
+  { id: 'gpt-image-1.5', name: 'GPT Image 1.5', endpoints: ['images/generations'] },
+  { id: 'gpt-image-2', name: 'GPT Image 2', endpoints: ['images/generations'] },
+] as const
+
 /**
  * Fetch the models enabled for one ChatGPT account.
  * @param request - account token, account id, endpoint, and optional cancellation.
- * @returns deduplicated model metadata in endpoint order.
+ * @returns live conversation models followed by the adapter's supported image models; listing does not establish image entitlement.
  */
 export async function discoverChatGptModels(request: {
   accessToken: string
   accountId: string
   baseURL?: string
   signal?: AbortSignal
-}): Promise<Array<{ id: string; name?: string; contextWindow?: number; maxTokens?: number }>> {
+}): Promise<LlmDiscoveredModel[]> {
   const baseURL = request.baseURL ?? 'https://chatgpt.com/backend-api'
   let response: Response
   try {
@@ -99,10 +103,10 @@ export async function discoverChatGptModels(request: {
   const rows = Array.isArray(object?.data) ? object.data : object?.models
   if (!Array.isArray(rows)) throw new LlmError('ChatGPT model discovery returned no model list', 'MALFORMED_RESPONSE')
   const seen = new Set<string>()
-  return rows.flatMap((raw): Array<{ id: string; name?: string; contextWindow?: number; maxTokens?: number }> => {
+  const discovered = rows.flatMap((raw): LlmDiscoveredModel[] => {
     if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return []
     const row = raw as ChatGptModelRow
-    if (row.supported_in_api === false || row.visibility === 'hidden') return []
+    if (row.supported_in_api === false || row.visibility === 'hidden' || row.visibility === 'hide') return []
     const id = [row.id, row.slug].find(value => typeof value === 'string' && value.length > 0) as string | undefined
     if (id === undefined || seen.has(id)) return []
     seen.add(id)
@@ -118,6 +122,12 @@ export async function discoverChatGptModels(request: {
       ...(maxTokens === undefined ? {} : { maxTokens }),
     }]
   })
+  for (const model of CHATGPT_IMAGE_MODELS) {
+    const existing = discovered.find(candidate => candidate.id === model.id)
+    if (existing === undefined) discovered.push({ ...model, endpoints: [...model.endpoints] })
+    else existing.endpoints = [...model.endpoints]
+  }
+  return discovered
 }
 
 /** Provider route owned by the ChatGPT account flow. */
@@ -215,30 +225,30 @@ export async function buildChatGptProfile(
   const base = await loadProvider()
   const catalog = base.getModels()
   const byId = new Map(catalog.map(model => [model.id, model]))
-  const entries = source.models
-  const models = entries === undefined
-    ? catalog.map(model => cloneModel(model, model.id, undefined, undefined, undefined))
-    : entries.map((entry) => {
-      const template = byId.get(entry.id) ?? catalog[0]
-      return template === undefined
-        ? fallbackModel(
-          entry.id,
-          entry.name,
-          entry.contextWindow ?? source.defaultContextWindow ?? DEFAULT_CONTEXT_WINDOW,
-          entry.maxTokens ?? source.defaultMaxTokens ?? DEFAULT_MAX_TOKENS,
-        )
-        : cloneModel(template, entry.id, entry.name, entry.contextWindow, entry.maxTokens)
-    })
+  const entries: readonly AccountModelProfile[] = source.models ?? [...catalog.map(model => ({ id: model.id })),
+    ...CHATGPT_IMAGE_MODELS.map(model => ({ ...model, endpoints: [...model.endpoints] }))]
+  const models = entries.map((entry) => {
+    const template = byId.get(entry.id) ?? catalog[0]
+    return template === undefined
+      ? fallbackModel(
+        entry.id,
+        entry.name,
+        entry.contextWindow ?? source.defaultContextWindow ?? DEFAULT_CONTEXT_WINDOW,
+        entry.maxTokens ?? source.defaultMaxTokens ?? DEFAULT_MAX_TOKENS,
+      )
+      : cloneModel(template, entry.id, entry.name ?? (byId.has(entry.id) ? undefined : entry.id), entry.contextWindow, entry.maxTokens)
+  })
   const configuredMaxTokens = new Map(
-    (entries ?? []).flatMap(entry => entry.maxTokens === undefined ? [] : [[entry.id, entry.maxTokens] as const]),
+    entries.flatMap(entry => entry.maxTokens === undefined ? [] : [[entry.id, entry.maxTokens] as const]),
   )
-  const piProvider = routeProvider(base, models)
+  const baseURL = source.endpoint ?? base.baseUrl
+  const piProvider = routeProvider(base, models.map(model => ({ ...model, ...baseURL === undefined ? {} : { baseUrl: baseURL } })))
   return {
     provider: CHATGPT_PROVIDER,
     displayName: CHATGPT_LABEL,
     api: 'openai-codex-responses',
     apiKeyFallbackEnvs: [],
-    ...(base.baseUrl === undefined ? {} : { baseURL: base.baseUrl }),
+    ...(baseURL === undefined ? {} : { baseURL }),
     ...(source.reasoning === undefined ? {} : { reasoning: source.reasoning }),
     ...(source.thinkingBudgets === undefined ? {} : { thinkingBudgets: source.thinkingBudgets }),
     ...(source.cacheRetention === undefined ? {} : { cacheRetention: source.cacheRetention }),
@@ -251,62 +261,61 @@ export async function buildChatGptProfile(
     maxRequestImageBytes: source.maxRequestImageBytes ?? DEFAULT_MAX_REQUEST_IMAGE_BYTES,
     retryPolicy: resolveRetryPolicy(source.retryPolicy, 'llm-account-auth: chatgpt retryPolicy'),
     configuredMaxTokens,
+    modelEndpoints: new Map(entries.flatMap((entry) => {
+      const endpoints = entry.endpoints ?? inferModelEndpoints(entry.id)
+      return endpoints === undefined ? [] : [[entry.id, [...endpoints]] as const]
+    })),
     piProvider,
   }
 }
 
-/* jscpd:ignore-start -- ChatGPT and pi-ai login bridges share the neutral prompt vocabulary. */
-function relay(event: AuthEvent, session: AuthorizationSession): void {
-  switch (event.type) {
-    case 'info': {
-      const link = event.links?.[0]
-      session.notify({ message: event.message, ...(link === undefined ? {} : { url: link.url }) })
-      return
-    }
-    case 'auth_url':
-      session.notify({
-        message: event.instructions ?? 'Open this page to continue signing in.',
-        url: event.url,
-      })
-      return
-    case 'device_code':
-      session.notify({
-        message: 'Enter this code on the verification page to finish signing in.',
-        url: event.verificationUri,
-        code: event.userCode,
-      })
-      return
-    case 'progress':
-      session.notify({ message: event.message })
-      return
-    default:
-      session.notify({ message: 'Signing in…' })
-  }
+/**
+ * Refresh the selected ChatGPT account before reading its account-scoped credential.
+ * @param pool - selected Host account pool.
+ * @param profile - resolved ChatGPT provider implementation.
+ * @param signal - caller cancellation, including OAuth refresh.
+ * @returns the usable access token and provider-issued account id.
+ */
+export async function chatGptCredential(
+  pool: AccountPool, profile: ResolvedPiAiProviderProfile, signal?: AbortSignal,
+): Promise<{ access: string; accountId: string }> {
+  signal?.throwIfAborted()
+  await pool.credentials.modify('chatgpt', async (current) => {
+    signal?.throwIfAborted()
+    if (current?.type !== 'oauth') throw new LlmError('ChatGPT account has invalid credentials.', 'INVALID_CREDENTIAL')
+    if (Date.now() < current.expires) return undefined
+    const oauth = profile.piProvider.auth.oauth
+    if (oauth === undefined) throw new LlmError('ChatGPT account route requires OAuth.', 'INVALID_CREDENTIAL')
+    return oauth.refresh(current, signal)
+  })
+  signal?.throwIfAborted()
+  const stored = await pool.credentials.read('chatgpt')
+  if (stored?.type !== 'oauth' || typeof stored.access !== 'string' || stored.access.length === 0) throw new LlmError('ChatGPT account has invalid credentials.', 'INVALID_CREDENTIAL')
+  const accountId = (stored as { accountId?: unknown }).accountId
+  if (typeof accountId !== 'string' || accountId.length === 0) throw new LlmError('ChatGPT account has no account id.', 'INVALID_CREDENTIAL')
+  return { access: stored.access, accountId }
 }
 
-function restate(prompt: AuthPrompt): AuthorizationPrompt {
-  const signal = prompt.signal === undefined ? {} : { signal: prompt.signal }
-  switch (prompt.type) {
-    case 'select':
-      return { ...signal, kind: 'select', message: prompt.message, options: prompt.options }
-    case 'secret':
-    case 'manual_code':
-      return {
-        ...signal,
-        kind: 'secret',
-        message: prompt.message,
-        ...(prompt.placeholder === undefined ? {} : { placeholder: prompt.placeholder }),
-      }
-    default:
-      return {
-        ...signal,
-        kind: 'text',
-        message: prompt.message,
-        ...(prompt.placeholder === undefined ? {} : { placeholder: prompt.placeholder }),
-      }
-  }
+/**
+ * Send one image request through the selected account's native Codex image endpoint.
+ * @param options - image model, controls, and consumer cancellation.
+ * @param pool - selected account and locked OAuth refresh store.
+ * @param profile - native endpoint and admitted model endpoints.
+ * @returns the original Images API response, including provider rejections.
+ */
+export async function requestChatGptImage(
+  options: MediaGenerationOptions & { model: string }, pool: AccountPool, profile: ResolvedPiAiProviderProfile,
+): Promise<Response> {
+  if (options.endpoint !== 'images/generations' || !profile.modelEndpoints.get(options.model)?.includes(options.endpoint)) throw new LlmError('ChatGPT account route supports declared image models only; video is unavailable.', 'UNSUPPORTED_GENERATION')
+  const credential = await chatGptCredential(pool, profile, options.signal)
+  const baseURL = profile.baseURL ?? 'https://chatgpt.com/backend-api'
+  return fetch(`${baseURL.replace(/\/+$/u, '')}/codex/images/generations`, {
+    method: 'POST', redirect: 'error', signal: options.signal,
+    headers: { ...attributionHeaders(), 'Content-Type': 'application/json', accept: 'application/json',
+      authorization: `Bearer ${credential.access}`, 'chatgpt-account-id': credential.accountId, originator: 'pi' },
+    body: JSON.stringify({ ...options.body, model: options.model }),
+  })
 }
-/* jscpd:ignore-end */
 
 /**
  * Register the ChatGPT OAuth flow without loading pi-ai until a login starts.
@@ -333,11 +342,7 @@ export async function loginChatGpt(session: AuthorizationSession, pool: AccountP
   const provider = await loadProvider()
   const oauth = provider.auth.oauth
   if (oauth === undefined) throw new Error('ChatGPT provider does not offer OAuth login')
-  const interaction: AuthInteraction = {
-    signal: session.signal,
-    notify: (event) => { relay(event, session) },
-    prompt: prompt => session.prompt(restate(prompt)),
-  }
+  const interaction: AuthInteraction = accountInteraction(session)
   const credential = await oauth.login(interaction)
   await pool.add(undefined, credential, session.signal)
 }

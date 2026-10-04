@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import type { SessionEvent, SessionId } from '@hydraharness/harness-session/types'
+import type { SessionEvent, SessionId, SessionVersionId } from '@hydraharness/harness-session/types'
 import type { MessageId } from '@hydraharness/harness-llm/brand'
 import type { RequestPayload, ResponseValue } from './rpc-map.ts'
 import type { Wire } from './rpc.schema.ts'
@@ -16,7 +16,7 @@ import type {
   SessionProjectionsBlock, SessionSearchItem, SessionSummary,
 } from './sessions.ts'
 import type { ToolEventView } from './events.ts'
-import type { AttachmentIdType, ImageAttachmentLimits, ImageAttachmentRef } from '@hydraharness/harness-attachment'
+import type { AttachmentIdType, ImageAttachmentLimits, ImageAttachmentRef, VideoAttachmentRef } from '@hydraharness/harness-attachment'
 import type { WorkspaceId } from './workspace.ts'
 import {
   SESSION_SEARCH_RESULT_LIMIT,
@@ -26,6 +26,9 @@ import {
 
 /** SessionId: one brand cast after schema validation (the only cast point in this domain). */
 export const sessionIdSchema = z.string().min(1) as unknown as z.ZodType<SessionId>
+
+/** Session-local version identifier validated at the RPC boundary. */
+export const sessionVersionIdSchema = z.string().min(1) as unknown as z.ZodType<SessionVersionId>
 
 /** MessageId: one brand cast after non-empty string validation. */
 export const messageIdSchema = z.string().min(1) as unknown as z.ZodType<MessageId>
@@ -51,6 +54,9 @@ export const sessionEventSchema = z.object({
 
 /** Durable prompt revision identity carried by list and creation frames. */
 export const conversationRevisionSchema: z.ZodType<ConversationRevision> = z.object({
+  versionId: sessionVersionIdSchema.optional(),
+  previousVersionId: sessionVersionIdSchema.optional(),
+  beforeSeq: z.number().int().nonnegative().optional(),
   sessionId: sessionIdSchema,
   conversationId: sessionIdSchema,
   previousSessionId: sessionIdSchema,
@@ -71,8 +77,23 @@ export const conversationRevisionSchema: z.ZodType<ConversationRevision> = z.obj
   }).optional(),
 })
 
+/** Catalog of paths belonging to one session. */
+export const sessionVersionStateSchema = z.object({
+  current: sessionVersionIdSchema,
+  versions: z.array(z.object({ id: sessionVersionIdSchema, revision: conversationRevisionSchema.optional() })),
+})
+
+/** Path selection and reference-context injection share the same ownership checks. */
+export const sessionSelectVersionRequestSchema = z.strictObject({
+  sessionId: sessionIdSchema, versionId: sessionVersionIdSchema, mode: z.enum(['view', 'reference']),
+}) satisfies z.ZodType<Wire<RequestPayload<'session.selectVersion'>>>
+
+/** Successfully selected or referenced path. */
+export const sessionSelectVersionValueSchema = z.object({ versionId: sessionVersionIdSchema }) satisfies z.ZodType<Wire<ResponseValue<'session.selectVersion'>>>
+
 /** SessionSummary row of session.list (`projections` reuses the history block's shape and schema). */
 export const sessionSummarySchema = z.object({
+  versionState: sessionVersionStateSchema.optional(),
   sessionId: sessionIdSchema,
   updatedAt: z.number(),
   running: z.boolean(),
@@ -213,6 +234,7 @@ export const modelReasoningSchema = z.object({
 export const modelCatalogModelSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
+  endpoints: z.array(z.string().min(1)).min(1).optional(),
   description: z.string().optional(),
   reasoning: modelReasoningSchema.optional(),
 }) satisfies z.ZodType<Wire<ModelCatalogModel>>
@@ -261,6 +283,7 @@ export const sessionProjectionsBlockSchema = z.object({
 
 /** Host-side validation for the persisted Session-list projection. */
 export const sessionListMetadataProjectionSchema: z.ZodType<SessionListMetadata> = z.object({
+  versionState: sessionVersionStateSchema.optional(),
   blank: z.boolean(),
   lastPromptAt: z.number().nullable(),
   revision: conversationRevisionSchema.optional(),
@@ -282,6 +305,7 @@ export const imageLimitsProjectionSchema = z.object({
 
 /** session.history response value (projections rides the tail page only). */
 export const sessionHistoryValueSchema: z.ZodType<Wire<ResponseValue<'session.history'>>> = z.object({
+  versionId: sessionVersionIdSchema.optional(),
   events: z.array(historyEntrySchema),
   hasMore: z.boolean(),
   projections: sessionProjectionsBlockSchema.optional(),
@@ -360,6 +384,14 @@ export const imageAttachmentRefSchema = z.object({
   name: z.string().optional(),
 }) as unknown as z.ZodType<ImageAttachmentRef>
 
+/** Durable video reference; URLs and workspace paths are never accepted as ids. */
+export const videoAttachmentRefSchema = z.object({
+  attachmentId: attachmentIdSchema,
+  mediaType: z.union([z.literal('video/mp4'), z.literal('video/webm')]),
+  bytes: z.number().int().positive(),
+  name: z.string().min(1).refine(name => !/[\\/\u0000-\u001f\u007f]/u.test(name)),
+}) satisfies z.ZodType<VideoAttachmentRef>
+
 /** session.revise accepts exact text and rejects attachment mutations or forged lineage fields. */
 export const sessionReviseRequestSchema = z.strictObject({
   sessionId: sessionIdSchema,
@@ -384,7 +416,7 @@ export const sessionAttachmentRequestSchema = z.object({
 
 /** session.attachment response value. */
 export const sessionAttachmentValueSchema = z.object({
-  attachment: imageAttachmentRefSchema,
+  attachment: z.union([imageAttachmentRefSchema, videoAttachmentRefSchema]),
   data: z.string(),
 }) satisfies z.ZodType<Wire<ResponseValue<'session.attachment'>>>
 

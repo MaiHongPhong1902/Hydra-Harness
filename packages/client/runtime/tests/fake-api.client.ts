@@ -171,6 +171,7 @@ export class FakeApiClient implements IApiClient {
       this.record('session.selectModel', payload, this.onSelectModel(payload)),
     rename: (payload: unknown) => this.record('session.rename', payload, this.onRename(payload)),
     fork: (payload: unknown) => this.record('session.fork', payload, this.onFork(payload)),
+    selectVersion: payload => this.record('session.selectVersion', payload, Promise.resolve(ok({ versionId: payload.versionId }))),
     revise: (payload: unknown) => this.record('session.revise', payload, Promise.resolve({ rpcId: RpcId('unused'), result: { ok: false as const, error: { code: 'internal' as const, message: 'revision not configured', details: {} } } })),
     prompt: (payload: unknown) => this.record('session.prompt', payload, this.onPrompt(payload)),
     attachment: (payload: unknown) => this.record('session.attachment', payload, this.onAttachment(payload)),

@@ -29,6 +29,16 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - region "Image and video generation":
+    - heading "Image and video generation" [level=3]
+    - button "Refresh models"
+    - paragraph: Choose models marked Image or Video, grouped by provider. Fetch and save a provider's models to add them here. Generation requires a connected provider that supports the selected task.
+    - text: Image model
+    - combobox "Image model":
+      - option "Automatic fallback" [selected]
+    - text: Video model
+    - combobox "Video model":
+      - option "Automatic fallback" [selected]
   - region "API keys":
     - heading "API keys" [level=3]
     - paragraph: Configure provider API keys and optional fallback keys.
@@ -65,17 +75,27 @@
             - option "openai-responses"
             - option "anthropic-messages"
             - option "azure-openai-completions"
+            - option "google-generative-ai"
           - region "Models":
             - text: Models Customized model catalog
-            - button "Restore defaults"
-            - button "Fetch available models"
+            - button "Restore"
+            - button "Get all"
+            - button "Fetch"
             - textbox "Model ID 1":
               - /placeholder: Model ID
               - text: acme-large
             - textbox "Display name 1":
               - /placeholder: Display name
-            - button "Capacities 1"
+            - checkbox "Image acme-large"
+            - checkbox "Video acme-large"
+            - button "Model details 1" [expanded]
             - button "Delete model 1"
+            - text: Context window
+            - textbox "Context window 1":
+              - /placeholder: 128K
+            - text: Max output tokens
+            - textbox "Max output tokens 1":
+              - /placeholder: Unlimited
             - button "Add model"
         - button "Cancel"
         - button "Apply"
@@ -87,7 +107,7 @@
       - text: Add a custom provider
   - region "Account sign-in":
     - heading "Account sign-in" [level=3]
-    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - paragraph: Connect provider accounts independently of your API keys.
     - list
     - button "Add sign-in provider":
       - img

@@ -6,20 +6,25 @@ import Llm, { type GenerateOptions, type StreamChunk } from '@hydraharness/harne
 import { MemoryCredentials } from '../../../credentials/authorization/tests/memory.ts'
 import * as AccountAuth from '../src/index.ts'
 import type { Config } from '../src/config.ts'
-import type { AntigravityAdapterOptions, ChatGptAdapterOptions } from '../src/adapter.ts'
+import type { AntigravityAdapterOptions, PiAiAccountAdapterOptions } from '../src/adapter.ts'
 
 const runtime = vi.hoisted(() => ({
-  chatgpt: vi.fn(), antigravity: vi.fn(), profile: vi.fn(), loginChatGpt: vi.fn(), loginAntigravity: vi.fn(),
+  chatgpt: vi.fn(), antigravity: vi.fn(), gemini: vi.fn(), profile: vi.fn(), loginChatGpt: vi.fn(), loginGoogle: vi.fn(),
+  sdkProfile: vi.fn(), sdkLogin: vi.fn(), cursorLogin: vi.fn(), kiroLogin: vi.fn(), kiro: vi.fn(),
 }))
 vi.mock('../src/adapter.ts', () => ({
-  ChatGptAccountAdapter: runtime.chatgpt,
+  PiAiAccountAdapter: runtime.chatgpt,
   AntigravityAccountAdapter: runtime.antigravity,
 }))
 vi.mock('../src/chatgpt.ts', () => ({
   buildChatGptProfile: runtime.profile,
   loginChatGpt: runtime.loginChatGpt,
 }))
-vi.mock('../src/antigravity-oauth.ts', () => ({ loginAntigravity: runtime.loginAntigravity }))
+vi.mock('../src/google-oauth.ts', () => ({ loginGoogle: runtime.loginGoogle }))
+vi.mock('../src/gemini-api.ts', () => ({ GeminiApiAccountAdapter: runtime.gemini }))
+vi.mock('../src/sdk-accounts.ts', () => ({ buildSdkAccountProfile: runtime.sdkProfile, loginSdkAccount: runtime.sdkLogin }))
+vi.mock('../src/native-login.ts', () => ({ loginCursor: runtime.cursorLogin, loginKiro: runtime.kiroLogin }))
+vi.mock('../src/kiro.ts', () => ({ KiroAccountAdapter: runtime.kiro }))
 
 const finish: StreamChunk = { type: 'finish', reason: { kind: 'stop' } }
 const delegate = {
@@ -33,7 +38,10 @@ const contexts: Context[] = []
 beforeEach(() => {
   vi.clearAllMocks()
   runtime.profile.mockImplementation(async (profile: unknown) => profile)
-  runtime.chatgpt.mockImplementation(function(options: ChatGptAdapterOptions) {
+  runtime.sdkProfile.mockImplementation(async (_provider: string, profile: unknown) => profile)
+  runtime.kiro.mockImplementation(function() { return delegate })
+  runtime.gemini.mockImplementation(function() { return delegate })
+  runtime.chatgpt.mockImplementation(function(options: PiAiAccountAdapterOptions) {
     options.profile()
     options.resolveAttachments?.()
     return delegate
@@ -43,7 +51,6 @@ beforeEach(() => {
     options.resolveAttachments?.()
     return delegate
   })
-  runtime.loginAntigravity.mockResolvedValue({ access: 'fixture', refresh: 'fixture', expires: 1000, projectId: 'test' })
 })
 
 afterEach(async () => {
@@ -67,6 +74,26 @@ async function fixture(config: Config = { providers: { chatgpt: {}, antigravity:
   }
   return { ctx, adapter, flows }
 }
+
+it('offers all native account flows while keeping Cursor out of callable chat providers', async () => {
+  const providers = ['chatgpt', 'antigravity', 'gemini-api', 'claude', 'xai-account', 'kimi', 'cursor', 'kiro']
+  const { ctx, flows } = await fixture({ providers: Object.fromEntries(providers.map(provider => [provider, {}])) })
+  expect(flows.mock.calls.map(([flow]) => flow.key)).toEqual(providers.filter(provider => provider !== 'gemini-api').map(provider => `llm-account-auth/${provider}`))
+  expect(flows.mock.calls.find(([flow]) => flow.label === 'Google')?.[0].methods).toEqual([
+    { id: 'oauth', label: 'Sign in with Google for Antigravity' },
+    { id: 'gemini-api', label: 'Connect Gemini API with a Cloud project' },
+  ])
+  expect(ctx.llm.listProviders().map(provider => provider.id)).toEqual(providers.filter(provider => provider !== 'cursor'))
+  const login: AuthorizationSession = { method: 'oauth', signal: new AbortController().signal, notify: vi.fn(), prompt: vi.fn(async () => '') }
+  for (const [flow] of flows.mock.calls) {
+    if (flow.key.endsWith('/chatgpt') || flow.key.endsWith('/antigravity')) continue
+    await flow.run(login)
+  }
+  for (const provider of ['claude', 'xai-account', 'kimi']) expect(runtime.sdkLogin).toHaveBeenCalledWith(provider, login, expect.objectContaining({ key: `llm-account-auth/${provider}` }))
+  expect(runtime.cursorLogin).toHaveBeenCalledWith(login, expect.objectContaining({ key: 'llm-account-auth/cursor' }), expect.any(Object))
+  expect(runtime.kiroLogin).toHaveBeenCalledWith(login, expect.objectContaining({ key: 'llm-account-auth/kiro' }), expect.any(Object))
+  await expect(ctx.llm.discoverModels('llm-account-auth', { provider: 'cursor' })).rejects.toMatchObject({ code: 'NO_ADAPTER' })
+})
 
 it('reuses lazy delegates and invalidates only the changed account route', async () => {
   const { ctx, adapter } = await fixture()
@@ -164,15 +191,15 @@ it('honors stream cancellation before and during delegate creation', async () =>
 })
 
 it.each([{}, { callbackPort: 1234, callbackPath: '/callback', onboardingAttempts: 2, onboardingDelayMs: 5 }])(
-  'passes configured OAuth options to login and stores the Antigravity grant: %j', async (profile) => {
-    const { ctx, flows } = await fixture({ providers: { antigravity: profile } })
+  'passes both Google profiles to their one shared login: %j', async (profile) => {
+    const { flows } = await fixture({ providers: { antigravity: profile } })
     const session: AuthorizationSession = {
       method: 'oauth', signal: new AbortController().signal, notify: vi.fn(), prompt: vi.fn(async () => ''),
     }
-    for (const [flow] of flows.mock.calls) await flow.run(session)
+    for (const [flow] of flows.mock.calls) {
+      if (flow.key === 'llm-account-auth/chatgpt' || flow.key === 'llm-account-auth/antigravity') await flow.run(session)
+    }
     expect(runtime.loginChatGpt).toHaveBeenCalledWith(session, expect.objectContaining({ key: 'llm-account-auth/chatgpt' }))
-    expect(runtime.loginAntigravity).toHaveBeenCalledWith(session, profile)
-    expect(await ctx.credentials.readRecord(credentialKey('llm-account-auth', 'antigravity')))
-      .toMatchObject({ kind: 'grant', payload: { accounts: [{ credential: { type: 'oauth', projectId: 'test' } }] } })
+    expect(runtime.loginGoogle).toHaveBeenCalledWith(session, expect.objectContaining({ key: 'llm-account-auth/antigravity' }), expect.objectContaining(profile), {})
   },
 )

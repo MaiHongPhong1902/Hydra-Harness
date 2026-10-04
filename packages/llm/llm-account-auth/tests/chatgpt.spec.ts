@@ -9,17 +9,19 @@ import type { AuthEvent, AuthInteraction, AuthPrompt, OAuthCredential } from '@e
 import { afterEach, expect, it, vi } from 'vitest'
 import { accountRecordKey, createAccountPool } from '../src/accounts.ts'
 import {
-  buildChatGptProfile, CHATGPT_MODELS_CLIENT_VERSION, discoverChatGptModels, loginChatGpt,
+  buildChatGptProfile, CHATGPT_IMAGE_MODELS, CHATGPT_MODELS_CLIENT_VERSION, chatGptCredential, discoverChatGptModels, loginChatGpt,
 } from '../src/chatgpt.ts'
+import { PiAiAccountAdapter } from '../src/adapter.ts'
+import type { MediaGenerationOptions } from '@hydraharness/harness-llm'
 
-const oauth = vi.hoisted(() => ({ login: vi.fn() }))
+const oauth = vi.hoisted(() => ({ login: vi.fn(), refresh: vi.fn() }))
 vi.mock('@earendil-works/pi-ai/providers/openai-codex', async (load) => {
   const original = await load<typeof import('@earendil-works/pi-ai/providers/openai-codex')>()
   return {
     ...original,
     openaiCodexProvider: () => {
       const provider = original.openaiCodexProvider()
-      return { ...provider, auth: { ...provider.auth, oauth: { ...provider.auth.oauth, login: oauth.login } } }
+      return { ...provider, auth: { ...provider.auth, oauth: { ...provider.auth.oauth, login: oauth.login, refresh: oauth.refresh } } }
     },
   }
 })
@@ -32,6 +34,7 @@ afterEach(async () => {
   if (root !== undefined) await rm(root, { recursive: true, force: true })
   root = undefined
   oauth.login.mockReset()
+  oauth.refresh.mockReset()
   vi.restoreAllMocks()
 })
 
@@ -55,6 +58,9 @@ it('projects the SDK catalog onto the ChatGPT route', async () => {
   const models = profile.piProvider.getModels()
   expect(models.length).toBeGreaterThan(0)
   expect(models.every(model => model.provider === 'chatgpt' && model.api === 'openai-codex-responses')).toBe(true)
+  expect(models.map(model => model.id)).toEqual(expect.arrayContaining(['gpt-image-1.5', 'gpt-image-2']))
+  expect(profile.modelEndpoints.get('gpt-image-2')).toEqual(['images/generations'])
+  expect([...profile.modelEndpoints.values()].flat()).not.toContain('videos')
   const model = models[0]!
   const custom = await buildChatGptProfile({ models: [{ id: model.id, name: 'My model', maxTokens: 2048 }] })
   expect(custom.piProvider.getModels()).toMatchObject([{ id: model.id, name: 'My model', maxTokens: 2048 }])
@@ -105,6 +111,7 @@ it('fetches the account model catalog from ChatGPT', async () => {
   })).resolves.toEqual([
     { id: 'live-model', name: 'Live model', contextWindow: 128000 },
     { id: 'second-model', maxTokens: 4096 },
+    ...CHATGPT_IMAGE_MODELS,
   ])
   // The endpoint requires the client version and answers a missing one with
   // HTTP 400; the version also selects the catalog it serves.
@@ -121,15 +128,125 @@ it('fetches the account model catalog from ChatGPT', async () => {
 it('filters hidden, unsupported, and malformed model rows and reads alternate metadata fields', async () => {
   const signal = new AbortController().signal
   const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ data: [
-    null, [], 'model', {}, { id: 'hidden', visibility: 'hidden' }, { id: 'unsupported', supported_in_api: false },
+    null, [], 'model', {}, { id: 'hidden', visibility: 'hidden' }, { id: 'reserve', visibility: 'hide' }, { id: 'unsupported', supported_in_api: false },
     { id: '', slug: 'visible', name: 'Visible', context_window: 0, context_length: 8192, max_output_tokens: 1.5, max_tokens: 1024 },
     { id: 'bare', context_window: '4096', max_tokens: -1 },
   ] }))
   await expect(discoverChatGptModels({ accessToken: 'token', accountId: 'account', baseURL: 'https://fixture.test///', signal }))
-    .resolves.toEqual([{ id: 'visible', name: 'Visible', contextWindow: 8192, maxTokens: 1024 }, { id: 'bare' }])
+    .resolves.toEqual([{ id: 'visible', name: 'Visible', contextWindow: 8192, maxTokens: 1024 }, { id: 'bare' }, ...CHATGPT_IMAGE_MODELS])
   expect(fetch).toHaveBeenCalledWith(
     expect.stringMatching(/^https:\/\/fixture.test\/codex\/models\?/u), expect.objectContaining({ signal }),
   )
+})
+
+it('merges a server-listed image model once and preserves its label', async () => {
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ models: [{ id: 'gpt-image-2', name: 'Account image model' }] }))
+  expect(await discoverChatGptModels({ accessToken: 'token', accountId: 'account' })).toEqual([
+    { id: 'gpt-image-2', name: 'Account image model', endpoints: ['images/generations'] }, CHATGPT_IMAGE_MODELS[0],
+  ])
+})
+
+const imageOptions = (extra: Partial<MediaGenerationOptions> = {}): MediaGenerationOptions & { provider: string; model: string } => ({
+  provider: 'chatgpt', model: 'gpt-image-2', endpoint: 'images/generations',
+  body: { prompt: 'A tree', size: '1024x1536', quality: 'low', output_format: 'png', n: 1 },
+  signal: new AbortController().signal, maxResponseBytes: 4096, ...extra,
+})
+
+it('refreshes before discovery and uses native OAuth for image requests', async () => {
+  const pool = await poolFixture()
+  await pool.add('Connected', { ...grant, accountId: 'fixture-account' })
+  oauth.refresh.mockResolvedValue({ ...grant, access: 'renewed', expires: Date.now() + 60_000, accountId: 'fixture-account' })
+  const profile = await buildChatGptProfile({ endpoint: 'http://127.0.0.1:1' })
+  const adapter = new PiAiAccountAdapter({ provider: 'chatgpt', pool, profile: () => profile })
+  const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = input instanceof Request ? input.url : input instanceof URL ? input.href : input
+    const headers = new Headers(init?.headers)
+    expect(headers.get('authorization')).toBe('Bearer renewed')
+    expect(headers.get('chatgpt-account-id')).toBe('fixture-account')
+    if (init?.method === 'GET') return Response.json({ models: [{ slug: 'fresh-chat' }] })
+    expect(url).toBe('http://127.0.0.1:1/codex/images/generations')
+    expect(init?.redirect).toBe('error')
+    expect(JSON.parse(init?.body as string)).toEqual({ ...imageOptions().body, model: 'gpt-image-2' })
+    return Response.json({ data: [{ b64_json: 'fixture-image' }] })
+  })
+  expect(await adapter.discoverModels()).toEqual([{ id: 'fresh-chat' }, ...CHATGPT_IMAGE_MODELS])
+  expect(await (await adapter.requestGeneration(imageOptions())).json()).toEqual({ data: [{ b64_json: 'fixture-image' }] })
+  expect(oauth.refresh).toHaveBeenCalledOnce()
+  expect(fetcher).toHaveBeenCalledTimes(2)
+})
+
+it.each([401, 404, 429])('rotates native image accounts only after HTTP %s', async (status) => {
+  const pool = await poolFixture()
+  for (const access of ['first', 'second']) await pool.add(access, { ...grant, access, expires: Date.now() + 60_000, accountId: `${access}-id` })
+  const adapter = new PiAiAccountAdapter({ provider: 'chatgpt', pool, profile: () => undefined, loadProfile: () => buildChatGptProfile({}) })
+  const rejection = new Response('rejected', { status })
+  const cancel = vi.spyOn(rejection.body!, 'cancel')
+  const fetcher = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(rejection).mockResolvedValueOnce(Response.json({ data: [] }))
+  expect((await adapter.requestGeneration(imageOptions())).ok).toBe(true)
+  expect(fetcher.mock.calls.map(([, init]) => new Headers(init?.headers).get('authorization'))).toEqual(['Bearer first', 'Bearer second'])
+  expect(cancel).toHaveBeenCalledOnce()
+})
+
+it.each([403, 500])('preserves native image HTTP %s without another generation', async (status) => {
+  const pool = await poolFixture()
+  for (const access of ['first', 'second']) await pool.add(access, { ...grant, access, expires: Date.now() + 60_000, accountId: `${access}-id` })
+  const profile = await buildChatGptProfile({})
+  const adapter = new PiAiAccountAdapter({ provider: 'chatgpt', pool, profile: () => profile })
+  const fetcher = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('refused', { status }))
+  expect((await adapter.requestGeneration(imageOptions())).status).toBe(status)
+  expect(fetcher).toHaveBeenCalledOnce()
+})
+
+it('refuses video and undeclared image models before I/O and never retries a lost response', async () => {
+  const pool = await poolFixture()
+  await pool.add('Connected', { ...grant, expires: Date.now() + 60_000, accountId: 'account' })
+  const profile = await buildChatGptProfile({})
+  const adapter = new PiAiAccountAdapter({ provider: 'chatgpt', pool, profile: () => profile })
+  const fetcher = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('lost response'))
+  await expect(adapter.requestGeneration(imageOptions({ endpoint: 'videos' }))).rejects.toMatchObject({ code: 'UNSUPPORTED_GENERATION' })
+  await expect(adapter.requestGeneration({ ...imageOptions(), model: 'unknown' })).rejects.toMatchObject({ code: 'UNSUPPORTED_GENERATION' })
+  expect(fetcher).not.toHaveBeenCalled()
+  await expect(adapter.requestGeneration(imageOptions())).rejects.toThrow('lost response')
+  expect(fetcher).toHaveBeenCalledOnce()
+})
+
+it('refuses stored API keys and a provider without OAuth refresh before account discovery', async () => {
+  const pool = await poolFixture()
+  const account = await pool.add('API key', { type: 'api_key', key: 'key' })
+  const profile = await buildChatGptProfile({})
+  await expect(pool.withAccount(account.id, () => chatGptCredential(pool, profile))).rejects.toMatchObject({ code: 'INVALID_CREDENTIAL' })
+  await pool.accounts.remove(account.id)
+  const expired = await pool.add('Expired', { ...grant, accountId: 'account' })
+  await expect(pool.withAccount(expired.id, () => chatGptCredential(pool, { ...profile, piProvider: { ...profile.piProvider, auth: {} } })))
+    .rejects.toMatchObject({ code: 'INVALID_CREDENTIAL' })
+})
+
+it('uses the native image endpoint when the SDK profile omits its base URL', async () => {
+  const pool = await poolFixture()
+  await pool.add('Connected', { ...grant, expires: Date.now() + 60_000, accountId: 'account' })
+  const profile = await buildChatGptProfile({})
+  delete profile.baseURL
+  const adapter = new PiAiAccountAdapter({ provider: 'chatgpt', pool, profile: () => profile })
+  const fetcher = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ data: [] }))
+  await adapter.requestGeneration(imageOptions())
+  expect(fetcher).toHaveBeenCalledWith('https://chatgpt.com/backend-api/codex/images/generations', expect.anything())
+})
+
+it('cancels OAuth refresh and preserves the existing grant without starting an image request', async () => {
+  const pool = await poolFixture()
+  const account = await pool.add('Connected', { ...grant, accountId: 'account' })
+  const controller = new AbortController()
+  oauth.refresh.mockImplementation(async (_credential, signal: AbortSignal) => {
+    expect(signal).toBe(controller.signal)
+    controller.abort(new Error('cancel refresh'))
+    signal.throwIfAborted()
+  })
+  const profile = await buildChatGptProfile({})
+  const adapter = new PiAiAccountAdapter({ provider: 'chatgpt', pool, profile: () => profile })
+  const fetcher = vi.spyOn(globalThis, 'fetch')
+  await expect(adapter.requestGeneration(imageOptions({ signal: controller.signal }))).rejects.toThrow('cancel refresh')
+  expect(fetcher).not.toHaveBeenCalled()
+  expect(await pool.withAccount(account.id, () => pool.credentials.read('chatgpt'))).toMatchObject({ access: grant.access })
 })
 
 it.each([[401, 'AUTH'], [403, 'AUTH'], [429, 'RATE_LIMIT'], [500, 'SERVER'], [400, 'INVALID_REQUEST']] as const)(

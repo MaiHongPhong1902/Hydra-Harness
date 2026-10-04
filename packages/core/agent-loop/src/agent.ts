@@ -89,11 +89,20 @@ export class ReactLoopAgent implements Agent {
       discarded: (message) => { this.dispatch.emit('agent/inbox/discarded', { message }) },
       claimed: (message, turn) => { this.dispatch.emit('agent/inbox/claimed', { message, turn }) },
     })
-    const lastTurn = session.events.findLast(event => event.type === 'turn/start')?.data.turn ?? 0
+    const lastTurn = session.activeEvents.findLast(event => event.type === 'turn/start')?.data.turn ?? 0
     this.phase = { kind: 'idle', lastTurn }
     this.scope = createScope(loopCtx, this)
     this.ctx = this.scope.ctx.extend({ agent: this })
     this.runtimeContext = new RuntimeContextProjection(this.ctx, session)
+    this.ctx.on('session/version-changing', (subject) => {
+      if (subject === session && this.phase.kind !== 'idle') throw new Error('A session version can change only while its Agent is idle.')
+    })
+    this.ctx.on('session/event', (subject, event) => {
+      if (subject !== session || (event.type !== 'session/version' && event.type !== 'session/version-selected')) return
+      const lastTurn = session.activeEvents.findLast(item => item.type === 'turn/start')?.data.turn ?? 0
+      this.phase = { kind: 'idle', lastTurn }
+      this.requestHeaderLogged = false
+    })
   }
 
   get status(): AgentStatus {

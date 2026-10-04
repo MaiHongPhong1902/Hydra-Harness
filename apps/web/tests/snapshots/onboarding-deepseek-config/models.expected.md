@@ -29,6 +29,16 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - region "Image and video generation":
+    - heading "Image and video generation" [level=3]
+    - button "Refresh models"
+    - paragraph: Choose models marked Image or Video, grouped by provider. Fetch and save a provider's models to add them here. Generation requires a connected provider that supports the selected task.
+    - text: Image model
+    - combobox "Image model":
+      - option "Automatic fallback" [selected]
+    - text: Video model
+    - combobox "Video model":
+      - option "Automatic fallback" [selected]
   - region "API keys":
     - heading "API keys" [level=3]
     - paragraph: Configure provider API keys and optional fallback keys.
@@ -56,13 +66,15 @@
             - /placeholder: Optional HTTP(S) proxy, e.g. http://127.0.0.1:3128
           - region "Models":
             - text: Models Customized model catalog
-            - button "Restore defaults"
+            - button "Restore"
             - textbox "Model ID 1":
               - /placeholder: Model ID
               - text: deepseek-v4-pro
             - textbox "Display name 1":
               - /placeholder: Display name
               - text: DeepSeek-V4-Pro
+            - checkbox "Image deepseek-v4-pro"
+            - checkbox "Video deepseek-v4-pro"
             - button "Capacities 1":
               - img
             - button "Delete model 1":
@@ -73,6 +85,8 @@
             - textbox "Display name 2":
               - /placeholder: Display name
               - text: DeepSeek-V4-Flash-Vision-Exp
+            - checkbox "Image deepseek-v4-flash-vision-exp"
+            - checkbox "Video deepseek-v4-flash-vision-exp"
             - button "Capacities 2":
               - img
             - button "Delete model 2":
@@ -83,6 +97,8 @@
             - textbox "Display name 3":
               - /placeholder: Display name
               - text: Private Preview
+            - checkbox "Image private-preview"
+            - checkbox "Video private-preview"
             - button "Capacities 3" [expanded]:
               - img
             - button "Delete model 3":
@@ -108,7 +124,7 @@
       - text: Add a custom provider
   - region "Account sign-in":
     - heading "Account sign-in" [level=3]
-    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - paragraph: Connect provider accounts independently of your API keys.
     - list
     - button "Add sign-in provider":
       - img

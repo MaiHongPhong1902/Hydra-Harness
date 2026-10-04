@@ -414,9 +414,14 @@ export function apply(ctx: Context): void {
       'conversation.session.header.utilities': { kind: 'list', scope: 'session' },
     },
     store: chatStore,
-    inject: (): ConversationSessionHeaderInjected => ({
+    inject: (sessionId: SessionId): ConversationSessionHeaderInjected => ({
       views,
       open: (id) => { sessions.open(id) },
+      openVersion: (id) => {
+        if (sessions.list.getSnapshot().byId[sessionId]?.versionState !== undefined) return sessions.selectVersion(sessionId, id as import('@hydraharness/harness-session/types').SessionVersionId)
+        sessions.open(id as SessionId)
+      },
+      referenceVersion: id => sessions.selectVersion(sessionId, id as import('@hydraharness/harness-session/types').SessionVersionId, 'reference'),
     }),
   }, ConversationSessionHeader)
 
@@ -565,7 +570,7 @@ export function apply(ctx: Context): void {
           return workspaces.openPath(resolveWorkspacePath(cwd, path))
         },
         loadOlder: () => { void scoped.loadOlder() },
-        loadImage: attachment => conversation.resolveImage(sessionId, attachment),
+        loadMedia: attachment => conversation.resolveMedia(sessionId, attachment),
         // Unregistered 'trajectory' id is safe: the tab ring falls back to
         // the first view, and the untouched inspect target stays inert.
         inspectCall: (callId) => {

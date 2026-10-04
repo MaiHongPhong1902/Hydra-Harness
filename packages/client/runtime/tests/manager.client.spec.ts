@@ -4,7 +4,8 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import type { SessionId } from '@hydraharness/harness-api-remotes/client'
+import type { ConversationRevision, SessionId, SessionVersionState } from '@hydraharness/harness-api-remotes/client'
+import { SessionVersionId } from '@hydraharness/harness-session/types'
 import { SessionManager } from '../src/client/sessions/manager.ts'
 import { FakeApiClient, deferred, err, fakeRemote, ok } from './fake-api.client.ts'
 import { entries, ev, plainTurn } from './event-script.client.ts'
@@ -76,6 +77,30 @@ describe('instances', () => {
 })
 
 describe('list lifecycle', () => {
+  it('updates the selected version and clears revision metadata when returning to the original path', async () => {
+    const api = new FakeApiClient()
+    api.onList = () => Promise.resolve(ok({ items: [summary(S1)] as never[] }))
+    const manager = new SessionManager(api, fakeRemote())
+    await manager.refreshList()
+    const resident = manager.get(S1)
+    const original = SessionVersionId('original')
+    const edited = SessionVersionId('edited')
+    const revision: ConversationRevision = {
+      sessionId: S1, conversationId: S1, previousSessionId: S1, versionId: edited,
+      previousVersionId: original, beforeSeq: 0, turn: 1, createdAt: 1,
+    }
+    const state: SessionVersionState = { current: edited, versions: [{ id: original }, { id: edited, revision }] }
+    manager.handleHostEnvelope({ rpcId: 'v1' as never, payload: { type: 'host/session-versions', sessionId: S1, state } })
+    expect(manager.getListSnapshot().items[0]?.revision).toBe(revision)
+    manager.handleHostEnvelope({ rpcId: 'v2' as never, payload: {
+      type: 'host/session-versions', sessionId: S1, state: { ...state, current: original },
+    } })
+    expect(manager.getListSnapshot().items).toHaveLength(1)
+    expect(manager.getListSnapshot().items[0]?.revision).toBeUndefined()
+    expect(manager.getListSnapshot().items[0]?.versionState?.current).toBe(original)
+    expect(manager.get(S1)).toBe(resident)
+  })
+
   it('single-flights refreshList and preserves the Host baseline order', async () => {
     const api = new FakeApiClient()
     const gate = deferred<Awaited<ReturnType<FakeApiClient['onList']>>>()

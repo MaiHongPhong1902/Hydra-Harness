@@ -1,7 +1,7 @@
 // Sessions remain resident after creation so they continue consuming mux frames off-screen.
 
 import type { Context } from '@hydraharness/cordis'
-import type { AttachmentIdType, ImageAttachmentRef } from '@hydraharness/harness-attachment'
+import type { AttachmentIdType, ImageAttachmentRef, VideoAttachmentRef } from '@hydraharness/harness-attachment'
 import type { SessionEvent } from '@hydraharness/harness-session/types'
 import type {
   HistoryEntry, IApiClient, MessageId, MuxFrame, PromptContentPart, QueueAction, RpcError,
@@ -69,6 +69,7 @@ export class Session implements SessionFace {
    *  Kept parallel rather than merged so `events` stays the raw log slice (model-visible ⟺ logged). */
   private views: (ToolEventView | undefined)[] = []
   private baseSeq = 0
+  private versioned = false
   private hasMore = false
   private openState: OpenState = 'cold'
   private openError: RpcError | null = null
@@ -264,13 +265,13 @@ export class Session implements SessionFace {
   }
 
   /**
-   * Resolve one image referenced by this session into browser-consumable bytes.
+   * Resolve image or video bytes referenced by this session.
    * @param attachmentId - opaque id found in the folded session log.
    * @returns the authenticated reference and decoded bytes.
    */
   async readAttachment(
     attachmentId: AttachmentIdType,
-  ): Promise<RpcResult<{ attachment: ImageAttachmentRef; data: Uint8Array }>> {
+  ): Promise<RpcResult<{ attachment: ImageAttachmentRef | VideoAttachmentRef; data: Uint8Array }>> {
     try {
       const result = (await this.api.sessions.attachment({
         sessionId: this.sessionId,
@@ -392,7 +393,7 @@ export class Session implements SessionFace {
         return
       }
       const tail = older[older.length - 1]
-      if (tail === undefined || tail.event.seq + 1 !== this.baseSeq) {
+      if (tail === undefined || (this.versioned ? tail.event.seq >= this.baseSeq : tail.event.seq + 1 !== this.baseSeq)) {
         // Continuity assertion: on violation drop the page fail-soft rather than render an out-of-order stream.
         console.error(`[web-runtime] history page discontinuous: tail seq ${tail?.event.seq} vs baseSeq ${this.baseSeq}`)
         this.hasMore = false
@@ -404,7 +405,7 @@ export class Session implements SessionFace {
       /* v8 ignore next -- the ?? arm needs older[0] undefined, but the empty-page branch above already returned. */
       this.baseSeq = older[0]?.event.seq ?? this.baseSeq
       this.hasMore = result.value.hasMore
-      this.conversation.prepend(older.map(conversationInput), this.hasMore)
+      this.conversation.prepend(older.filter(entry => !isVersionControl(entry.event)).map(conversationInput), this.hasMore)
     } catch (error) {
       console.error('[web-runtime] loadOlder failed:', error)
     } finally {
@@ -620,20 +621,22 @@ export class Session implements SessionFace {
     this.openError = null
     this.notifier.markDirty()
     try {
-      let { result } = await this.history({ maxMessages: PAGE_MESSAGES })
+      let { result } = await this.currentHistory()
       if (generation !== this.openGeneration) return
       if (!result.ok) {
         this.openState = 'error'
         this.openError = result.error
         return
       }
-      this.installWindow(result.value.events, result.value.hasMore, result.value.projections)
+      this.installWindow(result.value.events, result.value.hasMore, result.value.projections, result.value.versionId !== undefined)
       // Gap detection: baseline past the window tail and liveBuffer did not cover it -> pull the tail page once more.
       const tailSeq = this.windowTailSeq()
       if (this.subscribedLastSeq !== null && tailSeq !== null && this.subscribedLastSeq > tailSeq) {
-        result = (await this.history({ maxMessages: PAGE_MESSAGES })).result
+        result = (await this.currentHistory()).result
         if (generation !== this.openGeneration) return
-        if (result.ok) this.installWindow(result.value.events, result.value.hasMore, result.value.projections)
+        if (result.ok) {
+          this.installWindow(result.value.events, result.value.hasMore, result.value.projections, result.value.versionId !== undefined)
+        }
       }
       this.openState = 'open'
     } catch (error) {
@@ -654,13 +657,14 @@ export class Session implements SessionFace {
    *  A carried projections block seeds the value store (higher seq wins, so a stale
    *  baseline cannot overwrite a newer push frame); the window events themselves are
    *  never folded — the host is the only computation site. */
-  private installWindow(entries: HistoryEntry[], hasMore: boolean, projections?: ProjectionsBaseline): void {
+  private installWindow(entries: HistoryEntry[], hasMore: boolean, projections?: ProjectionsBaseline, versioned = false): void {
+    this.versioned = versioned
     this.events = entries.map(e => e.event)
     this.views = entries.map(e => e.view)
     this.baseSeq = this.events[0]?.seq ?? 0
     this.hasMore = hasMore
     if (this.events.some(event => event.type === 'turn/start')) this.firstPromptPendingTurn = false
-    this.conversation.replaceWindow(entries.map(conversationInput), hasMore)
+    this.conversation.replaceWindow(entries.filter(entry => !isVersionControl(entry.event)).map(conversationInput), hasMore)
     if (projections !== undefined) this.projections.seed(projections)
     const buffered = this.liveBuffer
     this.liveBuffer = []
@@ -674,6 +678,7 @@ export class Session implements SessionFace {
     if (tailSeq !== null && event.seq <= tailSeq) return 'none' // replay overlap, drop
     this.events.push(event)
     this.views.push(view)
+    if (isVersionControl(event)) return 'none'
     if (event.type === 'turn/start') this.firstPromptPendingTurn = false
     const queueChanged = this.queueMirror.acceptDurable(event)
     const publication = this.conversation.append({ event, view })
@@ -691,6 +696,11 @@ export class Session implements SessionFace {
       return
     }
     if (this.openState !== 'open') return // cold/error: no window upkeep (history fully backfills on open)
+    if (event.type === 'session/version' || event.type === 'session/version-selected') {
+      this.liveBuffer.push({ event, view })
+      void this.repairGap()
+      return
+    }
     const tailSeq = this.windowTailSeq()
     if (tailSeq !== null && event.seq > tailSeq + 1) {
       this.liveBuffer.push({ event, view })
@@ -715,10 +725,10 @@ export class Session implements SessionFace {
     this.stitching = true
     const generation = this.openGeneration
     try {
-      const { result } = await this.history({ maxMessages: PAGE_MESSAGES })
+      const { result } = await this.currentHistory()
       // Failure or superseded by a full resync: drop — the resync path rebuilds and clears the buffer itself.
       if (result.ok && generation === this.openGeneration && this.openState === 'open') {
-        this.installWindow(result.value.events, result.value.hasMore, result.value.projections)
+        this.installWindow(result.value.events, result.value.hasMore, result.value.projections, result.value.versionId !== undefined)
       }
     } catch (error) {
       console.error('[web-runtime] gap repair failed:', error)
@@ -730,6 +740,16 @@ export class Session implements SessionFace {
   private windowTailSeq(): number | null {
     const tail = this.events[this.events.length - 1]
     return tail === undefined ? null : tail.seq
+  }
+
+  /** A control received after the history cut requires a newer selected transcript. */
+  private async currentHistory(): ReturnType<Session['history']> {
+    for (;;) {
+      const response = await this.history({ maxMessages: PAGE_MESSAGES })
+      if (!response.result.ok) return response
+      const tail = response.result.value.events.at(-1)?.event.seq ?? -1
+      if (!this.liveBuffer.some(item => isVersionControl(item.event) && item.event.seq > tail)) return response
+    }
   }
 
   private buildSnapshot(): ConversationSnapshot {
@@ -774,6 +794,7 @@ export class Session implements SessionFace {
   /** Select ordinary or addressed history transport from the stored browser fact. */
   private history(payload: { beforeSeq?: number; maxMessages?: number }): Promise<RpcResponse<{
     events: HistoryEntry[]
+    versionId?: import('@hydraharness/harness-session/types').SessionVersionId
     hasMore: boolean
     projections?: ProjectionsBaseline
   }>> {
@@ -786,6 +807,11 @@ export class Session implements SessionFace {
 /** Convert one wire history row into the assembler's transport-neutral input. */
 function conversationInput(entry: HistoryEntry): ConversationEventInput {
   return { event: entry.event, view: entry.view }
+}
+
+/** Administrative path records do not belong to the displayed transcript. */
+function isVersionControl(event: SessionEvent): boolean {
+  return event.type === 'session/version' || event.type === 'session/version-selected'
 }
 
 /** A generic command row alone remains control-plane content; every other visible Chat Node activates the conversation. */

@@ -2,6 +2,8 @@
 
 Session-projection Service Definition and drive registry. It owns `ctx.sessionProjections`, the registry that drives every registered projection unit over committed session events and serves finished whole values to carriers, currently the api-proxy history tail page and `session/projection` push frame. A domain registers pure mathematics; the framework owns the drive. The [session-projection RFC](../../../.agents/notes/proposed/architecture/2026-07-27-session-projection-and-command-log.md) records the design rationale.
 
+Definitions with `history: active-version` fold only the selected transcript and refold on version creation or selection. Durable checkpoint watermarks still use the complete log sequence. A suffix containing a path change cannot reconstruct a shared prefix; restoration requests the complete log. Definitions sharing a key must agree on history mode and state version.
+
 ## Service: `SessionProjectionRegistry` (ctx key: `sessionProjections`)
 
 ### Public API

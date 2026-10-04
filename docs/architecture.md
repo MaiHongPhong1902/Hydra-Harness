@@ -93,6 +93,8 @@ The session log is the source of the context the model sees. `deriveMessages()` 
 
 **Model-visible means logged.** Anything that reaches a model request must be reconstructable from the log, and a runtime invariant asserts it. This is why a new model-visible input requires a new session event: extend `SessionEventMap` and render from the log.
 
+Prompt edits and retries append `session/version` to the same session. Version paths share immutable prefix events; `Session.activeEvents` and the surface select one path while `Session.events` preserves every version. `session/version-selected` restores a stored path. The synchronous `session/version-changing` extension lets the loop veto changes during running or maintenance work before commit; accepted changes reset its turn counter and runtime-context projection. Other versions enter model context only through logged reference messages or tool results.
+
 ## Capability seams
 
 A **seam** is a swappable capability with three roles: a **Service Definition** declaring the interface, a **Service Provider** implementing it, and a **Consumer** using it, commonly a model-facing tool. A package may combine roles, but one role alone is not a seam; adding a capability means designing all three ([capability graph](capability-seams.md)).

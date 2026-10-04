@@ -1,13 +1,16 @@
 /**
- * The model list of one pi-ai provider profile, plus the action that asks the
- * provider what it serves.
+ * Provider model drafts and discovery, including separately addressed catalogs
+ * fetched together by the shared Google account editor.
  *
  * The list is the profile's `models` array as the card holds it: an empty list
  * means "serve this route's built-in catalog", and any entry replaces that
  * catalog, so a row is only ever added deliberately. Fetching asks the endpoint
  * **the form currently shows** — including a key typed but not yet saved — so
- * adding a provider is one pass instead of save-then-return; the reply is
- * candidates the user picks from, never configuration written behind them.
+ * adding a provider is one pass instead of save-then-return. Fetch offers
+ * candidates for adoption; Get all adopts the complete listing into
+ * the local draft. Apply saves it for the page's shared generation selectors.
+ * Candidate names and image/video roles are editable before adoption; missing or cleared names
+ * remain unset rather than falling back to the model id.
  *
  * A provider that cannot be interrogated (an unreachable endpoint, a protocol
  * with no readable listing) is not a dead end: the failure is shown next to the
@@ -17,9 +20,11 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { DiscoveredModelView, IApiClient } from '@hydraharness/harness-api-remotes/client'
+import { inferModelEndpoints } from '@hydraharness/harness-llm/model-endpoints'
 import { Button, Modal } from '@hydraharness/harness-client-ui-primitives'
 import { formatCapacity, parseCapacity } from './DeepSeekModelsEditor.tsx'
 import type { DeepSeekModelDraft } from './DeepSeekModelsEditor.tsx'
+import { ModelColumnHeaders, ModelTypeCheckbox } from './ModelClassification.tsx'
 import { messageOf } from './store.ts'
 import type { en } from './locales.ts'
 import styles from './ModelsSection.module.css'
@@ -42,6 +47,12 @@ function textOf(model: ModelDraft, key: string): string {
 function numberOf(model: ModelDraft, key: string): number | undefined {
   const value = model[key]
   return typeof value === 'number' ? value : undefined
+}
+
+/** Use explicit classification first, then the adapter's shared family hints. */
+function endpointsOf(model: ModelDraft): readonly string[] | undefined {
+  const endpoints = model['endpoints'] as string[] | undefined
+  return endpoints === undefined || endpoints.length === 0 ? inferModelEndpoints(textOf(model, 'id')) : endpoints
 }
 
 /** What an interrogation needs, taken from the live form. */
@@ -78,6 +89,17 @@ export interface ModelListEditorProps {
   probe: ProbeTarget
   /** Additional unsaved keys tried after the primary probe key. */
   probeKeys?: readonly string[]
+  /** Backend name shown when this editor participates in shared discovery. */
+  catalogLabel?: string | undefined
+  /** A second catalog fetched together and adopted into its own draft. */
+  relatedCatalog?: {
+    label: string
+    probe: ProbeTarget
+    models: readonly ModelDraft[]
+    onChange: (models: ModelDraft[]) => void
+  } | undefined
+  /** Let a neighboring editor own shared discovery while retaining row edits. */
+  hideDiscoveryActions?: boolean
   /**
    * Copy key naming why the fetch action is unavailable, or `undefined` when
    * it is. The card owns this because the key it would send is judged there:
@@ -91,6 +113,14 @@ export interface ModelListEditorProps {
   t: (key: keyof typeof en) => string
   /** Disable every control (read-only deployment or a pending write). */
   disabled: boolean
+}
+
+/** Discovery identity includes the destination catalog, so equal ids remain distinct. */
+type Candidate = DiscoveredModelView & { catalog: 'primary' | 'related' }
+
+/** Selection and edits address a model within its catalog. */
+function candidateKey(candidate: Candidate): string {
+  return JSON.stringify([candidate.catalog, candidate.id])
 }
 
 /** Disclosure chevron; rotates to point down while its row is open. */
@@ -121,20 +151,10 @@ function IconTrash(): ReactNode {
 type CapacityField = 'contextWindow' | 'maxTokens'
 
 /**
- * What an empty capacity field is worth, shown as its placeholder so a row left
- * blank does not read as a model with no capacity at all.
- *
- * The magnitudes are the adapter's own route-level fallbacks (`llm-pi-ai`'s
- * `defaultContextWindow` and `defaultMaxTokens`), spelled the way a person
- * would say them. They are a hint, not a mirror: this page counts `K` as 1000,
- * so typing `128K` stores 128000 while leaving the field blank keeps the
- * adapter's 131072. A deployment that overrides those defaults is not
- * reflected here — nothing on this page can read them.
+ * Context fallback hint; K input uses decimal counts while the adapter's
+ * default is 131072. Route overrides are not available to this editor.
  */
-const CAPACITY_HINT: Readonly<Record<CapacityField, string>> = {
-  contextWindow: '128K',
-  maxTokens: '16K',
-}
+const CONTEXT_WINDOW_HINT = '128K'
 
 /**
  * Spell a stored count for a field that may be unset. The spelling itself is
@@ -151,9 +171,10 @@ function capacitySpelling(value: number | undefined): string {
 function adopt(candidate: DiscoveredModelView): ModelDraft {
   return {
     id: candidate.id,
-    ...candidate.name === undefined ? {} : { name: candidate.name },
+    ...candidate.name === undefined || candidate.name === '' ? {} : { name: candidate.name },
     ...candidate.contextWindow === undefined ? {} : { contextWindow: candidate.contextWindow },
     ...candidate.maxTokens === undefined ? {} : { maxTokens: candidate.maxTokens },
+    ...candidate.endpoints === undefined ? {} : { endpoints: [...candidate.endpoints] },
   }
 }
 
@@ -166,10 +187,9 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
   const { models, onChange, probe, api, t, disabled } = props
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState<string | undefined>(undefined)
-  const [candidates, setCandidates] = useState<readonly DiscoveredModelView[] | undefined>(undefined)
+  const [candidates, setCandidates] = useState<readonly Candidate[] | undefined>(undefined)
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set())
-  // Rows carry an id and a name; capacities are the exception, so they stay
-  // folded until asked for rather than crowding every row with four inputs.
+  const [classified, setClassified] = useState<ReadonlySet<string>>(new Set())
   const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set())
   // Capacities are edited as text, so a field's keystrokes are held here rather
   // than re-derived from the parsed count on every change — that would rewrite
@@ -214,7 +234,7 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
     })
   }
 
-  const patch = (index: number, next: Record<string, string | number | undefined>): void => {
+  const patch = (index: number, next: Record<string, unknown>): void => {
     onChange(models.map((model, at) => {
       if (at !== index) return model
       // Rebuilt rather than spread over: an emptied optional field has to leave
@@ -231,41 +251,77 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
     }))
   }
 
-  const fetchModels = async (): Promise<void> => {
+  const catalogs = [
+    { catalog: 'primary' as const, label: props.catalogLabel, probe, models, onChange },
+    ...props.relatedCatalog === undefined ? [] : [{ catalog: 'related' as const, ...props.relatedCatalog }],
+  ]
+
+  const adoptCandidates = (found: readonly Candidate[], selected: ReadonlySet<string>, edited: ReadonlySet<string>): void => {
+    for (const target of catalogs) {
+      const additions = found.filter(candidate => candidate.catalog === target.catalog && selected.has(candidateKey(candidate)))
+      if (additions.length === 0) continue
+      const byId = new Map(target.models.map(model => [textOf(model, 'id'), model]))
+      for (const candidate of additions) {
+        const existing = byId.get(candidate.id)
+        byId.set(candidate.id, existing === undefined ? adopt(candidate)
+          : edited.has(candidateKey(candidate)) ? { ...existing, endpoints: candidate.endpoints } : existing)
+      }
+      target.onChange([...byId.values()])
+    }
+  }
+
+  const fetchModels = async (adoptAll = false): Promise<void> => {
     setBusy(true)
     setFailure(undefined)
     try {
-      const request = {
-        settingsNs: probe.settingsNs,
-        ...probe.provider === undefined ? {} : { provider: probe.provider },
-        ...probe.baseURL === undefined || probe.baseURL.length === 0 ? {} : { baseURL: probe.baseURL },
-        ...probe.proxy === undefined || probe.proxy.length === 0 ? {} : { proxy: probe.proxy },
-        ...probe.api === undefined ? {} : { api: probe.api },
-        ...probe.apiKey === undefined ? {} : { apiKey: probe.apiKey },
-      }
-      let response = await api.llm.discoverModels(request)
-      for (const apiKey of props.probeKeys ?? []) {
-        if (response.result.ok) break
-        response = await api.llm.discoverModels({ ...request, apiKey })
-      }
-      if (!response.result.ok) {
-        setFailure(response.result.error.message)
+      const responses = await Promise.allSettled(catalogs.map(async (target) => {
+        const probe = target.probe
+        const request = {
+          settingsNs: probe.settingsNs,
+          ...probe.provider === undefined ? {} : { provider: probe.provider },
+          ...probe.baseURL === undefined || probe.baseURL.length === 0 ? {} : { baseURL: probe.baseURL },
+          ...probe.proxy === undefined || probe.proxy.length === 0 ? {} : { proxy: probe.proxy },
+          ...probe.api === undefined ? {} : { api: probe.api },
+          ...probe.apiKey === undefined ? {} : { apiKey: probe.apiKey },
+        }
+        let response = await api.llm.discoverModels(request)
+        for (const apiKey of target.catalog === 'primary' ? props.probeKeys ?? [] : []) {
+          if (response.result.ok) break
+          response = await api.llm.discoverModels({ ...request, apiKey })
+        }
+        if (!response.result.ok) throw new Error(response.result.error.message)
+        return response.result.value.models.map(candidate => ({ ...candidate, catalog: target.catalog }))
+      }))
+      const found: Candidate[] = []
+      const errors: string[] = []
+      responses.forEach((response, index) => {
+        if (response.status === 'fulfilled') found.push(...response.value)
+        else {
+          const label = catalogs[index]?.label
+          errors.push(`${label === undefined ? '' : `${label}: `}${messageOf(response.reason)}`)
+        }
+      })
+      setFailure(errors.length === 0 ? undefined : errors.join(' · '))
+      if (found.length === 0) {
+        if (errors.length === 0) setFailure(t('fetchEmpty'))
         return
       }
-      const found = response.result.value.models
-      if (found.length === 0) {
-        setFailure(t('fetchEmpty'))
+      if (adoptAll) {
+        adoptCandidates(found, new Set(found.map(candidateKey)), new Set())
         return
       }
       // Everything already configured starts unchecked, so adopting a
       // selection never silently rewrites a capacity the user corrected.
-      const known = new Set(models.map(model => textOf(model, 'id')))
-      setCandidates(found)
-      setPicked(new Set(found.filter(model => !known.has(model.id)).map(model => model.id)))
-    } catch (error) {
-      // The transport rejected rather than answering; without this the button
-      // would stay busy with nothing shown.
-      setFailure(messageOf(error))
+      const known = new Set(catalogs.flatMap(target => target.models.map(model =>
+        candidateKey({ id: textOf(model, 'id'), catalog: target.catalog }))))
+      setCandidates(found.map((candidate) => {
+        const saved = (candidate.catalog === 'primary' ? models : props.relatedCatalog?.models)
+          ?.find(model => textOf(model, 'id') === candidate.id)
+        const endpoints = saved?.['endpoints'] as string[] | undefined
+        return endpoints === undefined || endpoints.length === 0 ? candidate : { ...candidate, endpoints }
+      }))
+      setClassified(new Set())
+      setPicked(new Set(found.filter(model => !known.has(candidateKey(model))).map(candidateKey)))
     } finally {
       setBusy(false)
     }
@@ -274,21 +330,13 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
   const closePicker = (): void => {
     setCandidates(undefined)
     setPicked(new Set())
+    setClassified(new Set())
   }
 
   const adoptPicked = (): void => {
     /* v8 ignore next -- the dialog only renders with candidates loaded */
     if (candidates === undefined) return
-    const byId = new Map(models.map(model => [textOf(model, 'id'), model]))
-    for (const candidate of candidates) {
-      if (!picked.has(candidate.id)) continue
-      // A row the user already tuned wins over the provider's own numbers.
-      // Keyed by id, so a half-typed row whose id is still empty is not a
-      // match and the candidate joins as its own row — correct, since a row
-      // without an id is not yet a model and the create/apply gates refuse it.
-      byId.set(candidate.id, byId.get(candidate.id) ?? adopt(candidate))
-    }
-    onChange([...byId.values()])
+    adoptCandidates(candidates, picked, classified)
     closePicker()
   }
 
@@ -302,24 +350,27 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
 
   const activeCandidates = candidates ?? []
   const allCandidatesPicked = activeCandidates.length > 0
-    && activeCandidates.every(candidate => picked.has(candidate.id))
+    && activeCandidates.every(candidate => picked.has(candidateKey(candidate)))
 
   const toggleAllCandidates = (): void => {
     setPicked((current) => {
-      return activeCandidates.every(candidate => current.has(candidate.id))
+      return activeCandidates.every(candidate => current.has(candidateKey(candidate)))
         ? new Set()
-        : new Set(activeCandidates.map(candidate => candidate.id))
+        : new Set(activeCandidates.map(candidateKey))
     })
   }
 
   // A route the adapter already describes answers without an endpoint; only a
   // draft with neither has nothing to ask about.
   const askable = probe.provider !== undefined || (probe.baseURL !== undefined && probe.baseURL.length > 0)
+  const discoveryUnavailable = props.probeBlocked !== undefined
+    ? t(props.probeBlocked)
+    : askable ? undefined : t('fetchNeedsBaseUrl')
   return (
-    <section className={styles['modelCatalog']} aria-label={t('models')}>
+    <section className={styles['modelCatalog']} aria-label={props.catalogLabel ?? t('models')}>
       <div className={styles['modelListHead']}>
         <div className={styles['modelCatalogHeading']}>
-          <span className={styles['modelCatalogTitle']}>{t('models')}</span>
+          <span className={styles['modelCatalogTitle']}>{props.catalogLabel ?? t('models')}</span>
           {props.overridden === undefined
             ? null
             : (
@@ -328,31 +379,41 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
               </span>
             )}
         </div>
+      </div>
+      <div className={styles['modelCatalogActions']}>
         {props.overridden === true && props.onReset !== undefined
           ? (
-            <button
-              type="button"
-              className={styles['linkButton']}
+            <Button
+              size="sm"
+              variant="outline"
+              className={styles['modelResetButton']}
               disabled={disabled}
+              title={t('resetModelsHint')}
               onClick={props.onReset}
             >
               {t('resetModels')}
-            </button>
+            </Button>
           )
           : null}
-        <button
-          type="button"
-          className={styles['linkButton']}
+        {props.hideDiscoveryActions === true ? null : <><Button size="sm" variant="primary"
           disabled={disabled || busy || !askable || props.probeBlocked !== undefined}
-          title={props.probeBlocked !== undefined
-            ? t(props.probeBlocked)
-            : askable ? undefined : t('fetchNeedsBaseUrl')}
+          title={discoveryUnavailable ?? t(props.relatedCatalog === undefined ? 'getAllModelsHint' : 'getAllGoogleModelsHint')}
+          onClick={() => { void fetchModels(true) }}>
+          {t(props.relatedCatalog === undefined ? 'getAllModels' : 'getAllGoogleModels')}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={disabled || busy || !askable || props.probeBlocked !== undefined}
+          title={discoveryUnavailable ?? t(props.relatedCatalog === undefined ? 'fetchModelsHint' : 'fetchGoogleModelsHint')}
           onClick={() => { void fetchModels() }}
         >
-          {busy ? t('fetching') : t('fetchModels')}
-        </button>
+          {busy ? t('fetching') : t(props.relatedCatalog === undefined ? 'fetchModels' : 'fetchGoogleModels')}
+        </Button>
+        </>}
       </div>
       {models.length === 0 ? <p className={styles['modelEmpty']}>{t('modelsEmpty')}</p> : null}
+      {models.length > 0 ? <ModelColumnHeaders t={t} /> : null}
       {models.map((model, index) => (
         <div key={index} className={styles['modelEntry']}>
           <div className={styles['modelRow']}>
@@ -374,12 +435,17 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
               disabled={disabled}
               onChange={(event) => { patch(index, { name: event.target.value === '' ? undefined : event.target.value }) }}
             />
+            {(['image', 'video'] as const).map(role => (
+              <ModelTypeCheckbox key={role} role={role} model={textOf(model, 'id') || index + 1}
+                endpoints={endpointsOf(model)} t={t} disabled={disabled}
+                onChange={(endpoints) => { patch(index, { endpoints }) }} />
+            ))}
             <button
               type="button"
               className={styles['iconButton']}
-              aria-label={`${t('modelAdvanced')} ${index + 1}`}
+              aria-label={`${t('modelDetails')} ${index + 1}`}
               aria-expanded={expanded.has(index)}
-              title={t('modelAdvanced')}
+              title={t('modelDetails')}
               onClick={() => { toggleExpanded(index) }}
             >
               <IconChevron open={expanded.has(index)} />
@@ -420,7 +486,7 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
                     type="text"
                     inputMode="numeric"
                     value={capacityText(model, index, 'contextWindow')}
-                    placeholder={CAPACITY_HINT.contextWindow}
+                    placeholder={CONTEXT_WINDOW_HINT}
                     aria-label={`${t('modelContextWindow')} ${index + 1}`}
                     disabled={disabled}
                     onChange={(event) => { editCapacity(index, 'contextWindow', event.target.value) }}
@@ -433,7 +499,7 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
                     type="text"
                     inputMode="numeric"
                     value={capacityText(model, index, 'maxTokens')}
-                    placeholder={CAPACITY_HINT.maxTokens}
+                    placeholder={t('modelMaxTokensPlaceholder')}
                     aria-label={`${t('modelMaxTokens')} ${index + 1}`}
                     disabled={disabled}
                     onChange={(event) => { editCapacity(index, 'maxTokens', event.target.value) }}
@@ -458,7 +524,7 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
         onClose={closePicker}
         title={t('fetchTitle')}
         closeLabel={t('close')}
-        description={t('fetchDescription')}
+        description={t(props.relatedCatalog === undefined ? 'fetchDescription' : 'fetchGoogleDescription')}
         className={styles['fetchDialog'] as string}
         footer={(
           <>
@@ -467,28 +533,67 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
           </>
         )}
       >
+        {failure === undefined ? null : <p role="alert" className={styles['error']}>{failure}</p>}
+        <p className={styles['advancedHint']}>{t('modelTypesHint')}</p>
         <div className={styles['candidateActions']}>
           <Button variant="ghost" size="sm" onClick={toggleAllCandidates}>
             {t(allCandidatesPicked ? 'fetchDeselectAll' : 'fetchSelectAll')}
           </Button>
         </div>
-        <ul className={styles['candidateList']}>
-          {(candidates ?? []).map(candidate => (
-            <li key={candidate.id} className={styles['candidate']}>
-              <label className={styles['candidateLabel']}>
-                <input
-                  type="checkbox"
-                  checked={picked.has(candidate.id)}
-                  onChange={() => { toggle(candidate.id) }}
-                />
-                {/* The id alone: it is the string adoption writes, and the
-                    capacities the endpoint reported are adopted with it and
-                    editable in the row that appears. */}
-                <span className={styles['candidateId']}>{candidate.id}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
+        <div className={styles['candidateList']}>
+          <table className={styles['candidateTable']}>
+            <thead>
+              <tr>
+                <th scope="col">{t('modelId')}</th>
+                <th scope="col">{t('fetchModelName')}</th>
+                <th scope="col" className={styles['candidateType']}>{t('modelImage')}</th>
+                <th scope="col" className={styles['candidateType']}>{t('modelVideo')}</th>
+              </tr>
+            </thead>
+            {catalogs.filter(target => activeCandidates.some(candidate => candidate.catalog === target.catalog))
+              .map(target => <tbody key={target.catalog} aria-label={target.label}>
+                {target.label === undefined ? null : <tr><th colSpan={4} scope="rowgroup">{target.label}</th></tr>}
+                {activeCandidates.filter(candidate => candidate.catalog === target.catalog).map(candidate => (
+                  <tr key={candidateKey(candidate)}>
+                    <td>
+                      <label className={styles['candidateLabel']}>
+                        <input
+                          type="checkbox"
+                          checked={picked.has(candidateKey(candidate))}
+                          onChange={() => { toggle(candidateKey(candidate)) }}
+                        />
+                        <span className={styles['candidateId']}>{candidate.id}</span>
+                      </label>
+                    </td>
+                    <td>
+                      <input data-hydra-control="field"
+                        className={styles['input']}
+                        type="text"
+                        aria-label={`${t('fetchModelName')} ${candidate.id}`}
+                        value={candidate.name ?? ''}
+                        placeholder=""
+                        onChange={(event) => {
+                          const name = event.target.value
+                          setCandidates(current => current?.map(model => candidateKey(model) === candidateKey(candidate)
+                            ? { ...model, name } : model))
+                        }}
+                      />
+                    </td>
+                    {(['image', 'video'] as const).map(role => (
+                      <td key={role} className={styles['candidateType']}>
+                        <ModelTypeCheckbox role={role} model={candidate.id} endpoints={candidate.endpoints} t={t}
+                          onChange={(endpoints) => {
+                            setCandidates(current => current?.map(model => candidateKey(model) === candidateKey(candidate)
+                              ? { ...model, endpoints } : model))
+                            setClassified(current => new Set(current).add(candidateKey(candidate)))
+                          }} />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>)}
+          </table>
+        </div>
       </Modal>
     </section>
   )

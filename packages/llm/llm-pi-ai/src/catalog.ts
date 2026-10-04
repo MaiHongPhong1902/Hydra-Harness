@@ -13,6 +13,7 @@
  */
 
 import { builtinProviders, getBuiltinModels, getBuiltinProviders } from '@earendil-works/pi-ai/providers/all'
+import { inferModelEndpoints, supportsConversation } from '@hydraharness/harness-llm'
 import type { BuiltinProvider } from '@earendil-works/pi-ai/providers/all'
 import type {
   AnthropicMessagesCompat,
@@ -537,6 +538,8 @@ export interface PiAiModelProfile {
   id: string
   /** Display name for selectors; defaults to the catalog name, then the id. */
   name?: string
+  /** Relative API endpoint paths; absent or empty inherits known family metadata or keeps chat routing unknown. */
+  endpoints?: string[]
   /** Maximum combined request and response context in tokens. */
   contextWindow?: number
   /**
@@ -611,8 +614,9 @@ function invalid(provider: string, detail: string): never {
  * lets a deployment add a model the installed catalog has not caught up with —
  * a provider's newest release — without restating the protocol its siblings
  * already use. A route whose shipped models disagree (an OpenAI-style catalog
- * spanning Responses and Chat Completions) has no such answer, so a model it
- * does not describe must name its protocol at the route.
+ * spanning Responses and Chat Completions) has no such answer for a new
+ * conversation model, which must name its protocol at the route. Dedicated
+ * media resolves its generation transport separately.
  */
 function sharedCatalogApi(defaults: ReadonlyMap<string, Model<Api>>): string | undefined {
   const apis = new Set<string>()
@@ -759,6 +763,8 @@ function resolveModelCompat(
 export interface RouteCatalog {
   /** The materialized models in configuration order. */
   models: readonly Model<Api>[]
+  /** Endpoint metadata detached from configuration, keyed by model id. */
+  modelEndpoints: ReadonlyMap<string, readonly string[]>
   /**
    * Per-request output caps this profile explicitly configured, by model id.
    *
@@ -822,6 +828,10 @@ export function resolveRouteModels(request: RouteCatalogRequest): RouteCatalog {
       + ' must be listed in configuration')
   }
   const routeApi = sharedCatalogApi(defaults)
+  // Dedicated media uses the OpenAI generation resources, independently of
+  // which conversation API each installed text model uses.
+  const mediaApi = defaults.size > 0 && [...defaults.values()].every(model =>
+    model.api === 'openai-completions' || model.api === 'openai-responses') ? 'openai-completions' : undefined
   // Vocabulary before protocols: a withheld or undeclared switch is refused
   // wherever it is written, so it cannot look applied on a route whose models
   // never reach the protocol that would have taken it.
@@ -831,12 +841,21 @@ export function resolveRouteModels(request: RouteCatalogRequest): RouteCatalog {
   }
   const seen = new Set<string>()
   const configuredMaxTokens = new Map<string, number>()
+  const modelEndpoints = new Map<string, readonly string[]>()
   const models = entries.map((entry) => {
     if (entry.id.length === 0) invalid(provider, 'has a model with an empty id')
     if (seen.has(entry.id)) invalid(provider, `lists model "${entry.id}" more than once`)
     seen.add(entry.id)
+    const endpoints = entry.endpoints === undefined || entry.endpoints.length === 0
+      ? inferModelEndpoints(entry.id) : entry.endpoints
+    if (endpoints !== undefined) {
+      if (endpoints.some(endpoint => endpoint.includes('://') || !/^[a-zA-Z][a-zA-Z0-9/{}:._-]*$/.test(endpoint))) {
+        invalid(provider, `model "${entry.id}" endpoints must be relative API paths without queries or fragments`)
+      }
+      modelEndpoints.set(entry.id, [...new Set(endpoints)])
+    }
     const base = defaults.get(entry.id)
-    const api = request.api ?? base?.api ?? routeApi
+    const api = request.api ?? base?.api ?? routeApi ?? (supportsConversation(endpoints) ? undefined : mediaApi)
     if (api === undefined) {
       invalid(provider, `model "${entry.id}" needs an api; the installed catalog does not describe it, so set the`
         + ' route\'s api to the wire protocol its endpoint speaks')
@@ -890,5 +909,5 @@ export function resolveRouteModels(request: RouteCatalogRequest): RouteCatalog {
     invalid(provider, `sets compat "${field}", but no model on the route speaks a protocol that takes it;`
       + ` it exists on ${takers.join(', ')}`)
   }
-  return { models, configuredMaxTokens }
+  return { models, configuredMaxTokens, modelEndpoints }
 }

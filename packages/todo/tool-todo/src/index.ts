@@ -127,6 +127,7 @@ export function apply(ctx: Context, config: Config): void {
   ctx.inject(['sessionProjections'], (projectionCtx) => {
     projectionCtx.sessionProjections.register<'todos', TodoItem[] | null>({
       key: 'todos',
+      history: 'active-version',
       stateSchema: todosProjectionSchema,
       init: () => null,
       apply: (state, event) => {
@@ -135,7 +136,7 @@ export function apply(ctx: Context, config: Config): void {
         return state
       },
       wire: { viewSchema: todosProjectionSchema, view: state => state },
-      stateVersion: 3,
+      stateVersion: 4,
     })
   })
   ctx.tools.register(defineTool({

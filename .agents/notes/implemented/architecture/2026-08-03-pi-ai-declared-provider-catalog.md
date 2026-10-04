@@ -56,6 +56,8 @@ A route's auth follows from that. A catalog route keeps the installed provider's
 
 ## Consequences
 
+An omitted model or request output cap leaves the OpenAI and Google output-cap fields absent. The adapter removes pi-ai's inferred cap through its request-payload hook; required-cap APIs retain model capacity and context fitting. Unknown models have a configurable 131,072-token output-capacity fallback. The shared model editor labels an empty cap **Unlimited**, and clearing a count removes the stored field. Provider limits remain authoritative; using a large sentinel in optional output fields would risk rejected requests without providing unlimited output.
+
 Configuring a provider no longer depends on a pi-ai release. A gateway, a self-hosted server, or a model newer than the pinned catalog is a `settings.yaml` edit, and a stale context window can be corrected in place. The deprecated `/compat` import is gone, so pi-ai deleting it is no longer a breaking event. `defaultMaxTokens` now flows from configuration when a deployment states one, without inventing a cap from catalog metadata.
 
 What it costs: `settings.yaml` grows for a declared route, because it must state its endpoint, protocol, and model ids. `api` applies to a whole route, so a mixed-protocol catalog route cannot host a model of the other protocol — splitting it across two route keys is the workaround. Nothing queries a provider's `/models`, so a model list is only as current as its last edit. Reported error shape shifts in one case: a route whose auth resolves to nothing now surfaces pi-ai's own diagnostic as an error `finish` chunk before any network call, where the previous adapter sent a keyless request and surfaced the provider's 401.

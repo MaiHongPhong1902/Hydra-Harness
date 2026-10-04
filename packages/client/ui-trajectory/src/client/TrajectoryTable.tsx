@@ -14,6 +14,7 @@ import {
   JsonTree,
   MarkdownText,
   Tooltip,
+  writeClipboard,
 } from '@hydraharness/harness-client-ui-primitives'
 import { structuredPatch } from 'diff'
 import type {
@@ -1510,10 +1511,34 @@ function RecordPayload({
   preview?: boolean
 }) {
   const value = direction === 'input' ? record.cell.inputDetail : record.cell.outputDetail
+  const [copied, setCopied] = useState(false)
+  useEffect(() => { setCopied(false) }, [value])
+  useEffect(() => {
+    if (!copied) return
+    const timer = window.setTimeout(() => { setCopied(false) }, 1000)
+    return () => { window.clearTimeout(timer) }
+  }, [copied])
   const missing = direction === 'input'
     ? 'No payload captured'
     : 'No result captured'
   if (!value) return <p className={css.noPayload}>{missing}</p>
+  return <div className={css.copyablePayload}>
+    <div className={css.payloadActions}>
+      <button type="button" aria-label={direction === 'input' ? 'Copy payload' : 'Copy result'}
+        className={css.payloadCopy} onClick={() => {
+          void writeClipboard(value).then((ok) => { if (ok) setCopied(true) })
+        }}>{copied ? 'Copied' : 'Copy'}</button>
+    </div>
+    <RecordPayloadBody record={record} direction={direction} preview={preview} value={value} />
+  </div>
+}
+
+function RecordPayloadBody({ record, direction, preview, value }: {
+  record: TableRecord
+  direction: 'input' | 'output'
+  preview: boolean
+  value: string
+}) {
   const error = direction === 'output' && record.cell.isError === true
   const payloadClass = preview ? css.jsonPreview : css.jsonPayload
   const payloadClassName = error ? `${payloadClass} ${css.errorPayload}` : payloadClass

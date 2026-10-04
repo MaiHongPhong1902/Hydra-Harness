@@ -10,6 +10,7 @@ import { assertNever } from '@hydraharness/harness-llm'
 import type { CallId } from '@hydraharness/harness-llm'
 import type { InvariantFailure, InvariantInstaller } from '@hydraharness/harness-invariants'
 import type { Session, SessionEvent } from '@hydraharness/harness-session'
+import { SessionVersionIndex } from './versions.ts'
 import { TOOL_NOT_STARTED } from './repair.ts'
 
 const PACKAGE_NAME = '@hydraharness/harness-session'
@@ -204,12 +205,23 @@ const install: InvariantInstaller = Object.assign((ctx: Context, fail: Invariant
     pendingCalls: new Set(),
   })
 
-  const seedSession = (session: Session): SessionTrace => {
+  const foldPath = (events: readonly SessionEvent[]): SessionTrace => {
     const trace = freshTrace()
-    traces.set(session, trace)
+    for (const event of events) applyTransition(trace, validateEvent(trace, event, fail))
+    return trace
+  }
+
+  const seedSession = (session: Session): SessionTrace => {
+    const versions = new SessionVersionIndex()
+    let trace = freshTrace()
     for (const event of session.events) {
-      applyTransition(trace, validateEvent(trace, event, fail))
+      versions.append(event)
+      if (event.type === 'session/version' || event.type === 'session/version-selected') {
+        trace = foldPath(versions.events())
+        trace.lastSeq = event.seq
+      } else applyTransition(trace, validateEvent(trace, event, fail))
     }
+    traces.set(session, trace)
     return trace
   }
 
@@ -228,12 +240,20 @@ const install: InvariantInstaller = Object.assign((ctx: Context, fail: Invariant
     }
     stagedTransitions.delete(event)
     applyTransition(staged.trace, staged.transition)
+    traces.set(session, staged.trace)
   }, { global: true })
 
   ctx.on('internal/dispatch', (_mode, eventName, args) => {
     if (eventName !== 'session/event') return
     const [session, event] = args as [Session, SessionEvent]
-    const trace = traceFor(session)
+    let trace = traceFor(session)
+    if (event.type === 'session/version' || event.type === 'session/version-selected') {
+      const path = event.type === 'session/version'
+        ? session.versions.events(event.data.parentVersionId).filter(entry => entry.seq < event.data.beforeSeq)
+        : session.versions.events(event.data.versionId)
+      trace = foldPath(path)
+      trace.lastSeq = session.events.at(-1)?.seq ?? -1
+    }
     const transition = validateEvent(trace, event, fail)
     // A later dispatch listener may veto. Validation is pure, so abandoning
     // this weakly keyed transition does not advance or retain the session.

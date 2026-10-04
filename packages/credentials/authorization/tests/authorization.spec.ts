@@ -59,6 +59,59 @@ function committingFlow(
 }
 
 describe('AuthorizationService registry', () => {
+  it('forgets an orphan credential record completely while retaining unrelated records', async () => {
+    const ctx = await harness()
+    await ctx.credentials.modifyRecord(KEY, async () => ({ kind: 'grant', payload: { accounts: [
+      { id: 'one', token: 'local-one' }, { id: 'two', token: 'local-two' },
+    ] } }))
+    const other = { kind: 'grant' as const, payload: { token: 'unrelated' } }
+    await ctx.credentials.modifyRecord(OTHER, async () => other)
+    await ctx.authorization.forget(KEY)
+    await ctx.authorization.forget(KEY)
+    expect(await ctx.credentials.readRecord(KEY)).toBeUndefined()
+    expect(await ctx.credentials.readRecord(OTHER)).toEqual(other)
+  })
+
+  it('reserves the record during forgetting and releases it after a failed storage write', async () => {
+    const ctx = await harness()
+    ctx.authorization.registerFlow({ ...committingFlow(ctx), accounts: {
+      list: async () => [{ id: ACCOUNT, label: 'Account One' }], remove: async () => {},
+    } })
+    const deletion = Promise.withResolvers<undefined>()
+    const deleteRecord = vi.spyOn(ctx.credentials, 'deleteRecord').mockImplementationOnce(() => deletion.promise)
+    const pending = ctx.authorization.forget(KEY)
+    const refused = expect(pending).rejects.toThrow('storage write failed')
+    expect(ctx.authorization.describe(KEY)?.inFlight).toBe(true)
+    await expect(ctx.authorization.begin({ key: KEY, interaction: surface() })).rejects.toMatchObject({ code: 'ALREADY_IN_FLIGHT' })
+    await expect(ctx.authorization.forget(KEY)).rejects.toMatchObject({ code: 'ALREADY_IN_FLIGHT' })
+    await expect(ctx.authorization.removeAccount(KEY, ACCOUNT)).rejects.toMatchObject({ code: 'ALREADY_IN_FLIGHT' })
+    expect(deleteRecord).toHaveBeenCalledOnce()
+    deletion.reject(new Error('storage write failed'))
+    await refused
+    expect(ctx.authorization.describe(KEY)?.inFlight).toBe(false)
+    await ctx.authorization.forget(KEY)
+    expect(deleteRecord).toHaveBeenCalledTimes(2)
+  })
+
+  it('refuses whole-record deletion while authorization is running', async () => {
+    const ctx = await harness()
+    const entered = Promise.withResolvers<undefined>()
+    const deleted = vi.spyOn(ctx.credentials, 'deleteRecord')
+    ctx.authorization.registerFlow(committingFlow(ctx, KEY, async (session) => {
+      entered.resolve(undefined)
+      await session.prompt({ kind: 'text', message: 'Code' })
+    }))
+    const pending = ctx.authorization.begin({ key: KEY, interaction: {
+      notify: () => {}, prompt: () => new Promise(() => {}),
+    } })
+    await entered.promise
+    await expect(ctx.authorization.forget(KEY)).rejects.toMatchObject({ code: 'ALREADY_IN_FLIGHT' })
+    expect(deleted).not.toHaveBeenCalled()
+    ctx.authorization.cancel(KEY)
+    await expect(pending).resolves.toEqual({ status: 'cancelled' })
+    await ctx.authorization.forget(KEY)
+  })
+
   it('keeps account inventory and removal with the registered provider', async () => {
     const ctx = await harness()
     let accounts = [{ id: ACCOUNT, label: 'Account One' }]

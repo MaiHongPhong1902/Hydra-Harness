@@ -31,6 +31,7 @@ function props(
   return {
     useSession,
     renderSlot,
+    renderMessageImages: vi.fn(() => null),
     node: {
       key: `tool:${block.callId}`,
       kind: 'tool-call',
@@ -52,6 +53,24 @@ function props(
 }
 
 describe('ToolCallTree', () => {
+  it('renders durable presentation images for root and nested results through the conversation owner', () => {
+    const image = { attachmentId: 'opaque-image', mediaType: 'image/png', bytes: 68, width: 1, height: 1 } as const
+    const leaf = { ...root('image:child', null), resultView: { card: 'generic', content: [{ type: 'image', attachment: image }] } } as ToolResultNode
+    const block = { ...leaf, callId: 'image', subCalls: [leaf] }
+    const owner = props(block)
+    render(<ToolCallTree {...owner} />)
+    expect(owner.renderMessageImages).toHaveBeenCalledTimes(2)
+    expect(owner.renderMessageImages).toHaveBeenCalledWith({ images: [{ attachment: image }], align: 'start' })
+  })
+
+  it('does not show image previews for a failed result or text-only presentation', () => {
+    const block = root('image', null)
+    const owner = props(block)
+    const view = render(<ToolCallTree {...owner} />)
+    view.rerender(<ToolCallTree {...owner} node={{ ...owner.node, data: { root: { ...block, isError: true } } }} />)
+    view.rerender(<ToolCallTree {...owner} node={{ ...owner.node, data: { root: { ...block, resultView: { card: 'generic', content: [{ type: 'text', text: 'Done' }] } } } }} />)
+    expect(owner.renderMessageImages).not.toHaveBeenCalled()
+  })
   it('owns the root marker, generic fallback, and selected state for a window-truncated call', () => {
     const block = root('w1', null)
     const view = render(<ToolCallTree {...props(block, 'w1')} />)

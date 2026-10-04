@@ -59,10 +59,12 @@ import Lsp from '@hydraharness/harness-lsp'
 import * as ToolLsp from '@hydraharness/harness-tool-lsp'
 import * as ToolSkill from '@hydraharness/harness-tool-skill'
 import * as ToolSessionQuery from '@hydraharness/harness-tool-session-query'
+import * as ToolSessionVersion from '@hydraharness/harness-tool-session-version'
 import * as ToolTasks from '@hydraharness/harness-tool-jobs'
 import type TeamService from '@hydraharness/harness-experimental-agent-team'
 import * as ToolTeam from '@hydraharness/harness-experimental-tool-agent-team'
 import * as ToolTodo from '@hydraharness/harness-tool-todo'
+import * as ToolMedia from '../packages/media/tool-media/src/index.ts'
 import * as ToolSubagent from '@hydraharness/harness-tool-subagent'
 import * as ToolWeb from '@hydraharness/harness-tool-web'
 import BrowserSessionService from '@hydraharness/harness-browser-electron'
@@ -78,7 +80,7 @@ import { hydraPackageSlug } from './verify-md-links.ts'
 class CatalogAttachmentStore extends AttachmentStore {
   readonly imageLimits: ImageAttachmentLimits = Object.freeze({
     maxImageBytes: 1,
-    maxImagesPerMessage: 1,
+    maxImagesPerMessage: 20,
     maxMessageImageBytes: 1,
     maxImagePixels: 1,
     maxImageDimension: 1,
@@ -454,6 +456,15 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
   },
   {
+    pkg: '@hydraharness/harness-tool-session-version',
+    dir: 'tool-session-version',
+    source: 'packages/session/tool-session-version/src/index.ts',
+    requires: ['ctx.tools', 'a calling Agent session'],
+    writes: ['tool/call', 'tool/result'],
+    async mount(ctx) { await ctx.plugin(ToolSessionVersion) },
+    note: 'Bounded pages of stored transcript versions share one session log. Reading a version leaves the active context selection unchanged.',
+  },
+  {
     pkg: '@hydraharness/harness-tool-session-query',
     dir: 'tool-session-query',
     source: 'packages/session-query/tool-session-query/src/index.ts',
@@ -603,6 +614,19 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(VmWorkflowEngine, { provider: 'mock' })
       await ctx.plugin(ToolWorkflow)
     },
+  },
+  {
+    pkg: '@hydraharness/harness-tool-media',
+    dir: 'tool-media',
+    source: 'packages/media/tool-media/src/index.ts',
+    requires: ['ctx.tools', 'ctx.credentials', 'ctx.attachments'],
+    writes: ['tool/call', 'tool/result with durable media presentation metadata'],
+    async mount(ctx) {
+      await ctx.plugin(CatalogAttachmentStore)
+      ctx.provide('credentials', {} as never)
+      await ctx.plugin(ToolMedia)
+    },
+    note: 'Image and video output is stored before the Native tool result. Chat uses durable references; the model receives a text acknowledgement. Nested Code Mode dispatch is refused before billing.',
   },
   {
     pkg: '@hydraharness/harness-tool-web',

@@ -1,0 +1,10 @@
+{"type":"session","version":0,"id":"01a11c10-0000-4000-8000-000000000001","createdAt":1790870400000,"cwd":"{{cwd}}","delegationDepth":0}
+{"type":"user/message","data":{"content":[{"type":"text","text":"Generate a Hydra illustration with Google and display it in chat."}],"source":{"kind":"user"},"role":"user","id":"01a11c10-0000-4000-8000-000000000002"},"surfaceOp":"append"}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"tool-call-delta","index":0,"id":"image-google","name":"image_generate_google","argumentsDelta":"{\"prompt\":\"A Hydra illustration\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"image-google","name":"image_generate_google","arguments":"{\"prompt\":\"A Hydra illustration\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"block-start","index":0,"blockType":"text"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"text-delta","index":0,"text":"Your image is displayed in chat. Click it to preview or download."}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"block-end","index":0,"block":{"type":"text","text":"Your image is displayed in chat. Click it to preview or download."}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"finish","reason":{"kind":"stop"}}}}

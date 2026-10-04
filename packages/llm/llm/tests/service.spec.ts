@@ -22,6 +22,7 @@ import type {
   LlmModelReasoningInfo,
   LlmProviderInfo,
   LlmResolvedModelInfo,
+  MediaGenerationOptions,
 } from '@hydraharness/harness-llm'
 
 class ScriptedAdapter extends LlmAdapter {
@@ -87,12 +88,75 @@ class CatalogAdapter extends ScriptedAdapter {
   }
 }
 
+it('refuses generation through an adapter without media transport', async () => {
+  const ctx = new Context()
+  await ctx.plugin(LlmRuntime)
+  ctx.llm.registerAdapter(['text-only'], new CatalogAdapter({ id: 'text-only', name: 'Text only' }, [
+    { provider: 'text-only', id: 'image-advertisement', name: 'Image', endpoints: ['images/generations'] },
+  ]))
+  try {
+    await expect(ctx.llm.generateMedia({
+      endpoint: 'images/generations', body: {}, maxResponseBytes: 32768, signal: new AbortController().signal,
+    })).rejects.toMatchObject({ code: 'UNSUPPORTED_GENERATION' })
+  } finally { await ctx.fiber.dispose() }
+})
+
 const SCRIPT: StreamChunk[] = [
   { type: 'block-start', index: 0, blockType: 'text' },
   { type: 'text-delta', index: 0, text: 'hi' },
   { type: 'block-end', index: 0, block: { type: 'text', text: 'hi' } },
   { type: 'finish', reason: { kind: 'stop' } },
 ]
+
+it('uses the global provider/model pair, observes changes, and honors an explicit route restriction', async () => {
+  const ctx = new Context()
+  await ctx.plugin(LlmRuntime)
+  const requested: string[] = []
+  class MediaAdapter extends CatalogAdapter {
+    override requestGeneration(options: MediaGenerationOptions & { provider: string; model: string }): Promise<Response> {
+      requested.push(`${options.provider}/${options.model}`)
+      return Promise.resolve(new Response('{}'))
+    }
+  }
+  for (const provider of ['first', 'second']) ctx.llm.registerAdapter([provider], new MediaAdapter({ id: provider, name: provider }, [
+    { provider, id: 'same', name: 'Same' },
+    { provider, id: 'image', name: 'Image', endpoints: ['images/generations'] },
+  ]))
+  let choice = { provider: 'second', model: 'same' }
+  const reader = () => choice
+  const dispose = ctx.llm.registerGenerationPreferences(reader)
+  try {
+    expect(() => ctx.llm.registerGenerationPreferences(reader)).toThrow(/already have an owner/)
+    const options = { endpoint: 'images/generations' as const, model: 'image', body: {}, maxResponseBytes: 32768, signal: new AbortController().signal }
+    expect(await ctx.llm.generateMedia(options)).toMatchObject({ provider: 'second', model: 'same' })
+    choice = { provider: 'first', model: 'same' }
+    expect(await ctx.llm.generateMedia(options)).toMatchObject({ provider: 'first', model: 'same' })
+    expect(await ctx.llm.generateMedia({ ...options, provider: 'second' })).toMatchObject({ provider: 'second', model: 'image' })
+    dispose()
+    const replacement = ctx.llm.registerGenerationPreferences(reader)
+    dispose()
+    expect(await ctx.llm.generateMedia(options)).toMatchObject({ provider: 'first', model: 'same' })
+    replacement()
+    expect(await ctx.llm.generateMedia(options)).toMatchObject({ provider: 'first', model: 'image' })
+    expect(requested).toEqual(['second/same', 'first/same', 'second/image', 'first/same', 'first/image'])
+  } finally { await ctx.fiber.dispose() }
+})
+
+it('refuses unavailable generation selections and unsupported explicit transports before fallback', async () => {
+  const ctx = new Context()
+  await ctx.plugin(LlmRuntime)
+  ctx.llm.registerAdapter(['text'], new CatalogAdapter({ id: 'text', name: 'Text' }, [{ provider: 'text', id: 'm', name: 'M' }]))
+  let choice = { provider: 'absent', model: 'm' }
+  ctx.llm.registerGenerationPreferences(() => choice)
+  const options = { endpoint: 'images/generations' as const, body: {}, maxResponseBytes: 32768, signal: new AbortController().signal }
+  try {
+    await expect(ctx.llm.generateMedia(options)).rejects.toMatchObject({ code: 'NO_ADAPTER' })
+    choice = { provider: 'text', model: 'absent' }
+    await expect(ctx.llm.generateMedia(options)).rejects.toMatchObject({ code: 'INVALID_GENERATION_SELECTION' })
+    choice = { provider: 'text', model: 'm' }
+    await expect(ctx.llm.generateMedia(options)).rejects.toMatchObject({ code: 'UNSUPPORTED_GENERATION' })
+  } finally { await ctx.fiber.dispose() }
+})
 
 async function collect(stream: AsyncIterable<StreamChunk>): Promise<StreamChunk[]> {
   const chunks: StreamChunk[] = []
@@ -266,6 +330,7 @@ describe('LlmRuntime', () => {
       expect(projected, fixture.name).toMatchObject({ type: 'text' })
       if (projected?.type !== 'text') throw new Error(`expected projected text for ${fixture.name}`)
       expect(projected.text, fixture.name).toContain(fixture.expected)
+      expect(ctx.llm.fileRequestText(attachment), fixture.name).toBe(projected.text)
       if (fixture.fs !== undefined) {
         expect(projected.text, fixture.name).toContain('include this saved path in the delegation prompt')
       }

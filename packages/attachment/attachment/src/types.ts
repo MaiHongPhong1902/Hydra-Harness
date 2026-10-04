@@ -23,6 +23,23 @@ export interface ImageAttachmentRef {
   name?: string
 }
 
+/** Tool-result presentation images, excluded from derived model messages. */
+export interface ToolImagePresentationMeta {
+  kind: 'tool-images'
+  images: ImageAttachmentRef[]
+}
+
+/** Stored video bytes presented to users without entering model history. */
+export interface VideoAttachmentRef extends FileAttachmentRef {
+  mediaType: 'video/mp4' | 'video/webm'
+}
+
+/** Tool-result videos read through session-authorized attachment access. */
+export interface ToolVideoPresentationMeta {
+  kind: 'tool-videos'
+  videos: VideoAttachmentRef[]
+}
+
 /** Durable reference to verbatim stored file bytes. */
 export interface FileAttachmentRef { attachmentId: AttachmentId; name: string; bytes: number }
 /** Base64-encoded file upload. */

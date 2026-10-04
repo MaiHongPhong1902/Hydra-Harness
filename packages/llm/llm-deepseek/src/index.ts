@@ -98,6 +98,8 @@ export interface Config {
   retryPolicy?: RetryPolicyConfig
 }
 
+const ENDPOINT_PATH = /^(?!.*:\/\/)[a-zA-Z][a-zA-Z0-9/{}:._-]*$/
+
 const catalogModel: z<DeepSeekCatalogModel> = z.object({
   id: z.string().required(),
   name: z.string(),
@@ -105,6 +107,7 @@ const catalogModel: z<DeepSeekCatalogModel> = z.object({
   contextWindow: z.number().step(1).min(1),
   maxTokens: z.number().step(1).min(1),
   inputModalities: z.array(z.union(MODEL_MODALITIES)).min(1).default(['text']),
+  endpoints: z.array(z.string().pattern(ENDPOINT_PATH)),
 })
 
 export const Config: z<Config> = z.object({
@@ -168,6 +171,9 @@ function resolveModels(models: readonly DeepSeekCatalogModel[] | undefined): Dee
     if (new Set(inputModalities).size !== inputModalities.length) {
       throw new Error(`llm-deepseek: catalog model "${model.id}" inputModalities must not contain duplicates`)
     }
+    if (model.endpoints?.some(endpoint => !ENDPOINT_PATH.test(endpoint)) === true) {
+      throw new Error(`llm-deepseek: catalog model "${model.id}" endpoints must be relative paths`)
+    }
     if (seen.has(model.id)) throw new Error(`llm-deepseek: duplicate catalog model "${model.id}"`)
     seen.add(model.id)
     return {
@@ -177,6 +183,7 @@ function resolveModels(models: readonly DeepSeekCatalogModel[] | undefined): Dee
       ...model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow },
       ...model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens },
       inputModalities: [...inputModalities],
+      ...model.endpoints === undefined || model.endpoints.length === 0 ? {} : { endpoints: [...model.endpoints] },
     }
   })
 }

@@ -16,6 +16,7 @@ export { AttachmentId } from './brand.ts'
 export { AttachmentError, isImageAdmissionError } from './error.ts'
 export type { AttachmentErrorCode, ImageAdmissionErrorCode } from './error.ts'
 export { admitEncodedFile, admitEncodedImages } from './admission.ts'
+export { toolImageReferences, toolVideoReferences, toolMediaLabels } from './presentation.ts'
 export type {
   AttachmentId as AttachmentIdType,
   EncodedImageAttachment,
@@ -24,6 +25,9 @@ export type {
   ImageAttachmentRef,
   FileAttachmentRef,
   ImageMediaType,
+  ToolImagePresentationMeta,
+  VideoAttachmentRef,
+  ToolVideoPresentationMeta,
   SaveImageAttachment,
   SaveFileAttachment,
   SaveFileStreamAttachment,

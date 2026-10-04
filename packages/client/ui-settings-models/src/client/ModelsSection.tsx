@@ -11,6 +11,7 @@ import { Button, IconPlusOutline16, Modal } from '@hydraharness/harness-client-u
 import type { HostObservable, InjectFace, PropsRenderSlots } from '@hydraharness/harness-client-ui-slots'
 import { isManagedFallbackRef } from './FallbackKeysEditor.tsx'
 import { CustomProviderCard } from './CustomProviderCard.tsx'
+import { GenerationModels } from './GenerationModels.tsx'
 import {
   deriveKeyRef, messageOf, protocolChoices, providerAccountKey,
 } from './store.ts'
@@ -100,19 +101,19 @@ function hidesOfficialDeepSeek(target: {
 }
 
 /**
- * Remove one configured provider and its page-managed credential. Credential
+ * Remove one configured provider, its saved accounts, and page-managed credentials. Credential
  * removal comes first so a second-step failure leaves the provider row visible
  * and the whole operation safely retryable; both unsets are idempotent.
  * Nested profiles unset their user-layer path. The shipped official DeepSeek
  * route records a durable hide flag instead of unsetting the composition
  * section, which would fight the base document and recreate the row.
- * @param api - settings and credential wire faces.
+ * @param api - settings, credential, and authorization wire faces.
  * @param controller - the page store to refresh.
- * @param target - the provider's settings address and optional managed credential.
+ * @param target - the provider's settings address and managed credentials.
  * @returns the failure message, or undefined once the write and reload landed.
  */
 export async function removeProviderProfile(
-  api: Pick<IApiClient, 'settings' | 'credentials'>,
+  api: Pick<IApiClient, 'settings' | 'credentials' | 'authorization'>,
   controller: ModelsSettingsStore,
   target: {
     provider?: string
@@ -122,7 +123,19 @@ export async function removeProviderProfile(
     credentialRefs?: readonly string[]
   },
 ): Promise<string | undefined> {
+  const namespace = controller.store.getSnapshot().namespaces.get(target.settingsNs)
+  const selections = namespace?.value as Record<string, { provider?: string } | undefined> | undefined
+  const generationFields = target.settingsNs === 'llm-pi-ai'
+    ? (['imageModel', 'videoModel'] as const).filter(field => selections?.[field]?.provider === target.settingsPath[1]) : []
+  const provider = target.provider ?? target.settingsPath[1]
+  const accountKey = provider === undefined ? undefined : providerAccountKey(target.settingsNs, provider)
+  const recordKey = accountKey ?? (target.settingsNs === 'llm-pi-ai' && provider !== undefined
+    ? `${target.settingsNs}/${provider}` : undefined)
   try {
+    if (recordKey !== undefined) {
+      const removed = await api.authorization.logout({ key: recordKey })
+      if (!removed.result.ok) return removed.result.error.message
+    }
     for (const ref of [...target.credentialRef === undefined ? [] : [target.credentialRef], ...(target.credentialRefs ?? [])]) {
       const credential = await api.credentials.unset({ ref })
       if (!credential.result.ok) return credential.result.error.message
@@ -134,7 +147,9 @@ export async function removeProviderProfile(
       })
       : await api.settings.mutate({
         ns: target.settingsNs,
-        ops: [{ op: 'unset', path: [...target.settingsPath] }],
+        ...namespace === undefined || generationFields.length === 0 ? {} : { expectedRevision: namespace.revision },
+        ops: [{ op: 'unset', path: [...target.settingsPath] },
+          ...generationFields.map(field => ({ op: 'unset' as const, path: [field] }))],
       })
     if (!response.result.ok) return response.result.error.message
   } catch (error) {
@@ -314,11 +329,16 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
   // one whose schema names the protocols one may speak; without it mounted
   // there is nothing to declare and the entry point stays disabled.
   const protocols = protocolChoices(state.namespaces.get('llm-pi-ai'), schema)
+  const generationNamespace = state.namespaces.get('llm-pi-ai')
 
   return (
     <div className={styles['section']}>
       <h2 className={styles['title']}>{t('title')}</h2>
       <p className={styles['intro']}>{t('intro')}</p>
+      {generationNamespace !== undefined && <GenerationModels
+        namespace={generationNamespace} schema={schema} api={api} readOnly={!state.writable}
+        catalogRevision={JSON.stringify([...state.namespaces].map(([ns, view]) => [ns, view.revision]))}
+        onSaved={() => controller.load()} t={t} />}
       {!state.writable && state.status === 'ready' ? <p className={styles['notice']}>{t('readOnly')}</p> : null}
       {savedIdentity === undefined
         ? null
@@ -329,19 +349,24 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
         )}
       {(['apiKeys', 'accountLogin'] as const).map((group) => {
         const accountGroup = group === 'accountLogin'
-        const rows = state.rows.filter(row =>
-          (providerAccountKey(row.entry.settingsNs, row.entry.provider) !== undefined) === accountGroup)
+        const rows = state.rows.filter((row) => {
+          const geminiApiOAuth = row.entry.settingsNs === 'llm-account-auth' && row.entry.provider === 'gemini-api'
+          if (geminiApiOAuth) return !accountGroup && row.configured
+          return (providerAccountKey(row.entry.settingsNs, row.entry.provider) !== undefined) === accountGroup
+        })
         if (accountGroup && rows.length === 0) return null
         const configured = rows.filter(row => row.configured)
         // Account providers remain selectable after their profile exists: the
         // editor is also where a second account is added.
         const selectable = accountGroup
           ? rows
-          : rows.filter(row => (!row.configured && row.entry.settingsNs !== '')
-            || row.entry.provider === editing?.provider)
+          : rows.filter(row => providerAccountKey(row.entry.settingsNs, row.entry.provider) === undefined
+            && ((!row.configured && row.entry.settingsNs !== '') || row.entry.provider === editing?.provider))
         const addTarget = adding && rows.some(row => row.entry.provider === editing?.provider) ? editing : undefined
         const addNamespace = addTarget === undefined ? undefined : state.namespaces.get(addTarget.settingsNs)
         const showAdd = addTarget !== undefined || (!accountGroup && adding && editing === undefined)
+        const googleRows = accountGroup ? selectable.filter(row => row.entry.provider === 'antigravity') : []
+        const googleSelected = googleRows.some(row => row.entry.provider === addTarget?.provider)
         return (
           <section key={group} className={styles['providerGroup']} aria-label={t(group)}>
             <h3 className={styles['title']}>{t(group)}</h3>
@@ -419,6 +444,11 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                               aria-label={providerCopy(t('removeProvider'), target)}
                               disabled={!state.writable}
                               onClick={() => {
+                                if (editing?.provider === target.provider && editing.settingsNs === target.settingsNs) {
+                                  setEditing(undefined)
+                                  setAdding(false)
+                                  setAddingOption(undefined)
+                                }
                                 setSavedTarget(undefined)
                                 setDeleteFailure(undefined)
                                 setDeleteTarget(target)
@@ -463,7 +493,7 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                       <span className={styles['fieldLabel']}>{t('provider')}</span>
                       <select data-hydra-control="field"
                         className={styles['input']}
-                        value={addingOption === undefined ? addTarget?.provider ?? '' : `plugin:${addingOption}`}
+                        value={addingOption === undefined ? googleSelected ? 'google' : addTarget?.provider ?? '' : `plugin:${addingOption}`}
                         aria-label={t('provider')}
                         onChange={(event) => {
                           const optionalId = event.currentTarget.selectedOptions[0]?.dataset['hydraProviderOption']
@@ -475,16 +505,18 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                             setAddingOption(optionalId)
                             return
                           }
-                          const row = selectable.find(candidate => candidate.entry.provider === event.target.value)
+                          const row = event.target.value === 'google'
+                            ? googleRows[0]
+                            : selectable.find(candidate => candidate.entry.provider === event.target.value)
                           /* v8 ignore next -- the select only lists addable rows */
                           if (row === undefined) return
                           setAddingOption(undefined)
                           setEditing(targetOf(row))
                         }}
                       >
-                        {selectable.map(row => (
-                          <option key={row.entry.provider} value={row.entry.provider}>{row.entry.displayName}</option>
-                        ))}
+                        {selectable.map(row => googleRows.includes(row)
+                          ? row === googleRows[0] ? <option key="google" value="google">Google</option> : null
+                          : <option key={row.entry.provider} value={row.entry.provider}>{row.entry.displayName}</option>)}
                         {addTarget === undefined && addingOption === undefined ? <option value="" disabled>{t('provider')}</option> : null}
                         {accountGroup ? null : renderSlot('settings.models.provider-option', { mode: 'option' })}
                       </select>
@@ -503,6 +535,7 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                         provider={addTarget.provider}
                         displayName={addTarget.displayName}
                         hideTitle
+                        accountMode="add"
                         namespace={addNamespace}
                         schema={schema}
                         settingsPath={addTarget.settingsPath}
@@ -581,9 +614,12 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
         description={deleteTarget === undefined
           ? ''
           : providerCopy(
-            deleteTarget.credentialRef === undefined && deleteTarget.credentialRefs.length === 0
-              ? t('deleteDescription')
-              : t('deleteDescriptionWithCredential'),
+            providerAccountKey(deleteTarget.settingsNs, deleteTarget.provider) !== undefined
+              ? t(deleteTarget.provider === 'antigravity' || deleteTarget.provider === 'gemini-api'
+                ? 'deleteDescriptionWithGoogleAccounts' : 'deleteDescriptionWithAccounts')
+              : deleteTarget.credentialRef === undefined && deleteTarget.credentialRefs.length === 0
+                ? t(deleteTarget.settingsNs === 'llm-pi-ai' ? 'deleteDescriptionWithRecord' : 'deleteDescription')
+                : t('deleteDescriptionWithCredential'),
             deleteTarget,
           )}
         className={styles['deleteDialog'] as string}

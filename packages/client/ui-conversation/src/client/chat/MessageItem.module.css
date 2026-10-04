@@ -30,20 +30,21 @@
 }
 
 .userStack[data-editing] {
-  width: min(525px, 82%);
+  width: min(620px, 100%);
+  max-width: 100%;
 }
 
 .userStack[data-editing] .bubble {
   width: 100%;
   box-sizing: border-box;
-  padding: 12px;
-  border-radius: 20px;
+  padding: 16px;
 }
 
 .editText {
   display: block;
   box-sizing: border-box;
   width: 100%;
+  min-height: 96px;
   max-height: 50vh;
   padding: 0;
   border: none;
@@ -55,46 +56,90 @@
 }
 
 .userStack[data-editing] .bubble:has(.editText:focus-visible) {
-  outline: 1px solid var(--dsw-alias-border-l2);
+  outline: 2px solid var(--dsw-alias-focus-ring);
   outline-offset: 2px;
 }
 
 .editActions {
-  --dsw-alias-button-primary-fill: var(--dsw-alias-label-primary);
-  --dsw-alias-button-primary-hover: var(--dsw-alias-label-secondary);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
-  margin-top: 12px;
+  gap: 8px;
+}
+
+.editForm {
+  display: grid;
+  gap: 12px;
 }
 
 .editHeading {
-  margin-bottom: 12px;
-  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
   font-weight: 600;
 }
 
 .editHint,
 .editKeys,
 .versionDetail {
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
   font-size: 12px;
   line-height: 18px;
 }
 
 .editHint {
-  margin: 12px 0 0;
+  margin: 0;
 }
 
 .editKeys {
-  flex: 1 0 100%;
+  margin: 0;
+  text-align: right;
+}
+
+.editVersion,
+.versionBadge {
+  padding: 2px 6px;
+  border-radius: var(--dsw-radius-control);
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+.versionBadge[data-viewing] {
+  color: var(--dsw-alias-brand-primary);
+}
+
+.versionTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.versionPager {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  height: auto;
+  min-height: 28px;
+  gap: 4px 6px;
 }
 
 .versionOption {
   display: grid;
-  gap: 2px;
+  gap: 6px;
   width: min(260px, calc(100vw - 76px));
   white-space: normal;
 }
@@ -110,16 +155,24 @@ button.versionTrigger {
   flex: none;
 }
 
-.editActions button {
-  padding: 0 8px;
-  border-radius: 8px;
-  font-size: 14px;
+.editError {
+  margin: 0;
+  color: var(--dsw-alias-state-error-primary);
+  font-size: 13px;
   line-height: 20px;
+  overflow-wrap: anywhere;
 }
 
-.editError {
-  color: var(--dsw-alias-label-primary);
+.promptFeedback {
+  margin: 0;
+  text-align: right;
   font-size: 13px;
+  line-height: 20px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.promptFeedback.editError {
+  color: var(--dsw-alias-state-error-primary);
 }
 
 .referenceSummary {

@@ -62,6 +62,8 @@ export interface Config {
    * @default 1024
    */
   coldBlankProbeMaxBytes?: number
+  /** UTF-8 bytes per user-selected version reference. @default 65536 */
+  versionReferenceMaxBytes?: number
   /** Maximum serialized bytes per live Git review response. @default 4194304 */
   reviewMaxBytes?: number
   /** Maximum files per live Git comparison. @default 500 */
@@ -86,6 +88,7 @@ export class ApiProxyService extends Service implements ApiProxy {
     sessionExportCompressionLevel: z.number().step(1).min(0).max(9)
       .default(DEFAULT_SESSION_LOG_COMPRESSION_LEVEL) as z<SessionLogCompressionLevel>,
     coldBlankProbeMaxBytes: z.natural().default(DEFAULT_COLD_BLANK_PROBE_MAX_BYTES),
+    versionReferenceMaxBytes: z.number().step(1).min(256).default(65536),
     reviewMaxBytes: z.number().step(1).min(1).default(resolveReviewLimits({}).reviewMaxBytes),
     reviewMaxFiles: z.number().step(1).min(1).default(resolveReviewLimits({}).reviewMaxFiles),
     reviewTimeoutMs: z.number().step(1).min(1).default(resolveReviewLimits({}).reviewTimeoutMs),
@@ -122,6 +125,7 @@ export class ApiProxyService extends Service implements ApiProxy {
         ? {}
         : { coldBlankProbeMaxBytes: config.coldBlankProbeMaxBytes }),
       ...(config.reviewMaxBytes === undefined ? {} : { reviewMaxBytes: config.reviewMaxBytes }),
+      ...(config.versionReferenceMaxBytes === undefined ? {} : { versionReferenceMaxBytes: config.versionReferenceMaxBytes }),
       ...(config.reviewMaxFiles === undefined ? {} : { reviewMaxFiles: config.reviewMaxFiles }),
       ...(config.reviewTimeoutMs === undefined ? {} : { reviewTimeoutMs: config.reviewTimeoutMs }),
     })

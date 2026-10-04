@@ -7,11 +7,14 @@
 import type { ModelSelection } from '@hydraharness/harness-api-remotes/client'
 import type { SnapshotStore } from '@hydraharness/harness-client-runtime/client'
 import type { ModelDirectoryState } from './directory.ts'
+import type { GenerationMenuFace } from './GenerationMenu.tsx'
 
 /** Injected business face of the composer model seat. */
 export interface ModelSelectInjected {
   /** Whether this session supports Agent-bound model inspection and selection. */
   available: boolean
+  /** Global image/video preferences; absent when the settings service is not composed. */
+  generation?: GenerationMenuFace
   /** The session's shared directory store (same instance the /model popup reads). */
   directory: SnapshotStore<ModelDirectoryState>
   /** Refresh the advisory directory (fire-and-forget; errors land on the store). */
